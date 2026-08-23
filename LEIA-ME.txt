@@ -1,0 +1,109 @@
+MINI CAD PRO 1.100.19 — CHAPA / MATERIAL PADRÃO POR ESPAÇO
+
+Base: 1.100.18 completa.
+
+1) CRIAR ESPAÇO
+A janela "Criar espaço / Criar outro espaço" agora possui:
+
+  🧱 Chapa / material padrão do espaço
+
+O campo usa os materiais cadastrados em:
+  Materiais / fitas
+
+Prioridade automática ao abrir:
+1. material lembrado junto das medidas;
+2. material do espaço usado como referência;
+3. MDF Branco 18 mm / primeiro material disponível.
+
+Também existe:
+  Sem material padrão
+
+2) HERANÇA AUTOMÁTICA
+Quando um espaço possui material padrão, peças novas ligadas a ele herdam:
+- nome do material;
+- código;
+- cor;
+- cor do miolo;
+- sentido do veio;
+- vínculo com a biblioteca do projeto.
+
+Para evitar erros com peças especiais, a herança automática acontece quando a
+espessura real da peça corresponde à espessura nominal da chapa (tolerância 0,25 mm).
+
+Exemplo:
+Espaço = MDF Branco 18
+- lateral 18 -> recebe MDF Branco 18;
+- base 18 -> recebe MDF Branco 18;
+- prateleira 18 -> recebe MDF Branco 18;
+- frente 18 -> recebe MDF Branco 18;
+- fundo de gaveta 6 -> NÃO recebe MDF 18 automaticamente.
+
+Isso já deixa preparado para futuramente adicionarmos:
+- material padrão do fundo;
+- material padrão da caixa da gaveta;
+- fita padrão do espaço.
+
+3) CRIAR PEÇAS
+Ao abrir "Criar peças", o campo Espessura já começa com a espessura da chapa
+padrão do espaço.
+
+Exemplo:
+Espaço configurado com MDF 15 mm
+=> Criar peças começa em 15 mm.
+
+4) GAVETAS
+Ao criar um conjunto NOVO:
+- espessura da caixa usa o material padrão do espaço;
+- espessura da frente externa usa o material padrão do espaço;
+- fundo da gaveta mantém seu campo independente (6 mm por padrão).
+
+Assim uma chapa estrutural de 18 mm não é aplicada automaticamente ao fundo 6 mm.
+
+5) EDITAR ESPAÇO
+"Editar espaço" ganhou:
+  Chapa / material padrão
+
+e a opção:
+  [ ] Aplicar também às peças já existentes
+
+Desmarcado:
+- só muda o padrão das próximas peças.
+
+Marcado:
+- atualiza material, código, cor e sentido do veio das peças existentes daquele espaço;
+- NÃO muda a geometria;
+- NÃO muda a espessura física das peças.
+
+6) DIVISÕES / VÃOS
+Todas as divisões internas pertencem ao mesmo espaço raiz, portanto herdam
+automaticamente o mesmo material padrão. Cortar o vão, criar prateleira,
+divisão, lateral etc. não perde a configuração.
+
+7) NOVOS ESPAÇOS RELATIVOS
+Ao criar um Espaço 3 usando Espaço 2 como referência, o novo espaço já sugere
+o mesmo material padrão do Espaço 2. O usuário pode trocar antes de criar.
+
+Se "Lembrar estas medidas" estiver marcado, o material padrão também é lembrado.
+
+8) MATERIAL EXCLUÍDO
+Se um material usado como padrão for excluído da biblioteca, os espaços que
+apontavam para ele voltam automaticamente para "Sem material padrão".
+
+9) SALVAR / ABRIR / EXPORTAR
+O material padrão de cada espaço fica salvo no projeto.
+
+Ao exportar um móvel:
+- o padrão do espaço segue no arquivo;
+- material/código/veio/fita das peças também são preservados;
+- a biblioteca de materiais e fitas continua viajando junto.
+
+Todas as funções da 1.100.18 foram mantidas:
+- visual sólido / Raio-X;
+- eixos com profundidade;
+- seleção verde do espaço;
+- materiais e fitas;
+- preparação para etiquetas;
+- plano de corte / Aspire;
+- gavetas e corrediças Häfele;
+- Forma;
+- navegação PC estilo SketchUp.
