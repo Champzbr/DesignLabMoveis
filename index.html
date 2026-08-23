@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.28 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.29 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -974,6 +974,44 @@
   }
 
 
+
+  /* ==========================================================================
+     1.100.29 · PROJETOS POR CONTA + NUVEM
+     ========================================================================== */
+  .projectCloudBadge{
+    display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 6px;
+    border-radius:999px;background:#282d30;color:#9ca7ad;font-size:8px;font-weight:800;
+  }
+  .projectCloudBadge.ok{background:rgba(52,208,88,.12);color:#72d98c}
+  .projectCloudBadge.pending{background:rgba(255,177,73,.12);color:#ffc06c}
+  .projectCloudBadge.local{background:rgba(45,125,250,.12);color:#7daeff}
+
+  #legacyProjectsSection{
+    display:none;margin-top:22px;padding:14px;border:1px solid rgba(255,177,73,.28);
+    border-radius:16px;background:rgba(255,157,46,.035);
+  }
+  #legacyProjectsSection.show{display:block}
+  .legacyProjectsHead{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px;
+  }
+  .legacyProjectsHead h2{margin:0;font-size:15px}
+  .legacyProjectsHead p{margin:4px 0 0;color:#9b948b;font-size:9px;line-height:1.45}
+  .legacyProjectsHead button{flex:0 0 auto}
+  #legacyProjectCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:9px}
+  .legacyProjectCard{padding:10px;border:1px solid #484137;border-radius:11px;background:#171614}
+  .legacyProjectCard strong{display:block;font-size:11px}
+  .legacyProjectCard span{display:block;margin-top:4px;color:#9f978c;font-size:9px;line-height:1.4}
+  .legacyProjectCard button{width:100%;margin-top:8px;min-height:37px;font-size:9px}
+  .projectAccountPrivacy{
+    margin-top:9px;padding:8px 9px;border:1px solid rgba(45,125,250,.20);
+    border-radius:9px;background:rgba(45,125,250,.045);color:#92a5b5;font-size:9px;line-height:1.45;
+  }
+  @media(max-width:700px){
+    .legacyProjectsHead{display:block}
+    .legacyProjectsHead button{width:100%;margin-top:8px}
+  }
+
+
   /* 1.100.28 · Teste grátis configurável */
   .adminSettingsCard{
     padding:12px;border:1px solid #343a3e;border-radius:12px;background:#151819;
@@ -1078,7 +1116,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.28</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.29</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1168,7 +1206,7 @@
     <header class="projectHomeHeader">
       <div class="projectBrand">
         <div class="projectBrandLogo">M</div>
-        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.28</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.29</span></div>
       </div>
       <div class="projectAccountArea">
         <div id="projectAccountChip" class="projectAccountChip" style="display:none">
@@ -1207,6 +1245,24 @@
       <span id="projectCountText">0 projetos</span>
     </div>
     <div id="projectCards"></div>
+
+    <section id="legacyProjectsSection">
+      <div class="legacyProjectsHead">
+        <div>
+          <h2>Projetos antigos deste dispositivo</h2>
+          <p>
+            Estes projetos foram salvos antes da separação por contas e ainda não possuem dono.
+            Eles não entram automaticamente em nenhuma conta.
+          </p>
+        </div>
+        <button id="legacyImportAllBtn" class="secondary" type="button">Importar todos para minha conta</button>
+      </div>
+      <div id="legacyProjectCards"></div>
+      <div class="projectAccountPrivacy">
+        Projetos pertencentes a outras contas não aparecem aqui. Esta área mostra somente registros antigos sem proprietário.
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -1401,7 +1457,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.28 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.29 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2655,19 +2711,23 @@ function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
 function unlockOnlineApp(user,{message='Conta conectada.'}={}){
   currentIdentityUser=user||currentIdentityUser;
   authLocalMode=false;
+  prepareProjectAccountSwitch();
   updateIdentityChrome();
   $('authGate')?.classList.add('hidden');
   setAuthStatus(message,'good');
+  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
   queueMicrotask(()=>syncCloudAccount({silent:true}));
 }
 function localAuthContinue(){
   if(!isLocalAuthDevelopment())return;
   authLocalMode=true;
   currentIdentityUser=null;
+  prepareProjectAccountSwitch();
   updateIdentityChrome();
   updateCloudAccountChrome();
   $('authGate')?.classList.add('hidden');
   setAuthStatus('Modo local ativo. Publique no Netlify para testar cadastro e login.','warn');
+  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
 }
 async function waitForNetlifyIdentity(timeoutMs=10000){
   const start=Date.now();
@@ -3006,7 +3066,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.28';
+const DESIGNLAB_APP_VERSION='1.100.29';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -3472,10 +3532,18 @@ async function syncCloudAccount({silent=false}={}){
   }
   if(cloudAccountState.loading)return null;
   cloudAccountState.loading=true;cloudAccountState.error=null;updateCloudAccountChrome();
+
   try{
     const data=await cloudApiFetch('/me');
-    cloudAccountState={loading:false,ok:!!data?.ok,error:null,user:data?.user||null,subscription:data?.subscription||null,lastSync:new Date().toISOString(),banned:false};
+    cloudAccountState={
+      loading:false,ok:!!data?.ok,error:null,user:data?.user||null,
+      subscription:data?.subscription||null,lastSync:new Date().toISOString(),banned:false
+    };
     updateCloudAccountChrome();
+
+    await syncCloudProjects({silent:true});
+    if(document.body.classList.contains('project-home-active'))await renderProjectHome();
+
     if(!silent)toast(`Conta conectada · ${cloudPlanText()}`);
     return data;
   }catch(err){
@@ -3486,13 +3554,250 @@ async function syncCloudAccount({silent=false}={}){
       showBannedAccount(err?.data?.reason||'');
       return null;
     }
-    cloudAccountState={loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),user:null,subscription:null,lastSync:null,banned:false};
+    cloudAccountState={
+      loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),
+      user:null,subscription:null,lastSync:null,banned:false
+    };
     updateCloudAccountChrome();
     if(!silent)toast('Login feito, mas a nuvem não respondeu');
     return null;
   }
 }
 window.designLabCloud={apiBase:CLOUD_API_BASE,getState(){return JSON.parse(JSON.stringify(cloudAccountState));},sync(){return syncCloudAccount({silent:false});},apiFetch:cloudApiFetch};
+
+
+
+// ============================================================================
+// 1.100.29 · SINCRONIZAÇÃO DE PROJETOS — D1 + R2
+// ============================================================================
+let cloudProjectsSyncing=false;
+let cloudProjectsLastSync=null;
+
+function projectIsoMs(v){
+  const n=Date.parse(String(v||''));
+  return Number.isFinite(n)?n:0;
+}
+function cloudProjectBadge(record){
+  if(authLocalMode)return '<span class="projectCloudBadge local">Somente local</span>';
+  if(record.cloudSyncedAt && projectIsoMs(record.cloudSyncedAt)>=projectIsoMs(record.updatedAt)){
+    return '<span class="projectCloudBadge ok">☁ Nuvem</span>';
+  }
+  return '<span class="projectCloudBadge pending">☁ Aguardando sincronizar</span>';
+}
+async function cloudSaveProjectRecord(record,{silent=true}={}){
+  if(authLocalMode||!currentIdentityUser||!cloudAccountState.ok||!record)return null;
+  if(!projectBelongsToCurrentOwner(record)||record.deletedAt)return null;
+
+  const clean=projectRecordCloudClean(record);
+  try{
+    const data=await cloudApiFetch(`/projects/${encodeURIComponent(clean.id)}`,{
+      method:'PUT',body:{record:clean},timeoutMs:30000
+    });
+    const latest=await projectDbGet(clean.id);
+    if(latest&&projectBelongsToCurrentOwner(latest)&&!latest.deletedAt){
+      latest.cloudSyncedAt=projectNow();
+      latest.cloudRevision=Number(data?.project?.cloud_revision||latest.cloudRevision||1);
+      delete latest.cloudError;
+      await projectDbPut(latest);
+      if(currentProjectId===latest.id)currentProjectRecord={...latest};
+    }
+    if(document.body.classList.contains('project-home-active'))await renderProjectHome();
+    if(!silent)toast('Projeto salvo na nuvem');
+    return data;
+  }catch(err){
+    console.error('Salvar projeto na nuvem:',err);
+    if(err?.status===409&&err?.data?.error==='project_deleted'){
+      await projectDbDelete(record.id);
+      if(currentProjectId===record.id){
+        currentProjectId=null;currentProjectRecord=null;currentProjectDirty=false;
+      }
+      if(document.body.classList.contains('project-home-active'))await renderProjectHome();
+      return null;
+    }
+    const latest=await projectDbGet(record.id);
+    if(latest&&projectBelongsToCurrentOwner(latest)){
+      latest.cloudError=String(err?.message||'Falha de sincronização');
+      await projectDbPut(latest);
+    }
+    if(!silent)toast('Projeto salvo neste aparelho; nuvem pendente');
+    return null;
+  }
+}
+async function cloudDeleteProjectRecord(id,deletedAt,{silent=true}={}){
+  if(authLocalMode||!currentIdentityUser||!cloudAccountState.ok||!id)return false;
+  try{
+    await cloudApiFetch(`/projects/${encodeURIComponent(id)}`,{
+      method:'DELETE',body:{deleted_at:deletedAt||projectNow()},timeoutMs:20000
+    });
+    await projectDbDelete(id);
+    if(!silent)toast('Projeto removido da nuvem');
+    return true;
+  }catch(err){
+    console.error('Excluir projeto na nuvem:',err);
+    if(!silent)toast('Exclusão ficará pendente até a internet voltar');
+    return false;
+  }
+}
+async function cloudDownloadProject(id){
+  const data=await cloudApiFetch(`/projects/${encodeURIComponent(id)}`,{timeoutMs:30000});
+  const rec=data?.record;
+  if(!rec?.id)return null;
+  rec.ownerUserId=projectCurrentOwnerId();
+  rec.cloudSyncedAt=projectNow();
+  rec.cloudRevision=Number(data?.project?.cloud_revision||rec.cloudRevision||1);
+  delete rec.deletedAt;
+  delete rec.cloudError;
+  await projectDbPut(rec);
+  return rec;
+}
+async function syncCloudProjects({silent=true}={}){
+  if(cloudProjectsSyncing||authLocalMode||!currentIdentityUser||!cloudAccountState.ok)return null;
+  cloudProjectsSyncing=true;
+  try{
+    const owner=projectCurrentOwnerId();
+    if(!owner)return null;
+
+    const remoteData=await cloudApiFetch('/projects?include_deleted=1',{timeoutMs:20000});
+    const remote=Array.isArray(remoteData?.projects)?remoteData.projects:[];
+    const remoteMap=new Map(remote.map(p=>[p.id,p]));
+    const localAll=await projectDbList();
+    const localOwned=localAll.filter(p=>p.ownerUserId===owner);
+    const localMap=new Map(localOwned.map(p=>[p.id,p]));
+
+    for(const meta of remote){
+      const local=localMap.get(meta.id)||null;
+
+      if(meta.deleted_at){
+        if(local){
+          const remoteDelete=projectIsoMs(meta.deleted_at);
+          const localTime=Math.max(projectIsoMs(local.updatedAt),projectIsoMs(local.deletedAt));
+          if(remoteDelete>=localTime || !local.deletedAt){
+            if(currentProjectId===meta.id&&currentProjectDirty)continue;
+            await projectDbDelete(meta.id);
+          }else if(local.deletedAt){
+            await cloudDeleteProjectRecord(local.id,local.deletedAt,{silent:true});
+          }
+        }
+        continue;
+      }
+
+      if(!local){
+        await cloudDownloadProject(meta.id);
+        continue;
+      }
+
+      if(local.deletedAt){
+        if(projectIsoMs(local.deletedAt)>=projectIsoMs(meta.updated_at)){
+          await cloudDeleteProjectRecord(local.id,local.deletedAt,{silent:true});
+        }else{
+          await projectDbDelete(local.id);
+        }
+        continue;
+      }
+
+      const localTime=projectIsoMs(local.updatedAt);
+      const remoteTime=projectIsoMs(meta.updated_at);
+
+      if(remoteTime>localTime){
+        if(currentProjectId===meta.id&&currentProjectDirty)continue;
+        await cloudDownloadProject(meta.id);
+      }else if(localTime>remoteTime){
+        await cloudSaveProjectRecord(local,{silent:true});
+      }else if(!local.cloudSyncedAt){
+        local.cloudSyncedAt=projectNow();
+        local.cloudRevision=Number(meta.cloud_revision||1);
+        await projectDbPut(local);
+      }
+    }
+
+    for(const local of localOwned){
+      if(remoteMap.has(local.id))continue;
+      if(local.deletedAt){
+        await projectDbDelete(local.id);
+        continue;
+      }
+      await cloudSaveProjectRecord(local,{silent:true});
+    }
+
+    cloudProjectsLastSync=projectNow();
+    if(document.body.classList.contains('project-home-active'))await renderProjectHome();
+    if(!silent)toast('Projetos sincronizados com a nuvem');
+    return remoteData;
+  }catch(err){
+    console.error('Sincronizar projetos:',err);
+    if(!silent)toast('Não foi possível sincronizar os projetos agora');
+    return null;
+  }finally{
+    cloudProjectsSyncing=false;
+  }
+}
+window.designLabCloudProjects={
+  sync:()=>syncCloudProjects({silent:false}),
+  save:record=>cloudSaveProjectRecord(record,{silent:false})
+};
+
+
+
+async function renderLegacyProjects(allRecords){
+  const section=$('legacyProjectsSection'),box=$('legacyProjectCards');
+  if(!section||!box)return;
+
+  if(authLocalMode||!currentIdentityUser){
+    section.classList.remove('show');box.innerHTML='';return;
+  }
+
+  const legacy=(allRecords||[])
+    .filter(r=>!r.ownerUserId&&!r.deletedAt)
+    .sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+
+  if(!legacy.length){
+    section.classList.remove('show');box.innerHTML='';return;
+  }
+
+  section.classList.add('show');
+  $('legacyImportAllBtn').textContent=`Importar todos (${legacy.length}) para minha conta`;
+  box.innerHTML=legacy.map(rec=>`
+    <article class="legacyProjectCard">
+      <strong>${escapeHtml(rec.name||'Projeto antigo')}</strong>
+      <span>${projectDateText(rec.updatedAt||rec.createdAt)}<br>Sem proprietário definido.</span>
+      <button class="secondary" type="button" data-legacy-import="${escapeHtml(rec.id)}">Importar para minha conta</button>
+    </article>
+  `).join('');
+}
+async function claimLegacyProject(id,{silent=false}={}){
+  const owner=projectCurrentOwnerId();
+  if(!owner||authLocalMode)throw new Error('Entre na sua conta para importar');
+  const rec=await projectDbGet(id);
+  if(!rec)throw new Error('Projeto antigo não encontrado');
+
+  if(rec.ownerUserId){
+    if(rec.ownerUserId!==owner)throw new Error('Este projeto já pertence a outra conta');
+    return rec;
+  }
+
+  rec.ownerUserId=owner;
+  rec.ownerAssignedAt=projectNow();
+  delete rec.cloudSyncedAt;delete rec.cloudRevision;delete rec.cloudError;
+  await projectDbPut(rec);
+  await cloudSaveProjectRecord(rec,{silent:true});
+  await renderProjectHome();
+  if(!silent)toast(`“${rec.name||'Projeto'}” importado para sua conta`);
+  return rec;
+}
+async function claimAllLegacyProjects(){
+  if(authLocalMode||!currentIdentityUser)return;
+  const all=await projectDbList();
+  const legacy=all.filter(r=>!r.ownerUserId&&!r.deletedAt);
+  if(!legacy.length)return;
+
+  if(!confirm(`Importar ${legacy.length} projeto(s) antigo(s) para esta conta?\n\nFaça isso somente se estes projetos realmente forem seus.`))return;
+
+  for(const rec of legacy){
+    try{await claimLegacyProject(rec.id,{silent:true});}catch(err){console.warn(err);}
+  }
+  await renderProjectHome();
+  toast('Projetos antigos importados para sua conta');
+}
 
 
 function newProjectId(){
@@ -3542,6 +3847,61 @@ function fallbackProjectList(){
   try{const v=JSON.parse(localStorage.getItem(PROJECT_FALLBACK_KEY)||'[]');return Array.isArray(v)?v:[];}catch{return [];}
 }
 function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KEY,JSON.stringify(list));}catch{}}
+
+
+// ============================================================================
+// 1.100.29 · ESCOPO LOCAL POR CONTA
+// ============================================================================
+function projectCurrentOwnerId(){
+  if(authLocalMode)return 'local-device';
+  return String(currentIdentityUser?.id || cloudAccountState?.user?.id || '').trim();
+}
+function projectBelongsToCurrentOwner(record){
+  const owner=projectCurrentOwnerId();
+  return !!(record&&owner&&record.ownerUserId===owner);
+}
+function projectEmergencyKey(){
+  return `${PROJECT_EMERGENCY_KEY}:${projectCurrentOwnerId()||'anonymous'}`;
+}
+function projectRecordCloudClean(record){
+  if(!record)return null;
+  const r={...record};
+  delete r.draftState; delete r.draftCamera; delete r.draftAt;
+  delete r.cloudSyncedAt; delete r.cloudRevision; delete r.cloudError;
+  delete r.deletedAt;
+  r.ownerUserId=projectCurrentOwnerId()||record.ownerUserId||null;
+  return r;
+}
+function prepareProjectAccountSwitch(){
+  const owner=projectCurrentOwnerId();
+  if(currentProjectRecord && currentProjectRecord.ownerUserId!==owner){
+    currentProjectId=null;
+    currentProjectRecord=null;
+    currentProjectDirty=false;
+    suppressProjectDirty=true;
+    try{
+      applyProjectPresentationScene(false);
+      clearScene();
+      setFrontWorldView();
+      resetProjectHistory();
+    }catch{}
+    suppressProjectDirty=false;
+    updateProjectChrome();
+  }
+  closeProjectCardMenu?.();
+  const cards=$('projectCards');
+  if(cards)cards.innerHTML='<div class="projectEmpty">Carregando os projetos desta conta…</div>';
+  if($('projectCountText'))$('projectCountText').textContent='Carregando…';
+}
+async function applyProjectAccountScope({checkRecovery=true}={}){
+  prepareProjectAccountSwitch();
+  await mergeEmergencyRecovery();
+  if(document.body.classList.contains('project-home-active')||$('projectHome')?.style.display!=='none'){
+    await renderProjectHome();
+  }
+  if(checkRecovery)await checkStartupRecovery();
+}
+
 async function projectDbList(){
   try{
     const db=await openProjectDb();
@@ -3663,7 +4023,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.28`:'DesignLabMoveis 1.100.28';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.29`:'DesignLabMoveis 1.100.29';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -3675,13 +4035,18 @@ async function projectAutosaveNow(){
   clearTimeout(projectAutosaveTimer);projectAutosaveTimer=null;
   if(!currentProjectId||!currentProjectDirty)return;
   try{
-    const rec=await projectDbGet(currentProjectId);if(!rec)return;
+    const rec=await projectDbGet(currentProjectId);
+    if(!rec||!projectBelongsToCurrentOwner(rec))return;
     rec.draftState=captureState();
     rec.draftCamera=captureProjectCamera();
     rec.draftAt=projectNow();
     await projectDbPut(rec);
     currentProjectRecord={...rec};
-    try{localStorage.setItem(PROJECT_EMERGENCY_KEY,JSON.stringify({id:rec.id,draftState:rec.draftState,draftCamera:rec.draftCamera,draftAt:rec.draftAt}));}catch{}
+    try{
+      localStorage.setItem(projectEmergencyKey(),JSON.stringify({
+        id:rec.id,draftState:rec.draftState,draftCamera:rec.draftCamera,draftAt:rec.draftAt
+      }));
+    }catch{}
     updateProjectChrome();
   }catch(err){console.warn('Autosave:',err);}
 }
@@ -3690,8 +4055,8 @@ async function clearProjectDraft(record){
   delete record.draftState;delete record.draftCamera;delete record.draftAt;
   await projectDbPut(record);
   try{
-    const e=JSON.parse(localStorage.getItem(PROJECT_EMERGENCY_KEY)||'null');
-    if(e?.id===record.id)localStorage.removeItem(PROJECT_EMERGENCY_KEY);
+    const e=JSON.parse(localStorage.getItem(projectEmergencyKey())||'null');
+    if(e?.id===record.id)localStorage.removeItem(projectEmergencyKey());
   }catch{}
 }
 function applyProjectPresentationScene(on,{frame=false}={}){
@@ -3710,7 +4075,10 @@ function resetProjectHistory(){
   localStorage.setItem(STORAGE_KEY,history[0]);
 }
 async function loadProjectRecord(record,{useDraft=false,presentation=true}={}){
-  if(!record)return;
+  if(!record||!projectBelongsToCurrentOwner(record)){
+    toast('Este projeto pertence a outra conta');
+    return;
+  }
   suppressProjectDirty=true;
   currentProjectId=record.id;
   currentProjectRecord={...record};
@@ -3750,14 +4118,26 @@ function enterProjectEditor(){
 }
 async function renderProjectHome(){
   const cards=$('projectCards');if(!cards)return;
-  const list=(await projectDbList()).sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+  const all=await projectDbList();
+  const owner=projectCurrentOwnerId();
+
+  const list=(owner
+    ? all.filter(r=>r.ownerUserId===owner&&!r.deletedAt)
+    : []
+  ).sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+
   $('projectCountText').textContent=`${list.length} projeto${list.length===1?'':'s'}`;
   cards.innerHTML='';
-  if(!list.length){
-    cards.innerHTML='<div class="projectEmpty"><strong>Nenhum projeto ainda.</strong><br>Crie o primeiro projeto ou abra um arquivo <b>.mcad</b>.</div>';
+
+  if(!owner){
+    cards.innerHTML='<div class="projectEmpty"><strong>Entre na sua conta.</strong><br>Os projetos ficam separados por usuário.</div>';
+  }else if(!list.length){
+    cards.innerHTML='<div class="projectEmpty"><strong>Nenhum projeto nesta conta ainda.</strong><br>Crie um novo projeto, abra um arquivo <b>.mcad</b> ou importe um projeto antigo deste dispositivo.</div>';
   }else{
     for(const rec of list){
-      const el=document.createElement('article');el.className='projectCard';el.dataset.projectId=rec.id;
+      const el=document.createElement('article');
+      el.className='projectCard';
+      el.dataset.projectId=rec.id;
       const hasDraft=!!rec.draftState&&String(rec.draftAt||'')>String(rec.updatedAt||'');
       const meta=[rec.client,rec.environment].filter(Boolean).join(' · ');
       el.innerHTML=`
@@ -3767,7 +4147,10 @@ async function renderProjectHome(){
         </div>
         <div class="projectCardBody">
           <div class="projectCardName">${escapeHtml(rec.name||'Projeto')}</div>
-          <div class="projectCardMeta">${meta?escapeHtml(meta)+'<br>':''}${projectDateText(rec.updatedAt||rec.createdAt)}</div>
+          <div class="projectCardMeta">
+            ${meta?escapeHtml(meta)+'<br>':''}${projectDateText(rec.updatedAt||rec.createdAt)}
+            <br>${cloudProjectBadge(rec)}
+          </div>
           <div class="projectCardFooter">
             <button data-project-action="present" class="secondary">Visualizar</button>
             <button data-project-action="edit">Editar</button>
@@ -3784,6 +4167,8 @@ async function renderProjectHome(){
       cards.appendChild(el);
     }
   }
+
+  await renderLegacyProjects(all);
   updateProjectChrome();
   updateIdentityChrome();
 }
@@ -3833,78 +4218,126 @@ function readProjectMeta(){
 }
 async function createNewProject(meta){
   await projectAutosaveNow();
+  const owner=projectCurrentOwnerId();
+  if(!owner){toast('Entre na sua conta para criar um projeto');return;}
+
   suppressProjectDirty=true;
   applyProjectPresentationScene(false);clearScene();setFrontWorldView();
   const now=projectNow();
   const rec={
-    id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.28'
+    id:newProjectId(),ownerUserId:owner,
+    name:meta.name,client:meta.client||'',environment:meta.environment||'',
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
+    thumbnail:null,appVersion:'1.100.29'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
   resetProjectHistory();suppressProjectDirty=false;
-  closeProjectMetaDialog();enterProjectEditor();updateProjectChrome();toast('Novo projeto criado');
+  closeProjectMetaDialog();enterProjectEditor();updateProjectChrome();
+  queueMicrotask(()=>cloudSaveProjectRecord(rec,{silent:true}));
+  toast('Novo projeto criado');
 }
 async function saveCurrentProject({silent=false}={}){
   if(!currentProjectId){openProjectMetaDialog('new');return null;}
   const rec=(await projectDbGet(currentProjectId))||currentProjectRecord||{};
+  if(!projectBelongsToCurrentOwner(rec)){
+    toast('Este projeto não pertence à conta atual');
+    return null;
+  }
+
   const thumbnail=(await captureProjectThumbnail())||rec.thumbnail||null;
   const now=projectNow();
   const next={
-    ...rec,...currentProjectRecord,id:currentProjectId,
+    ...rec,...currentProjectRecord,
+    id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.28'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.29'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
+  delete next.deletedAt;
   await projectDbPut(next);
   currentProjectRecord={...next};currentProjectDirty=false;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(next.state));
-  try{localStorage.removeItem(PROJECT_EMERGENCY_KEY);}catch{}
+  try{localStorage.removeItem(projectEmergencyKey());}catch{}
   updateProjectChrome();
   if(document.body.classList.contains('project-home-active'))await renderProjectHome();
-  if(!silent)toast('Projeto salvo');
+  queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));
+  if(!silent)toast(navigator.onLine?'Projeto salvo · sincronizando nuvem':'Projeto salvo neste aparelho · nuvem pendente');
   return next;
 }
 async function saveAsCurrentProject(meta){
-  if(!currentProjectId) return createNewProject(meta);
+  if(!currentProjectId)return createNewProject(meta);
   await projectAutosaveNow();
+
   const original=await projectDbGet(currentProjectId);
+  if(!original||!projectBelongsToCurrentOwner(original)){
+    toast('Este projeto não pertence à conta atual');
+    return;
+  }
+
   const thumb=(await captureProjectThumbnail())||original?.thumbnail||null;
   const now=projectNow();
   const next={
-    id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.28'
+    id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
+    name:meta.name,client:meta.client||'',environment:meta.environment||'',
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
+    thumbnail:thumb,appVersion:'1.100.29'
   };
   await projectDbPut(next);
-  if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
+  if(original){
+    delete original.draftState;delete original.draftCamera;delete original.draftAt;
+    await projectDbPut(original);
+  }
   currentProjectId=next.id;currentProjectRecord={...next};currentProjectDirty=false;
-  try{localStorage.removeItem(PROJECT_EMERGENCY_KEY);}catch{}
+  try{localStorage.removeItem(projectEmergencyKey());}catch{}
   closeProjectMetaDialog();updateProjectChrome();
   if(document.body.classList.contains('project-home-active'))await renderProjectHome();
+  queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));
   toast('Cópia criada com Salvar como');
 }
 async function renameCurrentProject(meta,record=currentProjectRecord){
   if(!record?.id)return;
-  const rec=await projectDbGet(record.id);if(!rec)return;
+  const rec=await projectDbGet(record.id);
+  if(!rec||!projectBelongsToCurrentOwner(rec))return;
   Object.assign(rec,meta,{updatedAt:projectNow()});
+  delete rec.cloudSyncedAt;
   await projectDbPut(rec);
   if(currentProjectId===rec.id)currentProjectRecord={...rec};
-  closeProjectMetaDialog();updateProjectChrome();await renderProjectHome();toast('Projeto renomeado');
+  closeProjectMetaDialog();updateProjectChrome();await renderProjectHome();
+  queueMicrotask(()=>cloudSaveProjectRecord(rec,{silent:true}));
+  toast('Projeto renomeado');
 }
 async function duplicateProjectById(id){
-  const rec=await projectDbGet(id);if(!rec)return;
+  const rec=await projectDbGet(id);
+  if(!rec||!projectBelongsToCurrentOwner(rec))return;
   const now=projectNow();
-  const copy={...rec,id:newProjectId(),name:(rec.name||'Projeto')+' - cópia',createdAt:now,updatedAt:now};
+  const copy={
+    ...rec,id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
+    name:(rec.name||'Projeto')+' - cópia',createdAt:now,updatedAt:now
+  };
   delete copy.draftState;delete copy.draftCamera;delete copy.draftAt;
-  await projectDbPut(copy);await renderProjectHome();toast('Projeto duplicado');
+  delete copy.cloudSyncedAt;delete copy.cloudRevision;delete copy.cloudError;delete copy.deletedAt;
+  await projectDbPut(copy);
+  await renderProjectHome();
+  queueMicrotask(()=>cloudSaveProjectRecord(copy,{silent:true}));
+  toast('Projeto duplicado');
 }
 async function deleteProjectById(id){
-  const rec=await projectDbGet(id);if(!rec)return;
-  if(!window.confirm(`Excluir o projeto “${rec.name||'Projeto'}”?\\n\\nEsta ação remove o projeto salvo neste aparelho.`))return;
-  await projectDbDelete(id);
+  const rec=await projectDbGet(id);
+  if(!rec||!projectBelongsToCurrentOwner(rec))return;
+  if(!window.confirm(`Excluir o projeto “${rec.name||'Projeto'}”?\n\nEle será removido desta conta e também da nuvem quando houver internet.`))return;
+
+  const deletedAt=projectNow();
+  rec.deletedAt=deletedAt;
+  rec.updatedAt=deletedAt;
+  await projectDbPut(rec);
+  queueMicrotask(()=>cloudDeleteProjectRecord(id,deletedAt,{silent:true}));
+
   if(currentProjectId===id){
     currentProjectId=null;currentProjectRecord=null;currentProjectDirty=false;
-    suppressProjectDirty=true;applyProjectPresentationScene(false);clearScene();setFrontWorldView();resetProjectHistory();suppressProjectDirty=false;
+    suppressProjectDirty=true;
+    applyProjectPresentationScene(false);clearScene();setFrontWorldView();resetProjectHistory();
+    suppressProjectDirty=false;
   }
   closeProjectCardMenu();updateProjectChrome();await renderProjectHome();toast('Projeto excluído');
 }
@@ -3916,7 +4349,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.28',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.29',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -3938,12 +4371,19 @@ async function importProjectFile(file){
   }else if(Array.isArray(raw)||Array.isArray(raw?.objects)){
     p={name:file.name.replace(/\.[^.]+$/,''),client:'',environment:'',state:raw,camera:null,thumbnail:null};
   }else throw new Error('Arquivo de projeto inválido');
+
   if(!Array.isArray(p.state)&&!Array.isArray(p.state?.objects))throw new Error('Projeto sem dados CAD');
+
+  const owner=projectCurrentOwnerId();
+  if(!owner)throw new Error('Entre na sua conta para importar o projeto');
+
   const now=projectNow();
   const rec={
-    id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
+    id:newProjectId(),ownerUserId:owner,
+    name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.28'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
+    thumbnail:p.thumbnail||null,appVersion:'1.100.29'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -3951,11 +4391,13 @@ async function importProjectFile(file){
     const th=await captureProjectThumbnail();
     if(th){rec.thumbnail=th;await projectDbPut(rec);currentProjectRecord={...rec};}
   }
-  toast('Projeto importado');
+  queueMicrotask(()=>cloudSaveProjectRecord(rec,{silent:true}));
+  toast('Projeto importado para sua conta');
 }
 async function requestOpenProject(id,{presentation=true}={}){
   await projectAutosaveNow();
-  const rec=await projectDbGet(id);if(!rec)return;
+  const rec=await projectDbGet(id);
+  if(!rec||!projectBelongsToCurrentOwner(rec))return;
   if(rec.draftState&&String(rec.draftAt||'')>String(rec.updatedAt||'')){
     showRecoveryDialog(rec,{openAfter:true,presentation});
     return;
@@ -3978,7 +4420,7 @@ async function discardPendingRecovery(){
   const p=pendingRecovery;if(!p)return;
   const rec={...p.record};delete rec.draftState;delete rec.draftCamera;delete rec.draftAt;
   await projectDbPut(rec);
-  try{const e=JSON.parse(localStorage.getItem(PROJECT_EMERGENCY_KEY)||'null');if(e?.id===rec.id)localStorage.removeItem(PROJECT_EMERGENCY_KEY);}catch{}
+  try{const e=JSON.parse(localStorage.getItem(projectEmergencyKey())||'null');if(e?.id===rec.id)localStorage.removeItem(projectEmergencyKey());}catch{}
   $('recoveryDialog').classList.remove('show');pendingRecovery=null;
   if(p.openAfter)await loadProjectRecord(rec,{presentation:p.presentation});
   else await renderProjectHome();
@@ -4002,13 +4444,13 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.28'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.29'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
 async function mergeEmergencyRecovery(){
   try{
-    const e=JSON.parse(localStorage.getItem(PROJECT_EMERGENCY_KEY)||'null');
+    const e=JSON.parse(localStorage.getItem(projectEmergencyKey())||'null');
     if(!e?.id||!e.draftState)return;
     const rec=await projectDbGet(e.id);if(!rec)return;
     if(String(e.draftAt||'')>String(rec.draftAt||'')&&String(e.draftAt||'')>String(rec.updatedAt||'')){
@@ -4017,18 +4459,19 @@ async function mergeEmergencyRecovery(){
   }catch{}
 }
 async function checkStartupRecovery(){
+  const owner=projectCurrentOwnerId();
+  if(!owner)return;
   const list=await projectDbList();
-  const rec=list.filter(r=>r.draftState&&String(r.draftAt||'')>String(r.updatedAt||''))
+  const rec=list
+    .filter(r=>r.ownerUserId===owner&&!r.deletedAt&&r.draftState&&String(r.draftAt||'')>String(r.updatedAt||''))
     .sort((a,b)=>String(b.draftAt).localeCompare(String(a.draftAt)))[0];
   if(rec)showRecoveryDialog(rec,{openAfter:false,presentation:true});
 }
 async function initProjectHub(){
   await migrateLegacySingleProject();
-  await mergeEmergencyRecovery();
   currentProjectId=null;currentProjectRecord=null;currentProjectDirty=false;
   updateProjectChrome();
   await showProjectHome();
-  await checkStartupRecovery();
 }
 
 
@@ -7289,7 +7732,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.28', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.29', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -11958,7 +12401,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.28 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.29 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -11973,7 +12416,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.28 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.29 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -12678,6 +13121,12 @@ $('importFile').addEventListener('change',async e=>{
 // ---------- v93 · eventos do gerenciador de projetos ----------
 $('homeNewProject').onclick=$('heroNewProject').onclick=$('menuNewProject').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); openProjectMetaDialog('new'); };
 $('homeOpenFile').onclick=$('heroOpenFile').onclick=$('menuOpenProjectFile').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); $('projectFileInput').click(); };
+$('legacyImportAllBtn').onclick=claimAllLegacyProjects;
+$('legacyProjectCards').addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-legacy-import]');
+  if(!btn)return;
+  claimLegacyProject(btn.dataset.legacyImport).catch(err=>toast(err.message||'Não foi possível importar'));
+});
 $('homeSaveProject').onclick=$('menuSaveProject').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); saveCurrentProject(); };
 $('homeSaveAsProject').onclick=$('menuSaveAsProject').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); if(currentProjectId)openProjectMetaDialog('saveas'); };
 $('homeSettings').onclick=$('menuAppSettings').onclick=()=>openAppSettings();

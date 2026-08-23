@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.28",
+  "version": "1.100.29",
   "required": false,
-  "message": "Teste grátis configurável para novas contas e painel administrativo atualizado.",
-  "released_at": "2026-08-23T14:39:00-03:00"
+  "message": "Projetos separados por conta e sincronização de projetos com a nuvem.",
+  "released_at": "2026-08-23T15:06:00-03:00"
 }

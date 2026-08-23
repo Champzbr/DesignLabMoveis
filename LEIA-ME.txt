@@ -1,71 +1,84 @@
-DESIGNLABMOVEIS 1.100.28 — 15 DIAS DE TESTE GRÁTIS CONFIGURÁVEL
+DESIGNLABMOVEIS 1.100.29 — PROJETOS SEPARADOS POR CONTA + NUVEM
 
-BASE
-1.100.27 completa.
+CORREÇÃO PRINCIPAL
+Projetos recentes não são mais compartilhados entre contas no mesmo navegador.
 
-NOVIDADE PRINCIPAL
-Toda conta NOVA pode receber automaticamente um período de Premium grátis.
+Cada projeto agora tem:
+ownerUserId
 
-Padrão:
-  15 dias
+A tela Projetos recentes mostra somente projetos cujo ownerUserId corresponde
+à conta logada.
 
-O valor é configurável no:
-  🛡 Painel Administrativo → Configurações
+TROCA DE CONTA
+Ao trocar a conta:
+- projeto aberto da conta anterior é fechado;
+- a cena anterior é limpa;
+- lista de projetos é recarregada;
+- autosave de emergência usa chave separada por usuário.
 
-CAMPO
-  Dias de teste grátis
+PROJETOS ANTIGOS
+Projetos das versões anteriores não tinham ownerUserId.
 
-Valores:
-  0 = desativado
-  1 a 365 = quantidade de dias concedida às novas contas
+Eles NÃO são atribuídos automaticamente.
+Aparecem numa seção:
+Projetos antigos deste dispositivo
 
-IMPORTANTE
-A alteração só vale para NOVAS contas.
-Usuários que já estavam cadastrados no D1 não recebem o teste retroativamente.
+O usuário pode:
+- importar um projeto para a conta atual;
+- ou importar todos, com confirmação.
 
-COMO FUNCIONA
-No primeiro cadastro do usuário no D1:
-1. Worker lê app_settings.free_trial_days;
-2. se a configuração não existir, usa 15;
-3. usa a data de criação da conta do Netlify como início do teste, quando disponível;
-4. calcula o vencimento;
-5. marca users.plan='premium';
-6. grava premium_until;
-7. cria subscriptions com source='trial'.
+Projetos que já pertencem a outra conta nunca aparecem nessa área.
 
-PAINEL ADMIN
-Foi adicionada a terceira aba:
-  Configurações
+NÚVEM R2
+Também foi implementada nesta versão.
 
-Também aparece a etiqueta:
-  TESTE
-ao lado de usuários cujo teste grátis ainda está ativo.
+Salvamento:
+aparelho → Worker autenticado → D1 + R2
 
-NO APP
-Durante o teste a conta mostra:
-  Teste grátis até DD/MM/AAAA
+D1:
+guarda índice, usuário, nome, revisão, tamanho e datas.
 
-Ao vencer, /me passa a considerar a conta Free automaticamente.
+R2:
+guarda o projeto completo:
+users/<USER_ID>/projects/<PROJECT_ID>.json
+
+OUTRO CELULAR/COMPUTADOR
+Ao entrar na mesma conta:
+- projetos ausentes são baixados;
+- versão mais nova vence;
+- versão local mais nova é enviada;
+- projeto salvo offline fica pendente e sobe depois.
+
+Nos cards:
+☁ Nuvem
+ou
+☁ Aguardando sincronizar
+
+EXCLUSÃO
+Foi adicionada exclusão sincronizada com tombstone no D1, evitando projeto
+apagado em um aparelho reaparecer em outro.
+
+ARQUIVOS .MCAD
+Ao importar um .mcad, ele passa a pertencer à conta conectada.
+O arquivo exportado continua sem carregar o ID do dono.
 
 CLOUDFLARE
-Substitua o código do Worker pelo arquivo:
-  cloudflare/worker-1.100.28.js
+Troque o Worker por:
+cloudflare/worker-1.100.29.js
 
-Não há alteração de schema nesta versão porque app_settings e subscriptions
-já existem.
+Não precisa executar SQL novo.
 
-Opcional:
-  cloudflare/3-configurar-teste-gratis.sql
-grava explicitamente o padrão 15 no D1.
+VERSÃO
+Projetos de marcenaria · 1.100.29
 
-ATUALIZAÇÃO / CACHE
-Todo o sistema da 1.100.27 foi mantido:
-- version.json;
-- aviso de nova versão;
+Todo o restante da 1.100.28 foi preservado:
+- login;
+- Premium/teste grátis;
+- painel administrativo;
+- atualização;
 - cache offline;
-- network-first para HTML;
-- cache seguro que não armazena chamadas autenticadas.
-
-VERSÃO DO TOPO
-Também atualizada para:
-  Projetos de marcenaria · 1.100.28
+- materiais;
+- gavetas;
+- usinagens;
+- Aspire;
+- Forma.
