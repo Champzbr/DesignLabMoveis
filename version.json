@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.37",
+  "version": "1.100.38",
   "required": false,
-  "message": "Nova tela inicial Opção 1: layout moderno, escuro e premium para projetos.",
-  "released_at": "2026-08-23T19:42:00-03:00"
+  "message": "Janela do espaço/divisão agora é flutuante: arraste pelo cabeçalho e o app lembra a posição.",
+  "released_at": "2026-08-23T19:58:00-03:00"
 }

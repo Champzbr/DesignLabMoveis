@@ -1,5 +1,6 @@
-DESIGNLABMOVEIS 1.100.37 — NOVA TELA INICIAL · OPÇÃO 1
+DESIGNLABMOVEIS 1.100.38 — JANELA DO ESPAÇO FLUTUANTE E POSIÇÃO SALVA
 
+NOVO: arraste a janela Espaço/Divisão pelo cabeçalho; a posição fica salva no aparelho e é restaurada ao reabrir o app.
 BASE
 1.100.36 completa.
 
@@ -83,7 +84,7 @@ legacyImportAllBtn
 legacyProjectCards
 
 VERSÃO
-Projetos de marcenaria · 1.100.37
+Projetos de marcenaria · 1.100.38
 
 Não há SQL novo.
 Não é obrigatório atualizar o Worker.
