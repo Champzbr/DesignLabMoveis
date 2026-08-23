@@ -1,46 +1,72 @@
-DESIGNLABMOVEIS 1.100.31 — 3 CLIQUES + APAGAR PEÇA + DUPLICAR CORRIGIDO
+DESIGNLABMOVEIS 1.100.32 — AJUSTE POR FACE + BOTÕES − / +
 
-1 CLIQUE
-Seleciona a peça normalmente.
+BASE
+1.100.31 completa.
 
-2 CLIQUES RÁPIDOS
-Mantém o comportamento existente de abrir o espaço/móvel da peça.
-A abertura espera 390 ms após o segundo clique, para verificar se virá um terceiro.
+CORREÇÃO DO REDIMENSIONAMENTO
+Na versão anterior, usando Centro, +20 mm aumentava 10 mm para cada lado.
 
-3 CLIQUES RÁPIDOS NA MESMA PEÇA
-Abre diretamente:
-  Configuração da peça
+Agora a alteração de tamanho é feita POR FACE.
 
-O painel não abre mais automaticamente com apenas um clique.
+Faces disponíveis:
+- Esquerda
+- Direita
+- Trás
+- Frente
+- Baixo
+- Cima
 
-APAGAR PEÇA
-Dentro da Configuração foi adicionado:
-  🗑 Apagar peça
+REGRA
+Cada valor mexe somente naquela face.
 
-Peça comum pede confirmação e usa a rotina existente de exclusão.
-Quando a peça fazia a separação de um vão, o espaço continua sendo recalculado.
-Gavetas paramétricas mantêm sua confirmação especial para apagar o conjunto inteiro.
+Exemplo:
+Peça com altura de 500 mm.
 
-DUPLICAR
-A rotina foi protegida para criar exatamente UMA cópia por acionamento:
-- trava contra eventos duplicados de touch/click;
-- botão fica desabilitado temporariamente;
-- criadores trabalham com histórico desativado durante a cópia;
-- apenas 1 commit de histórico é gravado;
-- mensagem: “1 cópia criada”;
-- a cópia fica selecionada com a Configuração aberta.
+Cima = -20
+Resultado:
+480 mm de altura.
+A face de baixo NÃO se move.
 
-A trava dura 700 ms.
+Cima = +20
+Resultado:
+520 mm.
+A peça cresce somente para cima.
 
-PRESERVADO
+Outro exemplo:
+Frente = -15
+A profundidade diminui exatamente 15 mm somente pela frente.
+
+Frente = +15
+A profundidade aumenta exatamente 15 mm somente para frente.
+
+Também é possível preencher dois lados ao mesmo tempo.
+Exemplo:
+Esquerda = +10
+Direita = +20
+A largura total aumenta 30 mm, respeitando 10 mm à esquerda e 20 mm à direita.
+
+BOTÕES MENOS E MAIS
+Todo campo que aceita número negativo agora possui:
+  [ − ] [ valor ] [ + ]
+
+O botão − força o valor para negativo.
+O botão + força o valor para positivo.
+
+Isso foi aplicado também aos outros campos do programa que já usavam o
+botão de sinal negativo, como folgas de gaveta.
+
+CONFIGURAÇÃO DA PEÇA
+Continua abrindo com 3 cliques/toques rápidos.
+
+Preservado:
 - deslocamento X/Y/Z;
-- aumentar/diminuir;
 - rotação X/Y/Z;
-- botão de menos;
+- apagar peça;
+- duplicar protegido;
 - espaços mais visíveis;
-- projetos por conta + R2;
+- projetos por conta e R2;
 - administrador;
 - teste grátis;
-- atualização/cache.
+- cache/atualização.
 
-Não há SQL novo nem mudança obrigatória no Worker.
+Não existe SQL novo e não há mudança obrigatória no Worker.

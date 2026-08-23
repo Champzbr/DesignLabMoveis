@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.31 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.32 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -79,6 +79,56 @@
   #partNameInput { margin-bottom:7px; }
   .inspectorBtns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:7px; }
 
+
+
+
+  /* ==========================================================================
+     1.100.32 · AJUSTE POR FACE + BOTÕES − / +
+     ========================================================================== */
+  .pieceFaceGrid{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  }
+  .pieceFaceGrid .field label{
+    font-size:9px;line-height:1.25;
+  }
+  .pieceFaceAxis{
+    display:block;margin-top:2px;color:#77848b;font-size:7px;font-weight:650;
+  }
+  .pieceFaceExample{
+    margin:8px 0 0;padding:7px 8px;border-radius:8px;
+    background:rgba(52,208,88,.055);border:1px solid rgba(52,208,88,.16);
+    color:#9eb4a4;font-size:8px;line-height:1.5;
+  }
+
+  /* Todos os campos que aceitam sinal passam a ter − à esquerda e + à direita. */
+  .signedMinusWrap{
+    display:grid !important;
+    grid-template-columns:36px minmax(0,1fr) 36px !important;
+    gap:4px !important;
+    align-items:stretch;
+    width:100%;
+  }
+  .signedMinusWrap input{
+    min-width:0;width:100%;box-sizing:border-box;
+  }
+  .signedMinusBtn,.signedPlusBtn{
+    min-width:34px !important;
+    padding:4px !important;
+    border-radius:8px !important;
+    font-size:20px !important;
+    line-height:1 !important;
+    box-shadow:none !important;
+  }
+  .signedMinusBtn{
+    order:-1;
+  }
+  .signedPlusBtn{
+    order:2;
+  }
+  .pieceDeltaGrid .signedMinusWrap,
+  .pieceFaceGrid .signedMinusWrap{
+    grid-template-columns:34px minmax(0,1fr) 34px !important;
+  }
 
 
   /* 1.100.31 · 3 cliques / apagar / duplicação protegida */
@@ -1182,7 +1232,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.31</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.32</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1272,7 +1322,7 @@
     <header class="projectHomeHeader">
       <div class="projectBrand">
         <div class="projectBrandLogo">M</div>
-        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.31</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.32</span></div>
       </div>
       <div class="projectAccountArea">
         <div id="projectAccountChip" class="projectAccountChip" style="display:none">
@@ -1523,7 +1573,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.31 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.32 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1593,25 +1643,44 @@
 
   <div class="pieceConfigSection">
     <div class="pieceConfigSectionTitle">
-      <strong>Aumentar / diminuir a peça</strong>
-      <span>Δ em milímetros</span>
+      <strong>Aumentar / diminuir por face</strong>
+      <span>cada lado trabalha separado</span>
     </div>
-    <div class="pieceDeltaGrid">
-      <div class="field"><label>Δ Largura</label><input id="pieceSizeW" type="number" value="0" step="1" data-minus-button="1"></div>
-      <div class="field"><label>Δ Profund.</label><input id="pieceSizeD" type="number" value="0" step="1" data-minus-button="1"></div>
-      <div class="field"><label>Δ Altura</label><input id="pieceSizeH" type="number" value="0" step="1" data-minus-button="1"></div>
+
+    <div class="pieceFaceGrid">
+      <div class="field">
+        <label>Esquerda (mm)<span class="pieceFaceAxis">face −X</span></label>
+        <input id="pieceFaceLeft" type="number" value="0" step="1" data-minus-button="1">
+      </div>
+      <div class="field">
+        <label>Direita (mm)<span class="pieceFaceAxis">face +X</span></label>
+        <input id="pieceFaceRight" type="number" value="0" step="1" data-minus-button="1">
+      </div>
+
+      <div class="field">
+        <label>Trás (mm)<span class="pieceFaceAxis">face −Z</span></label>
+        <input id="pieceFaceBack" type="number" value="0" step="1" data-minus-button="1">
+      </div>
+      <div class="field">
+        <label>Frente (mm)<span class="pieceFaceAxis">face +Z</span></label>
+        <input id="pieceFaceFront" type="number" value="0" step="1" data-minus-button="1">
+      </div>
+
+      <div class="field">
+        <label>Baixo (mm)<span class="pieceFaceAxis">face −Y</span></label>
+        <input id="pieceFaceBottom" type="number" value="0" step="1" data-minus-button="1">
+      </div>
+      <div class="field">
+        <label>Cima (mm)<span class="pieceFaceAxis">face +Y</span></label>
+        <input id="pieceFaceTop" type="number" value="0" step="1" data-minus-button="1">
+      </div>
     </div>
-    <div class="pieceResizeAnchor">
-      <label>Face que permanece fixa ao alterar o tamanho
-        <select id="pieceResizeAnchor">
-          <option value="center">Centro · cresce/diminui para os dois lados</option>
-          <option value="start">Início (−) · mantém a face negativa parada</option>
-          <option value="end">Fim (+) · mantém a face positiva parada</option>
-        </select>
-      </label>
-    </div>
-    <div class="pieceConfigHelp">
-      Ex.: Altura = −15 reduz 15 mm da peça. Com “Início (−)”, a face de início fica no mesmo lugar.
+
+    <div class="pieceFaceExample">
+      <strong>Regra:</strong> o valor mexe somente na face escolhida.<br>
+      Peça com 500 mm → <strong>Cima = −20</strong> → fica com <strong>480 mm</strong>,
+      mantendo a face de baixo parada.<br>
+      <strong>Frente = +20</strong> aumenta 20 mm somente para frente.
     </div>
   </div>
 
@@ -3210,7 +3279,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.31';
+const DESIGNLAB_APP_VERSION='1.100.32';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4167,7 +4236,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.31`:'DesignLabMoveis 1.100.31';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.32`:'DesignLabMoveis 1.100.32';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -4372,7 +4441,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.31'
+    thumbnail:null,appVersion:'1.100.32'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -4395,7 +4464,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.31'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.32'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -4425,7 +4494,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.31'
+    thumbnail:thumb,appVersion:'1.100.32'
   };
   await projectDbPut(next);
   if(original){
@@ -4493,7 +4562,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.31',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.32',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -4527,7 +4596,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.31'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.32'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -4588,7 +4657,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.31'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.32'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -7901,7 +7970,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.31', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.32', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -8012,12 +8081,15 @@ function undo(){ if(historyIndex<=0){toast('Nada para desfazer');return;} histor
 function redo(){ if(historyIndex>=history.length-1){toast('Nada para refazer');return;} historyIndex++; applyState(JSON.parse(history[historyIndex])); localStorage.setItem(STORAGE_KEY,history[historyIndex]); markCurrentProjectDirty(); }
 
 
+
 // ============================================================================
-// 1.100.30 · AJUSTES RELATIVOS DA PEÇA
+// 1.100.32 · AJUSTES RELATIVOS / POR FACE
 // ============================================================================
 const PIECE_RELATIVE_INPUT_IDS=[
   'pieceMoveX','pieceMoveY','pieceMoveZ',
-  'pieceSizeW','pieceSizeD','pieceSizeH',
+  'pieceFaceLeft','pieceFaceRight',
+  'pieceFaceBack','pieceFaceFront',
+  'pieceFaceBottom','pieceFaceTop',
   'pieceRotX','pieceRotY','pieceRotZ'
 ];
 
@@ -8067,23 +8139,41 @@ function applyPieceRelativeConfig(){
     y:pieceRelativeNumber('pieceMoveY'),
     z:pieceRelativeNumber('pieceMoveZ')
   };
-  const sizeMm={
-    w:pieceRelativeNumber('pieceSizeW'),
-    d:pieceRelativeNumber('pieceSizeD'),
-    h:pieceRelativeNumber('pieceSizeH')
+
+  // Cada valor representa o deslocamento DAQUELA FACE:
+  // positivo = face anda para fora, aumentando a peça;
+  // negativo = face anda para dentro, diminuindo a peça.
+  const faceMm={
+    left:pieceRelativeNumber('pieceFaceLeft'),
+    right:pieceRelativeNumber('pieceFaceRight'),
+    back:pieceRelativeNumber('pieceFaceBack'),
+    front:pieceRelativeNumber('pieceFaceFront'),
+    bottom:pieceRelativeNumber('pieceFaceBottom'),
+    top:pieceRelativeNumber('pieceFaceTop')
   };
+
   const rotDeg={
     x:pieceRelativeNumber('pieceRotX'),
     y:pieceRelativeNumber('pieceRotY'),
     z:pieceRelativeNumber('pieceRotZ')
   };
 
-  const nums=[...Object.values(moveMm),...Object.values(sizeMm),...Object.values(rotDeg)];
-  if(!nums.every(Number.isFinite)){toast('Confira os valores da configuração');return;}
+  const nums=[...Object.values(moveMm),...Object.values(faceMm),...Object.values(rotDeg)];
+  if(!nums.every(Number.isFinite)){
+    toast('Confira os valores da configuração');
+    return;
+  }
 
   const u=selected.userData;
-  const oldW=Number(u.width)||0,oldD=Number(u.depth)||0,oldH=Number(u.height)||0;
-  const newW=oldW+m(sizeMm.w),newD=oldD+m(sizeMm.d),newH=oldH+m(sizeMm.h);
+  const oldW=Number(u.width)||0;
+  const oldD=Number(u.depth)||0;
+  const oldH=Number(u.height)||0;
+
+  // A dimensão total muda pela SOMA dos dois lados.
+  // Ex.: somente Cima=-20 => altura perde EXATAMENTE 20 mm.
+  const newW=oldW+m(faceMm.left+faceMm.right);
+  const newD=oldD+m(faceMm.back+faceMm.front);
+  const newH=oldH+m(faceMm.bottom+faceMm.top);
 
   if(newW<MIN_SIZE||newD<MIN_SIZE||newH<MIN_SIZE){
     toast('O ajuste deixaria a peça com medida menor que 1 mm');
@@ -8094,31 +8184,47 @@ function applyPieceRelativeConfig(){
     return;
   }
 
-  // Mantém a face escolhida fixa usando os eixos LOCAIS da própria peça.
-  // Isso continua correto mesmo depois que a peça já tiver sido rotacionada.
-  const anchor=$('pieceResizeAnchor')?.value||'center';
-  const deltaM={
-    x:newW-oldW,
-    y:newH-oldH,
-    z:newD-oldD
-  };
-  const anchorSign=anchor==='start'?0.5:anchor==='end'?-0.5:0;
-  if(anchorSign!==0){
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'x'),deltaM.x*anchorSign);
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'y'),deltaM.y*anchorSign);
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'z'),deltaM.z*anchorSign);
+  // Preserva a face oposta.
+  //
+  // X:
+  // esquerda positiva expande para -X => centro vai -left/2
+  // direita positiva expande para +X => centro vai +right/2
+  //
+  // Y:
+  // baixo positivo expande para -Y
+  // cima positivo expande para +Y
+  //
+  // Z:
+  // trás positivo expande para -Z
+  // frente positivo expande para +Z
+  const shiftLocalX=m((faceMm.right-faceMm.left)/2);
+  const shiftLocalY=m((faceMm.top-faceMm.bottom)/2);
+  const shiftLocalZ=m((faceMm.front-faceMm.back)/2);
+
+  if(Math.abs(shiftLocalX)>1e-12){
+    selected.position.addScaledVector(pieceLocalAxisVector(selected,'x'),shiftLocalX);
+  }
+  if(Math.abs(shiftLocalY)>1e-12){
+    selected.position.addScaledVector(pieceLocalAxisVector(selected,'y'),shiftLocalY);
+  }
+  if(Math.abs(shiftLocalZ)>1e-12){
+    selected.position.addScaledVector(pieceLocalAxisVector(selected,'z'),shiftLocalZ);
   }
 
-  if(Math.abs(deltaM.x)>1e-12||Math.abs(deltaM.y)>1e-12||Math.abs(deltaM.z)>1e-12){
+  if(
+    Math.abs(newW-oldW)>1e-12||
+    Math.abs(newD-oldD)>1e-12||
+    Math.abs(newH-oldH)>1e-12
+  ){
     setDimensions(selected,newW,newD,newH,false);
   }
 
-  // Deslocamento usa os eixos GLOBAIS do CAD, exatamente X / Y / Z.
+  // Deslocamento da peça inteira nos eixos GLOBAIS.
   selected.position.x+=m(moveMm.x);
   selected.position.y+=m(moveMm.y);
   selected.position.z+=m(moveMm.z);
 
-  // Rotação relativa em graus.
+  // Rotação relativa.
   selected.rotation.order='XYZ';
   selected.rotation.x+=THREE.MathUtils.degToRad(rotDeg.x);
   selected.rotation.y+=THREE.MathUtils.degToRad(rotDeg.y);
@@ -8133,13 +8239,21 @@ function applyPieceRelativeConfig(){
   resetPieceRelativeInputs();
   commitHistory();
 
+  const changedFaces=Object.entries(faceMm)
+    .filter(([,v])=>Math.abs(v)>1e-12)
+    .map(([k])=>({
+      left:'esquerda',right:'direita',
+      back:'trás',front:'frente',
+      bottom:'baixo',top:'cima'
+    }[k]));
+
   const parts=[];
   if(moveMm.x||moveMm.y||moveMm.z)parts.push('deslocada');
-  if(sizeMm.w||sizeMm.d||sizeMm.h)parts.push('redimensionada');
+  if(changedFaces.length)parts.push(`faces: ${changedFaces.join(', ')}`);
   if(rotDeg.x||rotDeg.y||rotDeg.z)parts.push('rotacionada');
-  toast(parts.length?`Peça ${parts.join(' · ')}`:'Nenhum ajuste informado');
-}
 
+  toast(parts.length?`Peça ajustada · ${parts.join(' · ')}`:'Nenhum ajuste informado');
+}
 
 function setDimensions(mesh,width,depth,height,keepBase=true){
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
@@ -12829,7 +12943,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.31 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.32 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -12844,7 +12958,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.31 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.32 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -13315,36 +13429,48 @@ function installMinusButtons(){
     const wrap=document.createElement('div');
     wrap.className='signedMinusWrap';
     parent.insertBefore(wrap,input);
+
+    const minus=document.createElement('button');
+    minus.type='button';
+    minus.className='signedMinusBtn';
+    minus.textContent='−';
+    minus.setAttribute('aria-label','Usar valor negativo');
+    minus.title='Valor negativo';
+
+    const plus=document.createElement('button');
+    plus.type='button';
+    plus.className='signedPlusBtn';
+    plus.textContent='+';
+    plus.setAttribute('aria-label','Usar valor positivo');
+    plus.title='Valor positivo';
+
+    wrap.appendChild(minus);
     wrap.appendChild(input);
+    wrap.appendChild(plus);
 
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='signedMinusBtn';
-    btn.textContent='−';
-    btn.setAttribute('aria-label','Colocar ou remover sinal negativo');
-    btn.title='Trocar positivo / negativo';
-    wrap.appendChild(btn);
-
-    btn.addEventListener('click',()=>{
-      let raw=String(input.value??'').trim().replace(',','.');
-      let n=Number(raw);
-      if(!Number.isFinite(n))n=0;
-
-      // Se já estiver negativo, volta para positivo. Se estiver positivo,
-      // coloca negativo. Assim o mesmo botão também desfaz o sinal.
-      n=Math.abs(n)<1e-12?0:-n;
-
+    const formatSignedValue=(value)=>{
       const step=Number(input.step);
       if(Number.isFinite(step)&&step>0&&step<1){
         const decimals=Math.min(6,Math.max(0,String(step).split('.')[1]?.length||0));
-        input.value=Number(n.toFixed(decimals));
+        input.value=String(Number(value.toFixed(decimals)));
       }else{
-        input.value=String(n);
+        input.value=String(value);
       }
-
       input.dispatchEvent(new Event('input',{bubbles:true}));
       input.dispatchEvent(new Event('change',{bubbles:true}));
       input.focus({preventScroll:true});
+    };
+
+    minus.addEventListener('click',()=>{
+      let n=Number(String(input.value??'0').trim().replace(',','.'));
+      if(!Number.isFinite(n))n=0;
+      formatSignedValue(-Math.abs(n));
+    });
+
+    plus.addEventListener('click',()=>{
+      let n=Number(String(input.value??'0').trim().replace(',','.'));
+      if(!Number.isFinite(n))n=0;
+      formatSignedValue(Math.abs(n));
     });
   });
 }

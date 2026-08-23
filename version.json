@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.31",
+  "version": "1.100.32",
   "required": false,
-  "message": "Configuração da peça com 3 cliques, opção Apagar peça e duplicação corrigida.",
-  "released_at": "2026-08-23T15:49:00-03:00"
+  "message": "Ajuste da peça por face e botões de sinal menos/mais.",
+  "released_at": "2026-08-23T16:15:00-03:00"
 }
