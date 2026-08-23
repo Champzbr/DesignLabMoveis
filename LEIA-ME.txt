@@ -1,72 +1,83 @@
-DESIGNLABMOVEIS 1.100.32 — AJUSTE POR FACE + BOTÕES − / +
+DESIGNLABMOVEIS 1.100.34 — CORTE 18 MM + OCULTAR SELECIONADO + DIVISÃO FIXA
 
 BASE
-1.100.31 completa.
+1.100.33 completa.
 
-CORREÇÃO DO REDIMENSIONAMENTO
-Na versão anterior, usando Centro, +20 mm aumentava 10 mm para cada lado.
+1. CORTAR ESPAÇO — PADRÃO 18 MM
+O campo "Medida do corte" agora começa em:
+  18 mm
 
-Agora a alteração de tamanho é feita POR FACE.
+2. SALVAR CONFIGURAÇÃO DO CORTE
+Foi adicionado:
+  💾 Salvar configuração
 
-Faces disponíveis:
-- Esquerda
-- Direita
-- Trás
-- Frente
-- Baixo
-- Cima
+O usuário pode escolher:
+- medida;
+- lado: esquerda, direita, cima, baixo, frente ou trás;
+- faixa fixa ou solta.
 
-REGRA
-Cada valor mexe somente naquela face.
+Ao tocar em Salvar configuração, o DesignLabMoveis grava essa preferência.
+Na próxima vez que abrir "Cortar espaço", a configuração volta exatamente como
+o usuário salvou.
+
+A preferência é separada por conta no mesmo aparelho.
+
+Se nunca houver configuração salva:
+  18 mm · Esquerda · faixa solta
+
+3. OCULTAR ESPAÇO/DIVISÃO SELECIONADA
+Na janela rápida que aparece ao selecionar um espaço foi adicionado:
+  ◫ Ocultar selecionado
+
+Não precisa mais entrar em "Mais" para esconder a divisão selecionada.
+
+Em:
+  Mais
+também foi adicionado:
+  Mostrar ocultos
+
+Assim fica fácil recuperar as divisões escondidas.
+
+4. DIVISÃO VERTICAL SEMPRE NA ESPESSURA DA CHAPA
+Corrigido o problema em que a Divisão vertical afinava ou engrossava quando
+o móvel era redimensionado.
+
+Agora:
+- ao criar a divisão, a faixa da chapa é registrada como fixa;
+- ao redimensionar o módulo, somente os vãos absorvem a diferença;
+- a espessura da divisão continua igual à espessura original da chapa.
 
 Exemplo:
-Peça com altura de 500 mm.
+Módulo 800 mm
+Divisão MDF 18 mm
 
-Cima = -20
-Resultado:
-480 mm de altura.
-A face de baixo NÃO se move.
+Depois de redimensionar o módulo para 1200, 600, 500 etc.:
+  a Divisão continua 18 mm.
 
-Cima = +20
-Resultado:
-520 mm.
-A peça cresce somente para cima.
+5. PROJETOS ANTIGOS
+A 1.100.34 também tenta reparar divisões verticais de projetos anteriores.
 
-Outro exemplo:
-Frente = -15
-A profundidade diminui exatamente 15 mm somente pela frente.
+Prioridade para descobrir a espessura correta:
+1. espessura nominal já salva pela nova versão;
+2. espessura do material aplicado à peça;
+3. espessura atual da peça como fallback.
 
-Frente = +15
-A profundidade aumenta exatamente 15 mm somente para frente.
+Também corrige as bordas dos vãos ao redor da divisão e registra a faixa fixa
+para os próximos redimensionamentos.
 
-Também é possível preencher dois lados ao mesmo tempo.
-Exemplo:
-Esquerda = +10
-Direita = +20
-A largura total aumenta 30 mm, respeitando 10 mm à esquerda e 20 mm à direita.
-
-BOTÕES MENOS E MAIS
-Todo campo que aceita número negativo agora possui:
-  [ − ] [ valor ] [ + ]
-
-O botão − força o valor para negativo.
-O botão + força o valor para positivo.
-
-Isso foi aplicado também aos outros campos do programa que já usavam o
-botão de sinal negativo, como folgas de gaveta.
-
-CONFIGURAÇÃO DA PEÇA
-Continua abrindo com 3 cliques/toques rápidos.
-
-Preservado:
-- deslocamento X/Y/Z;
-- rotação X/Y/Z;
-- apagar peça;
-- duplicar protegido;
-- espaços mais visíveis;
+6. PRESERVADO
+Tudo da 1.100.33 continua:
+- CNC centro para fora;
+- modo Seccionadora;
+- cortes retos;
+- Forma;
+- gavetas;
+- materiais;
+- configuração da peça;
 - projetos por conta e R2;
 - administrador;
 - teste grátis;
-- cache/atualização.
+- atualização/cache.
 
-Não existe SQL novo e não há mudança obrigatória no Worker.
+Não existe SQL novo.
+Não há mudança obrigatória no Worker.

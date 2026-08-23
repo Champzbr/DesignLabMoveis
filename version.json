@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.32",
+  "version": "1.100.34",
   "required": false,
-  "message": "Ajuste da peça por face e botões de sinal menos/mais.",
-  "released_at": "2026-08-23T16:15:00-03:00"
+  "message": "Corte padrão 18 mm com configuração salva, ocultar espaço selecionado e divisão vertical com espessura fixa.",
+  "released_at": "2026-08-23T17:12:00-03:00"
 }
