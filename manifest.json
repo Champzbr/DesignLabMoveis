@@ -1,7 +1,7 @@
 {
-  "name": "Mini CAD Pro 1.100.20",
-  "short_name": "Mini CAD Pro",
-  "description": "Mini CAD Pro para projeto e usinagem de móveis sob medida.",
+  "name": "DesignLabMoveis 1.100.21",
+  "short_name": "DesignLabMoveis",
+  "description": "DesignLabMoveis para projeto, produção e usinagem de móveis sob medida.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

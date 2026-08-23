@@ -1,92 +1,68 @@
-MINI CAD PRO 1.100.20 — BASE ONLINE / NETLIFY IDENTITY
+DESIGNLABMOVEIS 1.100.21 — NOVA MARCA + BASE ONLINE
 
-Base: 1.100.19 completa.
+Base: 1.100.20 completa.
 
-OBJETIVO DESTA VERSÃO
-Testar a primeira camada online:
-- cadastro;
+ALTERAÇÃO PRINCIPAL
+O aplicativo passa a se chamar:
+
+  DesignLabMoveis
+
+A nova marca foi aplicada em:
+- tela de login;
+- tela inicial;
+- barra superior do CAD;
+- título da aba/navegador;
+- PWA / manifest;
+- nome mostrado quando o app é instalado;
+- mensagens do sistema;
+- pacote Aspire / arquivos de instrução;
+- gerenciador de modelos;
+- tela de Configurações;
+- documentação do pacote.
+
+VERSÃO
+Nova versão:
+  1.100.21
+
+Arquivo versionado:
+  designlabmoveis-1.100.21.html
+
+LOGIN ONLINE
+Toda a integração da 1.100.20 foi preservada:
+- Netlify Identity;
+- criar conta;
 - confirmação de e-mail;
 - login;
 - sessão persistente;
+- recuperar senha;
 - logout;
-- recuperação de senha pelo formulário do Netlify Identity.
+- modo local para testes;
+- helper de JWT para o futuro Cloudflare Worker.
 
-O CAD continua totalmente liberado para qualquer conta autenticada.
-Premium ainda NÃO foi implementado.
+COMPATIBILIDADE IMPORTANTE
+Os identificadores INTERNOS antigos foram mantidos propositalmente, por exemplo:
+  mini-cad-pro-project
 
-AINDA NÃO EXISTE NESTA VERSÃO
-- Cloudflare D1;
-- Cloudflare R2;
-- Cloudflare Worker;
-- Premium;
-- pagamentos;
-- sincronização dos projetos entre aparelhos.
+Também foram preservadas as chaves internas de armazenamento local/IndexedDB.
 
-TELA DE ACESSO
-No endereço HTTPS do Netlify:
-- Entrar
-- Criar conta
-- Verificar sessão
-- Esqueci minha senha
+Isso é necessário para:
+- abrir projetos salvos nas versões antigas;
+- manter autosaves;
+- manter preferências;
+- não perder bibliotecas e dados existentes.
 
-Como o Identity está configurado com Email confirmation = Required:
-1. crie a conta;
-2. abra o e-mail recebido;
-3. confirme;
-4. volte ao site;
-5. entre com e-mail e senha.
+Ou seja:
+A MARCA mudou para DesignLabMoveis, mas o formato interno continua compatível
+com o histórico do projeto.
 
-RECUPERAÇÃO
-"Esqueci minha senha" abre o login do Identity.
-No formulário do Netlify, use a opção Forgot password.
+PRÓXIMO TESTE
+Suba este pacote no mesmo projeto Netlify em que o Identity já foi ativado.
+Depois teste:
+1. Criar conta
+2. Confirmar o e-mail
+3. Entrar
+4. Fechar e reabrir para verificar a sessão
+5. Sair da conta
 
-SESSÃO
-O Netlify Identity mantém a sessão.
-Ao reabrir o site, o Mini CAD tenta restaurar o usuário automaticamente.
-
-USUÁRIO NA TELA INICIAL
-Depois do login aparece:
-- iniciais;
-- nome ou nome derivado do e-mail;
-- e-mail;
-- botão de sair.
-
-O menu Projeto também mostra a conta conectada.
-
-MODO LOCAL
-Para não perdermos os testes do CAD pelo arquivo:
-- file:
-- content:
-- localhost
-- 127.0.0.1
-
-mostram "Continuar localmente".
-
-Esse modo NÃO aparece como opção no site publicado normalmente.
-O login real deve ser testado no HTTPS do Netlify.
-
-PREPARAÇÃO PARA A PRÓXIMA ETAPA
-Existe:
-  window.miniCadAuth.getToken()
-
-Ela retorna/renova o JWT do usuário.
-Na próxima etapa usaremos esse JWT em:
-  Authorization: Bearer <token>
-
-para autenticar chamadas ao Cloudflare Worker antes de acessar D1 e R2.
-
-COMO TESTAR AGORA
-1. extraia/suba TODO o ZIP para o mesmo projeto Netlify onde você habilitou Identity;
-2. aguarde o deploy;
-3. abra a URL https://...netlify.app;
-4. toque Criar conta;
-5. use e-mail real;
-6. confirme o e-mail;
-7. volte ao site;
-8. faça login;
-9. confirme que nome/e-mail aparecem na tela inicial;
-10. feche e abra novamente para testar a sessão;
-11. teste Sair.
-
-Quando isso estiver funcionando:
-D1 → R2 → Worker → salvar projetos na nuvem.
+Depois disso partimos para:
+Cloudflare D1 → R2 → Worker → projetos na nuvem → Premium.

@@ -1,8 +1,8 @@
-const CACHE = 'mini-cad-pro-1.100.20';
+const CACHE = 'designlabmoveis-1.100.21';
 const CORE = [
   './',
   './index.html',
-  './mini-cad-pro-1.100.20.html',
+  './designlabmoveis-1.100.21.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE && k.startsWith('mini-cad-pro-')).map(k => caches.delete(k))
+      keys.filter(k => k !== CACHE && (k.startsWith('mini-cad-pro-') || k.startsWith('designlabmoveis-'))).map(k => caches.delete(k))
     ))
   );
   self.clients.claim();
