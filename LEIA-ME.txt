@@ -1,109 +1,92 @@
-MINI CAD PRO 1.100.19 — CHAPA / MATERIAL PADRÃO POR ESPAÇO
+MINI CAD PRO 1.100.20 — BASE ONLINE / NETLIFY IDENTITY
 
-Base: 1.100.18 completa.
+Base: 1.100.19 completa.
 
-1) CRIAR ESPAÇO
-A janela "Criar espaço / Criar outro espaço" agora possui:
+OBJETIVO DESTA VERSÃO
+Testar a primeira camada online:
+- cadastro;
+- confirmação de e-mail;
+- login;
+- sessão persistente;
+- logout;
+- recuperação de senha pelo formulário do Netlify Identity.
 
-  🧱 Chapa / material padrão do espaço
+O CAD continua totalmente liberado para qualquer conta autenticada.
+Premium ainda NÃO foi implementado.
 
-O campo usa os materiais cadastrados em:
-  Materiais / fitas
+AINDA NÃO EXISTE NESTA VERSÃO
+- Cloudflare D1;
+- Cloudflare R2;
+- Cloudflare Worker;
+- Premium;
+- pagamentos;
+- sincronização dos projetos entre aparelhos.
 
-Prioridade automática ao abrir:
-1. material lembrado junto das medidas;
-2. material do espaço usado como referência;
-3. MDF Branco 18 mm / primeiro material disponível.
+TELA DE ACESSO
+No endereço HTTPS do Netlify:
+- Entrar
+- Criar conta
+- Verificar sessão
+- Esqueci minha senha
 
-Também existe:
-  Sem material padrão
+Como o Identity está configurado com Email confirmation = Required:
+1. crie a conta;
+2. abra o e-mail recebido;
+3. confirme;
+4. volte ao site;
+5. entre com e-mail e senha.
 
-2) HERANÇA AUTOMÁTICA
-Quando um espaço possui material padrão, peças novas ligadas a ele herdam:
-- nome do material;
-- código;
-- cor;
-- cor do miolo;
-- sentido do veio;
-- vínculo com a biblioteca do projeto.
+RECUPERAÇÃO
+"Esqueci minha senha" abre o login do Identity.
+No formulário do Netlify, use a opção Forgot password.
 
-Para evitar erros com peças especiais, a herança automática acontece quando a
-espessura real da peça corresponde à espessura nominal da chapa (tolerância 0,25 mm).
+SESSÃO
+O Netlify Identity mantém a sessão.
+Ao reabrir o site, o Mini CAD tenta restaurar o usuário automaticamente.
 
-Exemplo:
-Espaço = MDF Branco 18
-- lateral 18 -> recebe MDF Branco 18;
-- base 18 -> recebe MDF Branco 18;
-- prateleira 18 -> recebe MDF Branco 18;
-- frente 18 -> recebe MDF Branco 18;
-- fundo de gaveta 6 -> NÃO recebe MDF 18 automaticamente.
+USUÁRIO NA TELA INICIAL
+Depois do login aparece:
+- iniciais;
+- nome ou nome derivado do e-mail;
+- e-mail;
+- botão de sair.
 
-Isso já deixa preparado para futuramente adicionarmos:
-- material padrão do fundo;
-- material padrão da caixa da gaveta;
-- fita padrão do espaço.
+O menu Projeto também mostra a conta conectada.
 
-3) CRIAR PEÇAS
-Ao abrir "Criar peças", o campo Espessura já começa com a espessura da chapa
-padrão do espaço.
+MODO LOCAL
+Para não perdermos os testes do CAD pelo arquivo:
+- file:
+- content:
+- localhost
+- 127.0.0.1
 
-Exemplo:
-Espaço configurado com MDF 15 mm
-=> Criar peças começa em 15 mm.
+mostram "Continuar localmente".
 
-4) GAVETAS
-Ao criar um conjunto NOVO:
-- espessura da caixa usa o material padrão do espaço;
-- espessura da frente externa usa o material padrão do espaço;
-- fundo da gaveta mantém seu campo independente (6 mm por padrão).
+Esse modo NÃO aparece como opção no site publicado normalmente.
+O login real deve ser testado no HTTPS do Netlify.
 
-Assim uma chapa estrutural de 18 mm não é aplicada automaticamente ao fundo 6 mm.
+PREPARAÇÃO PARA A PRÓXIMA ETAPA
+Existe:
+  window.miniCadAuth.getToken()
 
-5) EDITAR ESPAÇO
-"Editar espaço" ganhou:
-  Chapa / material padrão
+Ela retorna/renova o JWT do usuário.
+Na próxima etapa usaremos esse JWT em:
+  Authorization: Bearer <token>
 
-e a opção:
-  [ ] Aplicar também às peças já existentes
+para autenticar chamadas ao Cloudflare Worker antes de acessar D1 e R2.
 
-Desmarcado:
-- só muda o padrão das próximas peças.
+COMO TESTAR AGORA
+1. extraia/suba TODO o ZIP para o mesmo projeto Netlify onde você habilitou Identity;
+2. aguarde o deploy;
+3. abra a URL https://...netlify.app;
+4. toque Criar conta;
+5. use e-mail real;
+6. confirme o e-mail;
+7. volte ao site;
+8. faça login;
+9. confirme que nome/e-mail aparecem na tela inicial;
+10. feche e abra novamente para testar a sessão;
+11. teste Sair.
 
-Marcado:
-- atualiza material, código, cor e sentido do veio das peças existentes daquele espaço;
-- NÃO muda a geometria;
-- NÃO muda a espessura física das peças.
-
-6) DIVISÕES / VÃOS
-Todas as divisões internas pertencem ao mesmo espaço raiz, portanto herdam
-automaticamente o mesmo material padrão. Cortar o vão, criar prateleira,
-divisão, lateral etc. não perde a configuração.
-
-7) NOVOS ESPAÇOS RELATIVOS
-Ao criar um Espaço 3 usando Espaço 2 como referência, o novo espaço já sugere
-o mesmo material padrão do Espaço 2. O usuário pode trocar antes de criar.
-
-Se "Lembrar estas medidas" estiver marcado, o material padrão também é lembrado.
-
-8) MATERIAL EXCLUÍDO
-Se um material usado como padrão for excluído da biblioteca, os espaços que
-apontavam para ele voltam automaticamente para "Sem material padrão".
-
-9) SALVAR / ABRIR / EXPORTAR
-O material padrão de cada espaço fica salvo no projeto.
-
-Ao exportar um móvel:
-- o padrão do espaço segue no arquivo;
-- material/código/veio/fita das peças também são preservados;
-- a biblioteca de materiais e fitas continua viajando junto.
-
-Todas as funções da 1.100.18 foram mantidas:
-- visual sólido / Raio-X;
-- eixos com profundidade;
-- seleção verde do espaço;
-- materiais e fitas;
-- preparação para etiquetas;
-- plano de corte / Aspire;
-- gavetas e corrediças Häfele;
-- Forma;
-- navegação PC estilo SketchUp.
+Quando isso estiver funcionando:
+D1 → R2 → Worker → salvar projetos na nuvem.

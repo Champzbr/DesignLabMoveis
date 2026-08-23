@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
-<title>Mini CAD Pro 1.100.19 - Forma paramétrica</title>
+<script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<title>Mini CAD Pro 1.100.20 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -809,6 +810,90 @@
     line-height:1.35;
   }
 
+
+  /* ==========================================================================
+     1.100.20 · BASE ONLINE / NETLIFY IDENTITY
+     ========================================================================== */
+  #authGate{
+    position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;
+    padding:18px;background:
+      radial-gradient(circle at 20% 10%,rgba(45,125,250,.14),transparent 34%),
+      radial-gradient(circle at 80% 80%,rgba(52,208,88,.10),transparent 38%),#101214;
+    color:#f4f7f8;touch-action:auto;overflow:auto;
+  }
+  #authGate.hidden{display:none}
+  .authCard{
+    width:min(460px,100%);border:1px solid rgba(255,255,255,.12);border-radius:20px;
+    background:rgba(25,28,30,.98);box-shadow:0 24px 80px rgba(0,0,0,.48);overflow:hidden;
+  }
+  .authHero{
+    padding:23px 20px 17px;border-bottom:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(145deg,rgba(45,125,250,.13),rgba(52,208,88,.07));
+  }
+  .authBrand{display:flex;align-items:center;gap:11px}
+  .authBrandLogo{
+    width:45px;height:45px;border-radius:13px;display:grid;place-items:center;background:#2d7dfa;
+    color:white;font-size:20px;font-weight:950;box-shadow:0 7px 24px rgba(45,125,250,.25);
+  }
+  .authBrand strong{display:block;font-size:18px}
+  .authBrand span{display:block;margin-top:3px;color:#9eabb3;font-size:10px}
+  .authHero h1{margin:19px 0 6px;font-size:25px;line-height:1.08}
+  .authHero p{margin:0;color:#aeb8be;font-size:11px;line-height:1.55}
+  .authBody{padding:17px 20px 20px}
+  .authActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .authActions button{min-height:46px;border-radius:11px;font-size:12px}
+  #authLoginBtn{grid-column:1/-1;font-size:13px}
+  #authForgotBtn{grid-column:1/-1}
+  .authStatus{
+    margin-top:12px;padding:10px 11px;min-height:40px;border:1px solid #343b3f;border-radius:10px;
+    background:#151819;color:#aeb8be;font-size:10px;line-height:1.45;
+  }
+  .authStatus.good{border-color:rgba(52,208,88,.36);color:#82dd99;background:rgba(52,208,88,.06)}
+  .authStatus.warn{border-color:rgba(255,178,73,.38);color:#ffc372;background:rgba(255,157,46,.06)}
+  .authStatus.error{border-color:rgba(224,69,58,.45);color:#ff8f86;background:rgba(224,69,58,.07)}
+  .authPrivacy{margin:11px 2px 0;color:#758088;font-size:9px;line-height:1.45}
+  #authLocalBox{
+    display:none;margin-top:12px;padding:10px;border:1px dashed #59646a;border-radius:10px;background:#141718;
+  }
+  #authLocalBox.show{display:block}
+  #authLocalBox strong{font-size:10px;color:#dbe2e6}
+  #authLocalBox p{font-size:9px;color:#8e999f;line-height:1.45;margin:5px 0 8px}
+  #authLocalBtn{width:100%}
+
+  .projectAccountArea{
+    min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-left:auto;
+  }
+  .projectAccountChip{
+    min-width:0;max-width:235px;display:flex;align-items:center;gap:8px;padding:6px 8px;
+    border-radius:11px;border:1px solid rgba(255,255,255,.10);background:#191c1e;
+  }
+  .projectAccountAvatar{
+    width:31px;height:31px;flex:0 0 31px;display:grid;place-items:center;border-radius:9px;
+    background:#2d7dfa;color:#fff;font-size:11px;font-weight:950;
+  }
+  .projectAccountText{min-width:0;line-height:1.25}
+  .projectAccountText strong,.projectAccountText span{
+    display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .projectAccountText strong{font-size:10px}
+  .projectAccountText span{margin-top:2px;font-size:8px;color:#87939a}
+  #homeLogoutBtn{min-width:38px;min-height:38px;padding:6px 8px;border-radius:10px;box-shadow:none}
+  #projectMenuAccount{
+    margin-top:7px;padding:7px;border-top:1px solid #333;color:#8f999f;font-size:9px;line-height:1.4;
+  }
+  #projectMenuAccount strong{color:#dbe2e6}
+
+  @media(max-width:700px){
+    .projectHomeHeader{gap:10px}
+    .projectAccountArea{order:3;width:100%;justify-content:stretch;margin-left:0}
+    .projectAccountChip{max-width:none;flex:1}
+    #homeLogoutBtn{width:auto}
+  }
+  @media(max-width:390px){
+    .authActions{grid-template-columns:1fr}
+    #authLoginBtn,#authForgotBtn{grid-column:auto}
+  }
+
   @media (max-width:700px) {
     #homeSettings { width:100%; min-width:0; }
   }
@@ -833,12 +918,52 @@
 </head>
 <body>
 
+
+<div id="authGate" aria-label="Acesso ao Mini CAD Pro">
+  <div class="authCard">
+    <div class="authHero">
+      <div class="authBrand">
+        <div class="authBrandLogo">M</div>
+        <div><strong>Mini CAD Pro</strong><span>Base Online · 1.100.20</span></div>
+      </div>
+      <h1>Entre na sua conta.</h1>
+      <p>Esta é a primeira etapa da versão online. Depois do login, o CAD continua totalmente liberado; Premium e projetos na nuvem entram nas próximas etapas.</p>
+    </div>
+    <div class="authBody">
+      <div class="authActions">
+        <button id="authLoginBtn" type="button">Entrar</button>
+        <button id="authSignupBtn" class="secondary" type="button">Criar conta</button>
+        <button id="authRetryBtn" class="secondary" type="button">↻ Verificar sessão</button>
+        <button id="authForgotBtn" class="secondary" type="button">Esqueci minha senha</button>
+      </div>
+      <div id="authStatus" class="authStatus">Carregando o serviço de autenticação…</div>
+      <div id="authLocalBox">
+        <strong>Modo local de desenvolvimento</strong>
+        <p>Você abriu o arquivo fora do endereço HTTPS do Netlify. O Identity só funciona corretamente no site publicado. Este botão existe apenas em file:/content:/localhost para continuarmos testando o CAD localmente.</p>
+        <button id="authLocalBtn" class="secondary" type="button">Continuar localmente</button>
+      </div>
+      <p class="authPrivacy">A senha é tratada pelo Netlify Identity e não é salva dentro do arquivo do Mini CAD. Nesta versão ainda não existe banco D1 nem cobrança Premium.</p>
+    </div>
+  </div>
+</div>
+
+
 <div id="projectHome" aria-label="Projetos">
   <div class="projectHomeShell">
     <header class="projectHomeHeader">
       <div class="projectBrand">
         <div class="projectBrandLogo">M</div>
-        <div><strong>Mini CAD Pro</strong><span>Projetos de marcenaria · 1.100.19</span></div>
+        <div><strong>Mini CAD Pro</strong><span>Projetos de marcenaria · 1.100.20</span></div>
+      </div>
+      <div class="projectAccountArea">
+        <div id="projectAccountChip" class="projectAccountChip" style="display:none">
+          <div id="projectAccountAvatar" class="projectAccountAvatar">MC</div>
+          <div class="projectAccountText">
+            <strong id="projectAccountName">Usuário</strong>
+            <span id="projectAccountEmail">conta@netlify</span>
+          </div>
+        </div>
+        <button id="homeLogoutBtn" class="secondary" type="button" title="Sair da conta" aria-label="Sair da conta" style="display:none">↪</button>
       </div>
       <div class="projectHomeActions">
         <button id="homeNewProject">＋ Novo</button>
@@ -885,6 +1010,7 @@
     <button id="menuAppSettings" class="secondary wide">⚙ Configurações</button>
     <button id="menuProjectHome" class="secondary wide">⌂ Voltar para tela inicial</button>
   </div>
+  <div id="projectMenuAccount"><strong>Conta desconectada</strong></div>
 </div>
 
 <div id="presentationBar">
@@ -1004,7 +1130,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">Mini CAD Pro 1.100.19 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">Mini CAD Pro 1.100.20 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2113,6 +2239,207 @@ let suppressProjectDirty=false;
 function escapeHtml(v){
   return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+
+
+// ============================================================================
+// 1.100.20 · AUTENTICAÇÃO ONLINE — NETLIFY IDENTITY
+// ============================================================================
+let identityClient=null;
+let currentIdentityUser=null;
+let authLocalMode=false;
+let authInitialized=false;
+let authWidgetEventsBound=false;
+
+function isLocalAuthDevelopment(){
+  const protocol=String(location.protocol||'').toLowerCase();
+  const host=String(location.hostname||'').toLowerCase();
+  return protocol==='file:' || protocol==='content:' || host==='localhost' || host==='127.0.0.1';
+}
+function authUserName(user){
+  const meta=user?.user_metadata||{};
+  const full=String(meta.full_name||meta.name||'').trim();
+  if(full)return full;
+  const email=String(user?.email||'').trim();
+  return email?email.split('@')[0]:'Usuário';
+}
+function authUserInitials(user){
+  const name=authUserName(user),parts=name.split(/\s+/).filter(Boolean);
+  if(parts.length>=2)return (parts[0][0]+parts.at(-1)[0]).toUpperCase();
+  return name.slice(0,2).toUpperCase()||'MC';
+}
+function setAuthStatus(message,tone=''){
+  const el=$('authStatus');if(!el)return;
+  el.textContent=message;
+  el.className='authStatus'+(tone?` ${tone}`:'');
+}
+function updateIdentityChrome(){
+  const chip=$('projectAccountChip'),avatar=$('projectAccountAvatar'),name=$('projectAccountName'),
+        email=$('projectAccountEmail'),logout=$('homeLogoutBtn'),menu=$('projectMenuAccount');
+
+  if(authLocalMode){
+    if(chip)chip.style.display='flex';
+    if(avatar)avatar.textContent='L';
+    if(name)name.textContent='Modo local';
+    if(email)email.textContent='sem autenticação';
+    if(logout)logout.style.display='none';
+    if(menu)menu.innerHTML='<strong>Modo local</strong><br>Identity será testado no endereço HTTPS do Netlify.';
+    return;
+  }
+  if(currentIdentityUser){
+    if(chip)chip.style.display='flex';
+    if(avatar)avatar.textContent=authUserInitials(currentIdentityUser);
+    if(name)name.textContent=authUserName(currentIdentityUser);
+    if(email)email.textContent=currentIdentityUser.email||'Conta Netlify';
+    if(logout)logout.style.display='';
+    if(menu)menu.innerHTML=`<strong>${escapeHtml(authUserName(currentIdentityUser))}</strong><br>${escapeHtml(currentIdentityUser.email||'')}<br>Conta autenticada · Premium ainda não conectado.`;
+  }else{
+    if(chip)chip.style.display='none';
+    if(logout)logout.style.display='none';
+    if(menu)menu.innerHTML='<strong>Conta desconectada</strong>';
+  }
+}
+function lockOnlineApp(message='Entre para acessar o Mini CAD Pro.'){
+  if(authLocalMode)return;
+  currentIdentityUser=null;
+  updateIdentityChrome();
+  $('authGate')?.classList.remove('hidden');
+  setAuthStatus(message,'');
+}
+function unlockOnlineApp(user,{message='Conta conectada.'}={}){
+  currentIdentityUser=user||currentIdentityUser;
+  authLocalMode=false;
+  updateIdentityChrome();
+  $('authGate')?.classList.add('hidden');
+  setAuthStatus(message,'good');
+}
+function localAuthContinue(){
+  if(!isLocalAuthDevelopment())return;
+  authLocalMode=true;
+  currentIdentityUser=null;
+  updateIdentityChrome();
+  $('authGate')?.classList.add('hidden');
+  setAuthStatus('Modo local ativo. Publique no Netlify para testar cadastro e login.','warn');
+}
+async function waitForNetlifyIdentity(timeoutMs=10000){
+  const start=Date.now();
+  while(Date.now()-start<timeoutMs){
+    if(window.netlifyIdentity)return window.netlifyIdentity;
+    await new Promise(r=>setTimeout(r,80));
+  }
+  return null;
+}
+function bindIdentityEvents(client){
+  if(authWidgetEventsBound||!client)return;
+  authWidgetEventsBound=true;
+
+  client.on('init',user=>{
+    authInitialized=true;
+    if(user)unlockOnlineApp(user,{message:'Sessão restaurada.'});
+    else if(!authLocalMode)lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
+  });
+  client.on('login',user=>{
+    unlockOnlineApp(user,{message:'Login realizado.'});
+    try{client.close();}catch{}
+  });
+  client.on('logout',()=>{
+    currentIdentityUser=null;authLocalMode=false;lockOnlineApp('Você saiu da conta.');
+  });
+  try{
+    client.on('signup',user=>{
+      currentIdentityUser=null;
+      $('authGate')?.classList.remove('hidden');
+      setAuthStatus(
+        user?.confirmed_at?'Conta criada. Agora faça login.':'Conta criada. Confira seu e-mail e confirme o cadastro antes de entrar.',
+        'good'
+      );
+    });
+  }catch{}
+  client.on('error',err=>{
+    console.error('Netlify Identity:',err);
+    setAuthStatus(`Autenticação: ${String(err?.message||err||'Falha na autenticação.')}`,'error');
+  });
+  try{
+    client.on('open',()=>setAuthStatus('Formulário de autenticação aberto.',''));
+    client.on('close',()=>{if(!currentIdentityUser&&!authLocalMode)setAuthStatus('Entre ou crie uma conta para continuar.','');});
+  }catch{}
+}
+async function initOnlineIdentity(){
+  const local=isLocalAuthDevelopment();
+  $('authLocalBox')?.classList.toggle('show',local);
+  setAuthStatus(
+    local?'Arquivo local detectado. Para testar o login real, use o endereço HTTPS publicado no Netlify.':'Conectando ao Netlify Identity…',
+    local?'warn':''
+  );
+
+  const client=await waitForNetlifyIdentity();
+  if(!client){
+    setAuthStatus(
+      local?'Identity não carregou no arquivo local. Você pode continuar em modo local.':'Não foi possível carregar o Netlify Identity. Confira a internet e tente novamente.',
+      local?'warn':'error'
+    );
+    return;
+  }
+
+  identityClient=client;
+  bindIdentityEvents(client);
+
+  try{
+    const existing=client.currentUser?.();
+    if(existing){
+      authInitialized=true;
+      unlockOnlineApp(existing,{message:'Sessão restaurada.'});
+    }else{
+      try{client.init?.();}catch{}
+      setTimeout(()=>{
+        if(!authInitialized&&!currentIdentityUser&&!authLocalMode){
+          lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
+        }
+      },1200);
+    }
+  }catch(err){
+    console.error(err);
+    setAuthStatus('Não foi possível iniciar o serviço de login.','error');
+  }
+
+  const hash=String(location.hash||'');
+  if(/confirmation_token=/i.test(hash)){
+    setAuthStatus('Confirmação de e-mail recebida. Aguarde o Netlify concluir o cadastro…','good');
+  }else if(/recovery_token=/i.test(hash)){
+    setAuthStatus('Recuperação de senha detectada. Use o formulário do Netlify para definir a nova senha.','warn');
+  }else if(/invite_token=/i.test(hash)){
+    setAuthStatus('Convite recebido. Conclua seu cadastro no formulário do Netlify.','good');
+  }
+}
+function openIdentityMode(mode='login'){
+  if(!identityClient){
+    setAuthStatus('O serviço de autenticação ainda não carregou. Toque em “Verificar sessão”.','error');
+    return;
+  }
+  try{identityClient.open(mode);}
+  catch(err){console.error(err);setAuthStatus('Não foi possível abrir o formulário de autenticação.','error');}
+}
+async function logoutOnlineIdentity(){
+  if(authLocalMode){authLocalMode=false;lockOnlineApp('Modo local encerrado.');return;}
+  if(!identityClient)return;
+  try{await projectAutosaveNow();}catch{}
+  try{await identityClient.logout();}
+  catch(err){console.error(err);setAuthStatus('Não foi possível sair da conta agora.','error');}
+}
+
+window.miniCadAuth={
+  getUser(){return currentIdentityUser;},
+  isAuthenticated(){return !!currentIdentityUser&&!authLocalMode;},
+  isLocalMode(){return !!authLocalMode;},
+  async getToken(){
+    if(!identityClient||!currentIdentityUser||authLocalMode)return null;
+    try{
+      const jwt=await identityClient.refresh();
+      if(jwt)return jwt;
+    }catch(err){console.warn('Não foi possível renovar JWT:',err);}
+    return currentIdentityUser?.token?.access_token||null;
+  }
+};
+
 function newProjectId(){
   try{if(crypto?.randomUUID)return 'proj_'+crypto.randomUUID();}catch{}
   return 'proj_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);
@@ -2281,7 +2608,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · Mini CAD Pro 1.100.19`:'Mini CAD Pro 1.100.19';
+  document.title=currentProjectId?`${name} · Mini CAD Pro 1.100.20`:'Mini CAD Pro 1.100.20';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -2403,6 +2730,7 @@ async function renderProjectHome(){
     }
   }
   updateProjectChrome();
+  updateIdentityChrome();
 }
 async function showProjectHome(){
   await projectAutosaveNow();
@@ -2455,7 +2783,7 @@ async function createNewProject(meta){
   const now=projectNow();
   const rec={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.19'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.20'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -2470,7 +2798,7 @@ async function saveCurrentProject({silent=false}={}){
   const next={
     ...rec,...currentProjectRecord,id:currentProjectId,
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.19'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.20'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   await projectDbPut(next);
@@ -2490,7 +2818,7 @@ async function saveAsCurrentProject(meta){
   const now=projectNow();
   const next={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.19'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.20'
   };
   await projectDbPut(next);
   if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
@@ -2533,7 +2861,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.19',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.20',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -2560,7 +2888,7 @@ async function importProjectFile(file){
   const rec={
     id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.19'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.20'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2619,7 +2947,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.19'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.20'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5906,7 +6234,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.19', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.20', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -10575,7 +10903,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `Mini CAD Pro 1.100.19 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `Mini CAD Pro 1.100.20 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -10590,7 +10918,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `Mini CAD Pro 1.100.19 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `Mini CAD Pro 1.100.20 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -11361,6 +11689,26 @@ window.addEventListener('keydown',e=>{
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')projectAutosaveNow();});
 window.addEventListener('pagehide',()=>{projectAutosaveNow();});
 
+
+$('authLoginBtn').onclick=()=>openIdentityMode('login');
+$('authSignupBtn').onclick=()=>openIdentityMode('signup');
+$('authForgotBtn').onclick=()=>{
+  setAuthStatus('No formulário de login do Netlify, use “Forgot password / Esqueci a senha”.','warn');
+  openIdentityMode('login');
+};
+$('authRetryBtn').onclick=async()=>{
+  setAuthStatus('Verificando sessão…','');
+  if(identityClient){
+    const user=identityClient.currentUser?.();
+    if(user)unlockOnlineApp(user,{message:'Sessão encontrada.'});
+    else lockOnlineApp('Nenhuma sessão ativa. Entre ou crie uma conta.');
+  }else{
+    await initOnlineIdentity();
+  }
+};
+$('authLocalBtn').onclick=localAuthContinue;
+$('homeLogoutBtn').onclick=logoutOnlineIdentity;
+
 installOutsideMenuClose();
 
 window.addEventListener('resize',()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
@@ -11375,6 +11723,7 @@ setFrontWorldView();
 history=[stateString()]; historyIndex=0;
 initToolDock();
 initProjectHub().catch(err=>{console.error(err);toast('Não foi possível abrir o gerenciador de projetos');});
+initOnlineIdentity().catch(err=>{console.error(err);setAuthStatus('Falha ao iniciar a autenticação.','error');});
 
 function animate(){
   requestAnimationFrame(animate); controls.update(); if(dragMode) updateLiveLabel(); updateMachiningVisualTransforms(); renderer.render(scene,camera);

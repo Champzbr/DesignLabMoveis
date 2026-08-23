@@ -1,8 +1,8 @@
-const CACHE = 'mini-cad-pro-1.100.19';
+const CACHE = 'mini-cad-pro-1.100.20';
 const CORE = [
   './',
   './index.html',
-  './mini-cad-pro-1.100.19.html',
+  './mini-cad-pro-1.100.20.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
