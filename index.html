@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.26 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.27 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -937,6 +937,42 @@
   .authBannedPanel strong{display:block;color:#ff8e85;font-size:14px}
   .authBannedPanel p{margin:6px 0 10px;color:#c9a3a0;font-size:10px;line-height:1.5}
   .authBannedPanel button{width:100%}
+
+  /* ==========================================================================
+     1.100.27 · ATUALIZAÇÕES / CACHE
+     ========================================================================== */
+  #adminDialog{z-index:780 !important}
+
+  #updateDialog{z-index:900}
+  #updateDialog .projectModalCard{width:min(500px,100%)}
+  .updateVersionBox{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;
+    margin:10px 0;padding:10px;border:1px solid #3a4145;border-radius:11px;background:#131618;
+  }
+  .updateVersionBox div{min-width:0}
+  .updateVersionBox span{display:block;color:#87939a;font-size:8px;margin-bottom:3px}
+  .updateVersionBox strong{display:block;font-size:12px;word-break:break-word}
+  .updateArrow{color:#5fa3ff;font-size:18px;font-weight:900;text-align:center}
+  .updateNote{
+    margin:8px 0;padding:8px 9px;border-radius:9px;background:#111416;
+    border:1px solid #333a3e;color:#9da7ad;font-size:9px;line-height:1.5;
+  }
+  .updateNote.good{border-color:rgba(52,208,88,.28);color:#78d991}
+  .updateNote.warn{border-color:rgba(255,177,73,.30);color:#ffc070}
+  .updateNote.error{border-color:rgba(224,69,58,.35);color:#ff9189}
+  .updateSettingRow{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;
+  }
+  .updateSettingRow div{min-width:0}
+  .updateSettingRow strong{display:block;font-size:10px}
+  .updateSettingRow span{display:block;margin-top:2px;color:#89949a;font-size:8px;line-height:1.4}
+  .updateSettingRow button{flex:0 0 auto;min-height:37px}
+  #homeCheckUpdate{font-size:11px}
+  @media(max-width:700px){
+    .updateVersionBox{grid-template-columns:1fr}
+    .updateArrow{transform:rotate(90deg)}
+  }
+
   @media(max-width:700px){
     .adminStatsGrid{grid-template-columns:1fr 1fr}
     .adminToolbar{grid-template-columns:1fr 1fr}
@@ -1018,7 +1054,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.26</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.27</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1108,7 +1144,7 @@
     <header class="projectHomeHeader">
       <div class="projectBrand">
         <div class="projectBrandLogo">M</div>
-        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.26</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.27</span></div>
       </div>
       <div class="projectAccountArea">
         <div id="projectAccountChip" class="projectAccountChip" style="display:none">
@@ -1127,6 +1163,7 @@
         <button id="homeSaveProject" class="secondary">💾 Salvar</button>
         <button id="homeSaveAsProject" class="secondary">Salvar como</button>
         <button id="homeSettings" class="secondary" type="button" title="Configurações" aria-label="Configurações">⚙</button>
+        <button id="homeCheckUpdate" class="secondary" type="button">↻ Atualizar</button>
         <button id="homeAdminPanel" class="secondary" type="button">🛡 Administrador</button>
       </div>
     </header>
@@ -1165,6 +1202,7 @@
     <button id="menuExportProjectFile" class="secondary wide">⇩ Exportar arquivo .mcad</button>
     <button id="menuOpenProjectFile" class="secondary wide">⇧ Abrir arquivo .mcad / JSON</button>
     <button id="menuAppSettings" class="secondary wide">⚙ Configurações</button>
+    <button id="menuCheckUpdate" class="secondary wide">↻ Verificar atualização</button>
     <button id="menuAdminPanel" class="secondary wide">🛡 Painel Administrativo</button>
     <button id="menuProjectHome" class="secondary wide">⌂ Voltar para tela inicial</button>
   </div>
@@ -1261,11 +1299,61 @@
       </p>
     </div>
 
+    <div class="appSettingsSection">
+      <div class="appSettingsSectionHead">
+        <strong>Atualizações e cache</strong>
+        <span>O app verifica novas versões sem apagar seus projetos locais.</span>
+      </div>
+
+      <div class="updateSettingRow">
+        <div>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.100.27</span></strong>
+          <span id="appCacheStatus">Verificando cache…</span>
+        </div>
+        <button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button>
+      </div>
+
+      <p class="cadSettingsNote">
+        O HTML e o arquivo de versão usam rede primeiro. Se estiver sem internet,
+        o DesignLabMoveis abre a última versão salva no cache.
+      </p>
+    </div>
+
     <div class="projectModalActions">
       <button id="appSettingsClose" class="secondary">Fechar</button>
     </div>
   </div>
 </div>
+
+
+<div id="updateDialog" class="projectModal">
+  <div class="projectModalCard">
+    <h3>↻ Atualização disponível</h3>
+    <p id="updateDialogMessage">Existe uma versão mais nova do DesignLabMoveis.</p>
+
+    <div class="updateVersionBox">
+      <div>
+        <span>Versão instalada</span>
+        <strong id="updateCurrentVersion">1.100.27</strong>
+      </div>
+      <div class="updateArrow">→</div>
+      <div>
+        <span>Nova versão</span>
+        <strong id="updateAvailableVersion">—</strong>
+      </div>
+    </div>
+
+    <div id="updateDialogStatus" class="updateNote">
+      Seus projetos locais permanecem salvos. O cache do aplicativo será renovado.
+    </div>
+
+    <div class="projectModalActions">
+      <button id="updateLaterBtn" class="secondary" type="button">Depois</button>
+      <button id="updateNowBtn" type="button">Atualizar agora</button>
+    </div>
+  </div>
+</div>
+
 
 <div id="recoveryDialog" class="projectModal">
   <div class="projectModalCard">
@@ -1289,7 +1377,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.26 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.27 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2866,6 +2954,175 @@ window.miniCadAuth={
 
 
 
+
+// ============================================================================
+// 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
+// ============================================================================
+const DESIGNLAB_APP_VERSION='1.100.27';
+const DESIGNLAB_VERSION_URL='./version.json';
+const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
+
+let designLabLastUpdateCheck=0;
+let designLabAvailableUpdate=null;
+let designLabUpdating=false;
+let designLabSwRegistration=null;
+
+function compareAppVersions(a,b){
+  const aa=String(a||'').split('.').map(n=>Number(n)||0);
+  const bb=String(b||'').split('.').map(n=>Number(n)||0);
+  const len=Math.max(aa.length,bb.length);
+  for(let i=0;i<len;i++){
+    const av=aa[i]||0,bv=bb[i]||0;
+    if(av>bv)return 1;
+    if(av<bv)return -1;
+  }
+  return 0;
+}
+function setUpdateDialogStatus(message,tone=''){
+  const el=$('updateDialogStatus');if(!el)return;
+  el.textContent=message;
+  el.className='updateNote'+(tone?` ${tone}`:'');
+}
+function updateCacheStatusUI(message=null){
+  const el=$('appCacheStatus');
+  if(!el)return;
+  if(message){el.textContent=message;return;}
+  if(!('serviceWorker' in navigator)){
+    el.textContent='Cache offline não suportado neste navegador.';
+    return;
+  }
+  if(location.protocol!=='https:'&&location.hostname!=='localhost'){
+    el.textContent='Cache offline disponível quando publicado por HTTPS.';
+    return;
+  }
+  el.textContent=navigator.onLine
+    ? `Cache ativo · versão ${DESIGNLAB_APP_VERSION}`
+    : `Offline · usando cache da versão ${DESIGNLAB_APP_VERSION}`;
+}
+function openUpdateDialog(info){
+  designLabAvailableUpdate=info||designLabAvailableUpdate;
+  if(!designLabAvailableUpdate)return;
+  $('updateCurrentVersion').textContent=DESIGNLAB_APP_VERSION;
+  $('updateAvailableVersion').textContent=designLabAvailableUpdate.version||'nova';
+  $('updateDialogMessage').textContent=designLabAvailableUpdate.message||
+    'Existe uma versão mais nova do DesignLabMoveis.';
+  setUpdateDialogStatus(
+    designLabAvailableUpdate.required
+      ? 'Esta atualização foi marcada como importante. Salve o projeto antes de atualizar.'
+      : 'Você pode atualizar agora ou continuar trabalhando e instalar depois.',
+    designLabAvailableUpdate.required?'warn':''
+  );
+  $('updateLaterBtn').style.display=designLabAvailableUpdate.required?'none':'';
+  $('updateDialog').classList.add('show');
+}
+function closeUpdateDialog(){
+  if(designLabAvailableUpdate?.required)return;
+  $('updateDialog').classList.remove('show');
+}
+async function checkDesignLabUpdate({manual=false,force=false}={}){
+  const now=Date.now();
+  if(!force&&!manual&&now-designLabLastUpdateCheck<DESIGNLAB_UPDATE_MIN_INTERVAL)return null;
+  designLabLastUpdateCheck=now;
+
+  if(!navigator.onLine){
+    if(manual)toast('Sem internet · usando a versão salva no cache');
+    updateCacheStatusUI();
+    return null;
+  }
+
+  try{
+    const res=await fetch(`${DESIGNLAB_VERSION_URL}?t=${Date.now()}`,{
+      cache:'no-store',
+      headers:{'Accept':'application/json'}
+    });
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const info=await res.json();
+    if(!info?.version)throw new Error('version.json inválido');
+
+    if(compareAppVersions(info.version,DESIGNLAB_APP_VERSION)>0){
+      openUpdateDialog(info);
+      return info;
+    }
+
+    designLabAvailableUpdate=null;
+    if(manual)toast(`DesignLabMoveis ${DESIGNLAB_APP_VERSION} já está atualizado`);
+    updateCacheStatusUI();
+    return info;
+  }catch(err){
+    console.warn('Verificação de atualização:',err);
+    if(manual)toast('Não foi possível verificar atualização agora');
+    updateCacheStatusUI('Cache ativo · não foi possível consultar nova versão agora.');
+    return null;
+  }
+}
+async function applyDesignLabUpdate(){
+  if(designLabUpdating)return;
+  designLabUpdating=true;
+  $('updateNowBtn').disabled=true;
+  $('updateLaterBtn').disabled=true;
+  setUpdateDialogStatus('Preparando a nova versão…','warn');
+
+  try{
+    try{await projectAutosaveNow();}catch{}
+
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg){
+        designLabSwRegistration=reg;
+        setUpdateDialogStatus('Baixando arquivos atualizados e renovando o cache…','warn');
+        await reg.update();
+
+        const waiting=reg.waiting;
+        if(waiting)waiting.postMessage({type:'SKIP_WAITING'});
+      }
+    }
+
+    // Cache-buster garante que nem o navegador nem um SW antigo entreguem o HTML antigo.
+    const target=new URL(location.href);
+    target.searchParams.set('_dlv',designLabAvailableUpdate?.version||String(Date.now()));
+    target.searchParams.set('_refresh',String(Date.now()));
+    setUpdateDialogStatus('Atualização pronta. Reiniciando o DesignLabMoveis…','good');
+
+    setTimeout(()=>location.replace(target.toString()),450);
+  }catch(err){
+    console.error('Atualização:',err);
+    designLabUpdating=false;
+    $('updateNowBtn').disabled=false;
+    $('updateLaterBtn').disabled=false;
+    setUpdateDialogStatus('Não foi possível concluir. Tente novamente em alguns instantes.','error');
+  }
+}
+async function initDesignLabServiceWorker(){
+  updateCacheStatusUI();
+
+  if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
+  try{
+    designLabSwRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+
+    // Pede ao navegador para conferir sw.js imediatamente a cada abertura.
+    await designLabSwRegistration.update().catch(()=>{});
+
+    designLabSwRegistration.addEventListener('updatefound',()=>{
+      const nw=designLabSwRegistration.installing;
+      if(!nw)return;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){
+          // Não força reload no meio do trabalho: version.json controla o aviso.
+          checkDesignLabUpdate({force:true}).catch(()=>{});
+        }
+      });
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      updateCacheStatusUI(`Cache renovado · versão ${DESIGNLAB_APP_VERSION}`);
+    });
+  }catch(err){
+    console.warn('Service Worker:',err);
+    updateCacheStatusUI('Não foi possível ativar o cache offline.');
+  }
+}
+
+
 let adminPanelState={tab:'users',stats:null,users:[],payments:[],search:'',paymentStatus:''};
 
 function adminAllowed(){
@@ -3307,7 +3564,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.26`:'DesignLabMoveis 1.100.26';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.27`:'DesignLabMoveis 1.100.27';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -3482,7 +3739,7 @@ async function createNewProject(meta){
   const now=projectNow();
   const rec={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.26'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.27'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -3497,7 +3754,7 @@ async function saveCurrentProject({silent=false}={}){
   const next={
     ...rec,...currentProjectRecord,id:currentProjectId,
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.26'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.27'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   await projectDbPut(next);
@@ -3517,7 +3774,7 @@ async function saveAsCurrentProject(meta){
   const now=projectNow();
   const next={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.26'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.27'
   };
   await projectDbPut(next);
   if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
@@ -3560,7 +3817,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.26',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.27',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -3587,7 +3844,7 @@ async function importProjectFile(file){
   const rec={
     id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.26'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.27'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -3646,7 +3903,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.26'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.27'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -6933,7 +7190,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.26', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.27', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -11602,7 +11859,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.26 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.27 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -11617,7 +11874,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.26 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.27 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -12411,6 +12668,12 @@ $('authRetryBtn').onclick=async()=>{
 };
 $('authLocalBtn').onclick=localAuthContinue;
 $('homeLogoutBtn').onclick=logoutOnlineIdentity;
+$('homeCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('menuCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('updateLaterBtn').onclick=closeUpdateDialog;
+$('updateNowBtn').onclick=applyDesignLabUpdate;
+$('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
 $('authBannedLogout').onclick=logoutOnlineIdentity;
 $('homeAdminPanel').onclick=openAdminPanel;
 $('menuAdminPanel').onclick=openAdminPanel;
@@ -12445,9 +12708,14 @@ installOutsideMenuClose();
 window.addEventListener('resize',()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
+initDesignLabServiceWorker().catch(()=>{});
+setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
+window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});});
+window.addEventListener('offline',updateCacheStatusUI);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')checkDesignLabUpdate().catch(()=>{});
+});
+window.addEventListener('pageshow',()=>checkDesignLabUpdate().catch(()=>{}));
 
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 setFrontWorldView();

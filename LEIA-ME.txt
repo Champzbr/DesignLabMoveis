@@ -1,34 +1,97 @@
-DESIGNLABMOVEIS 1.100.26 — PAINEL ADMINISTRATIVO
+DESIGNLABMOVEIS 1.100.27 — ADMIN CORRIGIDO + ATUALIZAÇÃO/CACHE
 
-CORREÇÃO
-O cabeçalho da tela inicial agora mostra corretamente:
-  Projetos de marcenaria · 1.100.26
+BASE
+1.100.26 completa.
 
-NOVO PAINEL ADMIN
-Só aparece para role='admin'.
+1) PAINEL ADMINISTRATIVO NÃO ABRIA
+O problema foi localizado no empilhamento visual:
+- Tela inicial dos projetos: z-index 500
+- Painel Administrativo anterior: z-index 90
 
-FUNÇÕES:
-- total de usuários;
-- Premium ativos;
-- banidos;
-- pagamentos pendentes;
-- busca por nome/e-mail;
-- +7, +30, +90 dias Premium;
-- retirar Premium;
-- banir/desbanir;
-- listar/aprovar/rejeitar pagamentos;
-- auditoria no admin_audit.
+O clique funcionava, mas o painel era aberto ATRÁS da tela inicial.
 
-SEGURANÇA
-O Worker também exige role='admin' nas rotas /admin/*.
-Usuário comum recebe 403 mesmo que tente chamar a API manualmente.
-Admin não pode banir a própria conta.
-Usuário banido recebe bloqueio no /me e vê "Conta bloqueada".
+CORREÇÃO:
+  #adminDialog = z-index 780
 
-PASTA cloudflare
-- worker-1.100.26.js
-- 1-migracao-admin-d1.sql
-- 2-tornar-usuario-admin.sql
-- LEIA-ME-CLOUDFLARE.txt
+Agora o painel abre por cima da tela inicial e também funciona quando aberto
+pelo menu Projeto dentro do CAD.
 
-Execute a migração e publique o novo Worker antes de testar o painel.
+2) SISTEMA DE ATUALIZAÇÃO
+Foi criado:
+  version.json
+
+O DesignLabMoveis consulta esse arquivo:
+- ao abrir;
+- ao voltar para o aplicativo;
+- quando a internet retorna;
+- manualmente pelo botão Atualizar.
+
+Quando a versão do servidor é maior, aparece um aviso profissional com:
+- versão instalada;
+- nova versão;
+- Atualizar agora;
+- Depois.
+
+A atualização NÃO é obrigatória nesta versão.
+
+3) CACHE ESTILO CONTAS FÁCIL
+O Service Worker foi refeito.
+
+HTML / navegação:
+  NETWORK FIRST
+Isso evita ficar preso em versões antigas.
+
+Sem internet:
+  usa o último index.html salvo no cache.
+
+Arquivos estáticos locais:
+  CACHE FIRST + atualização em segundo plano.
+
+version.json:
+  sempre tenta a rede sem cache.
+
+4) SEGURANÇA DO CACHE
+Chamadas autenticadas NÃO são armazenadas no cache.
+
+O Service Worker ignora:
+- requisições com Authorization;
+- /.netlify/identity/*;
+- origens externas / API Cloudflare.
+
+Isso evita guardar /me ou outros dados de usuário dentro do cache compartilhado.
+
+5) BOTÕES
+Tela inicial:
+  ↻ Atualizar
+
+Menu Projeto:
+  ↻ Verificar atualização
+
+Configurações:
+  seção Atualizações e cache
+  + Verificar agora
+  + status offline/cache.
+
+6) NETLIFY
+Incluídos:
+  _headers
+  netlify.toml
+
+index.html, sw.js e version.json são enviados com no-cache/no-store para
+diminuir muito a chance de o navegador/Netlify entregar versão antiga.
+
+7) PRIMEIRO DEPLOY DESTA MUDANÇA
+A versão 1.100.26 antiga ainda usa o cache anterior.
+Depois de publicar 1.100.27, se o site ainda mostrar 1.100.26 na primeira
+abertura, abra uma vez com um parâmetro no endereço, por exemplo:
+  ?v=1.100.27
+A partir da 1.100.27, as próximas atualizações passam a usar o novo sistema.
+
+8) VERSÃO
+O topo da tela inicial também foi atualizado:
+  Projetos de marcenaria · 1.100.27
+
+9) CLOUDFLARE
+O painel admin continua usando o Worker/API da 1.100.26 normalmente.
+Não é necessário alterar o D1 para esta versão.
+Foi incluído worker-1.100.27.js apenas como cópia atualizada para arquivo.
