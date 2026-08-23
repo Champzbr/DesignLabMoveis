@@ -1,36 +1,39 @@
-DESIGNLABMOVEIS 1.100.22 — CORREÇÃO DO LOGIN / CRIAR CONTA
+DESIGNLABMOVEIS 1.100.23 — NETLIFY IDENTITY EM PORTUGUÊS
 
-Base: 1.100.21 completa.
+Base: 1.100.22 completa.
 
-PROBLEMA ENCONTRADO
-Os botões Entrar e Criar conta estavam funcionando: o evento "open" do Netlify
-Identity era disparado (por isso aparecia "Formulário de autenticação aberto.").
+ALTERAÇÃO
+O formulário oficial do Netlify Identity agora é forçado para Português (pt).
 
-Porém o modal oficial do Netlify ficava ATRÁS da tela cheia de login do
-DesignLabMoveis. Visualmente parecia que o botão não fazia nada.
+Devem aparecer em português:
+- Criar conta
+- Entrar
+- Nome
+- E-mail
+- Senha
+- Recuperação de senha
+- Mensagens básicas do widget
 
-CORREÇÃO
-- ao abrir Entrar/Criar conta, a tela de acesso do DesignLabMoveis é escondida;
-- o modal oficial do Netlify Identity fica acima de tudo;
-- foi reforçado o z-index do widget;
-- ao fechar o modal sem autenticar, a tela do DesignLabMoveis reaparece;
-- após cadastro com confirmação de e-mail obrigatória, o modal fecha e a tela
-  orienta o usuário a confirmar o e-mail;
-- depois do login, a tela de acesso continua escondida e o CAD é liberado.
+IMPLEMENTAÇÃO
+A versão chama:
+  netlifyIdentity.setLocale('pt')
+
+quando o serviço é inicializado e também imediatamente antes de abrir o modal.
+
+O idioma "pt" é suportado oficialmente pelo netlify-identity-widget.
+
+O restante da autenticação da 1.100.22 foi preservado:
+- modal acima da tela de acesso;
+- cadastro;
+- confirmação obrigatória de e-mail;
+- login;
+- sessão persistente;
+- logout;
+- recuperação;
+- modo local de desenvolvimento.
 
 TESTE
-1. publique TODO este pacote no mesmo site Netlify;
-2. aguarde o deploy;
-3. faça uma atualização/reload da página;
-4. toque "Criar conta";
-5. o formulário do Netlify deve aparecer por cima;
-6. cadastre um e-mail real;
-7. confirme o e-mail recebido;
-8. volte ao site e toque "Entrar".
-
-IMPORTANTE
-A configuração do Netlify Identity que você mostrou está correta:
-- Registration: Open
-- Email confirmation: Required
-
-Nenhuma alteração no Cloudflare é necessária ainda.
+1. publique esta versão no mesmo site Netlify;
+2. atualize/recarregue a página;
+3. toque "Criar conta";
+4. o modal do Netlify deve abrir em Português.
