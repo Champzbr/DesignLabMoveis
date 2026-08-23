@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.29",
+  "version": "1.100.30",
   "required": false,
-  "message": "Projetos separados por conta e sincronização de projetos com a nuvem.",
-  "released_at": "2026-08-23T15:06:00-03:00"
+  "message": "Espaços mais visíveis e nova configuração paramétrica da peça com deslocamento, tamanho e rotação.",
+  "released_at": "2026-08-23T15:33:00-03:00"
 }

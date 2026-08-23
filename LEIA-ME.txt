@@ -1,84 +1,110 @@
-DESIGNLABMOVEIS 1.100.29 — PROJETOS SEPARADOS POR CONTA + NUVEM
+DESIGNLABMOVEIS 1.100.30 — ESPAÇOS VISÍVEIS + CONFIGURAÇÃO DA PEÇA
 
-CORREÇÃO PRINCIPAL
-Projetos recentes não são mais compartilhados entre contas no mesmo navegador.
+BASE
+1.100.29 completa.
 
-Cada projeto agora tem:
-ownerUserId
+1. ESPAÇOS MAIS FÁCEIS DE ENXERGAR
+Antes, um espaço não selecionado usava:
+- preenchimento quase invisível (opacity 0.012)
+- contorno opacity 0.12
+- BackSide
 
-A tela Projetos recentes mostra somente projetos cujo ownerUserId corresponde
-à conta logada.
+Agora:
+- espaço inativo tem preenchimento 0.065;
+- contorno inativo 0.48;
+- usa DoubleSide;
+- depthTest continua ligado.
 
-TROCA DE CONTA
-Ao trocar a conta:
-- projeto aberto da conta anterior é fechado;
-- a cena anterior é limpa;
-- lista de projetos é recarregada;
-- autosave de emergência usa chave separada por usuário.
+Resultado:
+o vão continua discreto, mas fica claramente reconhecível mesmo sem estar
+selecionado. Ele não atravessa as chapas quando o Raio-X está desligado.
 
-PROJETOS ANTIGOS
-Projetos das versões anteriores não tinham ownerUserId.
+Selecionado:
+- preenchimento mais forte;
+- contorno verde forte.
 
-Eles NÃO são atribuídos automaticamente.
-Aparecem numa seção:
-Projetos antigos deste dispositivo
+2. CONFIGURAÇÃO DA PEÇA AUTOMÁTICA
+Ao selecionar uma peça, o painel de configuração abre automaticamente.
 
-O usuário pode:
-- importar um projeto para a conta atual;
-- ou importar todos, com confirmação.
+Mantidos:
+- nome;
+- largura;
+- profundidade;
+- altura;
+- posição absoluta X/Y/Z;
+- duplicar.
 
-Projetos que já pertencem a outra conta nunca aparecem nessa área.
+3. DESLOCAMENTO RELATIVO
+Novos campos:
+Δ X
+Δ Y
+Δ Z
 
-NÚVEM R2
-Também foi implementada nesta versão.
+Exemplo:
+Δ X = -15
+desloca a peça 15 mm no sentido negativo de X.
 
-Salvamento:
-aparelho → Worker autenticado → D1 + R2
+4. AUMENTAR / DIMINUIR
+Novos campos:
+Δ Largura
+Δ Profundidade
+Δ Altura
 
-D1:
-guarda índice, usuário, nome, revisão, tamanho e datas.
+Exemplo:
+Δ Altura = -15
+reduz a altura da peça em exatamente 15 mm.
 
-R2:
-guarda o projeto completo:
-users/<USER_ID>/projects/<PROJECT_ID>.json
+Há opção de qual referência fica parada:
+- Centro
+- Início (-)
+- Fim (+)
 
-OUTRO CELULAR/COMPUTADOR
-Ao entrar na mesma conta:
-- projetos ausentes são baixados;
-- versão mais nova vence;
-- versão local mais nova é enviada;
-- projeto salvo offline fica pendente e sobe depois.
+Com Início (-), a face negativa permanece no mesmo lugar e a alteração ocorre
+somente no outro lado.
 
-Nos cards:
-☁ Nuvem
-ou
-☁ Aguardando sincronizar
+5. ROTAÇÃO
+Novos campos:
+Δ Rot. X
+Δ Rot. Y
+Δ Rot. Z
 
-EXCLUSÃO
-Foi adicionada exclusão sincronizada com tombstone no D1, evitando projeto
-apagado em um aparelho reaparecer em outro.
+Valores são em graus e podem ser negativos.
+A rotação é relativa e acontece no centro da peça.
 
-ARQUIVOS .MCAD
-Ao importar um .mcad, ele passa a pertencer à conta conectada.
-O arquivo exportado continua sem carregar o ID do dono.
+As rotações X/Y/Z agora são salvas no projeto e restauradas ao reabrir.
+Também são preservadas ao duplicar a peça.
 
-CLOUDFLARE
-Troque o Worker por:
-cloudflare/worker-1.100.29.js
+6. BOTÃO DE MENOS
+Todos os novos campos que aceitam valores negativos usam o botão:
+−
 
-Não precisa executar SQL novo.
+Isso inclui:
+- deslocamentos X/Y/Z;
+- ajustes de tamanho;
+- rotações.
 
-VERSÃO
-Projetos de marcenaria · 1.100.29
+O sistema de botão − já existente foi reaproveitado.
 
-Todo o restante da 1.100.28 foi preservado:
-- login;
+7. PROTEÇÃO DE SISTEMAS PARAMÉTRICOS
+Peças de gavetas e móveis curvos continuam sendo editadas pelas ferramentas
+paramétricas próprias. A configuração avisa em vez de quebrar o conjunto.
+
+8. HAIXUN / LÓGICA
+A arquitetura segue a ideia de edição paramétrica:
+- coordenadas;
+- deslocamento da peça;
+- alteração de dimensões;
+- associação de medidas;
+- parâmetros em vez de precisar reconstruir a peça.
+
+9. NUVEM / ADMIN / CACHE
+Tudo da 1.100.29 foi preservado:
+- projetos por conta;
+- D1 + R2;
+- painel admin;
 - Premium/teste grátis;
-- painel administrativo;
 - atualização;
-- cache offline;
-- materiais;
-- gavetas;
-- usinagens;
-- Aspire;
-- Forma.
+- cache offline.
+
+Não existe SQL novo nesta versão.
+O Worker 1.100.29 continua compatível; não é obrigatório atualizar o Worker.
