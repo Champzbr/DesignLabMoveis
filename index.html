@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.34 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.37 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -563,6 +563,21 @@
   .sheetChip { display:inline-block; margin:2px 4px 2px 0; padding:4px 6px; border-radius:7px; background:#262626; border:1px solid #444; font-size:9px; color:#ddd; }
   #partsList { margin-top:7px; }
 
+
+
+
+  /* ==========================================================================
+     1.100.36 · APAGAR ESPAÇO / MÓVEL
+     ========================================================================== */
+  #deleteSelectedSpaceBtn{
+    grid-column:1 / -1;
+    border-color:rgba(224,69,58,.46) !important;
+    background:rgba(224,69,58,.10) !important;
+    color:#ff9189 !important;
+  }
+  #deleteSelectedSpaceBtn:active{
+    background:rgba(224,69,58,.22) !important;
+  }
 
 
   /* ==========================================================================
@@ -1260,6 +1275,407 @@
     #inspector.compact { display:none !important; }
     .fields { grid-template-columns:repeat(3,1fr); }
   }
+
+  /* ==========================================================================
+     1.100.37 · HOME OPÇÃO 1
+     Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
+     Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
+     ========================================================================== */
+
+  #projectHome{
+    background:
+      radial-gradient(circle at 12% 2%,rgba(0,226,211,.13),transparent 26%),
+      radial-gradient(circle at 92% 13%,rgba(31,130,255,.12),transparent 28%),
+      linear-gradient(155deg,#031018 0%,#06151e 43%,#020a10 100%) !important;
+    color:#f4fbff;
+    scrollbar-color:#1e4654 transparent;
+  }
+  #projectHome::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(57,216,221,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(57,216,221,.02) 1px,transparent 1px);
+    background-size:38px 38px;
+    mask-image:linear-gradient(to bottom,black,transparent 48%);
+  }
+  #projectHome button{
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .projectHomeShell{
+    position:relative;z-index:1;
+    width:min(1040px,calc(100% - 26px)) !important;
+    margin:0 auto !important;
+    padding:calc(20px + env(safe-area-inset-top)) 0 calc(110px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* TOPO */
+  .projectHomeHeader{
+    display:flex !important;align-items:center !important;justify-content:space-between !important;
+    gap:12px !important;flex-wrap:nowrap !important;margin-bottom:18px;
+  }
+  .projectBrand{gap:10px !important;min-width:0}
+  .projectBrandLogo{
+    width:48px !important;height:48px !important;min-width:48px;border-radius:15px !important;
+    background:
+      linear-gradient(145deg,rgba(16,238,219,.24),rgba(34,131,255,.20)) !important;
+    border:1px solid rgba(67,234,225,.42);
+    box-shadow:0 0 0 1px rgba(47,225,220,.08) inset,0 10px 30px rgba(0,218,211,.14) !important;
+    color:#5af3e7;font-size:12px !important;letter-spacing:-.7px;
+  }
+  .projectBrand strong{
+    font-size:clamp(18px,4vw,26px) !important;
+    letter-spacing:-.6px !important;white-space:nowrap;
+  }
+  .projectBrand strong .brandMoveis{color:#42e6d7;font-weight:650}
+  .projectBrand span{
+    color:#71909e !important;font-size:9px !important;margin-top:3px !important;
+  }
+  .homeTopButtons{display:flex;align-items:center;gap:7px}
+  .homeTopButtons button{
+    width:43px;min-width:43px;height:43px;min-height:43px;padding:0 !important;
+    display:grid;place-items:center;border-radius:50% !important;
+    border:1px solid rgba(142,191,209,.20) !important;
+    background:rgba(8,25,34,.80) !important;color:#dffbff !important;
+    box-shadow:none !important;font-size:17px !important;
+  }
+  .homeTopButtons #homeAdminPanel.show{display:grid !important}
+  .homeTopButtons #homeAdminPanel{display:none}
+  .homeTopButtons button:active{transform:scale(.95)}
+  .homeVersionPill{
+    display:inline-flex;align-items:center;gap:5px;margin-top:4px;
+    color:#668493;font-size:8px;font-weight:700;
+  }
+  .homeVersionDot{width:5px;height:5px;border-radius:50%;background:#2edbd0;box-shadow:0 0 8px #2edbd0}
+
+  /* CARD DE BOAS-VINDAS */
+  .projectWelcomeCard{
+    position:relative;overflow:hidden;min-height:170px;
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,36%);
+    align-items:center;gap:18px;padding:20px;
+    border:1px solid rgba(87,171,194,.28);border-radius:22px;
+    background:
+      radial-gradient(circle at 12% 50%,rgba(22,224,211,.12),transparent 34%),
+      linear-gradient(135deg,rgba(10,31,42,.96),rgba(5,19,28,.88));
+    box-shadow:0 20px 55px rgba(0,0,0,.25),0 0 38px rgba(25,207,205,.045) inset;
+  }
+  .projectWelcomeCard::after{
+    content:"";position:absolute;inset:auto -50px -90px auto;width:300px;height:220px;
+    border-radius:50%;background:rgba(30,225,215,.055);filter:blur(12px);pointer-events:none;
+  }
+  .homeWelcomeLeft{position:relative;z-index:2;min-width:0}
+  .homeWelcomeEyebrow{
+    color:#55e6dc;font-size:9px;font-weight:850;letter-spacing:.8px;text-transform:uppercase;
+  }
+  #projectWelcomeTitle{
+    margin:6px 0 5px;font-size:clamp(24px,5vw,39px);letter-spacing:-1.2px;line-height:1.02;
+  }
+  .homeWelcomeCopy{
+    margin:0;color:#91a9b4;font-size:11px;line-height:1.5;max-width:480px;
+  }
+
+  .projectAccountArea{
+    margin:14px 0 0 !important;justify-content:flex-start !important;gap:8px !important;
+  }
+  .projectAccountChip{
+    max-width:min(100%,430px) !important;padding:8px 10px 8px 8px !important;
+    border-radius:15px !important;border:1px solid rgba(59,224,214,.18) !important;
+    background:rgba(3,15,22,.50) !important;backdrop-filter:blur(12px);
+  }
+  .projectAccountAvatar{
+    width:48px !important;height:48px !important;flex:0 0 48px !important;
+    border-radius:50% !important;font-size:13px !important;
+    color:#021213 !important;
+    background:linear-gradient(145deg,#55f4e6,#36aafa) !important;
+    box-shadow:0 0 0 3px rgba(60,226,217,.12),0 8px 22px rgba(0,216,207,.15);
+  }
+  .projectAccountText strong{font-size:11px !important;color:#edfaff}
+  .projectAccountText #projectAccountEmail{color:#6f8996 !important;font-size:8px !important}
+  .projectAccountText .cloudLine{
+    display:inline-flex !important;width:max-content;max-width:100%;
+    margin-top:5px !important;padding:4px 7px;border-radius:999px;
+    color:#55ddd5 !important;background:rgba(22,210,198,.08);
+    border:1px solid rgba(38,214,203,.16);font-size:8px !important;
+  }
+  .projectAccountText .cloudLine.ok{color:#5de7a2 !important;border-color:rgba(63,221,151,.18);background:rgba(51,213,137,.07)}
+  .projectAccountText .cloudLine.warn{color:#ffbd68 !important;border-color:rgba(255,177,73,.20);background:rgba(255,177,73,.07)}
+  #homeLogoutBtn{
+    width:39px;min-width:39px;height:39px;min-height:39px;border-radius:50% !important;
+    padding:0 !important;background:rgba(255,255,255,.04) !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+  }
+
+  .homeBlueprint{
+    position:relative;z-index:1;min-height:132px;border-radius:16px;
+    opacity:.86;overflow:hidden;
+    background:
+      linear-gradient(90deg,transparent 0 12%,rgba(58,229,218,.10) 12.5% 13%,transparent 13.5% 34%,rgba(58,229,218,.10) 34.5% 35%,transparent 35.5% 70%,rgba(58,229,218,.10) 70.5% 71%,transparent 71.5%),
+      linear-gradient(transparent 0 20%,rgba(58,229,218,.10) 20.5% 21%,transparent 21.5% 56%,rgba(58,229,218,.10) 56.5% 57%,transparent 57.5% 82%,rgba(58,229,218,.10) 82.5% 83%,transparent 83.5%),
+      linear-gradient(145deg,rgba(25,225,214,.05),rgba(25,225,214,.01));
+    border:1px solid rgba(53,220,212,.09);
+    box-shadow:inset 0 0 35px rgba(11,220,210,.035);
+  }
+  .homeBlueprint::before,.homeBlueprint::after{
+    content:"";position:absolute;border:1px solid rgba(72,225,218,.20);
+  }
+  .homeBlueprint::before{left:14%;right:10%;top:25%;bottom:18%;transform:skewY(-6deg)}
+  .homeBlueprint::after{left:33%;right:30%;top:43%;bottom:18%;box-shadow:35px -18px 0 -1px rgba(0,0,0,0),35px -18px 0 0 rgba(72,225,218,.13)}
+  .homeBlueprintLabel{
+    position:absolute;right:10px;bottom:9px;color:#4faea9;font-size:7px;letter-spacing:.7px;
+  }
+
+  /* AÇÕES RÁPIDAS */
+  .homeQuickActions{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;
+  }
+  .homeQuickAction{
+    position:relative;min-height:90px !important;padding:14px !important;
+    display:grid !important;grid-template-columns:48px minmax(0,1fr) 18px;
+    align-items:center;gap:10px;text-align:left !important;
+    border-radius:17px !important;border:1px solid rgba(91,158,178,.23) !important;
+    background:linear-gradient(145deg,rgba(10,29,39,.94),rgba(6,20,28,.94)) !important;
+    color:#effcff !important;box-shadow:0 10px 28px rgba(0,0,0,.16) !important;
+  }
+  .homeQuickAction:hover{border-color:rgba(53,226,215,.42) !important}
+  .homeQuickAction:active{transform:scale(.985)}
+  .homeQuickIcon{
+    width:48px;height:48px;display:grid;place-items:center;border-radius:14px;
+    border:1px solid rgba(60,230,221,.18);background:rgba(25,210,202,.055);
+    color:#53e9df;font-size:24px;font-weight:500;
+  }
+  .homeQuickAction:nth-child(2) .homeQuickIcon{color:#49c5ff}
+  .homeQuickAction:nth-child(3) .homeQuickIcon{color:#64e79c}
+  .homeQuickText strong{display:block;font-size:12px}
+  .homeQuickText span{display:block;margin-top:4px;color:#748e9b;font-size:9px;line-height:1.3}
+  .homeQuickChevron{color:#597886;font-size:19px;text-align:right}
+
+  .homeProjectUtilities{
+    display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:10px;
+  }
+  .homeProjectUtilities button{
+    min-height:34px !important;padding:6px 9px !important;border-radius:9px !important;
+    font-size:9px !important;background:rgba(8,24,32,.72) !important;
+    border:1px solid rgba(115,167,184,.14) !important;color:#90a9b5 !important;box-shadow:none !important;
+  }
+  .homeProjectUtilities button:disabled{display:none}
+  .homeInvisibleHook{display:none !important}
+  .projectCurrentStrip{
+    margin-top:8px !important;padding:8px 10px !important;border-radius:10px !important;
+    background:rgba(13,38,48,.58) !important;border:1px solid rgba(64,199,196,.13) !important;
+    color:#88a8b5 !important;font-size:9px !important;
+  }
+
+  /* CABEÇALHOS */
+  .projectSectionHead{
+    align-items:center !important;margin:28px 3px 11px !important;
+  }
+  .projectSectionHead h2{
+    font-size:18px !important;letter-spacing:-.35px;
+  }
+  .projectSectionHead span{
+    color:#54dcd4 !important;font-size:9px !important;font-weight:750;
+  }
+  .projectSectionTitleLine{display:flex;align-items:center;gap:8px}
+  .projectSectionIcon{
+    width:27px;height:27px;border-radius:8px;display:grid;place-items:center;
+    color:#4be3d9;background:rgba(28,214,204,.07);border:1px solid rgba(50,219,210,.15);
+  }
+
+  /* PROJETOS RECENTES — lista horizontal como a opção 1 */
+  #projectCards{
+    display:grid !important;grid-template-columns:1fr !important;gap:10px !important;
+  }
+  .projectCard{
+    min-height:150px;display:grid !important;grid-template-columns:minmax(180px,34%) minmax(0,1fr);
+    border-radius:17px !important;border:1px solid rgba(103,157,175,.24) !important;
+    background:linear-gradient(145deg,rgba(8,27,36,.96),rgba(5,18,25,.96)) !important;
+    box-shadow:0 9px 28px rgba(0,0,0,.18) !important;
+  }
+  .projectCard:hover{border-color:rgba(47,220,211,.34) !important}
+  .projectThumb{
+    height:100% !important;min-height:150px;border-radius:16px 0 0 16px;
+    background:
+      radial-gradient(circle at 52% 44%,rgba(30,226,214,.10),transparent 34%),
+      linear-gradient(150deg,#122934,#071219) !important;
+  }
+  .projectThumbFallback{color:#315363 !important;font-size:43px !important}
+  .projectCardBody{
+    min-width:0;padding:14px 14px 12px !important;display:flex;flex-direction:column;
+  }
+  .projectCardName{
+    font-size:14px !important;color:#f2fbff;letter-spacing:-.15px;
+  }
+  .projectCardMeta{
+    margin-top:5px !important;min-height:0 !important;color:#78909c !important;
+    font-size:9px !important;line-height:1.55 !important;flex:1;
+  }
+  .projectCloudBadge{
+    margin-top:7px !important;padding:4px 7px !important;border-radius:999px !important;
+    background:rgba(37,205,195,.07) !important;color:#5edbd3 !important;
+    border:1px solid rgba(48,211,202,.13);font-size:8px !important;
+  }
+  .projectCloudBadge.ok{color:#65e5a1 !important;background:rgba(51,213,137,.065) !important;border-color:rgba(51,213,137,.15)}
+  .projectCloudBadge.pending{color:#ffc06c !important;background:rgba(255,177,73,.055) !important;border-color:rgba(255,177,73,.15)}
+  .projectCloudBadge.local{color:#6ab9ff !important;background:rgba(45,125,250,.06) !important;border-color:rgba(65,151,255,.13)}
+  .projectCardFooter{
+    display:flex !important;justify-content:flex-end;gap:6px !important;margin-top:9px !important;
+  }
+  .projectCardFooter button{
+    min-height:32px !important;padding:5px 9px !important;border-radius:9px !important;
+    font-size:8px !important;box-shadow:none !important;
+  }
+  .projectCardFooter button.secondary{
+    background:rgba(255,255,255,.035) !important;border-color:rgba(255,255,255,.08) !important;color:#98adb7 !important;
+  }
+
+  .projectEmpty{
+    padding:36px 18px !important;border-color:rgba(84,150,171,.25) !important;
+    background:rgba(5,20,28,.48);color:#738c97 !important;
+  }
+
+  /* MODELOS - visual, sem alterar o motor CAD */
+  .homeModelsSection{margin-top:30px}
+  .homeModelsHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 3px 11px}
+  .homeModelsHead h2{margin:0;font-size:18px;letter-spacing:-.35px}
+  .homeModelsHead span{font-size:9px;color:#5cdbd4}
+  .homeModelsRail{
+    display:grid;grid-template-columns:1.05fr repeat(3,minmax(150px,1fr));gap:9px;overflow-x:auto;
+    padding-bottom:4px;scrollbar-width:none;
+  }
+  .homeModelsRail::-webkit-scrollbar{display:none}
+  .homeModelCard{
+    min-width:0;min-height:156px;padding:10px;border-radius:15px;
+    border:1px solid rgba(98,153,170,.23);
+    background:linear-gradient(145deg,rgba(8,27,36,.93),rgba(5,18,25,.93));
+  }
+  .homeModelCard.favorite{
+    display:grid;place-items:center;text-align:center;
+    background:
+      radial-gradient(circle at 50% 38%,rgba(27,219,209,.10),transparent 36%),
+      linear-gradient(145deg,rgba(8,27,36,.93),rgba(5,18,25,.93));
+  }
+  .homeModelStar{font-size:39px;line-height:1;color:#4ce5dc;text-shadow:0 0 18px rgba(57,224,215,.14)}
+  .homeModelCard strong{display:block;margin-top:8px;font-size:10px}
+  .homeModelCard small{display:block;margin-top:4px;color:#708894;font-size:8px}
+  .homeModelPreview{
+    height:92px;border-radius:10px;position:relative;overflow:hidden;
+    border:1px solid rgba(81,157,178,.13);
+    background:
+      linear-gradient(90deg,transparent 0 18%,rgba(59,223,215,.14) 18.5% 19%,transparent 19.5% 44%,rgba(59,223,215,.14) 44.5% 45%,transparent 45.5% 76%,rgba(59,223,215,.14) 76.5% 77%,transparent 77.5%),
+      linear-gradient(transparent 0 28%,rgba(59,223,215,.14) 28.5% 29%,transparent 29.5% 68%,rgba(59,223,215,.14) 68.5% 69%,transparent 69.5%),
+      linear-gradient(145deg,#0e2b36,#07161e);
+  }
+  .homeModelPreview::after{
+    content:"";position:absolute;left:10%;right:10%;bottom:13%;height:34%;
+    border:1px solid rgba(67,220,213,.28);box-shadow:0 -23px 0 -1px rgba(0,0,0,0),0 -23px 0 0 rgba(67,220,213,.18);
+  }
+  .homeModelCard:nth-child(3) .homeModelPreview::after{left:20%;right:20%;height:58%;bottom:10%}
+  .homeModelCard:nth-child(4) .homeModelPreview::after{left:8%;right:8%;height:42%;bottom:18%;box-shadow:0 -17px 0 -1px rgba(0,0,0,0),0 -17px 0 0 rgba(67,220,213,.18)}
+  .homeModelSoon{
+    display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;
+    background:rgba(68,217,208,.06);border:1px solid rgba(68,217,208,.12);
+    color:#5dcfc8;font-size:7px;font-weight:750;
+  }
+
+  /* PROJETOS ANTIGOS */
+  #legacyProjectsSection{
+    margin-top:22px !important;border-color:rgba(255,177,73,.20) !important;
+    background:rgba(255,177,73,.025) !important;
+  }
+
+  /* BARRA INFERIOR */
+  .homeBottomNav{
+    position:fixed;z-index:540;left:50%;bottom:max(8px,env(safe-area-inset-bottom));
+    transform:translateX(-50%);width:min(900px,calc(100% - 20px));
+    display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:6px;
+    border:1px solid rgba(91,149,168,.24);border-radius:19px;
+    background:rgba(3,15,22,.92);backdrop-filter:blur(18px);
+    box-shadow:0 16px 45px rgba(0,0,0,.38),0 0 28px rgba(23,208,199,.035) inset;
+  }
+  .homeBottomNav button{
+    min-height:57px !important;padding:6px 3px !important;border:0 !important;border-radius:13px !important;
+    display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    background:transparent !important;box-shadow:none !important;color:#748b96 !important;
+    font-size:8px !important;font-weight:700;
+  }
+  .homeBottomNav button .navIcon{font-size:20px;line-height:1;color:#8ca2ac}
+  .homeBottomNav button.active{
+    color:#dffcff !important;background:rgba(29,213,203,.075) !important;
+    box-shadow:inset 0 0 0 1px rgba(44,225,215,.18),0 0 22px rgba(31,222,211,.055) !important;
+  }
+  .homeBottomNav button.active .navIcon{color:#55eee3;text-shadow:0 0 11px rgba(64,232,222,.24)}
+
+  /* TELAS PEQUENAS */
+  @media(max-width:720px){
+    .projectHomeShell{width:calc(100% - 20px) !important;padding-top:calc(14px + env(safe-area-inset-top)) !important}
+    .projectBrandLogo{width:41px !important;height:41px !important;min-width:41px;font-size:10px !important}
+    .projectBrand strong{font-size:18px !important}
+    .projectBrand span{font-size:7.5px !important}
+    .homeTopButtons{gap:5px}
+    .homeTopButtons button{width:38px;min-width:38px;height:38px;min-height:38px;font-size:15px !important}
+    .homeTopButtons #homeAdminPanel{display:none !important}
+    .homeTopButtons #homeAdminPanel.show{display:grid !important}
+
+    .projectWelcomeCard{
+      min-height:0;display:block;padding:16px;border-radius:18px;
+    }
+    .homeBlueprint{
+      position:absolute;right:-18px;top:17px;width:42%;height:125px;min-height:0;
+      opacity:.36;border:0;background-color:transparent;
+    }
+    .homeWelcomeLeft{padding-right:25%}
+    #projectWelcomeTitle{font-size:25px}
+    .homeWelcomeCopy{font-size:9px;max-width:250px}
+    .projectAccountChip{padding:6px 8px 6px 6px !important;max-width:290px !important}
+    .projectAccountAvatar{width:39px !important;height:39px !important;flex-basis:39px !important}
+    .projectAccountText #projectAccountEmail{display:none !important}
+    #homeLogoutBtn{width:35px;min-width:35px;height:35px;min-height:35px}
+
+    .homeQuickActions{grid-template-columns:1fr;gap:7px;margin-top:10px}
+    .homeQuickAction{
+      min-height:67px !important;grid-template-columns:42px minmax(0,1fr) 15px;padding:10px 11px !important;
+    }
+    .homeQuickIcon{width:42px;height:42px;border-radius:12px;font-size:21px}
+    .homeQuickText strong{font-size:11px}
+    .homeQuickText span{font-size:8px}
+
+    .homeProjectUtilities{margin-top:7px}
+    .homeProjectUtilities button{min-height:31px !important;font-size:8px !important}
+
+    .projectSectionHead{margin-top:23px !important}
+    .projectSectionHead h2,.homeModelsHead h2{font-size:16px !important}
+
+    .projectCard{
+      grid-template-columns:38% minmax(0,1fr);min-height:128px;
+      border-radius:14px !important;
+    }
+    .projectThumb{min-height:128px;height:100% !important;border-radius:13px 0 0 13px}
+    .projectCardBody{padding:10px 9px 8px !important}
+    .projectCardName{font-size:11px !important}
+    .projectCardMeta{font-size:8px !important;line-height:1.42 !important}
+    .projectCardFooter{gap:4px !important;margin-top:6px !important}
+    .projectCardFooter button{min-height:29px !important;padding:4px 6px !important;font-size:7px !important}
+
+    .homeModelsRail{grid-template-columns:125px repeat(3,142px);gap:7px}
+    .homeModelCard{min-height:144px;padding:8px}
+    .homeModelPreview{height:82px}
+
+    .homeBottomNav{
+      width:calc(100% - 12px);bottom:max(5px,env(safe-area-inset-bottom));
+      padding:4px;border-radius:16px;
+    }
+    .homeBottomNav button{min-height:51px !important;font-size:7px !important}
+    .homeBottomNav button .navIcon{font-size:18px}
+  }
+
+  @media(max-width:390px){
+    .projectBrand span{display:none}
+    .homeTopButtons button{width:35px;min-width:35px;height:35px;min-height:35px}
+    .homeWelcomeLeft{padding-right:20%}
+    .projectCard{grid-template-columns:36% minmax(0,1fr)}
+    .projectCardFooter button:first-child{display:none}
+  }
+
 </style>
 </head>
 <body>
@@ -1270,7 +1686,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.34</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.37</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1355,50 +1771,87 @@
 </div>
 
 
+
 <div id="projectHome" aria-label="Projetos">
   <div class="projectHomeShell">
+
     <header class="projectHomeHeader">
       <div class="projectBrand">
-        <div class="projectBrandLogo">M</div>
-        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.34</span></div>
-      </div>
-      <div class="projectAccountArea">
-        <div id="projectAccountChip" class="projectAccountChip" style="display:none">
-          <div id="projectAccountAvatar" class="projectAccountAvatar">MC</div>
-          <div class="projectAccountText">
-            <strong id="projectAccountName">Usuário</strong>
-            <span id="projectAccountEmail">conta@netlify</span>
-            <span id="projectAccountCloud" class="cloudLine">Nuvem ainda não sincronizada</span>
-          </div>
+        <div class="projectBrandLogo">DL</div>
+        <div>
+          <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.37</span>
         </div>
-        <button id="homeLogoutBtn" class="secondary" type="button" title="Sair da conta" aria-label="Sair da conta" style="display:none">↪</button>
       </div>
-      <div class="projectHomeActions">
-        <button id="homeNewProject">＋ Novo</button>
-        <button id="homeOpenFile" class="secondary">📂 Abrir arquivo</button>
-        <button id="homeSaveProject" class="secondary">💾 Salvar</button>
-        <button id="homeSaveAsProject" class="secondary">Salvar como</button>
+
+      <div class="homeTopButtons">
+        <button id="homeCheckUpdate" class="secondary" type="button" title="Verificar atualização" aria-label="Verificar atualização">↻</button>
         <button id="homeSettings" class="secondary" type="button" title="Configurações" aria-label="Configurações">⚙</button>
-        <button id="homeCheckUpdate" class="secondary" type="button">↻ Atualizar</button>
-        <button id="homeAdminPanel" class="secondary" type="button">🛡 Administrador</button>
+        <button id="homeAdminPanel" class="secondary" type="button" title="Administrador" aria-label="Administrador">♜</button>
       </div>
     </header>
 
-    <section class="projectHero">
-      <h1>Seus projetos, organizados.</h1>
-      <p>Crie, abra e apresente o móvel em 3D limpo antes de entrar no editor. Cada salvamento gera automaticamente uma miniatura visual do projeto.</p>
-      <div class="projectHeroButtons">
-        <button id="heroNewProject">＋ Novo projeto</button>
-        <button id="heroOpenFile" class="secondary">📂 Abrir arquivo .mcad</button>
+    <section id="projectWelcomeCard" class="projectWelcomeCard">
+      <div class="homeWelcomeLeft">
+        <div class="homeWelcomeEyebrow">DesignLabMoveis · workspace</div>
+        <h1 id="projectWelcomeTitle">Bem-vindo!</h1>
+        <p class="homeWelcomeCopy">Pronto para criar, organizar e continuar seus projetos de marcenaria.</p>
+
+        <div class="projectAccountArea">
+          <div id="projectAccountChip" class="projectAccountChip" style="display:none">
+            <div id="projectAccountAvatar" class="projectAccountAvatar">DL</div>
+            <div class="projectAccountText">
+              <strong id="projectAccountName">Usuário</strong>
+              <span id="projectAccountEmail">conta@netlify</span>
+              <span id="projectAccountCloud" class="cloudLine">Nuvem ainda não sincronizada</span>
+            </div>
+          </div>
+          <button id="homeLogoutBtn" class="secondary" type="button" title="Sair da conta" aria-label="Sair da conta" style="display:none">↪</button>
+        </div>
       </div>
-      <div id="projectCurrentStrip" class="projectCurrentStrip"></div>
+
+      <div class="homeBlueprint" aria-hidden="true">
+        <span class="homeBlueprintLabel">MÓVEL · 3D / CAD</span>
+      </div>
     </section>
 
-    <div class="projectSectionHead">
-      <h2>Projetos recentes</h2>
-      <span id="projectCountText">0 projetos</span>
+    <section class="homeQuickActions" aria-label="Ações rápidas">
+      <button id="homeNewProject" class="homeQuickAction" type="button">
+        <span class="homeQuickIcon">＋</span>
+        <span class="homeQuickText"><strong>Novo projeto</strong><span>Criar do zero</span></span>
+        <span class="homeQuickChevron">›</span>
+      </button>
+
+      <button id="homeOpenFile" class="homeQuickAction secondary" type="button">
+        <span class="homeQuickIcon">▱</span>
+        <span class="homeQuickText"><strong>Abrir arquivo</strong><span>Projeto do dispositivo</span></span>
+        <span class="homeQuickChevron">›</span>
+      </button>
+
+      <button id="heroOpenFile" class="homeQuickAction secondary" type="button">
+        <span class="homeQuickIcon">⇧</span>
+        <span class="homeQuickText"><strong>Importar</strong><span>.MCAD ou JSON</span></span>
+        <span class="homeQuickChevron">›</span>
+      </button>
+    </section>
+
+    <div class="homeProjectUtilities">
+      <button id="homeSaveProject" class="secondary" type="button">💾 Salvar projeto atual</button>
+      <button id="homeSaveAsProject" class="secondary" type="button">Duplicar como novo</button>
+      <button id="heroNewProject" class="homeInvisibleHook" type="button" tabindex="-1" aria-hidden="true">Novo projeto</button>
     </div>
-    <div id="projectCards"></div>
+    <div id="projectCurrentStrip" class="projectCurrentStrip"></div>
+
+    <section id="homeRecentSection">
+      <div class="projectSectionHead">
+        <div class="projectSectionTitleLine">
+          <span class="projectSectionIcon">▱</span>
+          <h2>Projetos recentes</h2>
+        </div>
+        <span id="projectCountText">0 projetos</span>
+      </div>
+      <div id="projectCards"></div>
+    </section>
 
     <section id="legacyProjectsSection">
       <div class="legacyProjectsHead">
@@ -1417,8 +1870,59 @@
       </div>
     </section>
 
+    <section id="homeModelsSection" class="homeModelsSection" aria-label="Modelos">
+      <div class="homeModelsHead">
+        <div class="projectSectionTitleLine">
+          <span class="projectSectionIcon">◇</span>
+          <h2>Modelos</h2>
+        </div>
+        <span>Base pronta para a próxima etapa</span>
+      </div>
+
+      <div class="homeModelsRail">
+        <article class="homeModelCard favorite">
+          <div>
+            <div class="homeModelStar">☆</div>
+            <strong>Meus favoritos</strong>
+            <small>Seus modelos preferidos ficarão aqui</small>
+            <span class="homeModelSoon">EM BREVE</span>
+          </div>
+        </article>
+
+        <article class="homeModelCard">
+          <div class="homeModelPreview"></div>
+          <strong>Cozinha linear</strong>
+          <small>Modelo base paramétrico</small>
+          <span class="homeModelSoon">EM BREVE</span>
+        </article>
+
+        <article class="homeModelCard">
+          <div class="homeModelPreview"></div>
+          <strong>Guarda-roupa 2P</strong>
+          <small>Modelo base paramétrico</small>
+          <span class="homeModelSoon">EM BREVE</span>
+        </article>
+
+        <article class="homeModelCard">
+          <div class="homeModelPreview"></div>
+          <strong>Painel com nichos</strong>
+          <small>Modelo base paramétrico</small>
+          <span class="homeModelSoon">EM BREVE</span>
+        </article>
+      </div>
+    </section>
+
   </div>
+
+  <nav class="homeBottomNav" aria-label="Navegação da tela inicial">
+    <button id="homeNavStart" class="active" type="button"><span class="navIcon">⌂</span><span>Início</span></button>
+    <button id="homeNavProjects" type="button"><span class="navIcon">▱</span><span>Projetos</span></button>
+    <button id="homeNavModeling" type="button"><span class="navIcon">◇</span><span>Modelagem</span></button>
+    <button id="homeNavMaterials" type="button"><span class="navIcon">▤</span><span>Materiais</span></button>
+    <button id="homeNavAccount" type="button"><span class="navIcon">○</span><span>Conta</span></button>
+  </nav>
 </div>
+
 
 <button id="projectMenuBtn" type="button">☰ Projeto</button>
 <div id="projectMenuPanel">
@@ -1611,7 +2115,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.34 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.37 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2199,6 +2703,7 @@
     <button id="curvedSpaceBtn" class="secondary">◒ Móvel curvo</button>
     <button id="openLibraryBtn" class="secondary">▦ Biblioteca</button>
     <button id="hideSelectedSpaceBtn" class="secondary">◫ Ocultar selecionado</button>
+    <button id="deleteSelectedSpaceBtn" class="danger">🗑 Apagar espaço / móvel</button>
     <button id="spaceMoreBtn" class="secondary" style="grid-column:1 / -1">••• Mais</button>
   </div>
 </div>
@@ -2222,7 +2727,7 @@
       <button id="newAdjacentSpaceBtn" class="secondary">+ Outro espaço</button>
       <button id="exportFurnitureBtn" class="secondary">Exportar móvel</button>
       <button id="exportAspireBtn" class="secondary">Aspire ZIP</button>
-      <button id="deleteSpaceBtn" class="danger" style="grid-column:1 / -1">Excluir espaço</button>
+      <button id="deleteSpaceBtn" class="danger" style="grid-column:1 / -1">🗑 Apagar espaço / móvel inteiro</button>
     </div>
     <div class="dialogActions"><button id="closeSpaceMore" class="secondary">Fechar</button></div>
   </div>
@@ -2459,7 +2964,7 @@
       <strong>Atalho:</strong> 1 clique seleciona a peça · 2 cliques rápidos criam direto. O botão <strong>Criar</strong> continua funcionando normalmente.
     </p>
     <div class="spaceFields two">
-      <label>Espessura (mm)<input id="pieceThickness" type="number" value="18" min="1" step="1"></label>
+      <label>Espessura (mm)<input id="pieceThickness" type="number" value="18" min="1" step="0.1" inputmode="decimal"></label>
       <label id="pieceFrontInsetLabel">Recuo frente (mm)<input id="pieceFrontInset" type="number" value="0" min="0" step="1"></label>
     </div>
     <div class="spaceFields two" style="margin-top:8px">
@@ -2972,6 +3477,7 @@ function updateIdentityChrome(){
     if(menu)menu.innerHTML='<strong>Conta desconectada</strong>';
   }
   if(typeof updateCloudAccountChrome==='function')updateCloudAccountChrome();
+  if(typeof updateProjectHomeWelcome==='function')updateProjectHomeWelcome();
 }
 function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
   if(authLocalMode)return;
@@ -3339,7 +3845,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.34';
+const DESIGNLAB_APP_VERSION='1.100.37';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4122,6 +4628,55 @@ function fallbackProjectList(){
 function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KEY,JSON.stringify(list));}catch{}}
 
 
+
+// ============================================================================
+// 1.100.37 · HOME OPÇÃO 1
+// ============================================================================
+function updateProjectHomeWelcome(){
+  const title=$('projectWelcomeTitle');
+  if(!title)return;
+
+  if(authLocalMode){
+    title.textContent='Olá!';
+    return;
+  }
+  if(currentIdentityUser){
+    const full=String(authUserName(currentIdentityUser)||'').trim();
+    const first=full.split(/\s+/)[0]||'';
+    title.textContent=first?`Olá, ${first}!`:'Olá!';
+    return;
+  }
+  title.textContent='Bem-vindo!';
+}
+
+function scrollProjectHomeTo(targetId){
+  const home=$('projectHome');
+  const target=$(targetId);
+  if(!home||!target)return;
+  const top=Math.max(0,target.offsetTop-14);
+  home.scrollTo({top,behavior:'smooth'});
+}
+
+function openHomeModeling(){
+  if(!currentProjectId){
+    toast('Abra ou crie um projeto para entrar na modelagem');
+    return;
+  }
+  enterProjectEditor();
+}
+
+function openHomeMaterials(){
+  if(!currentProjectId){
+    toast('Abra ou crie um projeto para acessar os materiais');
+    return;
+  }
+  enterProjectEditor();
+  setTimeout(()=>{
+    try{openProductionDialog();}catch(err){console.warn(err);}
+  },50);
+}
+
+
 // ============================================================================
 // 1.100.29 · ESCOPO LOCAL POR CONTA
 // ============================================================================
@@ -4296,7 +4851,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.34`:'DesignLabMoveis 1.100.34';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.37`:'DesignLabMoveis 1.100.37';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -4501,7 +5056,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.34'
+    thumbnail:null,appVersion:'1.100.37'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -4524,7 +5079,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.34'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.37'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -4554,7 +5109,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.34'
+    thumbnail:thumb,appVersion:'1.100.37'
   };
   await projectDbPut(next);
   if(original){
@@ -4622,7 +5177,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.34',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.37',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -4656,7 +5211,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.34'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.37'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -4717,7 +5272,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.34'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.37'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -6215,8 +6770,8 @@ function showAllHiddenSpaces(){
   toast(count===1 ? 'Divisão oculta exibida' : `${count} divisões ocultas exibidas`);
 }
 function setSpaceActionCellMode(hasCell){
-  for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn']){
-    const b=$(id); if(b)b.disabled=!hasCell;
+  for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn','deleteSelectedSpaceBtn']){
+    const b=$(id);if(b)b.disabled=!hasCell;
   }
 }
 function selectSpaceRootOnly(root){
@@ -6567,29 +7122,63 @@ function disposeObject(obj){
 }
 function deleteSelectedSpaceRoot(){
   const rootId=selectedSpaceCell?.rootId || activeSpaceRootId;
-  if(!rootId){toast('Selecione um espaço');return;}
-  const i=spaceRoots.findIndex(r=>r.id===rootId); if(i<0){toast('Espaço não encontrado');return;}
+  if(!rootId){toast('Selecione um espaço');return false;}
+
+  const i=spaceRoots.findIndex(r=>r.id===rootId);
+  if(i<0){toast('Espaço não encontrado');return false;}
+
   const root=spaceRoots[i];
   const linked=objects.filter(o=>objectInsideSpaceRoot(o,root));
-  const extra=linked.length ? `\n\n${linked.length} peça(s) vinculada(s) a este espaço também serão apagadas.` : '';
-  if(!window.confirm(`Excluir o espaço "${root.name}"?${extra}\n\nEsta ação pode ser desfeita pelo botão Desfazer.`)) return;
-  for(const obj of linked){ const oi=objects.indexOf(obj); if(oi>=0)objects.splice(oi,1); disposeObject(obj); }
-  if(selected && linked.includes(selected)) selected=null;
+  const cells=(root.cells||[]).length;
+  const extra=linked.length
+    ? `\n\nTambém serão apagadas ${linked.length} peça(s) que pertencem a este móvel.`
+    : '';
+
+  const ok=window.confirm(
+    `Apagar o espaço / móvel “${root.name}”?`+
+    `\n\nEste móvel possui ${cells} divisão(ões)/vão(s).`+
+    extra+
+    `\n\nSe foi criado por engano, pode apagar com segurança. A ação ainda pode ser revertida em Desfazer.`
+  );
+  if(!ok)return false;
+
+  // Fecha qualquer painel relacionado antes de remover a seleção.
+  $('spaceActions').style.display='none';
+  $('spaceMoreDialog').style.display='none';
+  $('editSpaceDialog').style.display='none';
+
+  for(const obj of linked){
+    const oi=objects.indexOf(obj);
+    if(oi>=0)objects.splice(oi,1);
+    disposeObject(obj);
+  }
+  if(selected&&linked.includes(selected))selected=null;
+
   // Remove o grupo visual deste espaço ANTES de tirá-lo de spaceRoots.
   if(root.group){
     root.group.traverse(o=>{
-      if(o.isMesh || o.isLineSegments || o.isLine){
+      if(o.isMesh||o.isLineSegments||o.isLine){
         o.geometry?.dispose?.();
-        if(Array.isArray(o.material)) o.material.forEach(m=>m?.dispose?.());
+        if(Array.isArray(o.material))o.material.forEach(m=>m?.dispose?.());
         else o.material?.dispose?.();
       }
     });
     scene.remove(root.group);
     root.group=null;
   }
+
   spaceRoots.splice(i,1);
-  clearSpaceSelection(); renderSpaces(); renderMachiningVisuals(); updateMeasureBadge(); commitHistory();
-  toast(linked.length ? `Espaço e ${linked.length} peça(s) excluídos` : 'Espaço excluído');
+  clearSpaceSelection();
+  renderSpaces();
+  renderMachiningVisuals();
+  updateMeasureBadge();
+  commitHistory();
+
+  toast(linked.length
+    ? `“${root.name}” apagado · ${linked.length} peça(s) removida(s)`
+    : `“${root.name}” apagado`
+  );
+  return true;
 }
 
 function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, excludeFromCutList=false}={}, doHistory=true){
@@ -8125,7 +8714,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.34', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.37', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -9417,6 +10006,71 @@ renderer.domElement.addEventListener('pointercancel',e=>{
 });
 
 
+
+// ============================================================================
+// 1.100.35 · ESPESSURA DECIMAL SALVA NO "CRIAR PEÇAS"
+// ============================================================================
+//
+// A espessura escolhida pelo usuário é lembrada por:
+//   conta + material padrão do espaço.
+//
+// Exemplo: MDF Branco cadastrado como 18 mm, mas o usuário trabalha com
+// 18.5 mm reais. Depois de informar 18.5 uma vez, esse material passa a abrir
+// com 18.5 mm para aquela conta/aparelho.
+//
+const PIECE_THICKNESS_PREFS_KEY='designlab-piece-thickness-v135';
+
+function pieceThicknessOwnerKey(){
+  try{
+    const id=typeof projectCurrentOwnerId==='function'?projectCurrentOwnerId():'';
+    if(id)return String(id);
+  }catch{}
+  return 'local-device';
+}
+function pieceThicknessMaterialKey(root){
+  return String(root?.defaultMaterialId||'sem-material');
+}
+function pieceThicknessStorageKey(root){
+  return `${PIECE_THICKNESS_PREFS_KEY}:${pieceThicknessOwnerKey()}:${pieceThicknessMaterialKey(root)}`;
+}
+function readPieceThicknessPreference(root){
+  const material=spaceDefaultMaterial(root);
+  const materialThickness=Number(material?.thickness);
+  const fallback=Number.isFinite(materialThickness)&&materialThickness>0?materialThickness:18;
+
+  try{
+    const saved=Number(localStorage.getItem(pieceThicknessStorageKey(root)));
+    return Number.isFinite(saved)&&saved>=1?saved:fallback;
+  }catch{
+    return fallback;
+  }
+}
+function savePieceThicknessPreference({silent=true}={}){
+  const info=selectedCellInfo();
+  const root=info?.root||activeSpaceRoot();
+  if(!root)return false;
+
+  const raw=String($('pieceThickness')?.value??'').trim().replace(',','.');
+  const value=Number(raw);
+  if(!Number.isFinite(value)||value<1)return false;
+
+  try{
+    // String(Number) mantém 18.5 como 18.5; não arredonda para inteiro.
+    localStorage.setItem(pieceThicknessStorageKey(root),String(value));
+    if(!silent)toast(`Espessura ${nice(value)} mm salva`);
+    return true;
+  }catch{
+    if(!silent)toast('Não foi possível salvar a espessura');
+    return false;
+  }
+}
+function applySavedPieceThickness(root){
+  const value=readPieceThicknessPreference(root);
+  $('pieceThickness').value=String(value);
+  $('pieceThickness').dataset.savedValue=String(value);
+}
+
+
 // ---------- Criar peças dentro da divisão ----------
 let pieceCreateType='left';
 let pieceTypeLastClickButton=null;
@@ -9434,7 +10088,10 @@ function quickCreatePieceFromTypeButton(button){
   pieceTypeQuickCreateBusy=true;
   try{
     selectPieceCreateTypeButton(button);
-    if(createPiecesInSelectedCell()) $('createPiecesDialog').style.display='none';
+    if(createPiecesInSelectedCell()){
+      savePieceThicknessPreference({silent:true});
+      $('createPiecesDialog').style.display='none';
+    }
   } finally {
     // trava somente durante a chamada atual; o diálogo já fecha quando deu certo.
     pieceTypeQuickCreateBusy=false;
@@ -13637,7 +14294,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.34 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.37 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -13652,7 +14309,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.34 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.37 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -14054,8 +14711,8 @@ $('createPiecesBtn').onclick=()=>{
   pieceTypeLastClickAt=0;
   document.querySelectorAll('[data-piece-type]').forEach(b=>b.classList.toggle('active',b.dataset.pieceType===pieceCreateType));
   {
-    const root=getSpaceRoot(selectedSpaceCell.rootId),mat=spaceDefaultMaterial(root);
-    $('pieceThickness').value=mat?.thickness??18;
+    const root=getSpaceRoot(selectedSpaceCell.rootId);
+    applySavedPieceThickness(root);
   }
   $('pieceFrontInset').value=0; $('pieceBackInset').value=0; $('piecePosition').value=0; $('pieceCount').value=3;
   $('pieceDivisionMeasure').value=0; $('pieceDivisionSide').value='gap1';
@@ -14083,9 +14740,19 @@ document.querySelectorAll('[data-piece-type]').forEach(b=>{
     }
   };
 });
-['pieceThickness','pieceFrontInset','pieceBackInset','piecePosition','pieceCount','pieceDivisionMeasure','doorGapLeft','doorGapRight','doorGapTop','doorGapBottom','doorGapMiddle'].forEach(id=>$(id).addEventListener('input',updateCreatePiecesUI));
+['pieceThickness','pieceFrontInset','pieceBackInset','piecePosition','pieceCount','pieceDivisionMeasure','doorGapLeft','doorGapRight','doorGapTop','doorGapBottom','doorGapMiddle'].forEach(id=>$(id).addEventListener('input',()=>{
+  if(id==='pieceThickness')savePieceThicknessPreference({silent:true});
+  updateCreatePiecesUI();
+}));
 $('pieceDivisionSide').addEventListener('change',updateCreatePiecesUI);
-$('confirmCreatePieces').onclick=()=>{if(createPiecesInSelectedCell()){$('createPiecesDialog').style.display='none';pieceTypeLastClickButton=null;pieceTypeLastClickAt=0;}};
+$('confirmCreatePieces').onclick=()=>{
+  if(createPiecesInSelectedCell()){
+    savePieceThicknessPreference({silent:true});
+    $('createPiecesDialog').style.display='none';
+    pieceTypeLastClickButton=null;
+    pieceTypeLastClickAt=0;
+  }
+};
 
 $('drawerSpaceBtn').onclick=()=>openDrawerSystemDialog();
 $('drawerMoreBtn').onclick=()=>{$('spaceMoreDialog').style.display='none';openDrawerSystemDialog();};
@@ -14123,6 +14790,7 @@ $('topSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(roo
 $('bottomSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'bottom');$('spaceMoreDialog').style.display='none';};
 $('toggleSpaceBtn').onclick=()=>{toggleActiveSpaceVisibility();$('spaceMoreDialog').style.display='none';};
 $('hideSelectedSpaceBtn').onclick=()=>toggleActiveSpaceVisibility();
+$('deleteSelectedSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
 $('showHiddenSpacesMoreBtn').onclick=()=>{showAllHiddenSpaces();$('spaceMoreDialog').style.display='none';};
 $('toggleDoorsBtn').onclick=()=>{toggleDoorsForActiveSpace();};
 $('newAdjacentSpaceBtn').onclick=()=>{if(visualMode)setVisualMode(false,{notify:false,frame:false});const root=activeSpaceRoot();$('spaceMoreDialog').style.display='none';openNewSpaceDialog(root);};
@@ -14165,7 +14833,7 @@ $('sheetPreviewCanvas').addEventListener('pointerup',e=>{const w=sheetPreviewPoi
 $('sheetPreviewCanvas').addEventListener('dblclick',e=>{const w=sheetPreviewPointerToWorld(e),g=sheetPreviewGroups[sheetPreviewIndex];if(!w||!g)return;const hits=g.parts.filter(p=>pointInPreviewPart(p,w.x,w.y));if(hits.length){sheetPreviewSelectedPart=hits[hits.length-1];sheetPreviewIsolated=true;sheetPreviewDraw()}});
 
 $('exportAspireFromPartsBtn').onclick=()=>{setSheetPrefs(sheetPrefsFromUi());exportProjectAspireZip();};
-$('deleteSpaceBtn').onclick=()=>{deleteSelectedSpaceRoot();$('spaceMoreDialog').style.display='none';};
+$('deleteSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
 $('libraryBackBtn').onclick=()=>{activeLibraryFolderId=null;renderLibrary();};
 $('newLibraryFolderBtn').onclick=newLibraryFolder;
 $('renameLibraryFolderBtn').onclick=renameActiveLibraryFolder;
@@ -14550,6 +15218,18 @@ $('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:tru
 $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
+
+$('homeNavStart').onclick=()=>scrollProjectHomeTo('projectHome');
+$('homeNavProjects').onclick=()=>scrollProjectHomeTo('homeRecentSection');
+$('homeNavModeling').onclick=openHomeModeling;
+$('homeNavMaterials').onclick=openHomeMaterials;
+$('homeNavAccount').onclick=()=>scrollProjectHomeTo('projectWelcomeCard');
+
+$('homeModelsSection').addEventListener('click',e=>{
+  if(!e.target.closest?.('.homeModelCard'))return;
+  toast('A biblioteca de modelos será a próxima etapa do layout');
+});
+
 $('authBannedLogout').onclick=logoutOnlineIdentity;
 $('homeAdminPanel').onclick=openAdminPanel;
 $('menuAdminPanel').onclick=openAdminPanel;

@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.34",
+  "version": "1.100.37",
   "required": false,
-  "message": "Corte padrão 18 mm com configuração salva, ocultar espaço selecionado e divisão vertical com espessura fixa.",
-  "released_at": "2026-08-23T17:12:00-03:00"
+  "message": "Nova tela inicial Opção 1: layout moderno, escuro e premium para projetos.",
+  "released_at": "2026-08-23T19:42:00-03:00"
 }

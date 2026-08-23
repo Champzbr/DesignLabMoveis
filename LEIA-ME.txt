@@ -1,83 +1,89 @@
-DESIGNLABMOVEIS 1.100.34 — CORTE 18 MM + OCULTAR SELECIONADO + DIVISÃO FIXA
+DESIGNLABMOVEIS 1.100.37 — NOVA TELA INICIAL · OPÇÃO 1
 
 BASE
-1.100.33 completa.
+1.100.36 completa.
 
-1. CORTAR ESPAÇO — PADRÃO 18 MM
-O campo "Medida do corte" agora começa em:
-  18 mm
+OBJETIVO
+Aplicar o visual da Opção 1 escolhida para a tela onde ficam os projetos,
+sem alterar o motor CAD, projetos, D1/R2, login, administrador ou ferramentas.
 
-2. SALVAR CONFIGURAÇÃO DO CORTE
-Foi adicionado:
-  💾 Salvar configuração
+NOVO VISUAL
+- fundo azul-marinho/preto;
+- detalhes em ciano e verde;
+- marca DesignLabMoveis no topo;
+- card de boas-vindas;
+- nome do usuário no card;
+- status da nuvem;
+- avatar com iniciais da conta;
+- ilustração técnica/CAD feita em CSS;
+- botões grandes de ações rápidas;
+- Projetos recentes em lista horizontal;
+- status de nuvem mantido nos cards;
+- seção Modelos preparada visualmente;
+- barra inferior moderna.
 
-O usuário pode escolher:
-- medida;
-- lado: esquerda, direita, cima, baixo, frente ou trás;
-- faixa fixa ou solta.
+AÇÕES RÁPIDAS
+Novo projeto
+Abrir arquivo
+Importar .MCAD/JSON
 
-Ao tocar em Salvar configuração, o DesignLabMoveis grava essa preferência.
-Na próxima vez que abrir "Cortar espaço", a configuração volta exatamente como
-o usuário salvou.
+O comportamento interno continua usando as rotinas já existentes.
 
-A preferência é separada por conta no mesmo aparelho.
+PROJETO ATUAL
+Salvar e Salvar como continuam presentes.
+Quando não existe projeto atual, esses botões desaparecem porque já eram
+desabilitados pelo sistema.
 
-Se nunca houver configuração salva:
-  18 mm · Esquerda · faixa solta
+BARRA INFERIOR
+Início
+Projetos
+Modelagem
+Materiais
+Conta
 
-3. OCULTAR ESPAÇO/DIVISÃO SELECIONADA
-Na janela rápida que aparece ao selecionar um espaço foi adicionado:
-  ◫ Ocultar selecionado
+- Projetos rola até a lista.
+- Modelagem entra no editor se existe projeto atual.
+- Materiais entra no editor e abre a biblioteca de materiais se existe projeto.
+- Conta volta ao card do usuário.
 
-Não precisa mais entrar em "Mais" para esconder a divisão selecionada.
+MODELOS
+A seção visual foi preparada, mas não cria funcionalidades falsas.
+Os cartões estão marcados como EM BREVE. A implementação da biblioteca de
+modelos pode ser feita numa próxima etapa sem mexer novamente no layout-base.
 
-Em:
-  Mais
-também foi adicionado:
-  Mostrar ocultos
+ADMINISTRADOR / CONFIGURAÇÕES / ATUALIZAÇÃO
+Continuam no topo e mantêm os mesmos IDs e eventos.
+Administrador continua aparecendo somente para role=admin.
 
-Assim fica fácil recuperar as divisões escondidas.
+SEGURANÇA DA ALTERAÇÃO
+A mudança foi concentrada na tela #projectHome.
+O editor CAD e os diálogos existentes não foram reestruturados.
 
-4. DIVISÃO VERTICAL SEMPRE NA ESPESSURA DA CHAPA
-Corrigido o problema em que a Divisão vertical afinava ou engrossava quando
-o móvel era redimensionado.
+Foram preservados os IDs usados pelo JavaScript:
+projectAccountChip
+projectAccountAvatar
+projectAccountName
+projectAccountEmail
+projectAccountCloud
+homeLogoutBtn
+homeNewProject
+heroNewProject
+homeOpenFile
+heroOpenFile
+homeSaveProject
+homeSaveAsProject
+homeSettings
+homeCheckUpdate
+homeAdminPanel
+projectCurrentStrip
+projectCountText
+projectCards
+legacyProjectsSection
+legacyImportAllBtn
+legacyProjectCards
 
-Agora:
-- ao criar a divisão, a faixa da chapa é registrada como fixa;
-- ao redimensionar o módulo, somente os vãos absorvem a diferença;
-- a espessura da divisão continua igual à espessura original da chapa.
+VERSÃO
+Projetos de marcenaria · 1.100.37
 
-Exemplo:
-Módulo 800 mm
-Divisão MDF 18 mm
-
-Depois de redimensionar o módulo para 1200, 600, 500 etc.:
-  a Divisão continua 18 mm.
-
-5. PROJETOS ANTIGOS
-A 1.100.34 também tenta reparar divisões verticais de projetos anteriores.
-
-Prioridade para descobrir a espessura correta:
-1. espessura nominal já salva pela nova versão;
-2. espessura do material aplicado à peça;
-3. espessura atual da peça como fallback.
-
-Também corrige as bordas dos vãos ao redor da divisão e registra a faixa fixa
-para os próximos redimensionamentos.
-
-6. PRESERVADO
-Tudo da 1.100.33 continua:
-- CNC centro para fora;
-- modo Seccionadora;
-- cortes retos;
-- Forma;
-- gavetas;
-- materiais;
-- configuração da peça;
-- projetos por conta e R2;
-- administrador;
-- teste grátis;
-- atualização/cache.
-
-Não existe SQL novo.
-Não há mudança obrigatória no Worker.
+Não há SQL novo.
+Não é obrigatório atualizar o Worker.
