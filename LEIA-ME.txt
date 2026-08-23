@@ -1,110 +1,46 @@
-DESIGNLABMOVEIS 1.100.30 — ESPAÇOS VISÍVEIS + CONFIGURAÇÃO DA PEÇA
+DESIGNLABMOVEIS 1.100.31 — 3 CLIQUES + APAGAR PEÇA + DUPLICAR CORRIGIDO
 
-BASE
-1.100.29 completa.
+1 CLIQUE
+Seleciona a peça normalmente.
 
-1. ESPAÇOS MAIS FÁCEIS DE ENXERGAR
-Antes, um espaço não selecionado usava:
-- preenchimento quase invisível (opacity 0.012)
-- contorno opacity 0.12
-- BackSide
+2 CLIQUES RÁPIDOS
+Mantém o comportamento existente de abrir o espaço/móvel da peça.
+A abertura espera 390 ms após o segundo clique, para verificar se virá um terceiro.
 
-Agora:
-- espaço inativo tem preenchimento 0.065;
-- contorno inativo 0.48;
-- usa DoubleSide;
-- depthTest continua ligado.
+3 CLIQUES RÁPIDOS NA MESMA PEÇA
+Abre diretamente:
+  Configuração da peça
 
-Resultado:
-o vão continua discreto, mas fica claramente reconhecível mesmo sem estar
-selecionado. Ele não atravessa as chapas quando o Raio-X está desligado.
+O painel não abre mais automaticamente com apenas um clique.
 
-Selecionado:
-- preenchimento mais forte;
-- contorno verde forte.
+APAGAR PEÇA
+Dentro da Configuração foi adicionado:
+  🗑 Apagar peça
 
-2. CONFIGURAÇÃO DA PEÇA AUTOMÁTICA
-Ao selecionar uma peça, o painel de configuração abre automaticamente.
+Peça comum pede confirmação e usa a rotina existente de exclusão.
+Quando a peça fazia a separação de um vão, o espaço continua sendo recalculado.
+Gavetas paramétricas mantêm sua confirmação especial para apagar o conjunto inteiro.
 
-Mantidos:
-- nome;
-- largura;
-- profundidade;
-- altura;
-- posição absoluta X/Y/Z;
-- duplicar.
+DUPLICAR
+A rotina foi protegida para criar exatamente UMA cópia por acionamento:
+- trava contra eventos duplicados de touch/click;
+- botão fica desabilitado temporariamente;
+- criadores trabalham com histórico desativado durante a cópia;
+- apenas 1 commit de histórico é gravado;
+- mensagem: “1 cópia criada”;
+- a cópia fica selecionada com a Configuração aberta.
 
-3. DESLOCAMENTO RELATIVO
-Novos campos:
-Δ X
-Δ Y
-Δ Z
+A trava dura 700 ms.
 
-Exemplo:
-Δ X = -15
-desloca a peça 15 mm no sentido negativo de X.
+PRESERVADO
+- deslocamento X/Y/Z;
+- aumentar/diminuir;
+- rotação X/Y/Z;
+- botão de menos;
+- espaços mais visíveis;
+- projetos por conta + R2;
+- administrador;
+- teste grátis;
+- atualização/cache.
 
-4. AUMENTAR / DIMINUIR
-Novos campos:
-Δ Largura
-Δ Profundidade
-Δ Altura
-
-Exemplo:
-Δ Altura = -15
-reduz a altura da peça em exatamente 15 mm.
-
-Há opção de qual referência fica parada:
-- Centro
-- Início (-)
-- Fim (+)
-
-Com Início (-), a face negativa permanece no mesmo lugar e a alteração ocorre
-somente no outro lado.
-
-5. ROTAÇÃO
-Novos campos:
-Δ Rot. X
-Δ Rot. Y
-Δ Rot. Z
-
-Valores são em graus e podem ser negativos.
-A rotação é relativa e acontece no centro da peça.
-
-As rotações X/Y/Z agora são salvas no projeto e restauradas ao reabrir.
-Também são preservadas ao duplicar a peça.
-
-6. BOTÃO DE MENOS
-Todos os novos campos que aceitam valores negativos usam o botão:
-−
-
-Isso inclui:
-- deslocamentos X/Y/Z;
-- ajustes de tamanho;
-- rotações.
-
-O sistema de botão − já existente foi reaproveitado.
-
-7. PROTEÇÃO DE SISTEMAS PARAMÉTRICOS
-Peças de gavetas e móveis curvos continuam sendo editadas pelas ferramentas
-paramétricas próprias. A configuração avisa em vez de quebrar o conjunto.
-
-8. HAIXUN / LÓGICA
-A arquitetura segue a ideia de edição paramétrica:
-- coordenadas;
-- deslocamento da peça;
-- alteração de dimensões;
-- associação de medidas;
-- parâmetros em vez de precisar reconstruir a peça.
-
-9. NUVEM / ADMIN / CACHE
-Tudo da 1.100.29 foi preservado:
-- projetos por conta;
-- D1 + R2;
-- painel admin;
-- Premium/teste grátis;
-- atualização;
-- cache offline.
-
-Não existe SQL novo nesta versão.
-O Worker 1.100.29 continua compatível; não é obrigatório atualizar o Worker.
+Não há SQL novo nem mudança obrigatória no Worker.

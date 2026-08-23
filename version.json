@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.30",
+  "version": "1.100.31",
   "required": false,
-  "message": "Espaços mais visíveis e nova configuração paramétrica da peça com deslocamento, tamanho e rotação.",
-  "released_at": "2026-08-23T15:33:00-03:00"
+  "message": "Configuração da peça com 3 cliques, opção Apagar peça e duplicação corrigida.",
+  "released_at": "2026-08-23T15:49:00-03:00"
 }
