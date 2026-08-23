@@ -1,30 +1,34 @@
-DESIGNLABMOVEIS 1.100.25 — CONTA NETLIFY → WORKER → D1
+DESIGNLABMOVEIS 1.100.26 — PAINEL ADMINISTRATIVO
 
-Base: 1.100.24.
+CORREÇÃO
+O cabeçalho da tela inicial agora mostra corretamente:
+  Projetos de marcenaria · 1.100.26
 
-API:
-https://designlabmoveis-api.geppetomarcenaria.workers.dev
+NOVO PAINEL ADMIN
+Só aparece para role='admin'.
 
-Após o login:
-1. obtém o JWT do Netlify Identity;
-2. chama GET /me no Worker;
-3. o Worker valida a sessão no Netlify;
-4. cria/atualiza o usuário na tabela users do D1;
-5. devolve nome, role, plano, premium_active e premium_until.
+FUNÇÕES:
+- total de usuários;
+- Premium ativos;
+- banidos;
+- pagamentos pendentes;
+- busca por nome/e-mail;
+- +7, +30, +90 dias Premium;
+- retirar Premium;
+- banir/desbanir;
+- listar/aprovar/rejeitar pagamentos;
+- auditoria no admin_audit.
 
-A tela inicial passa a mostrar:
-- Plano Free ou Premium;
-- Nuvem conectada.
+SEGURANÇA
+O Worker também exige role='admin' nas rotas /admin/*.
+Usuário comum recebe 403 mesmo que tente chamar a API manualmente.
+Admin não pode banir a própria conta.
+Usuário banido recebe bloqueio no /me e vê "Conta bloqueada".
 
-Se a API estiver indisponível, o CAD continua abrindo nesta etapa e mostra
-"Nuvem indisponível".
+PASTA cloudflare
+- worker-1.100.26.js
+- 1-migracao-admin-d1.sql
+- 2-tornar-usuario-admin.sql
+- LEIA-ME-CLOUDFLARE.txt
 
-TESTE:
-1. publique esta versão no Netlify;
-2. faça login;
-3. aguarde alguns segundos;
-4. deve aparecer "Plano Free · Nuvem conectada";
-5. no Cloudflare abra D1 → Explore Data → users;
-6. sua conta deve estar cadastrada.
-
-Próxima etapa: projetos na nuvem no R2.
+Execute a migração e publique o novo Worker antes de testar o painel.

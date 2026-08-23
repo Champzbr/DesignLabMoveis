@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.25 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.26 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -237,15 +237,15 @@
   .spaceMoreGrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
   .spaceMoreGrid button { width:100%; min-height:44px; }
 
-  #newSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog {
+  #newSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog, #adminDialog {
     position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.68); display:none;
     align-items:center; justify-content:center; padding:16px; touch-action:auto;
   }
-  #newSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card {
+  #newSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card, #adminDialog .card {
     width:min(430px,100%); max-height:82%; overflow:auto; background:#222; border-radius:16px;
     padding:14px; box-shadow:0 12px 35px rgba(0,0,0,.52); border:1px solid rgba(255,255,255,.08);
   }
-  #newSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3 { margin:0 0 5px; font-size:16px; }
+  #newSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3, #adminDialog h3 { margin:0 0 5px; font-size:16px; }
   .dialogHelp { margin:0 0 11px; color:var(--muted); font-size:11px; line-height:1.35; }
   .spaceFields { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
   .spaceFields.two { grid-template-columns:1fr 1fr; }
@@ -894,6 +894,56 @@
   .cloudAccountStatus.warn{border-color:rgba(255,177,73,.32);color:#ffc06f;background:rgba(255,157,46,.05)}
   .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
 
+
+  /* 1.100.26 · Painel administrativo */
+  #homeAdminPanel,#menuAdminPanel{display:none}
+  #homeAdminPanel.show,#menuAdminPanel.show{display:block}
+  #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
+  .adminDialogHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:sticky;top:-14px;z-index:4;margin:-14px -14px 10px;padding:14px;background:#1d2022;border-bottom:1px solid #353b3f}
+  .adminDialogHead h3{margin:0!important}
+  .adminDialogHead p{margin:4px 0 0;color:#8f9aa1;font-size:9px;line-height:1.4}
+  .adminCloseBtn{width:38px;min-width:38px;height:38px;padding:0;border-radius:10px}
+  .adminTabs{display:flex;gap:6px;margin-bottom:10px}
+  .adminTabs button{flex:1;min-height:40px}
+  .adminTabs button.active{outline:2px solid rgba(45,125,250,.55)}
+  .adminStatsGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:10px}
+  .adminStat{padding:10px;border:1px solid #343a3e;border-radius:10px;background:#151819}
+  .adminStat strong{display:block;font-size:19px}
+  .adminStat span{display:block;margin-top:3px;color:#8f999f;font-size:9px}
+  .adminToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;margin-bottom:9px}
+  .adminToolbar input,.adminToolbar select{width:100%;padding:10px 9px;border-radius:9px;border:1px solid #41484c;background:#101214;color:#fff}
+  .adminList{display:flex;flex-direction:column;gap:8px}
+  .adminUserCard,.adminPaymentCard{padding:10px;border:1px solid #343a3e;border-radius:11px;background:#151819}
+  .adminUserTop,.adminPaymentTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .adminUserTop strong,.adminPaymentTop strong{font-size:11px;word-break:break-word}
+  .adminUserTop small,.adminPaymentTop small{display:block;margin-top:3px;color:#8e999f;font-size:9px;word-break:break-word}
+  .adminBadges{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
+  .adminBadge{display:inline-block;padding:3px 6px;border-radius:999px;background:#2b3033;color:#b9c2c7;font-size:8px;font-weight:800}
+  .adminBadge.admin{background:rgba(45,125,250,.16);color:#71aaff}
+  .adminBadge.premium{background:rgba(52,208,88,.14);color:#70d98a}
+  .adminBadge.banned{background:rgba(224,69,58,.14);color:#ff8c82}
+  .adminBadge.pending{background:rgba(255,177,73,.14);color:#ffc26f}
+  .adminMeta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+  .adminMeta div{padding:6px;border-radius:7px;background:#101214;color:#8f999f;font-size:8px}
+  .adminMeta strong{display:block;margin-bottom:2px;color:#dce2e5;font-size:9px}
+  .adminActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .adminActions button{flex:1 1 95px;min-height:34px;padding:6px;font-size:9px}
+  .adminEmpty{padding:18px;text-align:center;border:1px dashed #434b50;border-radius:10px;color:#87939a;font-size:10px}
+  #adminStatus{margin:8px 0;padding:8px 9px;border-radius:9px;background:#111416;color:#909ba1;font-size:9px;line-height:1.4}
+  #adminStatus.error{color:#ff9189;border:1px solid rgba(224,69,58,.3)}
+  #adminStatus.good{color:#76d98e;border:1px solid rgba(52,208,88,.27)}
+  .authBannedPanel{display:none;margin-top:0;padding:12px;border:1px solid rgba(224,69,58,.45);border-radius:12px;background:rgba(224,69,58,.06)}
+  .authBannedPanel.show{display:block}
+  .authBannedPanel strong{display:block;color:#ff8e85;font-size:14px}
+  .authBannedPanel p{margin:6px 0 10px;color:#c9a3a0;font-size:10px;line-height:1.5}
+  .authBannedPanel button{width:100%}
+  @media(max-width:700px){
+    .adminStatsGrid{grid-template-columns:1fr 1fr}
+    .adminToolbar{grid-template-columns:1fr 1fr}
+    .adminToolbar input{grid-column:1/-1}
+    .adminMeta{grid-template-columns:1fr}
+  }
+
   @media(max-width:700px){
     .projectHomeHeader{gap:10px}
     .projectAccountArea{order:3;width:100%;justify-content:stretch;margin-left:0}
@@ -968,7 +1018,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.25</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.26</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1033,6 +1083,12 @@
         <p class="authFormHint">Você receberá um e-mail do Netlify com o link para criar uma nova senha.</p>
       </form>
 
+      <div id="authBannedPanel" class="authBannedPanel">
+        <strong>Conta bloqueada</strong>
+        <p id="authBannedReason">Entre em contato com o administrador.</p>
+        <button id="authBannedLogout" class="secondary" type="button">Sair desta conta</button>
+      </div>
+
       <div id="authStatus" class="authStatus">Preparando autenticação…</div>
 
       <div id="authLocalBox">
@@ -1052,7 +1108,7 @@
     <header class="projectHomeHeader">
       <div class="projectBrand">
         <div class="projectBrandLogo">M</div>
-        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.21</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Projetos de marcenaria · 1.100.26</span></div>
       </div>
       <div class="projectAccountArea">
         <div id="projectAccountChip" class="projectAccountChip" style="display:none">
@@ -1071,6 +1127,7 @@
         <button id="homeSaveProject" class="secondary">💾 Salvar</button>
         <button id="homeSaveAsProject" class="secondary">Salvar como</button>
         <button id="homeSettings" class="secondary" type="button" title="Configurações" aria-label="Configurações">⚙</button>
+        <button id="homeAdminPanel" class="secondary" type="button">🛡 Administrador</button>
       </div>
     </header>
 
@@ -1108,6 +1165,7 @@
     <button id="menuExportProjectFile" class="secondary wide">⇩ Exportar arquivo .mcad</button>
     <button id="menuOpenProjectFile" class="secondary wide">⇧ Abrir arquivo .mcad / JSON</button>
     <button id="menuAppSettings" class="secondary wide">⚙ Configurações</button>
+    <button id="menuAdminPanel" class="secondary wide">🛡 Painel Administrativo</button>
     <button id="menuProjectHome" class="secondary wide">⌂ Voltar para tela inicial</button>
   </div>
   <div id="projectMenuAccount"><strong>Conta desconectada</strong></div>
@@ -1231,7 +1289,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.25 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.26 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1305,6 +1363,56 @@
 </div>
 
 
+
+
+
+<div id="adminDialog">
+  <div class="card">
+    <div class="adminDialogHead">
+      <div>
+        <h3>🛡 Painel Administrativo</h3>
+        <p id="adminIdentityText">Somente contas com role = admin podem acessar esta área.</p>
+      </div>
+      <button id="closeAdminDialog" class="secondary adminCloseBtn" type="button">×</button>
+    </div>
+
+    <div class="adminTabs">
+      <button id="adminUsersTabBtn" class="active" type="button">Usuários</button>
+      <button id="adminPaymentsTabBtn" class="secondary" type="button">Pagamentos</button>
+    </div>
+
+    <div class="adminStatsGrid">
+      <div class="adminStat"><strong id="adminStatUsers">—</strong><span>Usuários</span></div>
+      <div class="adminStat"><strong id="adminStatPremium">—</strong><span>Premium ativos</span></div>
+      <div class="adminStat"><strong id="adminStatBanned">—</strong><span>Banidos</span></div>
+      <div class="adminStat"><strong id="adminStatPending">—</strong><span>Pagamentos pendentes</span></div>
+    </div>
+
+    <div id="adminStatus">Carregue os dados administrativos.</div>
+
+    <section id="adminUsersTab">
+      <div class="adminToolbar">
+        <input id="adminUserSearch" type="search" placeholder="Buscar nome ou e-mail">
+        <button id="adminUserSearchBtn" class="secondary" type="button">Buscar</button>
+        <button id="adminRefreshBtn" class="secondary" type="button">↻ Atualizar</button>
+      </div>
+      <div id="adminUsersList" class="adminList"></div>
+    </section>
+
+    <section id="adminPaymentsTab" style="display:none">
+      <div class="adminToolbar">
+        <select id="adminPaymentFilter">
+          <option value="">Todos os pagamentos</option>
+          <option value="pending">Pendentes</option>
+          <option value="paid">Pagos</option>
+          <option value="rejected">Rejeitados</option>
+        </select>
+        <button id="adminPaymentRefreshBtn" class="secondary" type="button">↻ Atualizar</button>
+      </div>
+      <div id="adminPaymentsList" class="adminList"></div>
+    </section>
+  </div>
+</div>
 
 
 <div id="productionDialog">
@@ -2449,7 +2557,7 @@ function bindIdentityEvents(client){
   client.on('logout',()=>{
     currentIdentityUser=null;
     authLocalMode=false;
-    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
     updateCloudAccountChrome();
     lockOnlineApp('Você saiu da conta.');
   });
@@ -2569,6 +2677,7 @@ function authFriendlyError(err){
   return raw;
 }
 function showAuthInlineForm(mode='main'){
+  $('authBannedPanel')?.classList.remove('show');
   const main=$('authMainActions');
   const forms={
     login:$('authLoginForm'),
@@ -2756,9 +2865,177 @@ window.miniCadAuth={
 };
 
 
+
+let adminPanelState={tab:'users',stats:null,users:[],payments:[],search:'',paymentStatus:''};
+
+function adminAllowed(){
+  return !!(cloudAccountState.ok && cloudAccountState.user?.role==='admin' && !cloudAccountState.user?.banned);
+}
+function updateAdminVisibility(){
+  const allowed=adminAllowed();
+  for(const id of ['homeAdminPanel','menuAdminPanel']){
+    const b=$(id);if(!b)continue;
+    b.classList.toggle('show',allowed);
+    b.style.display=allowed?'block':'none';
+  }
+  if(!allowed&&$('adminDialog')?.style.display==='flex')$('adminDialog').style.display='none';
+}
+function adminMoney(cents){return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function adminDate(value){
+  if(!value)return '—';
+  const d=new Date(value);
+  return Number.isNaN(d.getTime())?String(value):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+}
+function adminSetStatus(message,tone=''){
+  const el=$('adminStatus');if(!el)return;
+  el.textContent=message;el.className=tone?tone:'';
+}
+function adminSetTab(tab){
+  adminPanelState.tab=tab==='payments'?'payments':'users';
+  $('adminUsersTab').style.display=adminPanelState.tab==='users'?'block':'none';
+  $('adminPaymentsTab').style.display=adminPanelState.tab==='payments'?'block':'none';
+  $('adminUsersTabBtn').classList.toggle('active',adminPanelState.tab==='users');
+  $('adminUsersTabBtn').classList.toggle('secondary',adminPanelState.tab!=='users');
+  $('adminPaymentsTabBtn').classList.toggle('active',adminPanelState.tab==='payments');
+  $('adminPaymentsTabBtn').classList.toggle('secondary',adminPanelState.tab!=='payments');
+}
+function renderAdminStats(){
+  const s=adminPanelState.stats||{};
+  $('adminStatUsers').textContent=Number(s.users_total||0);
+  $('adminStatPremium').textContent=Number(s.premium_active||0);
+  $('adminStatBanned').textContent=Number(s.banned_total||0);
+  $('adminStatPending').textContent=Number(s.payments_pending||0);
+}
+function renderAdminUsers(){
+  const box=$('adminUsersList'),users=adminPanelState.users||[];
+  if(!users.length){box.innerHTML='<div class="adminEmpty">Nenhum usuário encontrado.</div>';return;}
+  const me=cloudAccountState.user?.id||'';
+  box.innerHTML=users.map(u=>{
+    const premium=!!u.premium_active,banned=!!Number(u.banned),self=u.identity_user_id===me;
+    return `<article class="adminUserCard" data-admin-user="${escapeHtml(u.identity_user_id)}">
+      <div class="adminUserTop">
+        <div><strong>${escapeHtml(u.name||'Sem nome')}</strong><small>${escapeHtml(u.email||'')}</small></div>
+        <div class="adminBadges">
+          ${u.role==='admin'?'<span class="adminBadge admin">ADMIN</span>':''}
+          ${premium?'<span class="adminBadge premium">PREMIUM</span>':'<span class="adminBadge">FREE</span>'}
+          ${banned?'<span class="adminBadge banned">BANIDO</span>':''}
+        </div>
+      </div>
+      <div class="adminMeta">
+        <div><strong>Cadastro</strong>${escapeHtml(adminDate(u.created_at))}</div>
+        <div><strong>Premium até</strong>${escapeHtml(adminDate(u.premium_until))}</div>
+        <div><strong>Compras pagas</strong>${Number(u.purchases_count||0)} · ${escapeHtml(adminMoney(u.paid_cents||0))}</div>
+      </div>
+      ${u.banned_reason?`<div class="adminMeta"><div><strong>Motivo do bloqueio</strong>${escapeHtml(u.banned_reason)}</div></div>`:''}
+      <div class="adminActions">
+        <button class="secondary" data-admin-action="premium7">+7 dias</button>
+        <button class="secondary" data-admin-action="premium30">+30 dias</button>
+        <button class="secondary" data-admin-action="premium90">+90 dias</button>
+        <button class="secondary" data-admin-action="revoke">Retirar Premium</button>
+        <button class="${banned?'secondary':'danger'}" data-admin-action="${banned?'unban':'ban'}" ${self?'disabled title="Você não pode banir a própria conta"':''}>${banned?'Desbanir':'Banir'}</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+function renderAdminPayments(){
+  const box=$('adminPaymentsList'),rows=adminPanelState.payments||[];
+  if(!rows.length){box.innerHTML='<div class="adminEmpty">Nenhum pagamento encontrado. Quando adicionarmos a compra de dias, eles aparecerão aqui.</div>';return;}
+  box.innerHTML=rows.map(p=>{
+    const pending=p.status==='pending';
+    return `<article class="adminPaymentCard" data-admin-payment="${escapeHtml(p.id)}">
+      <div class="adminPaymentTop">
+        <div><strong>${escapeHtml(p.name||p.email||'Usuário')}</strong><small>${escapeHtml(p.email||'')} · ${escapeHtml(p.id)}</small></div>
+        <div class="adminBadges"><span class="adminBadge ${p.status==='pending'?'pending':p.status==='paid'?'premium':''}">${escapeHtml(String(p.status||'').toUpperCase())}</span></div>
+      </div>
+      <div class="adminMeta">
+        <div><strong>Valor</strong>${escapeHtml(adminMoney(p.amount_cents||0))}</div>
+        <div><strong>Dias</strong>${Number(p.days_purchased||0)}</div>
+        <div><strong>Criado</strong>${escapeHtml(adminDate(p.created_at))}</div>
+      </div>
+      ${pending?`<div class="adminActions"><button data-admin-payment-action="approve">✓ Aprovar pagamento</button><button class="danger" data-admin-payment-action="reject">Rejeitar</button></div>`:''}
+    </article>`;
+  }).join('');
+}
+async function loadAdminStats(){const d=await cloudApiFetch('/admin/stats');adminPanelState.stats=d?.stats||{};renderAdminStats();}
+async function loadAdminUsers(){
+  const q=new URLSearchParams({search:adminPanelState.search||'',limit:'60',offset:'0'});
+  const d=await cloudApiFetch('/admin/users?'+q.toString());adminPanelState.users=d?.users||[];renderAdminUsers();
+}
+async function loadAdminPayments(){
+  const q=new URLSearchParams({limit:'60',offset:'0'});
+  if(adminPanelState.paymentStatus)q.set('status',adminPanelState.paymentStatus);
+  const d=await cloudApiFetch('/admin/payments?'+q.toString());adminPanelState.payments=d?.payments||[];renderAdminPayments();
+}
+async function refreshAdminPanel(){
+  if(!adminAllowed()){toast('Acesso administrativo não autorizado');return;}
+  adminSetStatus('Atualizando painel…');
+  try{
+    await Promise.all([loadAdminStats(),adminPanelState.tab==='users'?loadAdminUsers():loadAdminPayments()]);
+    adminSetStatus('Painel atualizado.','good');
+  }catch(err){
+    console.error('Admin:',err);
+    if(err.status===403){updateAdminVisibility();$('adminDialog').style.display='none';toast('Sua conta não possui acesso administrativo');return;}
+    adminSetStatus(err.message||'Falha ao carregar painel.','error');
+  }
+}
+async function openAdminPanel(){
+  if(!adminAllowed()){toast('Painel disponível somente para administrador');return;}
+  $('projectMenuPanel')?.classList.remove('show');
+  $('adminDialog').style.display='flex';
+  $('adminIdentityText').textContent=`Administrador: ${cloudAccountState.user?.name||currentIdentityUser?.email||''}`;
+  adminSetTab('users');
+  await refreshAdminPanel();
+}
+function closeAdminPanel(){$('adminDialog').style.display='none';}
+async function adminPremium(userId,days){
+  adminSetStatus(`Adicionando ${days} dia(s) de Premium…`);
+  try{
+    await cloudApiFetch(`/admin/users/${encodeURIComponent(userId)}/premium`,{method:'POST',body:{days}});
+    await Promise.all([loadAdminStats(),loadAdminUsers()]);
+    adminSetStatus(`${days} dia(s) adicionados com sucesso.`,'good');
+  }catch(err){adminSetStatus(err.message||'Não foi possível atualizar Premium.','error');}
+}
+async function adminRevokePremium(userId){
+  if(!confirm('Retirar o Premium deste usuário?'))return;
+  try{
+    await cloudApiFetch(`/admin/users/${encodeURIComponent(userId)}/premium/revoke`,{method:'POST',body:{}});
+    await Promise.all([loadAdminStats(),loadAdminUsers()]);
+    adminSetStatus('Premium removido.','good');
+  }catch(err){adminSetStatus(err.message||'Falha ao retirar Premium.','error');}
+}
+async function adminBanUser(userId,banned){
+  const reason=banned?(prompt('Motivo do bloqueio (opcional):','')||''):'';
+  if(banned&&!confirm('Banir esta conta? O usuário perderá o acesso online ao DesignLabMoveis.'))return;
+  if(!banned&&!confirm('Desbanir esta conta?'))return;
+  try{
+    await cloudApiFetch(`/admin/users/${encodeURIComponent(userId)}/ban`,{method:'POST',body:{banned,reason}});
+    await Promise.all([loadAdminStats(),loadAdminUsers()]);
+    adminSetStatus(banned?'Usuário banido.':'Usuário desbanido.','good');
+  }catch(err){adminSetStatus(err.message||'Falha ao alterar bloqueio.','error');}
+}
+async function adminPaymentAction(paymentId,action){
+  if(action==='approve'&&!confirm('Aprovar este pagamento e liberar os dias comprados?'))return;
+  if(action==='reject'&&!confirm('Rejeitar este pagamento?'))return;
+  try{
+    await cloudApiFetch(`/admin/payments/${encodeURIComponent(paymentId)}/${action}`,{method:'POST',body:{}});
+    await Promise.all([loadAdminStats(),loadAdminPayments()]);
+    adminSetStatus(action==='approve'?'Pagamento aprovado.':'Pagamento rejeitado.','good');
+  }catch(err){adminSetStatus(err.message||'Falha ao atualizar pagamento.','error');}
+}
+function showBannedAccount(reason=''){
+  cloudAccountState.banned=true;
+  $('authGate')?.classList.remove('hidden');
+  $('authMainActions')?.classList.add('hidden');
+  for(const id of ['authLoginForm','authSignupForm','authForgotForm'])$(id)?.classList.remove('show');
+  $('authBannedPanel')?.classList.add('show');
+  if($('authBannedReason'))$('authBannedReason').textContent=reason?`Motivo: ${reason}`:'Entre em contato com o administrador caso acredite que houve um engano.';
+  setAuthStatus('Esta conta está bloqueada.','error');
+}
+
+
 const CLOUD_API_BASE='https://designlabmoveis-api.geppetomarcenaria.workers.dev';
 
-let cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+let cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
 
 function cloudPlanText(){
   const s=cloudAccountState.subscription;
@@ -2771,6 +3048,7 @@ function cloudPlanText(){
   return 'Plano Free';
 }
 function updateCloudAccountChrome(){
+  updateAdminVisibility();
   const line=$('projectAccountCloud');
   const box=$('cloudAccountStatus');
   const menu=$('projectMenuAccount');
@@ -2833,20 +3111,26 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 }
 async function syncCloudAccount({silent=false}={}){
   if(authLocalMode||!currentIdentityUser){
-    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
     updateCloudAccountChrome();return null;
   }
   if(cloudAccountState.loading)return null;
   cloudAccountState.loading=true;cloudAccountState.error=null;updateCloudAccountChrome();
   try{
     const data=await cloudApiFetch('/me');
-    cloudAccountState={loading:false,ok:!!data?.ok,error:null,user:data?.user||null,subscription:data?.subscription||null,lastSync:new Date().toISOString()};
+    cloudAccountState={loading:false,ok:!!data?.ok,error:null,user:data?.user||null,subscription:data?.subscription||null,lastSync:new Date().toISOString(),banned:false};
     updateCloudAccountChrome();
     if(!silent)toast(`Conta conectada · ${cloudPlanText()}`);
     return data;
   }catch(err){
     console.error('Cloud account sync:',err);
-    cloudAccountState={loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),user:null,subscription:null,lastSync:null};
+    if(err?.status===403 && err?.data?.error==='banned'){
+      cloudAccountState={loading:false,ok:false,error:'Conta bloqueada',user:null,subscription:null,lastSync:null,banned:true};
+      updateCloudAccountChrome();
+      showBannedAccount(err?.data?.reason||'');
+      return null;
+    }
+    cloudAccountState={loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),user:null,subscription:null,lastSync:null,banned:false};
     updateCloudAccountChrome();
     if(!silent)toast('Login feito, mas a nuvem não respondeu');
     return null;
@@ -3023,7 +3307,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.25`:'DesignLabMoveis 1.100.25';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.26`:'DesignLabMoveis 1.100.26';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -3198,7 +3482,7 @@ async function createNewProject(meta){
   const now=projectNow();
   const rec={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.25'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.26'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -3213,7 +3497,7 @@ async function saveCurrentProject({silent=false}={}){
   const next={
     ...rec,...currentProjectRecord,id:currentProjectId,
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.25'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.26'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   await projectDbPut(next);
@@ -3233,7 +3517,7 @@ async function saveAsCurrentProject(meta){
   const now=projectNow();
   const next={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.25'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.26'
   };
   await projectDbPut(next);
   if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
@@ -3276,7 +3560,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.25',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.26',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -3303,7 +3587,7 @@ async function importProjectFile(file){
   const rec={
     id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.25'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.26'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -3362,7 +3646,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.25'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.26'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -6649,7 +6933,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.25', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.26', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -11318,7 +11602,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.25 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.26 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -11333,7 +11617,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.25 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.26 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -11915,6 +12199,7 @@ function installOutsideMenuClose(){
   clickBackdropCancel('libraryDialog','closeLibrary');
   clickBackdropCancel('recoveryDialog','recoveryCancel');
   clickBackdropCancel('productionDialog','closeProductionDialog');
+  clickBackdropCancel('adminDialog','closeAdminDialog');
 
   // ESC também segue o comportamento padrão dos menus leves.
   document.addEventListener('keydown',e=>{
@@ -12126,6 +12411,34 @@ $('authRetryBtn').onclick=async()=>{
 };
 $('authLocalBtn').onclick=localAuthContinue;
 $('homeLogoutBtn').onclick=logoutOnlineIdentity;
+$('authBannedLogout').onclick=logoutOnlineIdentity;
+$('homeAdminPanel').onclick=openAdminPanel;
+$('menuAdminPanel').onclick=openAdminPanel;
+$('closeAdminDialog').onclick=closeAdminPanel;
+$('adminDialog').addEventListener('pointerdown',e=>{if(e.target===$('adminDialog'))closeAdminPanel();});
+$('adminUsersTabBtn').onclick=async()=>{adminSetTab('users');await refreshAdminPanel();};
+$('adminPaymentsTabBtn').onclick=async()=>{adminSetTab('payments');await refreshAdminPanel();};
+$('adminRefreshBtn').onclick=refreshAdminPanel;
+$('adminUserSearchBtn').onclick=async()=>{adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();};
+$('adminUserSearch').addEventListener('keydown',async e=>{if(e.key==='Enter'){e.preventDefault();adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();}});
+$('adminPaymentFilter').addEventListener('change',async e=>{adminPanelState.paymentStatus=e.target.value;await loadAdminPayments();});
+$('adminPaymentRefreshBtn').onclick=async()=>{await Promise.all([loadAdminStats(),loadAdminPayments()]);};
+$('adminUsersList').addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-admin-action]');if(!btn)return;
+  const card=btn.closest('[data-admin-user]');if(!card)return;
+  const id=card.dataset.adminUser,action=btn.dataset.adminAction;
+  if(action==='premium7')adminPremium(id,7);
+  else if(action==='premium30')adminPremium(id,30);
+  else if(action==='premium90')adminPremium(id,90);
+  else if(action==='revoke')adminRevokePremium(id);
+  else if(action==='ban')adminBanUser(id,true);
+  else if(action==='unban')adminBanUser(id,false);
+});
+$('adminPaymentsList').addEventListener('click',e=>{
+  const btn=e.target.closest?.('[data-admin-payment-action]');if(!btn)return;
+  const card=btn.closest('[data-admin-payment]');if(!card)return;
+  adminPaymentAction(card.dataset.adminPayment,btn.dataset.adminPaymentAction);
+});
 
 installOutsideMenuClose();
 
