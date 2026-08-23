@@ -8,8 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://identity.netlify.com" crossorigin>
+<link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.23 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.24 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -893,6 +895,35 @@
   .netlify-identity-widget{z-index:12000 !important}
   .netlify-identity-widget .modal{z-index:12001 !important}
 
+
+  /* 1.100.24 · formulários de autenticação próprios, instantâneos */
+  .authMainActions.hidden{display:none}
+  .authInlineForm{display:none;margin-top:0}
+  .authInlineForm.show{display:block}
+  .authFormHead{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;
+  }
+  .authFormHead strong{font-size:15px}
+  .authBackBtn{
+    width:auto !important;min-height:34px !important;padding:6px 10px !important;
+    font-size:10px !important;border-radius:8px !important;
+  }
+  .authField{display:block;margin-top:8px;color:#aeb8be;font-size:10px;font-weight:700}
+  .authField input{
+    width:100%;margin-top:4px;padding:12px 11px;border-radius:10px;border:1px solid #40474b;
+    background:#101214;color:#fff;font-size:15px;outline:none;box-sizing:border-box;
+  }
+  .authField input:focus{border-color:#2d7dfa;box-shadow:0 0 0 2px rgba(45,125,250,.12)}
+  .authSubmit{
+    width:100%;min-height:46px;margin-top:12px;border-radius:11px;font-size:13px;
+  }
+  .authSubmit[disabled]{opacity:.55;cursor:wait}
+  .authRemember{
+    display:flex;align-items:center;gap:7px;margin-top:9px;color:#9ca7ad;font-size:10px;
+  }
+  .authRemember input{width:17px;height:17px;accent-color:#2d7dfa}
+  .authFormHint{margin:8px 1px 0;color:#7f8a90;font-size:9px;line-height:1.45}
+
   @media(max-width:390px){
     .authActions{grid-template-columns:1fr}
     #authLoginBtn,#authForgotBtn{grid-column:auto}
@@ -928,25 +959,80 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.23</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.24</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
-      <p>Esta é a primeira etapa da versão online. Depois do login, o CAD continua totalmente liberado; Premium e projetos na nuvem entram nas próximas etapas.</p>
+      <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
     </div>
+
     <div class="authBody">
-      <div class="authActions">
+      <div id="authMainActions" class="authActions authMainActions">
         <button id="authLoginBtn" type="button">Entrar</button>
         <button id="authSignupBtn" class="secondary" type="button">Criar conta</button>
         <button id="authRetryBtn" class="secondary" type="button">↻ Verificar sessão</button>
         <button id="authForgotBtn" class="secondary" type="button">Esqueci minha senha</button>
       </div>
-      <div id="authStatus" class="authStatus">Carregando o serviço de autenticação…</div>
+
+      <form id="authLoginForm" class="authInlineForm" autocomplete="on">
+        <div class="authFormHead">
+          <strong>Entrar</strong>
+          <button type="button" class="secondary authBackBtn" data-auth-back>← Voltar</button>
+        </div>
+        <label class="authField">E-mail
+          <input id="authLoginEmail" type="email" inputmode="email" autocomplete="email" required placeholder="seu@email.com">
+        </label>
+        <label class="authField">Senha
+          <input id="authLoginPassword" type="password" autocomplete="current-password" required placeholder="Sua senha">
+        </label>
+        <label class="authRemember">
+          <input id="authRememberMe" type="checkbox" checked>
+          <span>Manter minha conta conectada neste aparelho</span>
+        </label>
+        <button id="authLoginSubmit" class="authSubmit" type="submit">Entrar</button>
+      </form>
+
+      <form id="authSignupForm" class="authInlineForm" autocomplete="on">
+        <div class="authFormHead">
+          <strong>Criar conta</strong>
+          <button type="button" class="secondary authBackBtn" data-auth-back>← Voltar</button>
+        </div>
+        <label class="authField">Nome
+          <input id="authSignupName" type="text" autocomplete="name" required placeholder="Seu nome">
+        </label>
+        <label class="authField">E-mail
+          <input id="authSignupEmail" type="email" inputmode="email" autocomplete="email" required placeholder="seu@email.com">
+        </label>
+        <label class="authField">Senha
+          <input id="authSignupPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Crie uma senha">
+        </label>
+        <label class="authField">Confirmar senha
+          <input id="authSignupPassword2" type="password" autocomplete="new-password" minlength="6" required placeholder="Digite novamente">
+        </label>
+        <button id="authSignupSubmit" class="authSubmit" type="submit">Criar minha conta</button>
+        <p class="authFormHint">Como a confirmação de e-mail está obrigatória no Netlify, enviaremos um link para confirmar o cadastro.</p>
+      </form>
+
+      <form id="authForgotForm" class="authInlineForm" autocomplete="on">
+        <div class="authFormHead">
+          <strong>Recuperar senha</strong>
+          <button type="button" class="secondary authBackBtn" data-auth-back>← Voltar</button>
+        </div>
+        <label class="authField">E-mail da conta
+          <input id="authForgotEmail" type="email" inputmode="email" autocomplete="email" required placeholder="seu@email.com">
+        </label>
+        <button id="authForgotSubmit" class="authSubmit" type="submit">Enviar recuperação</button>
+        <p class="authFormHint">Você receberá um e-mail do Netlify com o link para criar uma nova senha.</p>
+      </form>
+
+      <div id="authStatus" class="authStatus">Preparando autenticação…</div>
+
       <div id="authLocalBox">
         <strong>Modo local de desenvolvimento</strong>
-        <p>Você abriu o arquivo fora do endereço HTTPS do Netlify. O Identity só funciona corretamente no site publicado. Este botão existe apenas em file:/content:/localhost para continuarmos testando o CAD localmente.</p>
+        <p>Você abriu o arquivo fora do endereço HTTPS do Netlify. O login real deve ser testado no site publicado.</p>
         <button id="authLocalBtn" class="secondary" type="button">Continuar localmente</button>
       </div>
-      <p class="authPrivacy">A senha é tratada pelo Netlify Identity e não é salva dentro do arquivo do DesignLabMoveis. Nesta versão ainda não existe banco D1 nem cobrança Premium.</p>
+
+      <p class="authPrivacy">A senha não é salva no arquivo do DesignLabMoveis. Login e cadastro são enviados diretamente ao serviço Identity do seu próprio site Netlify.</p>
     </div>
   </div>
 </div>
@@ -1134,7 +1220,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.23 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.24 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2307,6 +2393,7 @@ function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
   currentIdentityUser=null;
   updateIdentityChrome();
   $('authGate')?.classList.remove('hidden');
+  showAuthInlineForm('main');
   setAuthStatus(message,'');
 }
 function unlockOnlineApp(user,{message='Conta conectada.'}={}){
@@ -2398,8 +2485,11 @@ async function initOnlineIdentity(){
   }
 
   identityClient=client;
+  if(!currentIdentityUser&&!authLocalMode&&$('authMainActions')&&!$('authMainActions').classList.contains('hidden')){
+    setAuthStatus('Autenticação pronta.','good');
+  }
 
-  // 1.100.23: força o widget oficial do Netlify Identity para Português.
+  // Mantém o widget oficial em Português para confirmação/recuperação por link.
   // "pt" é uma tradução suportada oficialmente pelo widget.
   try{client.setLocale?.('pt');}catch(err){console.warn('Não foi possível definir locale pt:',err);}
 
@@ -2432,6 +2522,169 @@ async function initOnlineIdentity(){
     setAuthStatus('Convite recebido. Conclua seu cadastro no formulário do Netlify.','good');
   }
 }
+
+// ============================================================================
+// 1.100.24 · FORMULÁRIOS PRÓPRIOS DE LOGIN
+// O clique abre o formulário IMEDIATAMENTE; não esperamos o modal do widget.
+// ============================================================================
+function authFriendlyError(err){
+  const raw=String(
+    err?.json?.msg || err?.json?.error_description || err?.message ||
+    err?.data?.msg || err?.msg || err || 'Não foi possível concluir.'
+  ).trim();
+  const s=raw.toLowerCase();
+
+  if(s.includes('invalid login credentials')||s.includes('invalid_grant'))
+    return 'E-mail ou senha incorretos.';
+  if(s.includes('email not confirmed')||s.includes('not confirmed'))
+    return 'Seu e-mail ainda não foi confirmado. Abra o e-mail de confirmação e tente novamente.';
+  if(s.includes('already been registered')||s.includes('already registered'))
+    return 'Já existe uma conta cadastrada com este e-mail.';
+  if(s.includes('signups not allowed'))
+    return 'O cadastro está desativado no Netlify Identity.';
+  if(s.includes('password')&&s.includes('at least'))
+    return 'A senha não atende ao tamanho mínimo exigido.';
+  if(s.includes('rate limit')||s.includes('too many'))
+    return 'Muitas tentativas em pouco tempo. Aguarde um pouco e tente novamente.';
+  if(s.includes('failed to fetch')||s.includes('network'))
+    return 'Falha de conexão. Confira a internet e tente novamente.';
+  return raw;
+}
+function showAuthInlineForm(mode='main'){
+  const main=$('authMainActions');
+  const forms={
+    login:$('authLoginForm'),
+    signup:$('authSignupForm'),
+    forgot:$('authForgotForm')
+  };
+  main?.classList.toggle('hidden',mode!=='main');
+  for(const [key,form] of Object.entries(forms))form?.classList.toggle('show',key===mode);
+
+  if(mode==='login'){
+    setAuthStatus(identityClient?'Digite seu e-mail e senha.':'O formulário já está pronto. O serviço de login está terminando de carregar…','');
+    setTimeout(()=>$('authLoginEmail')?.focus(),30);
+  }else if(mode==='signup'){
+    setAuthStatus('Preencha os dados abaixo. O cadastro será enviado diretamente ao Identity.','');
+    setTimeout(()=>$('authSignupName')?.focus(),30);
+  }else if(mode==='forgot'){
+    const known=$('authLoginEmail')?.value||$('authSignupEmail')?.value||'';
+    if(known)$('authForgotEmail').value=known;
+    setAuthStatus('Informe o e-mail usado na sua conta.','');
+    setTimeout(()=>$('authForgotEmail')?.focus(),30);
+  }else if(!currentIdentityUser){
+    setAuthStatus(identityClient?'Autenticação pronta.':'Preparando autenticação…','');
+  }
+}
+function authSetBusy(button,busy,labelBusy,labelNormal){
+  if(!button)return;
+  button.disabled=!!busy;
+  button.textContent=busy?labelBusy:labelNormal;
+}
+async function getReadyGoTrue(timeoutMs=12000){
+  if(identityClient?.gotrue)return identityClient.gotrue;
+  const client=identityClient||await waitForNetlifyIdentity(timeoutMs);
+  if(client&&!identityClient){
+    identityClient=client;
+    try{client.setLocale?.('pt');}catch{}
+    bindIdentityEvents(client);
+  }
+  if(!client?.gotrue)throw new Error('O serviço de login ainda não carregou. Confira a internet e tente novamente.');
+  return client.gotrue;
+}
+async function authSubmitLogin(e){
+  e?.preventDefault?.();
+  const email=String($('authLoginEmail').value||'').trim();
+  const password=String($('authLoginPassword').value||'');
+  const remember=!!$('authRememberMe').checked;
+  if(!email||!password){setAuthStatus('Preencha e-mail e senha.','warn');return;}
+
+  const btn=$('authLoginSubmit');
+  authSetBusy(btn,true,'Entrando…','Entrar');
+  setAuthStatus('Conectando sua conta…','');
+  try{
+    const auth=await getReadyGoTrue();
+    const user=await auth.login(email,password,remember);
+    currentIdentityUser=user;
+    authInitialized=true;
+    unlockOnlineApp(user,{message:'Login realizado.'});
+  }catch(err){
+    console.error('Login:',err);
+    setAuthStatus(authFriendlyError(err),'error');
+  }finally{
+    authSetBusy(btn,false,'Entrando…','Entrar');
+  }
+}
+async function authSubmitSignup(e){
+  e?.preventDefault?.();
+  const name=String($('authSignupName').value||'').trim();
+  const email=String($('authSignupEmail').value||'').trim();
+  const password=String($('authSignupPassword').value||'');
+  const password2=String($('authSignupPassword2').value||'');
+  if(!name||!email||!password||!password2){setAuthStatus('Preencha todos os campos.','warn');return;}
+  if(password.length<6){setAuthStatus('Use uma senha com pelo menos 6 caracteres.','warn');return;}
+  if(password!==password2){setAuthStatus('As duas senhas estão diferentes.','warn');return;}
+
+  const btn=$('authSignupSubmit');
+  authSetBusy(btn,true,'Criando conta…','Criar minha conta');
+  setAuthStatus('Criando sua conta…','');
+  try{
+    // Cadastro via endpoint oficial do próprio site. Não depende da abertura
+    // do modal e ainda permite gravar o nome em user_metadata.
+    const res=await fetch('/.netlify/identity/signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({email,password,data:{full_name:name}})
+    });
+    let data=null;
+    try{data=await res.json();}catch{}
+    if(!res.ok){
+      const err=new Error(data?.msg||data?.error_description||`Falha no cadastro (${res.status})`);
+      err.json=data;throw err;
+    }
+
+    $('authSignupPassword').value='';
+    $('authSignupPassword2').value='';
+    showAuthInlineForm('main');
+    setAuthStatus(`Conta criada para ${email}. Confira seu e-mail e toque no link de confirmação antes de entrar.`,'good');
+  }catch(err){
+    console.error('Cadastro:',err);
+    setAuthStatus(authFriendlyError(err),'error');
+  }finally{
+    authSetBusy(btn,false,'Criando conta…','Criar minha conta');
+  }
+}
+async function authSubmitForgot(e){
+  e?.preventDefault?.();
+  const email=String($('authForgotEmail').value||'').trim();
+  if(!email){setAuthStatus('Digite o e-mail da sua conta.','warn');return;}
+
+  const btn=$('authForgotSubmit');
+  authSetBusy(btn,true,'Enviando…','Enviar recuperação');
+  setAuthStatus('Solicitando recuperação de senha…','');
+  try{
+    // Endpoint oficial do GoTrue/Netlify Identity.
+    const res=await fetch('/.netlify/identity/recover',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({email})
+    });
+    let data=null;
+    try{data=await res.json();}catch{}
+    if(!res.ok){
+      const err=new Error(data?.msg||data?.error_description||`Falha na recuperação (${res.status})`);
+      err.json=data;throw err;
+    }
+    showAuthInlineForm('main');
+    setAuthStatus(`Se ${email} estiver cadastrado, o Netlify enviará o e-mail de recuperação.`,'good');
+  }catch(err){
+    console.error('Recuperação:',err);
+    setAuthStatus(authFriendlyError(err),'error');
+  }finally{
+    authSetBusy(btn,false,'Enviando…','Enviar recuperação');
+  }
+}
+
+
 function openIdentityMode(mode='login'){
   if(!identityClient){
     setAuthStatus('O serviço de autenticação ainda não carregou. Toque em “Verificar sessão”.','error');
@@ -2469,9 +2722,15 @@ window.miniCadAuth={
   isAuthenticated(){return !!currentIdentityUser&&!authLocalMode;},
   isLocalMode(){return !!authLocalMode;},
   async getToken(){
-    if(!identityClient||!currentIdentityUser||authLocalMode)return null;
+    if(!currentIdentityUser||authLocalMode)return null;
     try{
-      const jwt=await identityClient.refresh();
+      if(typeof currentIdentityUser.jwt==='function'){
+        const jwt=await currentIdentityUser.jwt();
+        if(jwt)return jwt;
+      }
+    }catch(err){console.warn('Não foi possível obter JWT pelo usuário:',err);}
+    try{
+      const jwt=await identityClient?.refresh?.();
       if(jwt)return jwt;
     }catch(err){console.warn('Não foi possível renovar JWT:',err);}
     return currentIdentityUser?.token?.access_token||null;
@@ -2646,7 +2905,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.23`:'DesignLabMoveis 1.100.23';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.24`:'DesignLabMoveis 1.100.24';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -2821,7 +3080,7 @@ async function createNewProject(meta){
   const now=projectNow();
   const rec={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.23'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.24'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -2836,7 +3095,7 @@ async function saveCurrentProject({silent=false}={}){
   const next={
     ...rec,...currentProjectRecord,id:currentProjectId,
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.23'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.24'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   await projectDbPut(next);
@@ -2856,7 +3115,7 @@ async function saveAsCurrentProject(meta){
   const now=projectNow();
   const next={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.23'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.24'
   };
   await projectDbPut(next);
   if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
@@ -2899,7 +3158,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.23',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.24',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -2926,7 +3185,7 @@ async function importProjectFile(file){
   const rec={
     id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.23'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.24'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2985,7 +3244,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.23'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.24'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -6272,7 +6531,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.23', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.24', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -10941,7 +11200,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.23 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.24 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -10956,7 +11215,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.23 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.24 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -11728,12 +11987,13 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('pagehide',()=>{projectAutosaveNow();});
 
 
-$('authLoginBtn').onclick=()=>openIdentityMode('login');
-$('authSignupBtn').onclick=()=>openIdentityMode('signup');
-$('authForgotBtn').onclick=()=>{
-  setAuthStatus('No formulário de login do Netlify, use “Forgot password / Esqueci a senha”.','warn');
-  openIdentityMode('login');
-};
+$('authLoginBtn').onclick=()=>showAuthInlineForm('login');
+$('authSignupBtn').onclick=()=>showAuthInlineForm('signup');
+$('authForgotBtn').onclick=()=>showAuthInlineForm('forgot');
+document.querySelectorAll('[data-auth-back]').forEach(b=>b.onclick=()=>showAuthInlineForm('main'));
+$('authLoginForm').addEventListener('submit',authSubmitLogin);
+$('authSignupForm').addEventListener('submit',authSubmitSignup);
+$('authForgotForm').addEventListener('submit',authSubmitForgot);
 $('authRetryBtn').onclick=async()=>{
   setAuthStatus('Verificando sessão…','');
   if(identityClient){
