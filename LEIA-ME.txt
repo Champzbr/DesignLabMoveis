@@ -1,79 +1,30 @@
-DESIGNLABMOVEIS 1.100.24 — LOGIN INSTANTÂNEO / SEM ESPERAR O MODAL
+DESIGNLABMOVEIS 1.100.25 — CONTA NETLIFY → WORKER → D1
 
-Base: 1.100.23 completa.
+Base: 1.100.24.
 
-PROBLEMA ANALISADO
-A versão anterior dependia do modal visual do netlify-identity-widget.
-Ao tocar Entrar/Criar conta:
-1. o DesignLabMoveis chamava netlifyIdentity.open();
-2. o widget precisava abrir e montar seu próprio modal;
-3. em celular/rede mais lenta isso podia demorar;
-4. em algumas tentativas o modal podia não aparecer visualmente.
+API:
+https://designlabmoveis-api.geppetomarcenaria.workers.dev
 
-A documentação atual do Netlify recomenda @netlify/identity para projetos novos,
-e o próprio widget antigo expõe o cliente GoTrue por baixo.
+Após o login:
+1. obtém o JWT do Netlify Identity;
+2. chama GET /me no Worker;
+3. o Worker valida a sessão no Netlify;
+4. cria/atualiza o usuário na tabela users do D1;
+5. devolve nome, role, plano, premium_active e premium_until.
 
-SOLUÇÃO DA 1.100.24
-Entrar, Criar conta e Esqueci minha senha NÃO dependem mais de abrir o modal
-do widget para o fluxo normal.
+A tela inicial passa a mostrar:
+- Plano Free ou Premium;
+- Nuvem conectada.
 
-Os formulários são nativos do próprio DesignLabMoveis e aparecem
-IMEDIATAMENTE ao tocar no botão.
+Se a API estiver indisponível, o CAD continua abrindo nesta etapa e mostra
+"Nuvem indisponível".
 
-ENTRAR
-- formulário abre na hora;
-- e-mail e senha ficam no DesignLabMoveis;
-- ao enviar, o cliente GoTrue/Netlify Identity autentica;
-- opção "manter conectado" disponível;
-- sessão continua persistente.
+TESTE:
+1. publique esta versão no Netlify;
+2. faça login;
+3. aguarde alguns segundos;
+4. deve aparecer "Plano Free · Nuvem conectada";
+5. no Cloudflare abra D1 → Explore Data → users;
+6. sua conta deve estar cadastrada.
 
-CRIAR CONTA
-- formulário abre na hora;
-- Nome
-- E-mail
-- Senha
-- Confirmar senha
-- cadastro é enviado ao endpoint oficial:
-  /.netlify/identity/signup
-- nome é salvo em user_metadata.full_name;
-- continua exigindo confirmação de e-mail, como configurado no painel.
-
-RECUPERAR SENHA
-- formulário abre na hora;
-- envio direto para:
-  /.netlify/identity/recover
-- o usuário recebe o e-mail de recuperação.
-
-MENSAGENS
-Erros comuns agora são traduzidos para português:
-- e-mail/senha incorretos;
-- e-mail ainda não confirmado;
-- conta já cadastrada;
-- cadastro desativado;
-- falha de conexão;
-- excesso de tentativas.
-
-VELOCIDADE
-Foi adicionado preconnect/dns-prefetch para identity.netlify.com.
-O script continua carregando em segundo plano, mas o clique nos botões não
-precisa esperar a interface visual externa.
-
-WIDGET OFICIAL
-O widget ainda permanece carregado internamente para:
-- restauração de sessão;
-- confirmação por link;
-- recuperação por token;
-- compatibilidade com o Identity.
-
-PRÓXIMO TESTE
-1. publicar o pacote no mesmo Netlify;
-2. atualizar a página;
-3. tocar Entrar — o formulário deve aparecer instantaneamente;
-4. voltar;
-5. tocar Criar conta — também deve aparecer instantaneamente;
-6. concluir um cadastro;
-7. confirmar e-mail;
-8. entrar;
-9. fechar/reabrir o site e testar sessão.
-
-Cloudflare D1/R2 ainda não entram nesta versão.
+Próxima etapa: projetos na nuvem no R2.

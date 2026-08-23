@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.24 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.25 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -885,6 +885,15 @@
   }
   #projectMenuAccount strong{color:#dbe2e6}
 
+
+  .projectAccountText .cloudLine{margin-top:2px;color:#8f9da4;font-size:8px}
+  .projectAccountText .cloudLine.ok{color:#66d786}
+  .projectAccountText .cloudLine.warn{color:#ffbd68}
+  .cloudAccountStatus{margin-top:8px;padding:8px 9px;border:1px solid #343b3f;border-radius:9px;background:#141719;color:#98a3a9;font-size:9px;line-height:1.45}
+  .cloudAccountStatus.ok{border-color:rgba(52,208,88,.32);color:#76d98e;background:rgba(52,208,88,.05)}
+  .cloudAccountStatus.warn{border-color:rgba(255,177,73,.32);color:#ffc06f;background:rgba(255,157,46,.05)}
+  .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
+
   @media(max-width:700px){
     .projectHomeHeader{gap:10px}
     .projectAccountArea{order:3;width:100%;justify-content:stretch;margin-left:0}
@@ -959,7 +968,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.24</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.25</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1051,6 +1060,7 @@
           <div class="projectAccountText">
             <strong id="projectAccountName">Usuário</strong>
             <span id="projectAccountEmail">conta@netlify</span>
+            <span id="projectAccountCloud" class="cloudLine">Nuvem ainda não sincronizada</span>
           </div>
         </div>
         <button id="homeLogoutBtn" class="secondary" type="button" title="Sair da conta" aria-label="Sair da conta" style="display:none">↪</button>
@@ -1101,6 +1111,7 @@
     <button id="menuProjectHome" class="secondary wide">⌂ Voltar para tela inicial</button>
   </div>
   <div id="projectMenuAccount"><strong>Conta desconectada</strong></div>
+  <div id="cloudAccountStatus" class="cloudAccountStatus">Nuvem: aguardando autenticação.</div>
 </div>
 
 <div id="presentationBar">
@@ -1220,7 +1231,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.24 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.25 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2387,6 +2398,7 @@ function updateIdentityChrome(){
     if(logout)logout.style.display='none';
     if(menu)menu.innerHTML='<strong>Conta desconectada</strong>';
   }
+  if(typeof updateCloudAccountChrome==='function')updateCloudAccountChrome();
 }
 function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
   if(authLocalMode)return;
@@ -2402,12 +2414,14 @@ function unlockOnlineApp(user,{message='Conta conectada.'}={}){
   updateIdentityChrome();
   $('authGate')?.classList.add('hidden');
   setAuthStatus(message,'good');
+  queueMicrotask(()=>syncCloudAccount({silent:true}));
 }
 function localAuthContinue(){
   if(!isLocalAuthDevelopment())return;
   authLocalMode=true;
   currentIdentityUser=null;
   updateIdentityChrome();
+  updateCloudAccountChrome();
   $('authGate')?.classList.add('hidden');
   setAuthStatus('Modo local ativo. Publique no Netlify para testar cadastro e login.','warn');
 }
@@ -2433,7 +2447,11 @@ function bindIdentityEvents(client){
     try{client.close();}catch{}
   });
   client.on('logout',()=>{
-    currentIdentityUser=null;authLocalMode=false;lockOnlineApp('Você saiu da conta.');
+    currentIdentityUser=null;
+    authLocalMode=false;
+    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+    updateCloudAccountChrome();
+    lockOnlineApp('Você saiu da conta.');
   });
   try{
     client.on('signup',user=>{
@@ -2737,6 +2755,106 @@ window.miniCadAuth={
   }
 };
 
+
+const CLOUD_API_BASE='https://designlabmoveis-api.geppetomarcenaria.workers.dev';
+
+let cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+
+function cloudPlanText(){
+  const s=cloudAccountState.subscription;
+  if(!s)return 'Plano não consultado';
+  if(s.premium_active){
+    const until=s.premium_until?new Date(s.premium_until):null;
+    const date=until&&!Number.isNaN(until.getTime())?until.toLocaleDateString('pt-BR'):'';
+    return `Premium${date?` até ${date}`:''}`;
+  }
+  return 'Plano Free';
+}
+function updateCloudAccountChrome(){
+  const line=$('projectAccountCloud');
+  const box=$('cloudAccountStatus');
+  const menu=$('projectMenuAccount');
+
+  if(authLocalMode){
+    if(line){line.textContent='Modo local · nuvem desligada';line.className='cloudLine warn';}
+    if(box){box.textContent='Nuvem: modo local. Publique no Netlify para testar D1/R2.';box.className='cloudAccountStatus warn';}
+    return;
+  }
+  if(cloudAccountState.loading){
+    if(line){line.textContent='Conectando à nuvem…';line.className='cloudLine';}
+    if(box){box.textContent='Nuvem: conectando sua conta ao DesignLabMoveis API…';box.className='cloudAccountStatus';}
+    return;
+  }
+  if(cloudAccountState.ok){
+    const plan=cloudPlanText();
+    if(line){line.textContent=`${plan} · Nuvem conectada`;line.className='cloudLine ok';}
+    if(box){box.textContent=`Nuvem conectada · ${plan} · conta registrada no D1.`;box.className='cloudAccountStatus ok';}
+    if(menu&&currentIdentityUser){
+      menu.innerHTML=`<strong>${escapeHtml(authUserName(currentIdentityUser))}</strong><br>${escapeHtml(currentIdentityUser.email||'')}<br>${escapeHtml(plan)} · conta sincronizada com o D1.`;
+    }
+    return;
+  }
+  if(cloudAccountState.error){
+    if(line){line.textContent='Nuvem indisponível';line.className='cloudLine warn';}
+    if(box){box.textContent=`Nuvem: ${cloudAccountState.error}`;box.className='cloudAccountStatus error';}
+    return;
+  }
+  if(line){line.textContent='Nuvem ainda não sincronizada';line.className='cloudLine';}
+  if(box){box.textContent='Nuvem: aguardando login.';box.className='cloudAccountStatus';}
+}
+async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
+  const token=await window.miniCadAuth?.getToken?.();
+  if(!token)throw new Error('Não foi possível obter a sessão da conta.');
+
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    const res=await fetch(CLOUD_API_BASE+path,{
+      method,mode:'cors',cache:'no-store',
+      headers:{
+        'Accept':'application/json',
+        'Authorization':`Bearer ${token}`,
+        ...(body?{'Content-Type':'application/json'}:{})
+      },
+      body:body?JSON.stringify(body):undefined,
+      signal:controller.signal
+    });
+    let data=null;
+    try{data=await res.json();}catch{}
+    if(!res.ok){
+      const message=data?.message||(res.status===401?'Sessão inválida ou expirada.':res.status===403?'Acesso negado pela API.':`API retornou erro ${res.status}.`);
+      const err=new Error(message);err.status=res.status;err.data=data;throw err;
+    }
+    return data;
+  }catch(err){
+    if(err?.name==='AbortError')throw new Error('A API demorou demais para responder.');
+    throw err;
+  }finally{clearTimeout(timer);}
+}
+async function syncCloudAccount({silent=false}={}){
+  if(authLocalMode||!currentIdentityUser){
+    cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null};
+    updateCloudAccountChrome();return null;
+  }
+  if(cloudAccountState.loading)return null;
+  cloudAccountState.loading=true;cloudAccountState.error=null;updateCloudAccountChrome();
+  try{
+    const data=await cloudApiFetch('/me');
+    cloudAccountState={loading:false,ok:!!data?.ok,error:null,user:data?.user||null,subscription:data?.subscription||null,lastSync:new Date().toISOString()};
+    updateCloudAccountChrome();
+    if(!silent)toast(`Conta conectada · ${cloudPlanText()}`);
+    return data;
+  }catch(err){
+    console.error('Cloud account sync:',err);
+    cloudAccountState={loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),user:null,subscription:null,lastSync:null};
+    updateCloudAccountChrome();
+    if(!silent)toast('Login feito, mas a nuvem não respondeu');
+    return null;
+  }
+}
+window.designLabCloud={apiBase:CLOUD_API_BASE,getState(){return JSON.parse(JSON.stringify(cloudAccountState));},sync(){return syncCloudAccount({silent:false});},apiFetch:cloudApiFetch};
+
+
 function newProjectId(){
   try{if(crypto?.randomUUID)return 'proj_'+crypto.randomUUID();}catch{}
   return 'proj_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);
@@ -2905,7 +3023,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.24`:'DesignLabMoveis 1.100.24';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.25`:'DesignLabMoveis 1.100.25';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -3080,7 +3198,7 @@ async function createNewProject(meta){
   const now=projectNow();
   const rec={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.24'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:null,appVersion:'1.100.25'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -3095,7 +3213,7 @@ async function saveCurrentProject({silent=false}={}){
   const next={
     ...rec,...currentProjectRecord,id:currentProjectId,
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.24'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.25'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   await projectDbPut(next);
@@ -3115,7 +3233,7 @@ async function saveAsCurrentProject(meta){
   const now=projectNow();
   const next={
     id:newProjectId(),name:meta.name,client:meta.client||'',environment:meta.environment||'',
-    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.24'
+    createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),thumbnail:thumb,appVersion:'1.100.25'
   };
   await projectDbPut(next);
   if(original){delete original.draftState;delete original.draftCamera;delete original.draftAt;await projectDbPut(original);}
@@ -3158,7 +3276,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.24',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.25',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -3185,7 +3303,7 @@ async function importProjectFile(file){
   const rec={
     id:newProjectId(),name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
-    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.24'
+    createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,thumbnail:p.thumbnail||null,appVersion:'1.100.25'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -3244,7 +3362,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.24'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.25'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -6531,7 +6649,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.24', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.25', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -11200,7 +11318,7 @@ function downloadBlob(name,blob){const a=document.createElement('a');const url=U
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.24 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.25 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -11215,7 +11333,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.24 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.25 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -11998,8 +12116,10 @@ $('authRetryBtn').onclick=async()=>{
   setAuthStatus('Verificando sessão…','');
   if(identityClient){
     const user=identityClient.currentUser?.();
-    if(user)unlockOnlineApp(user,{message:'Sessão encontrada.'});
-    else lockOnlineApp('Nenhuma sessão ativa. Entre ou crie uma conta.');
+    if(user){
+      unlockOnlineApp(user,{message:'Sessão encontrada.'});
+      setTimeout(()=>syncCloudAccount({silent:false}),100);
+    }else lockOnlineApp('Nenhuma sessão ativa. Entre ou crie uma conta.');
   }else{
     await initOnlineIdentity();
   }
