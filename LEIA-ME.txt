@@ -1,68 +1,36 @@
-DESIGNLABMOVEIS 1.100.21 — NOVA MARCA + BASE ONLINE
+DESIGNLABMOVEIS 1.100.22 — CORREÇÃO DO LOGIN / CRIAR CONTA
 
-Base: 1.100.20 completa.
+Base: 1.100.21 completa.
 
-ALTERAÇÃO PRINCIPAL
-O aplicativo passa a se chamar:
+PROBLEMA ENCONTRADO
+Os botões Entrar e Criar conta estavam funcionando: o evento "open" do Netlify
+Identity era disparado (por isso aparecia "Formulário de autenticação aberto.").
 
-  DesignLabMoveis
+Porém o modal oficial do Netlify ficava ATRÁS da tela cheia de login do
+DesignLabMoveis. Visualmente parecia que o botão não fazia nada.
 
-A nova marca foi aplicada em:
-- tela de login;
-- tela inicial;
-- barra superior do CAD;
-- título da aba/navegador;
-- PWA / manifest;
-- nome mostrado quando o app é instalado;
-- mensagens do sistema;
-- pacote Aspire / arquivos de instrução;
-- gerenciador de modelos;
-- tela de Configurações;
-- documentação do pacote.
+CORREÇÃO
+- ao abrir Entrar/Criar conta, a tela de acesso do DesignLabMoveis é escondida;
+- o modal oficial do Netlify Identity fica acima de tudo;
+- foi reforçado o z-index do widget;
+- ao fechar o modal sem autenticar, a tela do DesignLabMoveis reaparece;
+- após cadastro com confirmação de e-mail obrigatória, o modal fecha e a tela
+  orienta o usuário a confirmar o e-mail;
+- depois do login, a tela de acesso continua escondida e o CAD é liberado.
 
-VERSÃO
-Nova versão:
-  1.100.21
+TESTE
+1. publique TODO este pacote no mesmo site Netlify;
+2. aguarde o deploy;
+3. faça uma atualização/reload da página;
+4. toque "Criar conta";
+5. o formulário do Netlify deve aparecer por cima;
+6. cadastre um e-mail real;
+7. confirme o e-mail recebido;
+8. volte ao site e toque "Entrar".
 
-Arquivo versionado:
-  designlabmoveis-1.100.21.html
+IMPORTANTE
+A configuração do Netlify Identity que você mostrou está correta:
+- Registration: Open
+- Email confirmation: Required
 
-LOGIN ONLINE
-Toda a integração da 1.100.20 foi preservada:
-- Netlify Identity;
-- criar conta;
-- confirmação de e-mail;
-- login;
-- sessão persistente;
-- recuperar senha;
-- logout;
-- modo local para testes;
-- helper de JWT para o futuro Cloudflare Worker.
-
-COMPATIBILIDADE IMPORTANTE
-Os identificadores INTERNOS antigos foram mantidos propositalmente, por exemplo:
-  mini-cad-pro-project
-
-Também foram preservadas as chaves internas de armazenamento local/IndexedDB.
-
-Isso é necessário para:
-- abrir projetos salvos nas versões antigas;
-- manter autosaves;
-- manter preferências;
-- não perder bibliotecas e dados existentes.
-
-Ou seja:
-A MARCA mudou para DesignLabMoveis, mas o formato interno continua compatível
-com o histórico do projeto.
-
-PRÓXIMO TESTE
-Suba este pacote no mesmo projeto Netlify em que o Identity já foi ativado.
-Depois teste:
-1. Criar conta
-2. Confirmar o e-mail
-3. Entrar
-4. Fechar e reabrir para verificar a sessão
-5. Sair da conta
-
-Depois disso partimos para:
-Cloudflare D1 → R2 → Worker → projetos na nuvem → Premium.
+Nenhuma alteração no Cloudflare é necessária ainda.

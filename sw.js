@@ -1,8 +1,8 @@
-const CACHE = 'designlabmoveis-1.100.21';
+const CACHE = 'designlabmoveis-1.100.22';
 const CORE = [
   './',
   './index.html',
-  './designlabmoveis-1.100.21.html',
+  './designlabmoveis-1.100.22.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
