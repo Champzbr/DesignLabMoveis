@@ -1,97 +1,71 @@
-DESIGNLABMOVEIS 1.100.27 — ADMIN CORRIGIDO + ATUALIZAÇÃO/CACHE
+DESIGNLABMOVEIS 1.100.28 — 15 DIAS DE TESTE GRÁTIS CONFIGURÁVEL
 
 BASE
-1.100.26 completa.
+1.100.27 completa.
 
-1) PAINEL ADMINISTRATIVO NÃO ABRIA
-O problema foi localizado no empilhamento visual:
-- Tela inicial dos projetos: z-index 500
-- Painel Administrativo anterior: z-index 90
+NOVIDADE PRINCIPAL
+Toda conta NOVA pode receber automaticamente um período de Premium grátis.
 
-O clique funcionava, mas o painel era aberto ATRÁS da tela inicial.
+Padrão:
+  15 dias
 
-CORREÇÃO:
-  #adminDialog = z-index 780
+O valor é configurável no:
+  🛡 Painel Administrativo → Configurações
 
-Agora o painel abre por cima da tela inicial e também funciona quando aberto
-pelo menu Projeto dentro do CAD.
+CAMPO
+  Dias de teste grátis
 
-2) SISTEMA DE ATUALIZAÇÃO
-Foi criado:
-  version.json
+Valores:
+  0 = desativado
+  1 a 365 = quantidade de dias concedida às novas contas
 
-O DesignLabMoveis consulta esse arquivo:
-- ao abrir;
-- ao voltar para o aplicativo;
-- quando a internet retorna;
-- manualmente pelo botão Atualizar.
+IMPORTANTE
+A alteração só vale para NOVAS contas.
+Usuários que já estavam cadastrados no D1 não recebem o teste retroativamente.
 
-Quando a versão do servidor é maior, aparece um aviso profissional com:
-- versão instalada;
-- nova versão;
-- Atualizar agora;
-- Depois.
+COMO FUNCIONA
+No primeiro cadastro do usuário no D1:
+1. Worker lê app_settings.free_trial_days;
+2. se a configuração não existir, usa 15;
+3. usa a data de criação da conta do Netlify como início do teste, quando disponível;
+4. calcula o vencimento;
+5. marca users.plan='premium';
+6. grava premium_until;
+7. cria subscriptions com source='trial'.
 
-A atualização NÃO é obrigatória nesta versão.
+PAINEL ADMIN
+Foi adicionada a terceira aba:
+  Configurações
 
-3) CACHE ESTILO CONTAS FÁCIL
-O Service Worker foi refeito.
+Também aparece a etiqueta:
+  TESTE
+ao lado de usuários cujo teste grátis ainda está ativo.
 
-HTML / navegação:
-  NETWORK FIRST
-Isso evita ficar preso em versões antigas.
+NO APP
+Durante o teste a conta mostra:
+  Teste grátis até DD/MM/AAAA
 
-Sem internet:
-  usa o último index.html salvo no cache.
+Ao vencer, /me passa a considerar a conta Free automaticamente.
 
-Arquivos estáticos locais:
-  CACHE FIRST + atualização em segundo plano.
+CLOUDFLARE
+Substitua o código do Worker pelo arquivo:
+  cloudflare/worker-1.100.28.js
 
-version.json:
-  sempre tenta a rede sem cache.
+Não há alteração de schema nesta versão porque app_settings e subscriptions
+já existem.
 
-4) SEGURANÇA DO CACHE
-Chamadas autenticadas NÃO são armazenadas no cache.
+Opcional:
+  cloudflare/3-configurar-teste-gratis.sql
+grava explicitamente o padrão 15 no D1.
 
-O Service Worker ignora:
-- requisições com Authorization;
-- /.netlify/identity/*;
-- origens externas / API Cloudflare.
+ATUALIZAÇÃO / CACHE
+Todo o sistema da 1.100.27 foi mantido:
+- version.json;
+- aviso de nova versão;
+- cache offline;
+- network-first para HTML;
+- cache seguro que não armazena chamadas autenticadas.
 
-Isso evita guardar /me ou outros dados de usuário dentro do cache compartilhado.
-
-5) BOTÕES
-Tela inicial:
-  ↻ Atualizar
-
-Menu Projeto:
-  ↻ Verificar atualização
-
-Configurações:
-  seção Atualizações e cache
-  + Verificar agora
-  + status offline/cache.
-
-6) NETLIFY
-Incluídos:
-  _headers
-  netlify.toml
-
-index.html, sw.js e version.json são enviados com no-cache/no-store para
-diminuir muito a chance de o navegador/Netlify entregar versão antiga.
-
-7) PRIMEIRO DEPLOY DESTA MUDANÇA
-A versão 1.100.26 antiga ainda usa o cache anterior.
-Depois de publicar 1.100.27, se o site ainda mostrar 1.100.26 na primeira
-abertura, abra uma vez com um parâmetro no endereço, por exemplo:
-  ?v=1.100.27
-A partir da 1.100.27, as próximas atualizações passam a usar o novo sistema.
-
-8) VERSÃO
-O topo da tela inicial também foi atualizado:
-  Projetos de marcenaria · 1.100.27
-
-9) CLOUDFLARE
-O painel admin continua usando o Worker/API da 1.100.26 normalmente.
-Não é necessário alterar o D1 para esta versão.
-Foi incluído worker-1.100.27.js apenas como cópia atualizada para arquivo.
+VERSÃO DO TOPO
+Também atualizada para:
+  Projetos de marcenaria · 1.100.28
