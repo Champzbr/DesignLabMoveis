@@ -1,19 +1,15 @@
-DESIGNLABMOVEIS 1.100.42 — PLANO DE CORTE ESTILO OPENCUTLIST
+DESIGNLABMOVEIS 1.100.43 — ESPAÇO PRINCIPAL + CORTES INDEPENDENTES
 
-Base: 1.100.41.
+Base: 1.100.42.
 
-NOVIDADE 1.100.42
-- Plano de corte visual refeito, inspirado no fluxo do OpenCutList.
-- Estratégia Otimizado usa cortes guilhotina e tenta concentrar sobras maiores.
-- Configurações: chapa, refilo, espessura de corte/fresa, otimização Média/Avançada e direção preferida.
-- Materiais madeirados continuam bloqueando giro de 90°.
-- Cada tipo de peça recebe código A, B, C... no diagrama.
-- Cada chapa mostra aproveitamento, comprimento estimado de corte e sobras reaproveitáveis.
-- Visualização clara da chapa, cortes horizontais/verticais e desperdícios.
-- Mantidos os modos CNC/Router e Seccionadora como alternativas.
+NOVIDADE 1.100.43
+- O espaço criado originalmente continua sendo o espaço PRINCIPAL do móvel.
+- A ferramenta CORTE apenas subdivide esse espaço em cortes independentes.
+- Cada corte pode ser selecionado e ocultado separadamente.
+- O contorno do espaço principal continua como referência mesmo com cortes ocultos.
+- Ao ocultar um corte, o sistema tenta selecionar o corte mais próximo; em frente/trás isso facilita entrar no móvel.
+- Portas não cortam mais automaticamente o espaço de trabalho. Elas continuam sendo peças do móvel, mas não criam uma faixa que bloqueia o acesso ao interior.
+- Quando um espaço está ativo, uma porta na frente não impede selecionar um corte atrás dela.
+- Mostrar divisões ocultas continua reexibindo todos os cortes ocultados.
 
-IMPORTANTE
-A exportação Aspire não foi substituída pelo novo visual do plano de corte. Ela continua usando o exportador já existente, conforme solicitado na 1.100.41.
-
-REFERÊNCIA FUNCIONAL
-O OpenCutList trabalha com bin packing, cortes guilhotina, rotação condicionada ao veio, espessura de serra, refilo, nível de otimização, direção preferida, eficiência e comprimento de cortes. A 1.100.42 reproduz essas ideias no DesignLabMoveis com implementação própria.
+Plano de corte, exportação DXF do modelo e Aspire permanecem como na 1.100.42.
