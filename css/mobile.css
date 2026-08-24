@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.81 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.82 · extraído do monólito 1.100.78 · ordem preservada */
   /* TELAS PEQUENAS */
   @media(max-width:720px){
     .projectHomeShell{width:calc(100% - 20px) !important;padding-top:calc(14px + env(safe-area-inset-top)) !important}

@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.81 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.82 · extraído do monólito 1.100.78 · ordem preservada */
   /* v95 · Prévia Aspire / plano de corte */
   #sheetPreviewDialog{position:fixed;inset:0;z-index:125;display:none;padding:10px;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);touch-action:auto}
   #sheetPreviewDialog.show{display:flex}
@@ -61,6 +61,14 @@
   .cutPlanLegend .sheetLegendRow{color:#4d555a}.cutPlanLegendPart{color:#232629!important}.cutPlanLegendHole{color:#d62d7b!important}.cutPlanLegendGroove{color:#0099c7!important}.cutPlanLegendEdge{color:#e47a16!important}.cutPlanLegendH{color:#1c8b5a!important}.cutPlanLegendV{color:#c8475d!important}.cutPlanLegendKeep{color:#53854a!important}.cutPlanLegendWaste{color:#92979a!important}
   .cutPlanPartCard{background:#fff!important;border-color:#c7cacc!important;color:#282c2f}.cutPlanPartCard .meta{color:#6e767b!important}.cutPlanPartCard .sheetPreviewOp{background:#f3f2ef!important;border-color:#d6d8d8!important;color:#454b4f}
   .cutPlanPreviewFoot{background:#e7e5df!important;border-top-color:#c5c6c3!important;color:#555d62!important}.cutPlanPreviewFoot strong{color:#25282a!important}
+
+  /* 1.100.82 · ajuste rápido do veio diretamente no plano de corte */
+  #partsList .cutPlanRowActions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+  #partsList .cutPlanGrainBtn{min-height:30px;padding:5px 8px;border-radius:7px;border:1px solid #c99b45;background:#fff8e8;color:#72500c;font-size:9px;font-weight:900;white-space:nowrap;touch-action:manipulation}
+  #partsList .cutPlanGrainBtn:active{background:#f3c45d;color:#231700}
+  .sheetPreviewPartActions .cutPlanPreviewGrainBtn{grid-column:1 / -1;min-height:39px;background:#f2bf52;border-color:#d59a27;color:#2d1e00;font-weight:950}
+  .sheetPreviewPartActions .cutPlanPreviewGrainBtn:active{background:#e4a82b}
+  @media(max-width:620px){#partsList .cutPlanRowActions{align-items:stretch}.cutPlanGrainBtn{min-height:34px!important}}
 
   .cutPlanSummaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.cutPlanSummaryGrid span{display:flex;flex-direction:column;gap:1px;padding:7px;border-radius:8px;background:#1c2022;border:1px solid #30373b;text-align:center}.cutPlanSummaryGrid b{color:#fff;font-size:14px}.cutPlanSummaryGrid small{color:#8f999f;font-size:8px}.cutPlanSummaryText{margin-top:7px;color:#aab3b8;font-size:9px;line-height:1.45}.cutPlanSummaryText strong{color:#f1b84a!important}
   @media(max-width:540px){.cutPlanSummaryGrid{grid-template-columns:1fr 1fr}}
