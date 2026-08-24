@@ -1,0 +1,157 @@
+/* DesignLabMoveis 1.100.79 · extraído do monólito 1.100.78 · ordem preservada */
+  /* ======================================================================
+     v93 · Gerenciador de Projetos / tela inicial / modo apresentação
+     ====================================================================== */
+  #projectHome {
+    position:fixed; inset:0; z-index:500; display:none; overflow:auto;
+    touch-action:auto; overscroll-behavior:contain;
+    background:
+      radial-gradient(circle at 12% 8%,rgba(45,125,250,.15),transparent 34%),
+      radial-gradient(circle at 88% 14%,rgba(52,208,88,.09),transparent 28%),
+      linear-gradient(155deg,#101214 0%,#17191b 45%,#111315 100%);
+    color:#f4f4f4;
+  }
+  body.project-home-active #projectHome { display:block; }
+  .projectHomeShell { width:min(1180px,calc(100% - 28px)); margin:0 auto; padding:calc(22px + env(safe-area-inset-top)) 0 calc(46px + env(safe-area-inset-bottom)); }
+  .projectHomeHeader { display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .projectBrand { display:flex; align-items:center; gap:11px; }
+  .projectBrandLogo {
+    width:42px; height:42px; border-radius:13px; display:grid; place-items:center;
+    background:linear-gradient(145deg,#2d7dfa,#1a4d9e); box-shadow:0 8px 24px rgba(45,125,250,.25);
+    font-size:20px; font-weight:1000;
+  }
+  .projectBrand strong { display:block; font-size:17px; letter-spacing:.2px; }
+  .projectBrand span { display:block; color:#9fa8b0; font-size:10px; margin-top:2px; }
+  .projectHomeActions { display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+  .projectHomeActions button { min-height:40px; padding:8px 12px; }
+  .projectHero {
+    margin-top:30px; padding:24px; border:1px solid rgba(255,255,255,.08); border-radius:20px;
+    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+    box-shadow:0 18px 60px rgba(0,0,0,.22);
+  }
+  .projectHero h1 { margin:0; font-size:clamp(26px,5vw,46px); line-height:1.04; letter-spacing:-1.3px; }
+  .projectHero p { margin:10px 0 0; max-width:720px; color:#aeb6bc; line-height:1.55; font-size:13px; }
+  .projectHeroButtons { display:flex; gap:9px; margin-top:17px; flex-wrap:wrap; }
+  .projectHeroButtons button { min-height:46px; padding:10px 17px; font-size:13px; }
+  .projectCurrentStrip {
+    display:none; margin-top:15px; padding:10px 12px; border-radius:12px;
+    background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.07);
+    color:#b8c1c8; font-size:11px; line-height:1.45;
+  }
+  .projectSectionHead { display:flex; align-items:end; justify-content:space-between; gap:10px; margin:30px 2px 12px; }
+  .projectSectionHead h2 { margin:0; font-size:16px; }
+  .projectSectionHead span { color:#8c959d; font-size:10px; }
+  #projectCards {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px;
+  }
+  .projectCard {
+    overflow:hidden; border-radius:16px; border:1px solid rgba(255,255,255,.08);
+    background:#1a1c1e; box-shadow:0 8px 26px rgba(0,0,0,.2);
+    transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease;
+  }
+  .projectCard:active { transform:scale(.99); }
+  @media (hover:hover){ .projectCard:hover { transform:translateY(-2px); border-color:rgba(255,255,255,.15); box-shadow:0 14px 34px rgba(0,0,0,.3); } }
+  .projectThumb {
+    height:158px; position:relative; cursor:pointer; overflow:hidden;
+    background:
+      radial-gradient(circle at 52% 44%,rgba(45,125,250,.16),transparent 34%),
+      linear-gradient(150deg,#20262b,#111416);
+  }
+  .projectThumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .projectThumbFallback { position:absolute; inset:0; display:grid; place-items:center; color:#69747d; font-size:48px; }
+  .projectRecoveryBadge {
+    position:absolute; top:9px; left:9px; padding:5px 7px; border-radius:999px;
+    background:#ff9d2e; color:#221303; font-weight:900; font-size:9px;
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+  }
+  .projectCardBody { padding:12px; }
+  .projectCardName { font-size:13px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .projectCardMeta { margin-top:4px; min-height:28px; color:#9099a0; font-size:10px; line-height:1.4; }
+  .projectCardFooter { display:grid; grid-template-columns:1fr 1fr 40px; gap:6px; margin-top:10px; }
+  .projectCardFooter button { min-height:37px; padding:7px; font-size:10px; }
+  .projectEmpty {
+    grid-column:1 / -1; padding:38px 18px; border:1px dashed #3f464b; border-radius:16px;
+    text-align:center; color:#818b93; line-height:1.55;
+  }
+
+  #projectMenuBtn {
+    position:fixed; z-index:72; top:calc(9px + env(safe-area-inset-top)); left:9px;
+    min-height:36px; padding:7px 10px; border-radius:10px; font-size:11px;
+    background:rgba(20,20,20,.88); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.12);
+  }
+  #projectMenuPanel {
+    position:fixed; z-index:520; display:none; top:calc(52px + env(safe-area-inset-top)); left:9px;
+    width:min(300px,calc(100vw - 18px)); padding:9px; border-radius:14px;
+    background:rgba(24,24,24,.98); border:1px solid #3c3c3c; box-shadow:0 16px 50px rgba(0,0,0,.5);
+    touch-action:auto;
+  }
+  #projectMenuPanel.show { display:block; }
+  .projectMenuHead { padding:7px 7px 10px; border-bottom:1px solid #333; margin-bottom:7px; }
+  .projectMenuHead strong { display:block; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .projectMenuHead span { display:block; margin-top:3px; color:#8e979e; font-size:9px; }
+  .projectMenuGrid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .projectMenuGrid button { min-height:39px; font-size:10px; padding:7px; }
+  .projectMenuGrid .wide { grid-column:1 / -1; }
+
+  #presentationBar {
+    position:fixed; z-index:510; display:none; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+    width:min(720px,calc(100vw - 18px)); padding:9px; border-radius:15px;
+    background:rgba(15,17,18,.88); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 12px 44px rgba(0,0,0,.38); touch-action:auto;
+  }
+  body.presentation-active #presentationBar { display:flex; align-items:center; justify-content:space-between; gap:9px; }
+  .presentationInfo { min-width:0; }
+  .presentationInfo strong { display:block; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .presentationInfo span { display:block; color:#9aa2a8; font-size:9px; margin-top:2px; }
+  .presentationActions { display:flex; gap:6px; flex-shrink:0; }
+  .presentationActions button { min-height:36px; padding:7px 10px; font-size:10px; }
+
+  body.project-home-active #projectMenuBtn,
+  body.presentation-active #projectMenuBtn { display:none !important; }
+
+  body.presentation-active #topbar,
+  body.presentation-active #miniAxes,
+  body.presentation-active #viewModeBadge,
+  body.presentation-active #measureBadge,
+  body.presentation-active #liveLabel,
+  body.presentation-active #tapeCrosshair,
+  body.presentation-active #tapeSnapDot,
+  body.presentation-active #inspector,
+  body.presentation-active #morePanel,
+  body.presentation-active #spaceActions,
+  body.presentation-active #toolDock,
+  body.presentation-active #machining3DPreviewBar { display:none !important; }
+
+  .projectModal {
+    position:fixed; inset:0; z-index:540; display:none; place-items:center; padding:14px;
+    background:rgba(0,0,0,.72); backdrop-filter:blur(4px); touch-action:auto;
+  }
+  .projectModal.show { display:grid; }
+  .projectModalCard {
+    width:min(470px,100%); max-height:min(720px,calc(100vh - 28px)); overflow:auto;
+    background:#1c1e20; border:1px solid #3b3f42; border-radius:17px; padding:14px;
+    box-shadow:0 24px 70px rgba(0,0,0,.55);
+  }
+  .projectModalCard h3 { margin:0 0 5px; font-size:15px; }
+  .projectModalCard p { margin:0 0 12px; color:#9ea7ae; font-size:10px; line-height:1.5; }
+  .projectMetaFields { display:grid; gap:8px; }
+  .projectMetaFields label { color:#b8c0c6; font-size:10px; }
+  .projectMetaFields input {
+    width:100%; margin-top:4px; min-height:42px; border-radius:9px; border:1px solid #484d51;
+    background:#111315; color:#fff; padding:8px 10px; outline:none; font-size:13px;
+  }
+  .projectMetaFields input:focus { border-color:var(--cyan); }
+  .projectModalActions { display:flex; justify-content:flex-end; gap:7px; margin-top:13px; }
+  .projectModalActions button { min-height:40px; }
+
+  #projectCardMenu {
+    position:fixed; z-index:535; display:none; width:210px; padding:7px; border-radius:12px;
+    background:#202224; border:1px solid #42464a; box-shadow:0 15px 44px rgba(0,0,0,.48); touch-action:auto;
+  }
+  #projectCardMenu.show { display:grid; gap:5px; }
+  #projectCardMenu button { min-height:37px; text-align:left; font-size:10px; }
+  #projectCardMenu .danger { color:#fff; }
+
+  #editorDirtyDot { display:none; color:#ff9d2e; margin-left:5px; font-size:10px; vertical-align:1px; }
+  #editorDirtyDot.show { display:inline; }
+

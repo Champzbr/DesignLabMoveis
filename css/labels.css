@@ -1,0 +1,140 @@
+/* DesignLabMoveis 1.100.79 · extraído do monólito 1.100.78 · ordem preservada */
+  /* 1.100.78 · Etiquetas de peças inspiradas no fluxo do OpenCutList */
+  #labelsDialog{position:fixed;inset:0;z-index:94;background:#000a;display:none;align-items:center;justify-content:center;padding:14px}
+  #labelsDialog .card{width:min(920px,100%);max-height:94vh;overflow:auto;background:#1b1d1f;border:1px solid #45494d;border-radius:18px;padding:14px;box-shadow:0 22px 70px #0009}
+  .labelsTop{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+  .labelsTop h3{margin:0;font-size:18px}.labelsTop p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.45}
+  .labelsSettings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px;padding:11px;background:#111415;border:1px solid #343a3e;border-radius:13px}
+  .labelsSettings label{font-size:9px;color:#9fa8ae;min-width:0}.labelsSettings input,.labelsSettings select{display:block;width:100%;margin-top:4px;padding:9px 8px;border-radius:8px;border:1px solid #484e52;background:#0b0d0e;color:#fff;font-size:13px;min-width:0}
+  .labelsChecks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+  .labelsChecks label{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #343a3e;border-radius:9px;background:#151819;font-size:9px;color:#d5dadd}
+  .labelsChecks input{width:17px;height:17px;accent-color:var(--green)}
+  .labelsSummary{margin-top:10px;padding:9px 10px;border-radius:10px;border:1px solid #355842;background:#101813;color:#b9d7c2;font-size:10px;line-height:1.45}
+  .labelsPreviewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+  .labelCardPreview{background:#f7f7f4;color:#111;border:1px solid #cfd2d1;border-radius:10px;padding:9px;aspect-ratio:1.75/1;min-height:135px;box-shadow:0 5px 16px #0004;display:flex;flex-direction:column;overflow:hidden}
+  .labelCardPreview .lpHead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:2px solid #171717;padding-bottom:5px}
+  .labelCardPreview .lpCode{font-size:24px;font-weight:950;line-height:1}.labelCardPreview .lpName{font-size:13px;font-weight:900;line-height:1.1;flex:1;min-width:0}.labelCardPreview .lpQty{font-size:11px;font-weight:900;border:1px solid #111;border-radius:5px;padding:2px 5px;white-space:nowrap}
+  .labelCardPreview .lpDims{font-size:17px;font-weight:950;letter-spacing:-.4px;margin-top:5px}.labelCardPreview .lpMaterial{font-size:10px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .labelCardPreview .lpMeta{font-size:8px;line-height:1.28;margin-top:3px;display:grid;grid-template-columns:1fr auto;gap:6px;min-height:0}
+  .labelCardPreview .lpEdges{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px}.labelCardPreview .lpEdge{font-size:7px;border:1px solid #aaa;border-radius:3px;padding:2px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.labelCardPreview .lpEdge.on{border:2px solid #111;font-weight:900;padding:1px 2px}
+  .labelCardPreview .lpFoot{margin-top:auto;border-top:1px solid #aaa;padding-top:3px;font-size:7px;display:flex;justify-content:space-between;gap:6px}.labelCardPreview .lpGrain{font-weight:900;font-size:14px;line-height:1}.labelCardPreview .lpId{font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .labelsActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.labelsActions button{min-height:42px;flex:1 1 150px}
+  @media(max-width:700px){.labelsSettings{grid-template-columns:repeat(2,minmax(0,1fr))}.labelsChecks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:420px){.labelsSettings,.labelsChecks{grid-template-columns:1fr}.labelsPreviewGrid{grid-template-columns:1fr}}
+
+
+  /* 1.100.19 · material padrão por espaço */
+  .spaceMaterialDefaultBox{
+    margin-top:9px;
+    padding:9px;
+    border:1px solid #3b4145;
+    border-radius:10px;
+    background:#141617;
+  }
+  .spaceMaterialDefaultBox .spaceMaterialHead{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:7px;
+  }
+  .spaceMaterialDefaultBox .spaceMaterialHead strong{font-size:11px}
+  .spaceMaterialDefaultBox .spaceMaterialHead span{
+    color:#8f989f;
+    font-size:9px;
+    text-align:right;
+    line-height:1.35;
+  }
+  .spaceMaterialDefaultBox select{
+    width:100%;
+    min-height:40px;
+    padding:8px 9px;
+    border-radius:8px;
+    border:1px solid #4b5054;
+    background:#101112;
+    color:#fff;
+    font-size:13px;
+  }
+  .spaceMaterialDefaultPreview{
+    margin-top:6px;
+    color:#aeb7bd;
+    font-size:9px;
+    line-height:1.4;
+  }
+
+  .spaceRelationGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:9px 0; }
+  .spaceRelationGrid button { min-height:42px; }
+  .spaceRelationGrid button.active { background:var(--green); color:#071b0c; }
+  .spaceCreatePreview { margin-top:9px; padding:9px 10px; border-radius:10px; background:#151515; border:1px solid #363636; color:#e8e8e8; font-size:11px; line-height:1.4; }
+  .spaceRefHint { color:var(--cyan); font-weight:800; margin:6px 0 3px; font-size:11px; }
+  .dialogActions { display:flex; gap:7px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap; }
+  .cutSides { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:8px 0 10px; }
+  .cutSides button.active { background:var(--green); }
+  #cutPreview { padding:8px 9px; border-radius:9px; background:#151515; font-size:11px; color:#e8e8e8; margin-top:9px; }
+  #libraryList { display:grid; gap:8px; margin-top:8px; }
+  .libraryItem { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px; border-radius:10px; background:#161616; border:1px solid #393939; }
+  .partsSummary { margin-top:9px; padding:10px; border-radius:11px; background:#151515; border:1px solid #3a3a3a; font-size:11px; line-height:1.5; }
+  .partsSummary strong { color:var(--cyan); }
+  .partsGroup { margin-top:10px; border:1px solid #3b3b3b; border-radius:11px; overflow:hidden; background:#161616; }
+  .partsGroupHead { padding:9px 10px; background:#202020; font-size:12px; font-weight:900; display:flex; justify-content:space-between; gap:8px; }
+  .partsGroupHead span:last-child { color:var(--yellow); white-space:nowrap; }
+  .partRow { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:8px 10px; border-top:1px solid #303030; align-items:center; }
+  .partRowName { font-size:11px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .partRowMeta { margin-top:2px; color:var(--muted); font-size:10px; line-height:1.35; }
+  .partQty { min-width:36px; text-align:center; font-weight:900; color:#fff; background:#303030; padding:5px 7px; border-radius:8px; }
+  .sheetChip { display:inline-block; margin:2px 4px 2px 0; padding:4px 6px; border-radius:7px; background:#262626; border:1px solid #444; font-size:9px; color:#ddd; }
+  #partsList { margin-top:7px; }
+
+
+
+
+  /* ==========================================================================
+     1.100.36 · APAGAR ESPAÇO / MÓVEL
+     ========================================================================== */
+  #deleteSelectedSpaceBtn{
+    grid-column:1 / -1;
+    border-color:rgba(224,69,58,.46) !important;
+    background:rgba(224,69,58,.10) !important;
+    color:#ff9189 !important;
+  }
+  #deleteSelectedSpaceBtn:active{
+    background:rgba(224,69,58,.22) !important;
+  }
+
+
+  /* ==========================================================================
+     1.100.34 · CORTE 18 MM / PREFERÊNCIA POR USUÁRIO
+     ========================================================================== */
+  .cutSavedInfo{
+    margin-top:7px;padding:7px 8px;border:1px solid #3a4246;border-radius:8px;
+    background:#151819;color:#99a6ad;font-size:8px;line-height:1.45;
+  }
+  .cutSavedInfo strong{color:#cfe6ff}
+
+
+  /* ==========================================================================
+     1.100.33 · PLANO DE CORTE CNC / SECCIONADORA
+     ========================================================================== */
+  .sheetModeBox{
+    margin:8px 0;padding:9px;border:1px solid #394146;border-radius:11px;
+    background:#121516;
+  }
+  .sheetModeBox label{
+    display:block;color:#a9b1b6;font-size:10px;font-weight:850;
+  }
+  .sheetModeBox select{
+    width:100%;margin-top:5px;min-height:40px;padding:8px 9px;
+    border:1px solid #444b4f;border-radius:9px;background:#0d0f10;color:#fff;
+    font-size:11px;font-weight:750;
+  }
+  .sheetModeHelp{
+    margin-top:7px;color:#8f9ba1;font-size:9px;line-height:1.5;
+  }
+  .sheetModeHelp strong{color:#d8e2e7}
+  .sheetModeHelp.cnc{border-left:3px solid #34d058;padding-left:8px}
+  .sheetModeHelp.panel{border-left:3px solid #2d7dfa;padding-left:8px}
+  .sheetLegendSample.panelcut{
+    height:0;width:18px;border:0;border-top:2px dashed currentColor;border-radius:0;
+  }
+
+

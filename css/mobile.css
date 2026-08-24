@@ -1,0 +1,72 @@
+/* DesignLabMoveis 1.100.79 · extraído do monólito 1.100.78 · ordem preservada */
+  /* TELAS PEQUENAS */
+  @media(max-width:720px){
+    .projectHomeShell{width:calc(100% - 20px) !important;padding-top:calc(14px + env(safe-area-inset-top)) !important}
+    .projectBrandLogo{width:41px !important;height:41px !important;min-width:41px;font-size:10px !important}
+    .projectBrand strong{font-size:18px !important}
+    .projectBrand span{font-size:7.5px !important}
+    .homeTopButtons{gap:5px}
+    .homeTopButtons button{width:38px;min-width:38px;height:38px;min-height:38px;font-size:15px !important}
+    .homeTopButtons #homeAdminPanel{display:none !important}
+    .homeTopButtons #homeAdminPanel.show{display:grid !important}
+
+    .projectWelcomeCard{
+      min-height:0;display:block;padding:16px;border-radius:18px;
+    }
+    .homeBlueprint{
+      position:absolute;right:-18px;top:17px;width:42%;height:125px;min-height:0;
+      opacity:.36;border:0;background-color:transparent;
+    }
+    .homeWelcomeLeft{padding-right:25%}
+    #projectWelcomeTitle{font-size:25px}
+    .homeWelcomeCopy{font-size:9px;max-width:250px}
+    .projectAccountChip{padding:6px 8px 6px 6px !important;max-width:290px !important}
+    .projectAccountAvatar{width:39px !important;height:39px !important;flex-basis:39px !important}
+    .projectAccountText #projectAccountEmail{display:none !important}
+    #homeLogoutBtn{width:35px;min-width:35px;height:35px;min-height:35px}
+
+    .homeQuickActions{grid-template-columns:1fr;gap:7px;margin-top:10px}
+    .homeQuickAction{
+      min-height:67px !important;grid-template-columns:42px minmax(0,1fr) 15px;padding:10px 11px !important;
+    }
+    .homeQuickIcon{width:42px;height:42px;border-radius:12px;font-size:21px}
+    .homeQuickText strong{font-size:11px}
+    .homeQuickText span{font-size:8px}
+
+    .homeProjectUtilities{margin-top:7px}
+    .homeProjectUtilities button{min-height:31px !important;font-size:8px !important}
+
+    .projectSectionHead{margin-top:23px !important}
+    .projectSectionHead h2,.homeModelsHead h2{font-size:16px !important}
+
+    .projectCard{
+      grid-template-columns:38% minmax(0,1fr);min-height:128px;
+      border-radius:14px !important;
+    }
+    .projectThumb{min-height:128px;height:100% !important;border-radius:13px 0 0 13px}
+    .projectCardBody{padding:10px 9px 8px !important}
+    .projectCardName{font-size:11px !important}
+    .projectCardMeta{font-size:8px !important;line-height:1.42 !important}
+    .projectCardFooter{gap:4px !important;margin-top:6px !important}
+    .projectCardFooter button{min-height:29px !important;padding:4px 6px !important;font-size:7px !important}
+
+    .homeModelsRail{grid-template-columns:125px repeat(3,142px);gap:7px}
+    .homeModelCard{min-height:144px;padding:8px}
+    .homeModelPreview{height:82px}
+
+    .homeBottomNav{
+      width:calc(100% - 12px);bottom:max(5px,env(safe-area-inset-bottom));
+      padding:4px;border-radius:16px;
+    }
+    .homeBottomNav button{min-height:51px !important;font-size:7px !important}
+    .homeBottomNav button .navIcon{font-size:18px}
+  }
+
+  @media(max-width:390px){
+    .projectBrand span{display:none}
+    .homeTopButtons button{width:35px;min-width:35px;height:35px;min-height:35px}
+    .homeWelcomeLeft{padding-right:20%}
+    .projectCard{grid-template-columns:36% minmax(0,1fr)}
+    .projectCardFooter button:first-child{display:none}
+  }
+
