@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.76",
+  "version": "1.100.77",
   "required": false,
-  "message": "Configuração da peça ganhou “Não produzir peça”: mantém no 3D, mas exclui plano de corte, Aspire/CNC, lista de produção e etiquetas.",
-  "released_at": "2026-08-24T18:15:00-03:00"
+  "message": "Ao apagar laterais/peças estruturais, o vão é recalculado e recupera a medida original. Espaço/divisão: 1 toque seleciona e segurar abre o menu.",
+  "released_at": "2026-08-24T18:29:00-03:00"
 }
