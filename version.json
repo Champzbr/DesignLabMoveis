@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.77",
+  "version": "1.100.78",
   "required": false,
-  "message": "Ao apagar laterais/peças estruturais, o vão é recalculado e recupera a medida original. Espaço/divisão: 1 toque seleciona e segurar abre o menu.",
+  "message": "Correção do recálculo ao apagar laterais/base/chapéu/fundo/frente: devolve a espessura ao vão original sem unir divisões vizinhas. Menu do espaço continua em tocar e segurar.",
   "released_at": "2026-08-24T18:29:00-03:00"
 }
