@@ -819,7 +819,7 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.79: um clique apenas seleciona.
+    // 1.100.80: um clique apenas seleciona.
     // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
@@ -868,7 +868,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.79: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.80: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -894,6 +894,18 @@ function updateInspector(){
   if(u.excludeFromCutList&&canControlProduction){
     $('objectType').textContent += ' · 🚫 NÃO PRODUZIR';
   }
+
+  // 1.100.80: o veio pode girar 90° sem alterar a geometria/posição da peça.
+  const grainSection=$('pieceGrainSection'),grainBtn=$('rotatePieceGrainBtn'),grainStatus=$('pieceGrainStatus');
+  const hasGrain=canControlProduction&&!!u.materialGrain;
+  const grainRot=normalizePieceGrainRotation(u.materialGrainRotation);
+  if(grainSection)grainSection.style.display=hasGrain?'block':'none';
+  if(grainBtn)grainBtn.textContent=grainRot===90?'↻ Voltar veio ao original':'↻ Rotacionar veio 90°';
+  if(grainStatus){
+    grainStatus.textContent=grainRot===90?'Veio rotacionado 90° nesta peça.':'Veio no sentido original desta peça.';
+    grainStatus.classList.toggle('rotated',grainRot===90);
+  }
+  if(hasGrain)$('objectType').textContent += grainRot===90?' · VEIO 90°':' · VEIO 0°';
 
   // Os campos relativos sempre começam em zero quando a seleção muda/atualiza.
   resetPieceRelativeInputs();

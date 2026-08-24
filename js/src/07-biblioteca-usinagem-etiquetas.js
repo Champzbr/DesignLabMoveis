@@ -116,7 +116,7 @@ function libraryCurvedPostPlacementForTarget(p,cfg,info){
   const tag=stored.postStructuralTag||null;
   let sample=null;
 
-  // 1.100.79: montantes estruturais não podem ser posicionados usando a caixa
+  // 1.100.80: montantes estruturais não podem ser posicionados usando a caixa
   // retangular da peça rotacionada. Isso deslocava principalmente o último
   // montante mesmo quando a configuração era 0 mm (rente). Recalculamos a
   // posição pela própria trajetória curva e pelas regras estruturais.
@@ -154,7 +154,7 @@ function copyLibraryPartMeta(created,p){
   const u=created.userData||{};
   if(p.partId)u.partId=p.partId;
   u.materialType=p.materialType||u.materialType;u.baseColor=p.baseColor??u.baseColor;
-  u.materialId=p.materialId||null;u.materialCode=p.materialCode||'';u.materialGrain=!!p.materialGrain;
+  u.materialId=p.materialId||null;u.materialCode=p.materialCode||'';u.materialGrain=!!p.materialGrain;u.materialGrainRotation=normalizePieceGrainRotation(p.materialGrainRotation);
   u.materialCoreColor=p.materialCoreColor||null;u.edgeBands=normalizePieceEdgeBands(p.edgeBands||u.edgeBands||{});
   u.labelMeta=p.labelMeta?productionClone(p.labelMeta):u.labelMeta;
   u.machining=JSON.parse(JSON.stringify(p.machining||[]));
@@ -184,7 +184,7 @@ function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
     // estrutural usam a posição antiga como fallback.
     created=createCurvedPost({cfg,yBase,x:structural?.x??x,z:structural?.z??z,name:p.name||'Montante curvo',spaceRootId:info.root.id,rotationY:structural?.rotationY??(Number(p.rotationY)||0)},false);
   }else{
-    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
+    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
   }
   return copyLibraryPartMeta(created,p);
 }
@@ -705,7 +705,7 @@ function closeProductionDialog(){
   $('productionDialog').style.display='none';
 }
 
-// ---------- 1.100.79 · Etiquetas das peças estilo OpenCutList ----------
+// ---------- 1.100.80 · Etiquetas das peças estilo OpenCutList ----------
 const LABELS_PREFS_KEY='designlabLabelsV110075';
 function labelsPrefs(){
   const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',margin:8,gap:3,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
@@ -777,7 +777,7 @@ function labelHtmlCard(p,prefs,{preview=false}={}){
   const edgeHtml=prefs.showBands?`<div class="lpEdges">${edges.map(e=>`<span class="lpEdge${e.on?' on':''}">${e.side}: ${escapeHtml(e.text)}</span>`).join('')}</div>`:'';
   const machine=prefs.showMachining?`<div>Usinagem: ${m.holes} furo(s) · ${m.grooves} rasgo(s)</div>`:'';
   const info=[];if(prefs.showProject&&projectLine)info.push(`<div>${projectLine}</div>`);if(prefs.showSpace&&spaceLine)info.push(`<div>${spaceLine}</div>`);if(machine)info.push(machine);
-  return `<article class="${cls}"><div class="lpHead"><div class="lpCode">${escapeHtml(labelCodeText(p))}</div><div class="lpName">${escapeHtml(p.name||'Peça')}</div>${p.qty>1?`<div class="lpQty">×${p.qty}</div>`:''}</div><div class="lpDims">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm</div><div class="lpMaterial">${escapeHtml(p.material||'MDF')}${p.materialCode?` · ${escapeHtml(p.materialCode)}`:''}</div><div class="lpMeta"><div>${info.join('')}</div>${prefs.showGrain&&p.materialGrain?'<div class="lpGrain" title="Sentido do veio">↕</div>':''}</div>${edgeHtml}<div class="lpFoot">${prefs.showId?`<span class="lpId">ID ${escapeHtml(p.partId||'—')}</span>`:'<span></span>'}<span>${p.materialGrain?'VEIO':'SEM VEIO'}</span></div></article>`;
+  return `<article class="${cls}"><div class="lpHead"><div class="lpCode">${escapeHtml(labelCodeText(p))}</div><div class="lpName">${escapeHtml(p.name||'Peça')}</div>${p.qty>1?`<div class="lpQty">×${p.qty}</div>`:''}</div><div class="lpDims">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm</div><div class="lpMaterial">${escapeHtml(p.material||'MDF')}${p.materialCode?` · ${escapeHtml(p.materialCode)}`:''}</div><div class="lpMeta"><div>${info.join('')}</div>${prefs.showGrain&&p.materialGrain?`<div class="lpGrain" title="Sentido do veio · ${normalizePieceGrainRotation(p.materialGrainRotation)}°">${normalizePieceGrainRotation(p.materialGrainRotation)===90?'↔':'↕'}</div>`:''}</div>${edgeHtml}<div class="lpFoot">${prefs.showId?`<span class="lpId">ID ${escapeHtml(p.partId||'—')}</span>`:'<span></span>'}<span>${p.materialGrain?`VEIO ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:'SEM VEIO'}</span></div></article>`;
 }
 function renderLabelsPreview(){
   const grid=$('labelsPreviewGrid'),sum=$('labelsSummary');if(!grid||!sum)return;
@@ -1472,7 +1472,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.79 — ciclo de vida das ferragens.
+// 1.100.80 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.

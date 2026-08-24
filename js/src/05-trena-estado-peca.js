@@ -689,7 +689,7 @@ function hideGuides(){ guideX.visible=guideZ.visible=guideY.visible=false; hideI
 function captureObjects(){
   return objects.map(o=>({
     kind:o.userData.kind,name:o.userData.name,materialType:o.userData.materialType,baseColor:o.userData.baseColor,
-    materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialCoreColor:o.userData.materialCoreColor||null,
+    materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialGrainRotation:normalizePieceGrainRotation(o.userData.materialGrainRotation),materialCoreColor:o.userData.materialCoreColor||null,
     edgeBands:productionClone(o.userData.edgeBands||{}),partId:o.userData.partId||null,labelMeta:productionClone(o.userData.labelMeta||{schemaVersion:1,enabled:true}),
     spaceRootId:o.userData.spaceRootId||null,
     machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,
@@ -710,7 +710,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.79', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.80', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -1042,6 +1042,17 @@ function rotateBox(axis){
   updateInspector(); updateMeasureBadge(); commitHistory();
 }
 
+function rotateSelectedPieceGrain(){
+  if(!selected){toast('Selecione uma peça');return;}
+  const u=selected.userData||{};
+  if(u.kind==='cylinder'||u.kind==='hardware-visual'){toast('Esta opção é para peças de chapa');return;}
+  if(!u.materialGrain){toast('O material desta peça não está marcado como madeirado / com veio');return;}
+  u.materialGrainRotation=normalizePieceGrainRotation(u.materialGrainRotation)===90?0:90;
+  updateInspector();
+  commitHistory();
+  toast(u.materialGrainRotation===90?'Veio da peça rotacionado 90° · geometria não foi alterada':'Veio da peça voltou ao sentido original');
+}
+
 function setSelectedPieceDoNotProduce(enabled){
   if(!selected){toast('Selecione uma peça');return;}
   const u=selected.userData||{};
@@ -1100,7 +1111,7 @@ function duplicateSelected(){
     name:(u.name||'Peça')+' cópia',
     kind:u.kind,materialType:u.materialType,baseColor:u.baseColor,
     materialId:u.materialId||null,materialCode:u.materialCode||'',
-    materialGrain:!!u.materialGrain,materialCoreColor:u.materialCoreColor||null,
+    materialGrain:!!u.materialGrain,materialGrainRotation:normalizePieceGrainRotation(u.materialGrainRotation),materialCoreColor:u.materialCoreColor||null,
     edgeBands:productionClone(u.edgeBands||{}),
     labelMeta:{...(u.labelMeta||{}),schemaVersion:1},
     spaceRootId:u.spaceRootId||null,
@@ -1404,7 +1415,7 @@ function bestCellNearPoint(root,p){
   return visible.reduce((best,c)=>distanceSqPointToCell(p,c)<distanceSqPointToCell(p,best)?c:best,visible[0]);
 }
 
-// 1.100.79 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
+// 1.100.80 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
 // ao(s) vão(s) vizinho(s). Isso resolve principalmente lateral esquerda/direita,
 // base, chapéu, prateleira, fundo/frente e divisão vertical.
 function isSpaceCuttingPieceForHeal(o){
@@ -1679,7 +1690,7 @@ function axisVector(axis){
 
 // PEÇAS: 1 clique seleciona; segurar abre Configuração da peça.
 // ESPAÇOS/DIVISÕES: 1 clique seleciona; segurar abre o menu flutuante.
-// O antigo duplo clique do espaço foi removido na 1.100.79.
+// O antigo duplo clique do espaço foi removido na 1.100.80.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
@@ -1708,7 +1719,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.100.79 · menu do espaço igual ao menu da peça:
+// 1.100.80 · menu do espaço igual ao menu da peça:
 // 1 toque = somente seleciona; tocar/clicar e SEGURAR = abre o menu flutuante.
 let spaceLongPressTimer=null;
 let spaceLongPress={id:null,rootId:null,cellId:null,x:0,y:0,triggered:false};
@@ -1786,7 +1797,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.100.79 · segurar a peça abre a configuração (mouse e touch).
+// 1.100.80 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -1827,7 +1838,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.100.79: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.100.80: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -1842,7 +1853,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       resetSpaceDoubleTap();
-      // 1.100.79: um toque apenas seleciona e fecha o menu. Segurar o mesmo
+      // 1.100.80: um toque apenas seleciona e fecha o menu. Segurar o mesmo
       // espaço/divisão abre a janela, exatamente como a configuração da peça.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       startSpaceLongPress(rootId,cellId,activePointerId,downClientX,downClientY);

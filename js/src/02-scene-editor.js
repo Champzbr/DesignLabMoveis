@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.79 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// 1.100.80 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
 // ============================================================================
 const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
 function clampPieceInspectorPosition(left,top){

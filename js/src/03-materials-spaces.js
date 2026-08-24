@@ -254,6 +254,14 @@ function spaceMaterialText(rootOrId){
 }
 
 
+function normalizePieceGrainRotation(value){
+  const n=Number(value)||0;
+  return Math.abs(Math.round(n/90))%2?90:0;
+}
+function pieceGrainRotation(o){
+  return normalizePieceGrainRotation(o?.userData?.materialGrainRotation);
+}
+
 function pieceProductionLabelData(o){
   if(!o)return null;
   const u=o.userData||{},ti=pieceThicknessInfo(o),root=rootForObject(o);
@@ -268,6 +276,7 @@ function pieceProductionLabelData(o){
     material:u.materialType||'MDF',
     materialCode:u.materialCode||'',
     grain:!!u.materialGrain,
+    grainRotation:normalizePieceGrainRotation(u.materialGrainRotation),
     thickness:ti?.thickness||0,
     faceW:ti?.faceW||0,
     faceH:ti?.faceH||0,
@@ -349,7 +358,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.79: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.80: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -577,7 +586,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.79: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.80: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; toque e segure o espaço para abrir as opções.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -637,7 +646,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.79: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.80: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;
@@ -931,7 +940,7 @@ function deleteSelectedSpaceRoot(){
   return true;
 }
 
-function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null}={}, doHistory=true){
+function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null}={}, doHistory=true){
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
   const mats=makeMaterials(baseColor,6);
   const mesh=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),mats);
@@ -944,6 +953,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     materialId:materialId||null,
     materialCode:String(materialCode||''),
     materialGrain:!!materialGrain,
+    materialGrainRotation:normalizePieceGrainRotation(materialGrainRotation),
     materialCoreColor:materialCoreColor||null,
     edgeBands:normalizePieceEdgeBands(edgeBands||{}),
     partId:partId||uid('part'),
