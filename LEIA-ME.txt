@@ -1,17 +1,44 @@
-DESIGNLABMOVEIS 1.100.47 — FERRAGENS VINCULADAS ÀS PEÇAS
+DESIGNLABMOVEIS 1.100.49 — USINAGENS VISÍVEIS NO PLANO DE CORTE
 
-Base: 1.100.46.
+Base: 1.100.48.
 
-CORREÇÃO 1.100.47
-- Ao apagar uma peça, as ferragens aplicadas nela também são removidas por completo.
-- Se a mesma aplicação gerou furos em uma peça de contato, esses furos também são removidos.
-- Os marcadores 3D rosa não ficam mais soltos no projeto depois da exclusão.
-- As novas aplicações salvam os IDs das duas peças ligadas pela ferragem, deixando a remoção confiável mesmo quando a ferragem fura somente um dos lados.
-- Projetos antigos recebem compatibilidade por hardwareInstanceId e nome de contato quando possível.
-- Ao apagar um móvel inteiro, conjunto de gavetas ou substituir uma estrutura curva, ferragens ligadas às peças removidas também são limpas.
-- Prévia temporária de ferragens/usinagem é limpa junto com a exclusão.
+CORRIGIDO EM 1.100.49
+- O plano de corte agora desenha as usinagens reais de cada peça.
+- Furos da face A aparecem em rosa; furos da face B aparecem em roxo tracejado.
+- Rasgos/canais aparecem em azul/ciano.
+- Furos de borda/laterais aparecem com marcador triangular laranja.
+- Encaixes de peças curvas também aparecem no plano.
+- Novo controle “usinagens” permite mostrar/ocultar essas marcações sem esconder o contorno das peças.
+- Ao tocar numa peça do plano, o painel lateral lista suas usinagens com diâmetro, profundidade, face e ferragem quando houver.
+- O resumo da chapa mostra a quantidade de furos A/B, furos de borda e rasgos.
+- A lista de peças também informa quando a peça possui usinagens.
+- A projeção usada no plano é a mesma usada pelo DXF/Aspire, inclusive quando a peça gira 90° na chapa.
+
+MANTIDO
+- Portas paramétricas e furação de dobradiças da 1.100.48.
+- Espaço principal com 1 toque para selecionar e 2 toques para abrir menu.
+- Ferragens vinculadas às peças e limpeza automática ao excluir.
+- Painel administrativo, DXF, Aspire e demais recursos anteriores.
+
+HISTÓRICO DA BASE 1.100.48
+DESIGNLABMOVEIS 1.100.49 — PORTAS PARAMÉTRICAS + DOBRADIÇAS
+
+Base: 1.100.47.
+
+NOVO EM 1.100.49
+- Em Criar peças > Portas agora é possível escolher de 1 a 12 portas.
+- O vão do meio passa a ser aplicado entre todas as portas.
+- Opção de puxador: sem puxador, puxador externo ou cava/perfil.
+- Cava/perfil desconta automaticamente o tamanho informado da altura da porta e pode ficar em cima ou embaixo.
+- Furação automática de dobradiça já vem ativada com copo Ø35 mm.
+- Configurações: quantidade de dobradiças (automática ou 2 a 6), lado, diâmetro/profundidade do copo, distância do copo à borda e distância topo/baixo.
+- Pode criar automaticamente os furos da placa da dobradiça na lateral ou divisão vertical encontrada ao lado da porta.
+- Padrão inicial da lateral: linha a 37 mm da frente, 32 mm entre furos, Ø5 mm e 12 mm de profundidade.
+- Os furos da porta e da lateral são vinculados pela mesma instância da dobradiça. Ao apagar a porta/lateral ou a ferragem, a furação vinculada é limpa pelo sistema da 1.100.47.
+- Configuração da porta é salva junto com o projeto e com modelos da biblioteca.
 
 MANTIDO
 - Espaço principal: 1 toque seleciona; 2 toques abrem o menu.
+- Ferragens vinculadas às peças e limpeza automática ao excluir.
 - Painel administrativo restaurado.
-- Plano de corte, DXF, Aspire e demais recursos da 1.100.46.
+- Plano de corte, DXF, Aspire e demais recursos anteriores.
