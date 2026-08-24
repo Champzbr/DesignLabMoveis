@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.61 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.62 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -133,7 +133,7 @@
   }
 
 
-  /* 1.100.61 · segurar para abrir / confirmação de duplicação */
+  /* 1.100.62 · segurar para abrir / confirmação de duplicação */
   .pieceDeleteRow{
     margin-top:8px;padding-top:8px;border-top:1px solid #373c3f;
   }
@@ -673,7 +673,7 @@
 
 
 
-  /* ==========================================================================\n     1.100.61 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  /* ==========================================================================\n     1.100.62 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
   #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
   .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
   .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
@@ -1149,7 +1149,7 @@
   .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
 
 
-  /* 1.100.61 · Painel administrativo restaurado no layout inicial */
+  /* 1.100.62 · Painel administrativo restaurado no layout inicial */
   #homeAdminPanel,#menuAdminPanel{display:none}
   #homeAdminPanel.show,#menuAdminPanel.show{display:block}
   #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
@@ -1362,7 +1362,7 @@
   }
 
   /* ==========================================================================
-     1.100.61 · HOME OPÇÃO 1
+     1.100.62 · HOME OPÇÃO 1
      Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
      Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
      ========================================================================== */
@@ -1775,7 +1775,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.61</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.62</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1869,7 +1869,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.61</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.62</span>
         </div>
       </div>
 
@@ -2216,7 +2216,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.61 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.62 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2872,7 +2872,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
       </div>
-      <span class="cutPlanBadge">1.100.61</span>
+      <span class="cutPlanBadge">1.100.62</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -3477,14 +3477,14 @@
       <label>Folga do encaixe (mm)<input id="curvedSlotClearance" type="number" value="0.5" min="0" max="5" step="0.1"></label>
     </div>
     <div class="spaceFields two" style="margin-top:8px">
-      <label>Entrada da fresa<select id="curvedReliefMode"><option value="single" selected>1 canal · igual à foto</option><option value="double">2 canais</option><option value="none">Sem entrada</option></select></label>
+      <label>Entrada da fresa<select id="curvedReliefMode"><option value="single" selected>1 entrada</option><option value="double">2 entradas</option><option value="none">Sem entrada</option></select></label>
       <label>Ø da entrada (mm)<input id="curvedReliefDiameter" type="number" value="6" min="1" max="20" step="0.5"></label>
     </div>
     <div class="spaceFields two" style="margin-top:8px">
       <label>Comprimento da entrada (mm)<input id="curvedReliefLength" type="number" value="18" min="1" max="60" step="1"></label>
       <label>Final da curva recuado (mm)<input id="curvedCurveEndInset" type="number" value="17" min="0" max="100" step="1"></label>
     </div>
-    <div class="curvedHint" style="margin-top:8px">Padrão: nervura 50 mm → encaixe 25 mm + 25 mm restantes. Montante 100 mm → encaixe de 25 mm. <b>Regra estrutural:</b> existem 3 referências obrigatórias: um montante rente na extremidade inicial, um exatamente no centro da curva e um no final da curva com a borda recuada pela medida configurada. Os demais montantes são divididos de forma equilibrada somente nos trechos retos que sobrarem. Em estrutura de 2 partes, o espaço de emenda fica livre. A entrada da fresa agora é configurável e o padrão usa um único canal reto com ponta arredondada, como na foto de referência.</div>
+    <div class="curvedHint" style="margin-top:8px">Padrão: nervura 50 mm → encaixe 25 mm + 25 mm restantes. Montante 100 mm → encaixe de 25 mm. <b>Regra estrutural:</b> existem 3 referências obrigatórias: um montante rente na extremidade inicial, um exatamente no centro da curva e um no final da curva com a borda recuada pela medida configurada. Os demais montantes são divididos de forma equilibrada somente nos trechos retos que sobrarem. Em estrutura de 2 partes, o espaço de emenda fica livre. A entrada da fresa pode ser: 1 entrada, 2 entradas ou sem entrada. Quando usada, a entrada sai na diagonal de 45° a partir do canto interno do encaixe.</div>
     <label class="fixedChoice" style="margin-top:10px">
       <input id="curvedCreateCover" type="checkbox" checked>
       <div><strong>Capa externa acompanhando a curva</strong><span>Cria uma capa vertical por fora da estrutura. A face externa continua dentro da medida final do espaço.</span></div>
@@ -4094,7 +4094,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.61';
+const DESIGNLAB_APP_VERSION='1.100.62';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4879,7 +4879,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.61 · HOME OPÇÃO 1
+// 1.100.62 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -5100,7 +5100,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.61`:'DesignLabMoveis 1.100.61';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.62`:'DesignLabMoveis 1.100.62';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -5305,7 +5305,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.61'
+    thumbnail:null,appVersion:'1.100.62'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -5328,7 +5328,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.61'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.62'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -5358,7 +5358,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.61'
+    thumbnail:thumb,appVersion:'1.100.62'
   };
   await projectDbPut(next);
   if(original){
@@ -5426,7 +5426,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.61',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.62',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -5460,7 +5460,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.61'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.62'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -5521,7 +5521,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.61'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.62'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5847,8 +5847,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.61 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.61 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
+// 1.100.62 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.62 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // no aparelho mesmo depois de fechar/reabrir o app.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -5928,7 +5928,7 @@ function initSpaceActionsDrag(){
 }
 
 // ============================================================================
-// 1.100.61 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// 1.100.62 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
 // ============================================================================
 const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
 function clampPieceInspectorPosition(left,top){
@@ -7042,7 +7042,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.61: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.62: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -7270,7 +7270,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.61: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.62: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; para abrir, o usuário precisa dar dois toques no espaço.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -7330,7 +7330,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.61: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.62: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;
@@ -7918,6 +7918,34 @@ function curvedPostPlacementFromSampleMm(cfg,sample){
 function curvedPostPlacementMm(cfg,index,count){
   return curvedPostPlacementFromSampleMm(cfg,curvedPostSampleMm(cfg,index,count));
 }
+function curvedRotatePtsAround(anchor,pts,angle){
+  const c=Math.cos(angle),s=Math.sin(angle),ax=anchor[0],ay=anchor[1];
+  return (pts||[]).map(([x,y])=>{const dx=x-ax,dy=y-ay;return [ax+dx*c-dy*s,ay+dx*s+dy*c];});
+}
+function curvedDiagonalReliefSequence2D(cx,cy,dx,dy,px,py,diameter,length,steps=14){
+  // v62 — alívio diagonal (dog-bone) a 45°. O começo do canal fica dentro do
+  // encaixe e somente a ponta avança para o material, por isso não aparece mais
+  // como uma lingueta reta saindo pela frente da peça.
+  const mag=Math.hypot(dx,dy)||1,pmag=Math.hypot(px,py)||1;
+  dx/=mag;dy/=mag;px/=pmag;py/=pmag;
+  const r=Math.max(.4,Number(diameter)||6)/2;
+  const len=Math.max(r*2,Number(length)||18);
+  const sx=cx-dx*r,sy=cy-dy*r;
+  const ex=cx+dx*(len-r),ey=cy+dy*(len-r);
+  const startPlus=[sx+px*r,sy+py*r];
+  const endPlus=[ex+px*r,ey+py*r];
+  const endMinus=[ex-px*r,ey-py*r];
+  const startMinus=[sx-px*r,sy-py*r];
+  const seq=[startPlus,endPlus];
+  for(let i=1;i<=steps;i++){
+    const a=Math.PI*(i/steps);
+    // +P -> +D -> -P: semicírculo da ponta, sempre voltado para fora do encaixe.
+    const vx=px*Math.cos(a)+dx*Math.sin(a),vy=py*Math.cos(a)+dy*Math.sin(a);
+    seq.push([ex+vx*r,ey+vy*r]);
+  }
+  seq.push(startMinus);
+  return {seq,startPlus,startMinus,r,len,cornerOffset:Math.SQRT2*r};
+}
 function curvedSlotPolygonMm(cfg,sample,postThickness,clearance,visualInset=0){
   const band=Math.max(1,Number(cfg.band)||50);
   const rawDepth=Math.min(band,Math.max(1,Number(cfg.jointDepth)||band/2));
@@ -7931,39 +7959,34 @@ function curvedSlotPolygonMm(cfg,sample,postThickness,clearance,visualInset=0){
   const mode=['single','double','none'].includes(cfg.reliefMode)?cfg.reliefMode:'single';
   if(mode==='none')return [local(-ht,deep),local(ht,deep),local(ht,outer),local(-ht,outer)];
 
-  // v61 — alívio tipo T-bone configurável. O padrão é UM canal por encaixe,
-  // longo e estreito, terminando em semicírculo, igual à foto de referência.
+  // v62 — 1 = canto interno direito; 2 = os dois cantos internos.
+  // O canal é diagonal (45°) em vez de avançar reto pelo eixo normal da peça.
   const requestedDia=Math.max(.8,Number(cfg.reliefDiameter)||6);
-  const maxDia=mode==='double'?Math.max(.8,tw*.42):Math.max(.8,tw*.82);
-  const entryDia=Math.max(.8,Math.min(requestedDia,maxDia));
-  const r=entryDia/2;
-  const available=Math.max(0,deep-innerLimit-.5);
+  const diaByWidth=mode==='double'?Math.max(.8,tw*.42):Math.max(.8,tw*.82);
+  const diaByDepth=Math.max(.8,rawDepth*1.25);
+  const entryDia=Math.max(.8,Math.min(requestedDia,diaByWidth,diaByDepth));
+  const diagonalRoom=Math.max(entryDia,(deep-innerLimit)*Math.SQRT2-.5);
   const requestedLen=Math.max(entryDia,Number(cfg.reliefLength)||18);
-  const entryLen=Math.min(requestedLen,available);
-  if(entryLen<entryDia*.75)return [local(-ht,deep),local(ht,deep),local(ht,outer),local(-ht,outer)];
-  const capV=deep-entryLen+r,steps=14,pts=[];
-  const arc=(cu,cv,a0,a1)=>{
-    for(let i=1;i<=steps;i++){
-      const a=a0+(a1-a0)*(i/steps);
-      pts.push(local(cu+Math.cos(a)*r,cv+Math.sin(a)*r));
-    }
-  };
+  const entryLen=Math.min(requestedLen,diagonalRoom);
+  if(entryLen<entryDia*.9)return [local(-ht,deep),local(ht,deep),local(ht,outer),local(-ht,outer)];
 
-  // Contorno do rasgo aberto na borda externa.
-  pts.push(local(-ht,outer),local(ht,outer),local(ht,deep));
-  // Canal do canto direito (padrão da foto).
-  pts.push(local(ht,capV));
-  arc(ht-r,capV,0,-Math.PI);
-  pts.push(local(ht-entryDia,deep));
+  const q=Math.SQRT1_2,pts=[];
+  // percorre a abertura no sentido: borda externa esquerda -> direita -> fundo -> esquerda.
+  pts.push(local(-ht,outer),local(ht,outer));
+
+  // Canto interno direito: direção +tangente / -normal.
+  const right=curvedDiagonalReliefSequence2D(ht,deep,q,-q,q,q,entryDia,entryLen,14);
+  for(const [u,v] of right.seq)pts.push(local(u,v));
 
   if(mode==='double'){
-    pts.push(local(-ht+entryDia,deep));
-    pts.push(local(-ht+entryDia,capV));
-    arc(-ht+r,capV,0,-Math.PI);
-    pts.push(local(-ht,deep));
+    // Canto interno esquerdo: direção -tangente / -normal.
+    // Com P=(+,-), a sequência começa no fundo e termina na parede esquerda.
+    const left=curvedDiagonalReliefSequence2D(-ht,deep,-q,-q,q,-q,entryDia,entryLen,14);
+    for(const [u,v] of left.seq)pts.push(local(u,v));
   }else{
     pts.push(local(-ht,deep));
   }
+  pts.push(local(-ht,outer));
   return pts;
 }
 function curvedPostOutlineMm(cfg){
@@ -7983,59 +8006,65 @@ function curvedPostOutlineMm(cfg){
     else merged.push([...iv]);
   }
 
-  // v61 — o mesmo alívio configurável também é aplicado no montante de 100 mm.
-  // single = um canal por meia-madeira (padrão/foto); double = dois; none = nenhum.
+  // v62 — no montante de 100 mm o alívio também sai em diagonal.
+  // 1 entrada = canto inferior interno; 2 entradas = superior + inferior; sem = quadrado.
   const mode=['single','double','none'].includes(cfg.reliefMode)?cfg.reliefMode:'single';
   const requestedDia=Math.max(.8,Number(cfg.reliefDiameter)||6);
   const requestedLen=Math.max(1,Number(cfg.reliefLength)||18);
-  const arcSteps=14,eps=.001;
-  const first=merged[0],topOpen=!!first&&first[0]<=eps;
-  const pts=[[topOpen?depth:0,0]];
-  let cy=0;
-
-  const addCap=(cx,cy0,r,a0,a1)=>{
-    for(let i=1;i<=arcSteps;i++){
-      const a=a0+(a1-a0)*(i/arcSteps);
-      pts.push([cx+Math.cos(a)*r,cy0+Math.sin(a)*r]);
-    }
+  const eps=.001,q=Math.SQRT1_2,pts=[];
+  const push=(pt)=>{
+    if(!pt)return;
+    const last=pts.at(-1);
+    if(last&&Math.abs(last[0]-pt[0])<1e-6&&Math.abs(last[1]-pt[1])<1e-6)return;
+    pts.push(pt);
   };
+  const first=merged[0],topOpen=!!first&&first[0]<=eps;
+  push([topOpen?depth:0,0]);
+  let cy=0;
 
   for(const [y0,y1] of merged){
     const topInternal=y0>eps,bottomInternal=y1<H-eps;
     const slotH=Math.max(.5,y1-y0);
-    const maxDia=mode==='double'?Math.max(.8,slotH*.42):Math.max(.8,slotH*.82);
-    const entryDia=Math.max(.8,Math.min(requestedDia,maxDia));
-    const r=entryDia/2;
-    const entryLen=Math.max(entryDia,Math.min(requestedLen,Math.max(entryDia,W-depth-.5)));
-    const capX=Math.min(W-r-.001,depth+entryLen-r);
-    const doTop=mode==='double'&&topInternal;
-    const doBottom=mode!=='none'&&bottomInternal;
+    const diaBySlot=mode==='double'?Math.max(.8,slotH*.42):Math.max(.8,slotH*.82);
+    const diaByDepth=Math.max(.8,depth*1.25);
+    const entryDia=Math.max(.8,Math.min(requestedDia,diaBySlot,diaByDepth));
+    const room=Math.max(entryDia,(W-depth)*Math.SQRT2-.5);
+    const entryLen=Math.min(Math.max(entryDia,requestedLen),room);
+    const canRelief=mode!=='none'&&entryLen>=entryDia*.9;
+    const doTop=canRelief&&mode==='double'&&topInternal;
+    const doBottom=canRelief&&bottomInternal;
 
     if(topInternal){
-      if(y0>cy+eps)pts.push([0,y0]);
+      if(y0>cy+eps)push([0,y0]);
       if(doTop){
-        pts.push([capX,y0]);
-        addCap(capX,y0+r,r,-Math.PI/2,Math.PI/2);
-        pts.push([depth,Math.min(y1,y0+entryDia)]);
-      }else pts.push([depth,y0]);
-    }else if(!(pts.length===1&&Math.abs(y0)<=eps))pts.push([depth,y0]);
+        // Topo: da aresta horizontal para o canto interno, saindo 45° para cima/direita.
+        const rel=curvedDiagonalReliefSequence2D(depth,y0,q,-q,-q,-q,entryDia,entryLen,14);
+        rel.seq.forEach(push);
+      }else push([depth,y0]);
+    }else if(Math.abs(y0)>eps){
+      push([depth,y0]);
+    }
 
-    const wallTop=doTop?Math.min(y1,y0+entryDia):y0;
-    const wallBottom=doBottom?Math.max(wallTop,y1-entryDia):y1;
-    if(wallBottom>wallTop+eps)pts.push([depth,wallBottom]);
+    const offset=Math.SQRT2*(entryDia/2);
+    const wallTop=doTop?Math.min(y1,y0+offset):y0;
+    const wallBottom=doBottom?Math.max(wallTop,y1-offset):y1;
+    if(wallBottom>wallTop+eps)push([depth,wallBottom]);
 
     if(bottomInternal){
       if(doBottom){
-        pts.push([capX,Math.max(y0,y1-entryDia)]);
-        addCap(capX,y1-r,r,-Math.PI/2,Math.PI/2);
-        pts.push([0,y1]);
-      }else pts.push([0,y1]);
-    }else pts.push([depth,y1]);
+        // Base: da parede interna para a aresta inferior, saindo 45° para baixo/direita.
+        const rel=curvedDiagonalReliefSequence2D(depth,y1,q,q,q,-q,entryDia,entryLen,14);
+        rel.seq.forEach(push);
+      }
+      push([0,y1]);
+    }else{
+      push([depth,y1]);
+    }
     cy=y1;
   }
 
-  if(cy<H-eps)pts.push([0,H]);
-  pts.push([W,H],[W,0]);
+  if(cy<H-eps)push([0,H]);
+  push([W,H]);push([W,0]);
   return {points:pts,bboxW:W,bboxH:H};
 }
 function makeManualEdgeGroupFromLoops(loops,depth,opts={}){
@@ -8327,7 +8356,7 @@ function updateCurvedStructurePreview(){
     const splitText=c.splitStructure
       ?`2 PARTES · espaço de emenda ${nice(c.splitTail)} mm · corte em ${nice(sp.splitX)} mm<br>Parte reta: ${nice(sp.straightLength)} mm · parte curva mantém ${nice(sp.curveTail)} mm retos antes do arco`
       :'INTEIRA';
-    $('curvedStructurePreview').innerHTML=`Ocupa exatamente: <b>${nice(c.targetW)} × ${nice(c.targetD)} × ${nice(c.height)} mm</b><br><b>${curvedOrientationName(c.orientation)}</b> · raio final externo ${nice(c.radius)} mm · nervura ${nice(c.band)} mm${c.createCover?` recuada ${nice(c.coverThickness)} mm para receber a capa`:''}<br>Montante ${nice(c.postWidth)} mm · encaixe ${nice(c.jointDepth)} mm nas duas peças<br>${c.ribs} nervura(s) MDF ${nice(c.thickness)} mm · ${c.posts} montante(s) no total<br><b>3 obrigatórios:</b> extremidade inicial rente + centro da curva + final da curva com borda recuada ${nice(c.curveEndInset)} mm<br>Montantes extras: divisão equilibrada somente nos trechos retos${c.splitStructure?` · preservando ${nice(c.splitTail)} mm da emenda`:''}<br>Entrada da fresa: <b>${c.reliefMode==='none'?'sem alívio':`${c.reliefMode==='double'?'2 canais':'1 canal (foto)'} · Ø${nice(c.reliefDiameter)} × ${nice(c.reliefLength)} mm`}</b><br>Capa externa: <b>${c.createCover?`${nice(c.coverThickness)} mm · desenvolvimento ${nice(devFull)} mm`:'NÃO'}</b><br>Estrutura: <b>${splitText}</b>`;
+    $('curvedStructurePreview').innerHTML=`Ocupa exatamente: <b>${nice(c.targetW)} × ${nice(c.targetD)} × ${nice(c.height)} mm</b><br><b>${curvedOrientationName(c.orientation)}</b> · raio final externo ${nice(c.radius)} mm · nervura ${nice(c.band)} mm${c.createCover?` recuada ${nice(c.coverThickness)} mm para receber a capa`:''}<br>Montante ${nice(c.postWidth)} mm · encaixe ${nice(c.jointDepth)} mm nas duas peças<br>${c.ribs} nervura(s) MDF ${nice(c.thickness)} mm · ${c.posts} montante(s) no total<br><b>3 obrigatórios:</b> extremidade inicial rente + centro da curva + final da curva com borda recuada ${nice(c.curveEndInset)} mm<br>Montantes extras: divisão equilibrada somente nos trechos retos${c.splitStructure?` · preservando ${nice(c.splitTail)} mm da emenda`:''}<br>Entrada da fresa: <b>${c.reliefMode==='none'?'sem alívio':`${c.reliefMode==='double'?'2 entradas diagonais':'1 entrada diagonal'} · Ø${nice(c.reliefDiameter)} × ${nice(c.reliefLength)} mm`}</b><br>Capa externa: <b>${c.createCover?`${nice(c.coverThickness)} mm · desenvolvimento ${nice(devFull)} mm`:'NÃO'}</b><br>Estrutura: <b>${splitText}</b>`;
   }catch(err){
     if($('curvedSplitTail'))$('curvedSplitTail').disabled=!$('curvedSplitStructure')?.checked;
     const slotsOn=!!$('curvedCreateSlots')?.checked,reliefOn=$('curvedReliefMode')?.value!=='none';
@@ -8446,7 +8475,7 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.61: um clique apenas seleciona.
+    // 1.100.62: um clique apenas seleciona.
     // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
@@ -8495,7 +8524,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.61: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.62: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -9302,7 +9331,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.61', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.62', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -10105,7 +10134,7 @@ function axisVector(axis){
 // O duplo clique tem um pequeno atraso para que o gesto de segurar tenha
 // prioridade quando o segundo toque permanece pressionado.
 //
-// 1.100.61 · As DIVISÕES do espaço têm gesto próprio: um clique somente
+// 1.100.62 · As DIVISÕES do espaço têm gesto próprio: um clique somente
 // seleciona; dois cliques abrem a janela flutuante Espaço/Divisão. Isso evita
 // que a janela apareça no meio de cada seleção enquanto o usuário navega pelos
 // cortes internos do móvel.
@@ -10182,7 +10211,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.100.61 · segurar a peça abre a configuração (mouse e touch).
+// 1.100.62 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -10223,7 +10252,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.100.61: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.100.62: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -10238,7 +10267,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       const openMenu=registerSpaceDoubleTap(rootId,cellId);
-      // 1.100.61: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
+      // 1.100.62: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
       // seleciona e fecha a janela; somente o segundo toque no mesmo alvo abre.
       selectSpaceCellByIds(rootId,cellId,{showMenu:openMenu===true});
       dragMode=null; controls.enabled=true; return;
@@ -10806,7 +10835,7 @@ function pieceDivisionLayoutMm(widthM,thicknessM){
     message:ok?'':`Cada vão precisa ter pelo menos ${nice(minMm)} mm.`
   };
 }
-// ---------- 1.100.61 · Configuração salva de portas ----------
+// ---------- 1.100.62 · Configuração salva de portas ----------
 const DOOR_CREATE_CONFIG_KEY='designLabDoorCreateConfigV1';
 function captureDoorCreateConfig(){
   return {
@@ -10883,7 +10912,7 @@ function saveDoorCreateConfig(){
   }
 }
 
-// ---------- 1.100.61 · Portas paramétricas + dobradiças ----------
+// ---------- 1.100.62 · Portas paramétricas + dobradiças ----------
 function doorFieldNumber(id,fallback=0,min=-Infinity,max=Infinity){
   const n=parseDecimalInput($(id)?.value);
   const v=Number.isFinite(n)?n:fallback;
@@ -10991,7 +11020,7 @@ function appendDoorHingeDrilling(door,root,cfg,hingeSide){
   sanitizeMachiningForPiece(door);
   return {hinges,mountHoles,missingMount};
 }
-// 1.100.61 · inverter lado da dobradiça pelo menu de configuração da porta.
+// 1.100.62 · inverter lado da dobradiça pelo menu de configuração da porta.
 function doorInspectorRuntimeConfig(door){
   const h=door?.userData?.doorConfig?.hinge||{};
   const doorW=mm(door?.userData?.width||0),doorH=mm(door?.userData?.height||0);
@@ -13826,7 +13855,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.61 — ciclo de vida das ferragens.
+// 1.100.62 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
@@ -16030,7 +16059,7 @@ async function writeExportTarget(target,blob){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.61 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.62 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -16045,7 +16074,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.61 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.62 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -16584,7 +16613,7 @@ $('productionClearBands').onclick=productionClearSelectedBands;
 
 
 // ============================================================================
-// 1.100.61 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.62 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================

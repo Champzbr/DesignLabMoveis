@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.61",
+  "version": "1.100.62",
   "required": false,
-  "message": "Móvel curvo com montantes melhor distribuídos e entrada da fresa configurável igual à referência.",
-  "released_at": "2026-08-24T13:42:00-03:00"
+  "message": "Móvel curvo: entradas de fresa agora saem na diagonal de 45°; opções simplificadas para 1, 2 ou sem entrada.",
+  "released_at": "2026-08-24T14:02:00-03:00"
 }
