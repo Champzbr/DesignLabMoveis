@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.72",
+  "version": "1.100.73",
   "required": false,
-  "message": "Correção de STL 0 B no Android: exportação binária confiável via sistema/Downloads, com validação do tamanho antes de salvar.",
-  "released_at": "2026-08-24T16:08:00-03:00"
+  "message": "Correção da Biblioteca STL: móveis curvos agora são reconstruídos como curvas, capas e montantes reais, e não como caixas retangulares.",
+  "released_at": "2026-08-24T16:22:00-03:00"
 }
