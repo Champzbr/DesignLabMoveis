@@ -1,4 +1,14 @@
-DESIGNLABMOVEIS 1.100.64 — DETECÇÃO DE MADEIRA NAS ENTRADAS DE FRESA
+DESIGNLABMOVEIS 1.100.65 — ENTRADA DE FRESA A PARTIR DE 0,5 MM
+
+ALTERAÇÕES DESTA VERSÃO
+- O campo Comprimento da entrada agora aceita 0,5 mm, com passos de 0,5 mm.
+- Corrigida a geometria: o comprimento não é mais automaticamente aumentado para o diâmetro da fresa.
+- Assim, Ø6 mm com comprimento 0,5 mm realmente entra somente 0,5 mm além do canto do encaixe.
+- Mantida a detecção de madeira da 1.100.64: se não houver madeira no lado, a entrada não é criada.
+- Vale para prévia 3D, plano de corte e DXF/Aspire.
+- Sem alteração de banco/Cloudflare.
+
+DESIGNLABMOVEIS 1.100.65 — DETECÇÃO DE MADEIRA NAS ENTRADAS DE FRESA
 
 ALTERAÇÕES DESTA VERSÃO
 - Móvel curvo: cada entrada diagonal de fresa agora verifica o contorno real da madeira antes de ser criada.
@@ -8,7 +18,7 @@ ALTERAÇÕES DESTA VERSÃO
 - O resultado vale para a prévia 3D, plano de corte e DXF/Aspire, pois a geometria inválida deixa de ser criada na origem.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.64 — ENTRADA DE FRESA DIAGONAL
+DESIGNLABMOVEIS 1.100.65 — ENTRADA DE FRESA DIAGONAL
 
 ALTERAÇÕES DESTA VERSÃO
 - Corrigida a direção das entradas de fresa nos encaixes meia-madeira do móvel curvo.
@@ -19,7 +29,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Ø e comprimento continuam configuráveis e entram no 3D, plano de corte e DXF/Aspire.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.64 — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
+DESIGNLABMOVEIS 1.100.65 — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
 
 ALTERAÇÕES DESTA VERSÃO
 - Corrigida a distribuição dos montantes de 100 mm no móvel curvo.
@@ -31,7 +41,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Ø da entrada e comprimento do canal agora podem ser configurados. Padrão: Ø6 × 18 mm.
 - O alívio configurado é usado no 3D, no plano de corte e nos DXFs/Aspire porque faz parte do contorno real das peças.
 
-DESIGNLABMOVEIS 1.100.64 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
+DESIGNLABMOVEIS 1.100.65 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
 
 ALTERAÇÕES DESTA VERSÃO
 - Plano de corte: nervuras/formas especiais são desenhadas pelo contorno real, não mais como retângulo do blank.
@@ -64,7 +74,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.64.js no Worker.
+3. Publique cloudflare/worker-1.100.65.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -76,12 +86,12 @@ APK NA TELA INICIAL
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
 
 
-1.100.64 — MÓVEL CURVO
+1.100.65 — MÓVEL CURVO
 - Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
 - A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
 - Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
 
-NOVIDADE 1.100.64
+NOVIDADE 1.100.65
 - Móvel curvo: distância do último montante do lado A e do lado B agora é configurável separadamente.
 - A medida é da borda do móvel até a borda do montante; 0 mm deixa rente.
 - A regra funciona na estrutura inteira e na opção Estrutura em 2 partes.

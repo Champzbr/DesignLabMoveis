@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.64",
+  "version": "1.100.65",
   "required": false,
-  "message": "Móvel curvo: entrada de fresa só é criada quando existe madeira suficiente no lado; entradas que cairiam no vazio são ignoradas automaticamente.",
-  "released_at": "2026-08-24T14:35:00-03:00"
+  "message": "Móvel curvo: comprimento da entrada de fresa agora aceita 0,5 mm e não é mais forçado pelo diâmetro da fresa, permitindo alívio bem curto.",
+  "released_at": "2026-08-24T14:47:00-03:00"
 }
