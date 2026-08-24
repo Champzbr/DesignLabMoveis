@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.66",
+  "version": "1.100.67",
   "required": false,
-  "message": "Biblioteca: importação DXF ampliada para modelos antigos com 3DFACE, LINE, 3D POLYLINE, SOLID e contornos 2D; arquivos sem 3DFACE não são mais rejeitados automaticamente.",
-  "released_at": "2026-08-24T15:06:00-03:00"
+  "message": "Exportação Android corrigida: se o FileSystemFileHandle falhar no createWritable, o app usa salvamento compatível em vez de interromper com erro.",
+  "released_at": "2026-08-24T15:24:00-03:00"
 }
