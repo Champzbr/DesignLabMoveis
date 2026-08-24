@@ -1,15 +1,15 @@
 // ============================================================================
 // 1.100.16 · PRODUÇÃO: MATERIAIS, FITAS E BASE PARA ETIQUETAS
 // ============================================================================
-const PRODUCTION_SCHEMA_VERSION=1;
+const PRODUCTION_SCHEMA_VERSION=2;
 
 function defaultProjectProduction(){
   return {
     version:PRODUCTION_SCHEMA_VERSION,
     materials:[
-      {id:'mat-mdf-branco-18',name:'MDF Branco 18 mm',code:'MDF-BR18',thickness:18,color:'#e7e1d4',coreColor:'#c6a77b',grain:false},
-      {id:'mat-mdf-madeirado-18',name:'MDF Madeirado 18 mm',code:'MDF-MAD18',thickness:18,color:'#b88955',coreColor:'#b99665',grain:true},
-      {id:'mat-mdf-branco-6',name:'MDF Branco 6 mm',code:'MDF-BR6',thickness:6,color:'#efede7',coreColor:'#c6a77b',grain:false}
+      {id:'mat-mdf-branco-18',name:'MDF Branco 18 mm',code:'MDF-BR18',thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#e7e1d4',coreColor:'#c6a77b',grain:false},
+      {id:'mat-mdf-madeirado-18',name:'MDF Madeirado 18 mm',code:'MDF-MAD18',thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#b88955',coreColor:'#b99665',grain:true},
+      {id:'mat-mdf-branco-6',name:'MDF Branco 6 mm',code:'MDF-BR6',thickness:6,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#efede7',coreColor:'#c6a77b',grain:false}
     ],
     edgeBands:[
       {id:'band-branca-045',name:'Fita branca 0,45 mm',code:'FB-045',thickness:.45,width:22,color:'#f5f5f2'},
@@ -39,12 +39,15 @@ function productionColorInt(v,fallback=COLORS.panel){
 }
 function normalizeProductionMaterial(m){
   if(!m)return null;
-  const thickness=Number(m.thickness);
+  const thickness=Number(m.thickness),sheetWidth=Number(m.sheetWidth),sheetHeight=Number(m.sheetHeight);
   return {
     id:String(m.id||uid('mat')),
     name:String(m.name||'Material').trim()||'Material',
     code:String(m.code||'').trim(),
     thickness:Number.isFinite(thickness)&&thickness>0?thickness:18,
+    sheetWidth:Number.isFinite(sheetWidth)&&sheetWidth>=100?sheetWidth:2750,
+    sheetHeight:Number.isFinite(sheetHeight)&&sheetHeight>=100?sheetHeight:1850,
+    grainDirection:m.grainDirection==='width'?'width':'length',
     color:productionColor(m.color,'#d8c5a4'),
     coreColor:productionColor(m.coreColor,'#c6a77b'),
     grain:!!m.grain
@@ -250,7 +253,7 @@ function applySpaceMaterialToExistingPieces(root,material){
 }
 function spaceMaterialText(rootOrId){
   const m=spaceDefaultMaterial(rootOrId);
-  return m?`${m.name}${m.code?` · ${m.code}`:''} · ${nice(m.thickness)} mm${m.grain?' · veio':''}`:'Sem material padrão';
+  return m?`${m.name}${m.code?` · ${m.code}`:''} · ${nice(m.thickness)} mm · chapa ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)}${m.grain?` · veio no ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`:'Sem material padrão';
 }
 
 
@@ -358,7 +361,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.80: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.81: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -586,7 +589,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.80: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.81: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; toque e segure o espaço para abrir as opções.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -646,7 +649,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.80: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.81: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;

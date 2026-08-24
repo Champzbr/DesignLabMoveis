@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.80 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.81 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -175,16 +175,16 @@ function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
   for(const p of raw){const mat=normalizedLayer(p.material||'MDF')||'MDF',key=`${mat}_${layerNum(p.thickness)}mm`;if(!byMaterial.has(key))byMaterial.set(key,[]);byMaterial.get(key).push(p);}
   const groups=[];
   for(const [key,baseParts] of byMaterial.entries()){
-    const parts=cutPlanAssignCodes(baseParts);let sheets;
-    if(cfg.cutMode==='panel')sheets=packPartsIntoSheetsPanelSaw(parts,cfg);
-    else if(cfg.cutMode==='cnc')sheets=packPartsIntoSheetsCnc(parts,cfg);
-    else sheets=cutPlanPackOpen(parts,cfg);
+    const parts=cutPlanAssignCodes(baseParts),groupCfg=sheetPrefsForPartGroup(cfg,baseParts);let sheets;
+    if(groupCfg.cutMode==='panel')sheets=packPartsIntoSheetsPanelSaw(parts,groupCfg);
+    else if(groupCfg.cutMode==='cnc')sheets=packPartsIntoSheetsCnc(parts,groupCfg);
+    else sheets=cutPlanPackOpen(parts,groupCfg);
     sheets.forEach((s,i)=>{
-      const stats=cutPlanSheetStats(s,cfg),first=s.placements[0];
-      const preview=buildAspireSheetEntities(s.placements,cfg,s.cuts||[]);
+      const stats=cutPlanSheetStats(s,groupCfg),first=s.placements[0];
+      const preview=buildAspireSheetEntities(s.placements,groupCfg,s.cuts||[]);
       groups.push({
         key,displayName:`${first?.materialCode||first?.material||'Material'} · ${nice(first?.thickness||0)} mm`,
-        sheetNo:i+1,totalSheets:sheets.length,parts:s.placements,panelCuts:s.cuts||[],freeRects:s.freeRects||[],stats,cfg:{...cfg},planMode:cfg.cutMode,
+        sheetNo:i+1,totalSheets:sheets.length,parts:s.placements,panelCuts:s.cuts||[],freeRects:s.freeRects||[],stats,cfg:{...groupCfg},planMode:groupCfg.cutMode,
         previewEntities:preview.entities,circleCount:preview.circleCount,expectedFaceHoles:preview.expectedFaceHoles
       });
     });
@@ -202,16 +202,17 @@ function renderPartsList(){
   try{
     const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;
     const allParts=groups.flatMap(g=>g.parts),spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
-    const totalArea=allParts.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),usableSheetArea=Math.max(1,(cfg.width-2*cfg.margin)*(cfg.height-2*cfg.margin)),sheetArea=groups.length*usableSheetArea,totalEff=sheetArea?totalArea/sheetArea*100:0,totalCut=groups.reduce((n,g)=>n+g.stats.cutLength,0);
-    const reusable=groups.reduce((n,g)=>n+g.stats.reusable.length,0);
-    summary.innerHTML=`<div class="cutPlanSummaryGrid"><span><b>${allParts.length}</b><small>peças</small></span><span><b>${groups.length}</b><small>chapas</small></span><span><b>${nice(totalEff)}%</b><small>aproveitamento</small></span><span><b>${nice(totalCut/1000)} m</b><small>corte estimado</small></span></div><div class="cutPlanSummaryText"><strong>${escapeHtml(cutPlanModeLabel(cfg))}</strong> · chapa ${nice(cfg.width)} × ${nice(cfg.height)} mm · refilo ${nice(cfg.margin)} mm · corte ${nice(cfg.gap)} mm · ${reusable} sobra(s) útil(eis) · ${spaces.length} espaço(s)</div>`;
+    const totalArea=allParts.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),sheetArea=groups.reduce((n,g)=>n+Math.max(1,(g.cfg.width-2*g.cfg.margin)*(g.cfg.height-2*g.cfg.margin)),0),totalEff=sheetArea?totalArea/sheetArea*100:0,totalCut=groups.reduce((n,g)=>n+g.stats.cutLength,0);
+    const reusable=groups.reduce((n,g)=>n+g.stats.reusable.length,0),sheetSizes=[...new Set(groups.map(g=>`${nice(g.cfg.width)} × ${nice(g.cfg.height)}`))];
+    const sheetText=sheetSizes.length===1?`chapa ${sheetSizes[0]} mm`:`${sheetSizes.length} tamanhos de chapa conforme o material`;
+    summary.innerHTML=`<div class="cutPlanSummaryGrid"><span><b>${allParts.length}</b><small>peças</small></span><span><b>${groups.length}</b><small>chapas</small></span><span><b>${nice(totalEff)}%</b><small>aproveitamento</small></span><span><b>${nice(totalCut/1000)} m</b><small>corte estimado</small></span></div><div class="cutPlanSummaryText"><strong>${escapeHtml(cutPlanModeLabel(cfg))}</strong> · ${sheetText} · refilo ${nice(cfg.margin)} mm · corte ${nice(cfg.gap)} mm · ${reusable} sobra(s) útil(eis) · ${spaces.length} espaço(s)</div>`;
 
     const byKey=new Map();
     groups.forEach((g,gi)=>{if(!byKey.has(g.key))byKey.set(g.key,{name:g.displayName,sheets:[],parts:[]});const d=byKey.get(g.key);d.sheets.push({g,gi});d.parts.push(...g.parts);});
     for(const [key,data] of byKey.entries()){
       const box=document.createElement('div');box.className='partsGroup';
       const eff=data.sheets.reduce((n,x)=>n+x.g.stats.efficiency,0)/Math.max(1,data.sheets.length);
-      const head=document.createElement('div');head.className='partsGroupHead';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(eff)}%</span>`;box.appendChild(head);
+      const head=document.createElement('div');head.className='partsGroupHead';const firstCfg=data.sheets[0]?.g?.cfg||cfg;head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(firstCfg.width)}×${nice(firstCfg.height)} · ${nice(eff)}%</span>`;box.appendChild(head);
       for(const p of cutPlanGroupRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
@@ -259,9 +260,18 @@ function cutPlanDrawWaste(ctx,g,cfg,sx,sy,scale){
     ctx.restore();
   }
 }
-function cutPlanDrawGrain(ctx,p,b,sx,sy,scale){
-  if(!p.materialGrain)return;const x1=sx(b.x+b.w*.18),x2=sx(b.x+b.w*.82),y=sy(b.y+b.h*.18);if(Math.abs(x2-x1)<24)return;
-  ctx.save();ctx.strokeStyle='rgba(112,83,39,.55)';ctx.fillStyle='rgba(112,83,39,.75)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y);ctx.lineTo(x2-5,y-3);ctx.lineTo(x2-5,y+3);ctx.closePath();ctx.fill();ctx.restore();
+function cutPlanDrawGrain(ctx,p,b,cfg,sx,sy,scale){
+  if(!p.materialGrain)return;
+  const alongWidth=(cfg.grainDirection||'length')==='width';
+  ctx.save();ctx.strokeStyle='rgba(112,83,39,.55)';ctx.fillStyle='rgba(112,83,39,.75)';ctx.lineWidth=1;ctx.beginPath();
+  if(alongWidth){
+    const x=sx(b.x+b.w*.18),y1=sy(b.y+b.h*.18),y2=sy(b.y+b.h*.82);if(Math.abs(y2-y1)<24){ctx.restore();return;}
+    ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y2);ctx.lineTo(x-3,y2+5);ctx.lineTo(x+3,y2+5);
+  }else{
+    const x1=sx(b.x+b.w*.18),x2=sx(b.x+b.w*.82),y=sy(b.y+b.h*.18);if(Math.abs(x2-x1)<24){ctx.restore();return;}
+    ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y);ctx.lineTo(x2-5,y-3);ctx.lineTo(x2-5,y+3);
+  }
+  ctx.closePath();ctx.fill();ctx.restore();
 }
 function cutPlanDrawMachining(ctx,g,sx,sy,scale){
   if(!$('sheetPreviewMachining')?.checked)return;
@@ -336,7 +346,7 @@ function sheetPreviewDraw(){
     if(outline?.length){
       ctx.beginPath();outline.forEach((pt,i)=>{const px=sx(pt[0]),py=sy(pt[1]);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)});ctx.closePath();ctx.fill();ctx.stroke();
     }else{ctx.fillRect(rx,ry,rw,rh);ctx.strokeRect(rx,ry,rw,rh);}
-    cutPlanDrawGrain(ctx,p,b,sx,sy,scale);
+    cutPlanDrawGrain(ctx,p,b,cfg,sx,sy,scale);
     if($('sheetPreviewLabels')?.checked){
       const codeFs=Math.max(10,Math.min(30,Math.min(rw*.26,rh*.34)));ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#25282a';ctx.font=`900 ${codeFs}px system-ui,sans-serif`;if(rw>24&&rh>20)ctx.fillText(String(p.cutCode||'?'),rx+rw/2,ry+rh/2-(rh>58?5:0));
       if(rw>82&&rh>52){ctx.font='700 8px system-ui,sans-serif';ctx.fillStyle='#5e6569';ctx.fillText(`${nice(p.faceW)} × ${nice(p.faceH)}`,rx+rw/2,ry+rh/2+codeFs*.65);}
@@ -360,6 +370,7 @@ $('closePartsList').onclick=()=>{$('partsListDialog').style.display='none';};
 $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsListDialog'))$('partsListDialog').style.display='none';});
 ['sheetWidth','sheetHeight','sheetMargin','sheetGap','sheetKeepLength','sheetKeepWidth'].forEach(id=>$(id).addEventListener('input',renderPartsList));
 $('sheetGrain').addEventListener('change',renderPartsList);
+$('sheetGrainDirection').addEventListener('change',renderPartsList);
 $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPartsList();});
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
