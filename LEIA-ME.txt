@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.57 — IMPORTAR DXF NA BIBLIOTECA
+DESIGNLABMOVEIS 1.100.58 — IMPORTAR DXF NA BIBLIOTECA
 
 - Minha Biblioteca agora importa arquivos DXF.
 - Administrador também pode importar DXF direto para uma pasta da Biblioteca global.
@@ -23,7 +23,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.57.js no Worker.
+3. Publique cloudflare/worker-1.100.58.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.

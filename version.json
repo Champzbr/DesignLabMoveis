@@ -1,6 +1,6 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.57",
+  "version": "1.100.58",
   "required": false,
   "message": "Tela inicial agora tem botão para baixar o APK do DesignLabMoveis no Android.",
   "released_at": "2026-08-24T11:25:00-03:00"
