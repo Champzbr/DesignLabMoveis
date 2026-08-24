@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.73",
+  "version": "1.100.74",
   "required": false,
-  "message": "Correção da Biblioteca STL: móveis curvos agora são reconstruídos como curvas, capas e montantes reais, e não como caixas retangulares.",
-  "released_at": "2026-08-24T16:22:00-03:00"
+  "message": "Correção dos montantes finais do móvel curvo ao inserir/importar STL: distância 0 mm volta a ficar realmente rente às duas extremidades.",
+  "released_at": "2026-08-24T16:38:00-03:00"
 }
