@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.65",
+  "version": "1.100.66",
   "required": false,
-  "message": "Móvel curvo: comprimento da entrada de fresa agora aceita 0,5 mm e não é mais forçado pelo diâmetro da fresa, permitindo alívio bem curto.",
-  "released_at": "2026-08-24T14:47:00-03:00"
+  "message": "Biblioteca: importação DXF ampliada para modelos antigos com 3DFACE, LINE, 3D POLYLINE, SOLID e contornos 2D; arquivos sem 3DFACE não são mais rejeitados automaticamente.",
+  "released_at": "2026-08-24T15:06:00-03:00"
 }
