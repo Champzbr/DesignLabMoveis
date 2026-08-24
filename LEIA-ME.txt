@@ -1,8 +1,37 @@
-DESIGNLABMOVEIS 1.100.49 — USINAGENS VISÍVEIS NO PLANO DE CORTE
+DESIGNLABMOVEIS 1.100.51 — SALVAR CONFIGURAÇÃO DE PORTAS
+
+NOVO EM 1.100.51
+- Em Criar peças > Portas há o botão “💾 Salvar configuração” ao lado de Cancelar.
+- Salva quantidade de portas, todos os vãos, tipo/tamanho de puxador ou cava e posição da cava.
+- Salva toda a furação das dobradiças: quantidade, lado, copo, profundidade, afastamentos e furação da lateral/divisão.
+- O padrão salvo é carregado automaticamente nas próximas criações de portas neste dispositivo.
+- A espessura continua usando o padrão já salvo do espaço, sem alterar as demais peças.
+
+Base: 1.100.49.
+
+NOVO EM 1.100.51
+- Ao abrir Configuração da peça com 3 cliques/toques em uma porta, aparece a seção “Dobradiça da porta”.
+- Há duas opções: “Dobradiça lado esquerdo” e “Dobradiça lado direito”.
+- A seção aparece somente em peças reconhecidas como porta paramétrica (doorConfig).
+- Ao trocar o lado, o sistema remove a aplicação automática anterior e recria os copos Ø35/furação configurada no lado escolhido.
+- Se a furação da lateral/divisão estiver habilitada, os furos correspondentes também são removidos do lado antigo e recriados no lado novo.
+- A quantidade, diâmetro, profundidade, afastamentos e demais configurações da porta são preservados.
+- O botão do lado atual fica destacado no menu.
+
+MANTIDO
+- Plano de corte com usinagens da 1.100.49.
+- Portas paramétricas, cava/puxador e quantidade de portas.
+- Ferragens vinculadas e limpeza automática.
+- Espaços, painel administrativo, DXF e Aspire.
+
+------------------------------------------------------------
+HISTÓRICO DA BASE
+
+DESIGNLABMOVEIS 1.100.51 — USINAGENS VISÍVEIS NO PLANO DE CORTE
 
 Base: 1.100.48.
 
-CORRIGIDO EM 1.100.49
+CORRIGIDO EM 1.100.51
 - O plano de corte agora desenha as usinagens reais de cada peça.
 - Furos da face A aparecem em rosa; furos da face B aparecem em roxo tracejado.
 - Rasgos/canais aparecem em azul/ciano.
@@ -21,11 +50,11 @@ MANTIDO
 - Painel administrativo, DXF, Aspire e demais recursos anteriores.
 
 HISTÓRICO DA BASE 1.100.48
-DESIGNLABMOVEIS 1.100.49 — PORTAS PARAMÉTRICAS + DOBRADIÇAS
+DESIGNLABMOVEIS 1.100.51 — PORTAS PARAMÉTRICAS + DOBRADIÇAS
 
 Base: 1.100.47.
 
-NOVO EM 1.100.49
+NOVO EM 1.100.51
 - Em Criar peças > Portas agora é possível escolher de 1 a 12 portas.
 - O vão do meio passa a ser aplicado entre todas as portas.
 - Opção de puxador: sem puxador, puxador externo ou cava/perfil.

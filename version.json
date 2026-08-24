@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.49",
+  "version": "1.100.51",
   "required": false,
-  "message": "Plano de corte corrigido: furos, rasgos, encaixes e furos de borda agora aparecem na visualização e no detalhe de cada peça.",
-  "released_at": "2026-08-24T09:08:00-03:00"
+  "message": "Criação de portas: botão Salvar configuração guarda quantidade, vãos, puxador/cava e toda a furação de dobradiças para reutilizar nas próximas portas.",
+  "released_at": "2026-08-24T09:24:00-03:00"
 }
