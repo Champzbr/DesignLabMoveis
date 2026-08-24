@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.70 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.71 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -133,7 +133,7 @@
   }
 
 
-  /* 1.100.70 · segurar para abrir / confirmação de duplicação */
+  /* 1.100.71 · segurar para abrir / confirmação de duplicação */
   .pieceDeleteRow{
     margin-top:8px;padding-top:8px;border-top:1px solid #373c3f;
   }
@@ -673,7 +673,7 @@
 
 
 
-  /* ==========================================================================\n     1.100.70 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  /* ==========================================================================\n     1.100.71 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
   #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
   .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
   .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
@@ -1149,7 +1149,7 @@
   .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
 
 
-  /* 1.100.70 · Painel administrativo restaurado no layout inicial */
+  /* 1.100.71 · Painel administrativo restaurado no layout inicial */
   #homeAdminPanel,#menuAdminPanel{display:none}
   #homeAdminPanel.show,#menuAdminPanel.show{display:block}
   #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
@@ -1362,7 +1362,7 @@
   }
 
   /* ==========================================================================
-     1.100.70 · HOME OPÇÃO 1
+     1.100.71 · HOME OPÇÃO 1
      Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
      Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
      ========================================================================== */
@@ -1775,7 +1775,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.70</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.71</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1869,7 +1869,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.70</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.71</span>
         </div>
       </div>
 
@@ -2216,7 +2216,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.70 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.71 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2872,7 +2872,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
       </div>
-      <span class="cutPlanBadge">1.100.70</span>
+      <span class="cutPlanBadge">1.100.71</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -3541,12 +3541,12 @@
     <div id="libraryList"></div>
     <div class="dialogActions">
       <button id="saveFurnitureLibraryBtn" class="secondary" style="display:none">Salvar móvel nesta pasta</button>
-      <button id="importLibraryBtn" class="secondary" style="display:none">Importar DXF nesta pasta</button>
+      <button id="importLibraryBtn" class="secondary" style="display:none">Importar STL nesta pasta</button>
       <button id="closeLibrary" class="secondary">Fechar</button>
     </div>
   </div>
 </div>
-<input id="libraryImportFile" type="file" accept=".dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
+<input id="libraryImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
 <div id="newPanelDialog">
   <div class="card">
@@ -3569,7 +3569,7 @@
   </div>
 </div>
 <input id="importFile" type="file" accept="application/json,.json" hidden>
-<input id="furnitureImportFile" type="file" accept=".dxf,image/vnd.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
+<input id="furnitureImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,image/vnd.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
 <div id="toolDock" aria-label="Painel flutuante de ferramentas">
   <div id="toolDockHeader">
@@ -4098,7 +4098,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.70';
+const DESIGNLAB_APP_VERSION='1.100.71';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4883,7 +4883,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.70 · HOME OPÇÃO 1
+// 1.100.71 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -5104,7 +5104,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.70`:'DesignLabMoveis 1.100.70';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.71`:'DesignLabMoveis 1.100.71';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -5309,7 +5309,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.70'
+    thumbnail:null,appVersion:'1.100.71'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -5332,7 +5332,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.70'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.71'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -5362,7 +5362,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.70'
+    thumbnail:thumb,appVersion:'1.100.71'
   };
   await projectDbPut(next);
   if(original){
@@ -5430,7 +5430,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.70',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.71',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -5464,7 +5464,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.70'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.71'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -5525,7 +5525,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.70'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.71'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5597,7 +5597,7 @@ const TOOL_DOCK_CATALOG=[
   {group:'Espaço / Móvel',key:'toggleSpace',label:'◫ Ocultar divisão',desc:'Ocultar a divisão selecionada'},
   {group:'Espaço / Móvel',key:'toggleDoors',label:'▥ Ocultar / mostrar portas',desc:'Alternar visibilidade das portas'},
   {group:'Espaço / Móvel',key:'showHiddenSpaces',label:'◩ Mostrar divisões ocultas',desc:'Reexibir todas as divisões ocultas'},
-  {group:'Espaço / Móvel',key:'exportFurniture',label:'⇩ Exportar móvel',desc:'Exportar o móvel selecionado'},
+  {group:'Espaço / Móvel',key:'exportFurniture',label:'⇩ Exportar móvel STL',desc:'Exportar o modelo 3D completo em STL'},
   {group:'Espaço / Móvel',key:'aspireFurniture',label:'DXF Aspire · móvel',desc:'Gerar Aspire ZIP do móvel selecionado'},
   {group:'Espaço / Móvel',key:'aspireProject',label:'DXF Aspire · projeto',desc:'Gerar todas as chapas do projeto inteiro'},
   {group:'Espaço / Móvel',key:'deleteSpace',label:'🗑 Excluir espaço',desc:'Excluir o móvel/espaço selecionado'},
@@ -5851,8 +5851,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.70 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.70 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
+// 1.100.71 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.71 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // no aparelho mesmo depois de fechar/reabrir o app.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -5932,7 +5932,7 @@ function initSpaceActionsDrag(){
 }
 
 // ============================================================================
-// 1.100.70 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// 1.100.71 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
 // ============================================================================
 const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
 function clampPieceInspectorPosition(left,top){
@@ -7046,7 +7046,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.70: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.71: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -7274,7 +7274,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.70: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.71: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; para abrir, o usuário precisa dar dois toques no espaço.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -7334,7 +7334,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.70: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.71: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;
@@ -8499,7 +8499,7 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.70: um clique apenas seleciona.
+    // 1.100.71: um clique apenas seleciona.
     // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
@@ -8548,7 +8548,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.70: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.71: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -9355,7 +9355,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.70', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.71', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -10158,7 +10158,7 @@ function axisVector(axis){
 // O duplo clique tem um pequeno atraso para que o gesto de segurar tenha
 // prioridade quando o segundo toque permanece pressionado.
 //
-// 1.100.70 · As DIVISÕES do espaço têm gesto próprio: um clique somente
+// 1.100.71 · As DIVISÕES do espaço têm gesto próprio: um clique somente
 // seleciona; dois cliques abrem a janela flutuante Espaço/Divisão. Isso evita
 // que a janela apareça no meio de cada seleção enquanto o usuário navega pelos
 // cortes internos do móvel.
@@ -10235,7 +10235,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.100.70 · segurar a peça abre a configuração (mouse e touch).
+// 1.100.71 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -10276,7 +10276,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.100.70: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.100.71: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -10291,7 +10291,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       const openMenu=registerSpaceDoubleTap(rootId,cellId);
-      // 1.100.70: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
+      // 1.100.71: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
       // seleciona e fecha a janela; somente o segundo toque no mesmo alvo abre.
       selectSpaceCellByIds(rootId,cellId,{showMenu:openMenu===true});
       dragMode=null; controls.enabled=true; return;
@@ -10859,7 +10859,7 @@ function pieceDivisionLayoutMm(widthM,thicknessM){
     message:ok?'':`Cada vão precisa ter pelo menos ${nice(minMm)} mm.`
   };
 }
-// ---------- 1.100.70 · Configuração salva de portas ----------
+// ---------- 1.100.71 · Configuração salva de portas ----------
 const DOOR_CREATE_CONFIG_KEY='designLabDoorCreateConfigV1';
 function captureDoorCreateConfig(){
   return {
@@ -10936,7 +10936,7 @@ function saveDoorCreateConfig(){
   }
 }
 
-// ---------- 1.100.70 · Portas paramétricas + dobradiças ----------
+// ---------- 1.100.71 · Portas paramétricas + dobradiças ----------
 function doorFieldNumber(id,fallback=0,min=-Infinity,max=Infinity){
   const n=parseDecimalInput($(id)?.value);
   const v=Number.isFinite(n)?n:fallback;
@@ -11044,7 +11044,7 @@ function appendDoorHingeDrilling(door,root,cfg,hingeSide){
   sanitizeMachiningForPiece(door);
   return {hinges,mountHoles,missingMount};
 }
-// 1.100.70 · inverter lado da dobradiça pelo menu de configuração da porta.
+// 1.100.71 · inverter lado da dobradiça pelo menu de configuração da porta.
 function doorInspectorRuntimeConfig(door){
   const h=door?.userData?.doorConfig?.hinge||{};
   const doorW=mm(door?.userData?.width||0),doorH=mm(door?.userData?.height||0);
@@ -12874,7 +12874,7 @@ function updateLibraryFolderUi(){
   $('saveFurnitureLibraryBtn').style.display=folder&&(!global||admin)?'inline-flex':'none';
   $('saveFurnitureLibraryBtn').textContent=global?'🌐 Publicar móvel para todos':'Salvar móvel nesta pasta';
   $('importLibraryBtn').style.display=(localFolder||(globalFolder&&admin))?'inline-flex':'none';
-  $('importLibraryBtn').textContent=global?'🌐 Importar DXF para todos':'Importar DXF nesta pasta';
+  $('importLibraryBtn').textContent=global?'🌐 Importar STL para todos':'Importar STL nesta pasta';
   $('libraryBreadcrumb').textContent=inside?`${global?'Biblioteca global':'Pastas'}  ›  ${builtin?'Padrões':folder.name}`:(global?'Biblioteca global':'Pastas');
   if($('libraryScopeHint'))$('libraryScopeHint').textContent=global
     ?(admin?'Global: você é administrador. Pode criar/apagar pastas e publicar/apagar modelos. Todos os usuários enxergam este conteúdo.':'Global: conteúdo oficial publicado pelo administrador. Você pode inserir e editar uma cópia no seu projeto.')
@@ -12962,7 +12962,7 @@ function renderLibrary(){
   }
   const folder=libraryFolderById(activeLibraryFolderId);if(!folder){activeLibraryFolderId=null;renderLibrary();return;}
   const items=customLibrary.filter(i=>i.folderId===folder.id);
-  if(!items.length){const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Pasta vazia. Salve o móvel atual ou importe um arquivo DXF para esta pasta.';list.appendChild(e);return;}
+  if(!items.length){const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Pasta vazia. Salve o móvel atual ou importe um arquivo STL para esta pasta.';list.appendChild(e);return;}
   for(const i of items)list.appendChild(libraryItemElement({id:i.id,name:i.name,info:i.layout?.space?'Móvel salvo · preserva cortes fixos':'Modelo salvo · ajusta ao espaço'},{custom:true}));
 }
 function openLibraryRoot(){activeLibraryFolderId=null;renderLibrary();$('libraryDialog').style.display='flex';}
@@ -13879,7 +13879,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.70 — ciclo de vida das ferragens.
+// 1.100.71 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
@@ -14475,7 +14475,7 @@ function designLabDxfPayloadComments(record){
   // 999 é comentário padrão do DXF e é ignorado por Aspire/AutoCAD.
   // Guardamos os dados completos do DesignLab para que o mesmo DXF possa
   // voltar à Biblioteca preservando peças, usinagens, portas, materiais e cortes.
-  // 1.100.70: além do bloco antigo, gravamos uma assinatura compacta extra
+  // 1.100.71: além do bloco antigo, gravamos uma assinatura compacta extra
   // para ficar mais resistente quando outro app muda a quebra de linha do DXF.
   const b64=designLabUtf8ToBase64(JSON.stringify(record));
   let out='999\r\nDESIGNLABMOVEIS_PAYLOAD_BEGIN\r\n';
@@ -14711,22 +14711,113 @@ function designLabFurnitureRecordFromImportedFile(text,fileName='modelo.dxf'){
   return {record:designLabFallbackRecordFromDxf(text,name),fallback:true,legacyJson:false};
 }
 async function importLibraryFile(file){
-  const text=await file.text(),parsed=designLabFurnitureRecordFromImportedFile(text,file.name);
-  const name=String(file.name||'Modelo').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.dxf$/i,'')||'Modelo';
+  const parsed=await designLabFurnitureRecordFromFile(file);
+  const name=String(file.name||'Modelo').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.(?:dxf|stl)$/i,'')||'Modelo';
   if(libraryScope==='global'){
     if(!adminAllowed())throw new Error('Somente o administrador pode importar modelos globais');
     const folder=globalLibraryFolderById(activeLibraryFolderId);if(!folder)throw new Error('Abra uma pasta global para importar');
     await cloudApiFetch('/admin/library/items',{method:'POST',body:{folder_id:folder.id,name,record:parsed.record},timeoutMs:30000});
     globalLibraryState.itemsByFolder.delete(folder.id);globalLibraryState.records.clear();
     await loadGlobalLibraryItems(folder.id,{force:true});await loadGlobalLibraryFolders({force:true});renderLibrary();
-    toast(parsed.fallback?(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D publicado como painéis planos · a montagem 3D original não existe no arquivo':'DXF antigo publicado por geometria · sem dados de usinagem que não existiam no arquivo'):'DXF publicado na Biblioteca global');
+    toast(parsed.stl?'STL DesignLab publicado na Biblioteca global':(parsed.fallback?(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D publicado como painéis planos · a montagem 3D original não existe no arquivo':'DXF antigo publicado por geometria · sem dados de usinagem que não existiam no arquivo'):'Modelo publicado na Biblioteca global'));
     return;
   }
   importLibraryTemplate(parsed.record,name,activeLibraryFolderId);
-  if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.100.70 para preservar curvas, usinagens e configurações');
+  if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.100.71 para preservar curvas, usinagens e configurações');
+  else if(parsed.stl)toast('STL DesignLab importado preservando curvas, peças e configurações');
   else if(!parsed.legacyJson)toast('DXF DesignLab importado com peças, curvas e configurações preservadas');
 }
 
+// ---------- 1.100.71 · STL do modelo 3D completo ----------
+// O modelo montado usa STL binário para preservar exatamente a malha 3D (inclusive curvas).
+// Aspire/plano de corte/usinagem permanecem exclusivamente no fluxo DXF existente.
+const DESIGNLAB_STL_PAYLOAD_BEGIN='DESIGNLABMOVEIS_STL_PAYLOAD_BEGIN';
+const DESIGNLAB_STL_PAYLOAD_END='DESIGNLABMOVEIS_STL_PAYLOAD_END';
+function designLabStlTrailer(record){
+  const b64=designLabUtf8ToBase64(JSON.stringify(record));
+  return `\n${DESIGNLAB_STL_PAYLOAD_BEGIN}\n${b64}\n${DESIGNLAB_STL_PAYLOAD_END}\n`;
+}
+function designLabRecordFromStlBuffer(buffer){
+  if(!(buffer instanceof ArrayBuffer)||buffer.byteLength<84)throw new Error('STL inválido ou vazio');
+  const view=new DataView(buffer),triangles=view.getUint32(80,true),meshBytes=84+triangles*50;
+  if(!Number.isFinite(triangles)||triangles<1||meshBytes>buffer.byteLength)throw new Error('STL binário inválido');
+  if(meshBytes===buffer.byteLength)return null;
+  const trailer=new TextDecoder().decode(new Uint8Array(buffer,meshBytes));
+  const a=trailer.indexOf(DESIGNLAB_STL_PAYLOAD_BEGIN),b=trailer.indexOf(DESIGNLAB_STL_PAYLOAD_END);
+  if(a<0||b<=a)return null;
+  const payload=trailer.slice(a+DESIGNLAB_STL_PAYLOAD_BEGIN.length,b).replace(/\s+/g,'');
+  if(!payload)return null;
+  const data=JSON.parse(designLabBase64ToUtf8(payload));
+  if(!data||!Array.isArray(data.objects)||!data.objects.length||!Array.isArray(data.spaces)||!data.spaces.length)throw new Error('STL contém dados DesignLab inválidos');
+  return data;
+}
+function furnitureModelTriangleCount(meshes){
+  let count=0;
+  for(const mesh of meshes){
+    const geom=mesh.geometry,pos=geom?.getAttribute?.('position'),idx=geom?.index;
+    if(!pos)continue;
+    count+=Math.floor((idx?idx.count:pos.count)/3);
+  }
+  return count;
+}
+function buildFurnitureModelStl(root){
+  const meshes=furnitureModelMeshes(root);
+  if(!meshes.length)throw new Error('Este móvel não possui geometria para exportar');
+  scene.updateMatrixWorld(true);
+  const triangleCount=furnitureModelTriangleCount(meshes);
+  if(!triangleCount)throw new Error('A geometria do móvel não possui triângulos');
+  const min={x:Infinity,y:Infinity,z:Infinity};
+  const tmp=new THREE.Vector3();
+  for(const mesh of meshes){
+    mesh.updateWorldMatrix(true,false);
+    const pos=mesh.geometry.getAttribute('position');
+    for(let i=0;i<pos.count;i++){
+      tmp.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);
+      if(tmp.x<min.x)min.x=tmp.x;
+      if(tmp.z<min.y)min.y=tmp.z;
+      if(tmp.y<min.z)min.z=tmp.y;
+    }
+  }
+  if(![min.x,min.y,min.z].every(Number.isFinite))throw new Error('Não foi possível calcular a geometria STL');
+  const buffer=new ArrayBuffer(84+triangleCount*50),view=new DataView(buffer),header=new Uint8Array(buffer,0,80);
+  const headerText=new TextEncoder().encode('DesignLabMoveis 1.100.71 STL 3D | metadata after triangles');
+  header.set(headerText.subarray(0,80));
+  view.setUint32(80,triangleCount,true);
+  let off=84,written=0;
+  const va=new THREE.Vector3(),vb=new THREE.Vector3(),vc=new THREE.Vector3(),ab=new THREE.Vector3(),ac=new THREE.Vector3(),n=new THREE.Vector3();
+  const toMm=(v)=>({x:(v.x-min.x)*1000,y:(v.z-min.y)*1000,z:(v.y-min.z)*1000});
+  const writeV=(p)=>{view.setFloat32(off,p.x,true);off+=4;view.setFloat32(off,p.y,true);off+=4;view.setFloat32(off,p.z,true);off+=4;};
+  const writeTri=(a,b,c)=>{
+    ab.subVectors(b,a);ac.subVectors(c,a);n.crossVectors(ab,ac).normalize();
+    // normal também precisa acompanhar o mapeamento Three(X,Y,Z) -> STL(X,Z,Y).
+    view.setFloat32(off,n.x,true);off+=4;view.setFloat32(off,n.z,true);off+=4;view.setFloat32(off,n.y,true);off+=4;
+    writeV(toMm(a));writeV(toMm(c));writeV(toMm(b));view.setUint16(off,0,true);off+=2;written++;
+  };
+  for(const mesh of meshes){
+    const geom=mesh.geometry,pos=geom.getAttribute('position'),idx=geom.index;
+    const getVertex=(vertex,out)=>out.fromBufferAttribute(pos,vertex).applyMatrix4(mesh.matrixWorld);
+    if(idx){
+      for(let i=0;i+2<idx.count;i+=3){getVertex(idx.getX(i),va);getVertex(idx.getX(i+1),vb);getVertex(idx.getX(i+2),vc);writeTri(va,vb,vc);}
+    }else{
+      for(let i=0;i+2<pos.count;i+=3){getVertex(i,va);getVertex(i+1,vb);getVertex(i+2,vc);writeTri(va,vb,vc);}
+    }
+  }
+  if(written!==triangleCount)throw new Error('Falha ao finalizar a malha STL');
+  const trailer=new TextEncoder().encode(designLabStlTrailer(captureFurniture(root)));
+  const out=new Uint8Array(buffer.byteLength+trailer.byteLength);out.set(new Uint8Array(buffer),0);out.set(trailer,buffer.byteLength);
+  return {bytes:out,pieces:meshes.length,triangles:triangleCount};
+}
+async function designLabFurnitureRecordFromFile(file){
+  const lower=String(file?.name||'').toLowerCase();
+  if(lower.endsWith('.stl')){
+    const buffer=await file.arrayBuffer();
+    const record=designLabRecordFromStlBuffer(buffer);
+    if(!record)throw new Error('Este STL não possui os dados internos do DesignLab. Ele pode ser aberto em visualizadores 3D, mas para voltar editável ao DesignLab exporte o móvel pelo próprio DesignLab.');
+    return {record,fallback:false,legacyJson:false,stl:true};
+  }
+  const text=await file.text();
+  return {...designLabFurnitureRecordFromImportedFile(text,file.name),stl:false};
+}
 function dxfModelFace(layer,a,b,c){
   const p=(code,v)=>`${code}\r\n${dxfModelNumber(v)}\r\n`;
   return `0\r\n3DFACE\r\n8\r\n${layer}\r\n`+
@@ -14802,24 +14893,19 @@ function buildFurnitureModelDxf(root){
 }
 async function exportSelectedFurniture(){
   const root=selectedFurnitureRoot(); if(!root){toast('Selecione um espaço do móvel');return;}
-  const filename=`${safeFileName(root.name,'movel')}.dxf`;
+  const filename=`${safeFileName(root.name,'movel')}.stl`;
   try{
-    // 1.100.70: gera e valida o conteúdo ANTES de abrir o seletor de salvamento.
-    // Assim o Android nunca recebe um arquivo criado com 0 KB por uma geração interrompida.
-    const model=buildFurnitureModelDxf(root);
-    if(!model?.text||model.text.length<100||!model.text.includes('ENTITIES')||!model.text.trimEnd().endsWith('EOF')){
-      throw new Error('O DXF não foi gerado corretamente; nada foi salvo.');
-    }
-    const bytes=new TextEncoder().encode(model.text);
-    if(!bytes.byteLength)throw new Error('O DXF gerado ficou vazio; nada foi salvo.');
-    const blob=new Blob([bytes],{type:'application/octet-stream'});
-    const target=await pickExportTarget(filename,'designlab-export-movel-dxf','application/octet-stream');
+    // STL preserva a malha 3D real do móvel. DXF continua reservado ao Aspire/CNC.
+    const model=buildFurnitureModelStl(root);
+    if(!model?.bytes?.byteLength||model.bytes.byteLength<84)throw new Error('O STL foi gerado vazio');
+    const blob=new Blob([model.bytes],{type:'model/stl'});
+    const target=await pickExportTarget(filename,'designlab-export-movel-stl','model/stl');
     const saveResult=await writeExportTarget(target,blob,filename);
     const kb=Math.max(1,Math.round(blob.size/1024));
-    toast(`Modelo DXF salvo · ${kb} KB · ${model.pieces} peça(s) · ${model.faces} face(s) 3D · ${saveResult.locationLabel}`);
+    toast(`Modelo STL salvo · ${kb} KB · ${model.pieces} peça(s) · ${model.triangles} triângulo(s) · ${saveResult.locationLabel}`);
   }catch(err){
     if(isExportPickerCancel(err)){toast('Exportação cancelada');return;}
-    toast(err.message||'Não foi possível exportar o modelo em DXF');
+    toast(err.message||'Não foi possível exportar o modelo em STL');
   }
 }
 function projectMaxX(){
@@ -15683,7 +15769,7 @@ function repackCncSheetCenterOut(source,cfg){
   return assignCncCutOrder(finalSheet,cfg);
 }
 
-// ---------- 1.100.70 · CNC por contorno real ----------
+// ---------- 1.100.71 · CNC por contorno real ----------
 // Depois do MaxRects, tenta retirar peças das últimas chapas e encaixá-las nos
 // vazios reais de peças curvas/paramétricas. Retângulos continuam sendo usados
 // como primeira passada (rápida); esta segunda passada só aceita posições onde
@@ -16373,7 +16459,7 @@ function downloadExportFallback(blob,filename){
 async function shareExportFallback(blob,filename){
   if(typeof navigator.share!=='function'||typeof File!=='function')return null;
   const leaf=exportLeafName(filename||'arquivo');
-  // 1.100.70: recria o anexo com bytes concretos. Alguns Android/WhatsApp
+  // 1.100.71: recria o anexo com bytes concretos. Alguns Android/WhatsApp
   // tratavam o Blob application/dxf como documento vazio.
   const buffer=await blob.arrayBuffer();
   if(!buffer.byteLength)throw new Error('O arquivo a compartilhar está vazio.');
@@ -16421,7 +16507,7 @@ async function writeExportTarget(target,blob,filename='arquivo'){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.70 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.71 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -16436,7 +16522,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.70 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.71 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -16975,7 +17061,7 @@ $('productionClearBands').onclick=productionClearSelectedBands;
 
 
 // ============================================================================
-// 1.100.70 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.71 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -17640,10 +17726,11 @@ $('importFurnitureBtn').onclick=()=>{ $('morePanel').style.display='none'; $('fu
 $('furnitureImportFile').addEventListener('change',async e=>{
   const file=e.target.files?.[0]; if(!file)return;
   try{
-    const raw=await file.text();
-    const parsed=designLabFurnitureRecordFromImportedFile(raw,file.name);
+    const parsed=await designLabFurnitureRecordFromFile(file);
     importFurnitureData(parsed.record);
-    if(parsed.fallback){
+    if(parsed.stl){
+      toast('STL DesignLab importado preservando a geometria curva e as configurações do móvel.');
+    }else if(parsed.fallback){
       toast(parsed.record?.dxfFallbackMode==='2d'
         ?'DXF 2D importado como painéis planos; a montagem 3D original não existe no arquivo.'
         :'DXF sem dados internos do DesignLab: importado pela geometria disponível.');

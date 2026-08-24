@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.70",
+  "version": "1.100.71",
   "required": false,
-  "message": "DXF validado antes do salvamento, gravação Android conferida contra 0 KB e Importar móvel aceita DXF preservando curvas/configurações.",
-  "released_at": "2026-08-24T15:50:00-03:00"
+  "message": "Exportar/Importar móvel agora usa STL 3D para preservar curvas. Aspire, plano de corte e usinagens continuam em DXF.",
+  "released_at": "2026-08-24T16:01:00-03:00"
 }
