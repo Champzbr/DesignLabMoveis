@@ -1,4 +1,11 @@
-DESIGNLABMOVEIS 1.100.75 — ETIQUETAS DAS PEÇAS ESTILO OPENCUTLIST
+DESIGNLABMOVEIS 1.100.76 — NÃO PRODUZIR PEÇA
+
+Ao tocar/segurar uma peça e abrir Configuração da peça, existe a opção “Não produzir peça”.
+A peça continua visível e editável no projeto/3D, mas é removida do Plano de corte, Aspire/CNC, lista de produção e etiquetas.
+A escolha fica salva junto com o projeto, exportação/importação e Biblioteca.
+Não exige SQL nem alteração de banco.
+
+DESIGNLABMOVEIS 1.100.76 — ETIQUETAS DAS PEÇAS ESTILO OPENCUTLIST
 
 - Nova tela "Etiquetas das peças" acessível pelo menu Mais, painel de ferramentas e Materiais / fitas.
 - Código A/B/C acompanha o mesmo agrupamento de peças usado no plano de corte.
@@ -13,7 +20,7 @@ DESIGNLABMOVEIS 1.100.75 — ETIQUETAS DAS PEÇAS ESTILO OPENCUTLIST
 - Preferências das etiquetas ficam salvas no aparelho.
 - Sem alteração no banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.75 — MONTANTES FINAIS DO MÓVEL CURVO
+DESIGNLABMOVEIS 1.100.76 — MONTANTES FINAIS DO MÓVEL CURVO
 
 - Ao inserir um móvel curvo pela Biblioteca/STL, os montantes verticais não usam mais a caixa retangular rotacionada para calcular posição.
 - Distância lado A = 0 mm e lado B = 0 mm deixam a borda do montante realmente rente à extremidade correspondente.
@@ -21,7 +28,7 @@ DESIGNLABMOVEIS 1.100.75 — MONTANTES FINAIS DO MÓVEL CURVO
 - A mesma regra vale para estrutura inteira e estrutura em 2 partes.
 - Novos modelos guardam também o índice estrutural do montante para reconstrução mais exata.
 
-DESIGNLABMOVEIS 1.100.75 — CORREÇÃO STL CURVO NA BIBLIOTECA
+DESIGNLABMOVEIS 1.100.76 — CORREÇÃO STL CURVO NA BIBLIOTECA
 
 - Corrige o caso em que um móvel curvo exportado em STL era salvo na Biblioteca e voltava quadrado ao ser inserido.
 - A Biblioteca local e a Biblioteca global agora recriam nervuras curvas, capa externa e montantes curvos com as configurações originais.
@@ -29,7 +36,7 @@ DESIGNLABMOVEIS 1.100.75 — CORREÇÃO STL CURVO NA BIBLIOTECA
 - Importação direta de móvel também remapeia corretamente os IDs do espaço/divisão nas configurações curvas.
 - Aspire, plano de corte e usinagem continuam em DXF.
 
-DESIGNLABMOVEIS 1.100.75 — MODELO STL / ASPIRE DXF
+DESIGNLABMOVEIS 1.100.76 — MODELO STL / ASPIRE DXF
 
 - Exportar móvel agora gera STL binário 3D com a malha real, preservando curvas e formas.
 - O STL do DesignLab leva os dados internos do móvel após a malha para poder voltar editável ao importar.
@@ -37,7 +44,7 @@ DESIGNLABMOVEIS 1.100.75 — MODELO STL / ASPIRE DXF
 - Aspire, plano de corte, furos, rasgos, encaixes e demais usinagens continuam em DXF.
 - Nenhuma migração de D1/Cloudflare é necessária nesta versão.
 
-DESIGNLABMOVEIS 1.100.75 — DXF NÃO VAZIO + IMPORTAÇÃO CURVA
+DESIGNLABMOVEIS 1.100.76 — DXF NÃO VAZIO + IMPORTAÇÃO CURVA
 
 - Gera e valida o DXF antes de abrir o seletor de salvamento.
 - Grava bytes reais e confere o tamanho do arquivo salvo no Android.
@@ -45,7 +52,7 @@ DESIGNLABMOVEIS 1.100.75 — DXF NÃO VAZIO + IMPORTAÇÃO CURVA
 - Compartilhamento recria o anexo por bytes para evitar “arquivo vazio”.
 - “Importar móvel” agora aceita DXF e usa os dados internos DesignLab para preservar curvas e configurações.
 
-DESIGNLABMOVEIS 1.100.75 — CONTORNO REAL NO PLANO CNC / ASPIRE
+DESIGNLABMOVEIS 1.100.76 — CONTORNO REAL NO PLANO CNC / ASPIRE
 
 - Curvas e Formas usam o contorno real em CORTE_EXTERNO.
 - Aproveitamento/área usam a área líquida da peça, descontando encaixes.
@@ -54,7 +61,7 @@ DESIGNLABMOVEIS 1.100.75 — CONTORNO REAL NO PLANO CNC / ASPIRE
 - Seccionadora continua usando blank retangular, pois seus cortes são retos; o contorno final especial fica para CNC/fresa.
 - Sem SQL novo nesta versão.
 
-DESIGNLABMOVEIS 1.100.75 — CORREÇÃO DE EXPORTAÇÃO NO ANDROID
+DESIGNLABMOVEIS 1.100.76 — CORREÇÃO DE EXPORTAÇÃO NO ANDROID
 
 - Corrige o erro "Failed to execute createWritable on FileSystemFileHandle" ao exportar.
 - Exportar móvel DXF, Aspire ZIP do móvel e Aspire do projeto usam o mesmo salvamento robusto.
@@ -62,7 +69,7 @@ DESIGNLABMOVEIS 1.100.75 — CORREÇÃO DE EXPORTAÇÃO NO ANDROID
 - Se o Android/WebView devolver um handle sem escrita, tenta o compartilhamento/salvamento do sistema; se também não estiver disponível, salva em Downloads como modo de compatibilidade em vez de perder a exportação.
 - Nenhuma alteração em Cloudflare/D1 é necessária.
 
-DESIGNLABMOVEIS 1.100.75 — IMPORTAÇÃO DXF DE MODELOS ANTIGOS
+DESIGNLABMOVEIS 1.100.76 — IMPORTAÇÃO DXF DE MODELOS ANTIGOS
 
 ALTERAÇÕES DESTA VERSÃO
 - A Biblioteca não exige mais que todo DXF antigo tenha entidades 3DFACE.
@@ -72,7 +79,7 @@ ALTERAÇÕES DESTA VERSÃO
 - DXF exportado pelo DesignLab com payload continua sendo a opção de maior fidelidade e preserva peças, materiais, usinagens e configurações.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.75 — ENTRADA DE FRESA A PARTIR DE 0,5 MM
+DESIGNLABMOVEIS 1.100.76 — ENTRADA DE FRESA A PARTIR DE 0,5 MM
 
 ALTERAÇÕES DESTA VERSÃO
 - O campo Comprimento da entrada agora aceita 0,5 mm, com passos de 0,5 mm.
@@ -82,7 +89,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Vale para prévia 3D, plano de corte e DXF/Aspire.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.75 — DETECÇÃO DE MADEIRA NAS ENTRADAS DE FRESA
+DESIGNLABMOVEIS 1.100.76 — DETECÇÃO DE MADEIRA NAS ENTRADAS DE FRESA
 
 ALTERAÇÕES DESTA VERSÃO
 - Móvel curvo: cada entrada diagonal de fresa agora verifica o contorno real da madeira antes de ser criada.
@@ -92,7 +99,7 @@ ALTERAÇÕES DESTA VERSÃO
 - O resultado vale para a prévia 3D, plano de corte e DXF/Aspire, pois a geometria inválida deixa de ser criada na origem.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.75 — ENTRADA DE FRESA DIAGONAL
+DESIGNLABMOVEIS 1.100.76 — ENTRADA DE FRESA DIAGONAL
 
 ALTERAÇÕES DESTA VERSÃO
 - Corrigida a direção das entradas de fresa nos encaixes meia-madeira do móvel curvo.
@@ -103,7 +110,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Ø e comprimento continuam configuráveis e entram no 3D, plano de corte e DXF/Aspire.
 - Sem alteração de banco/Cloudflare.
 
-DESIGNLABMOVEIS 1.100.75 — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
+DESIGNLABMOVEIS 1.100.76 — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
 
 ALTERAÇÕES DESTA VERSÃO
 - Corrigida a distribuição dos montantes de 100 mm no móvel curvo.
@@ -115,7 +122,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Ø da entrada e comprimento do canal agora podem ser configurados. Padrão: Ø6 × 18 mm.
 - O alívio configurado é usado no 3D, no plano de corte e nos DXFs/Aspire porque faz parte do contorno real das peças.
 
-DESIGNLABMOVEIS 1.100.75 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
+DESIGNLABMOVEIS 1.100.76 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
 
 ALTERAÇÕES DESTA VERSÃO
 - Plano de corte: nervuras/formas especiais são desenhadas pelo contorno real, não mais como retângulo do blank.
@@ -148,7 +155,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.75.js no Worker.
+3. Publique cloudflare/worker-1.100.76.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -160,12 +167,12 @@ APK NA TELA INICIAL
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
 
 
-1.100.75 — MÓVEL CURVO
+1.100.76 — MÓVEL CURVO
 - Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
 - A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
 - Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
 
-NOVIDADE 1.100.75
+NOVIDADE 1.100.76
 - Móvel curvo: distância do último montante do lado A e do lado B agora é configurável separadamente.
 - A medida é da borda do móvel até a borda do montante; 0 mm deixa rente.
 - A regra funciona na estrutura inteira e na opção Estrutura em 2 partes.
