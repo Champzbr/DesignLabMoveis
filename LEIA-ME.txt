@@ -1,15 +1,16 @@
-DESIGNLABMOVEIS 1.100.43 — ESPAÇO PRINCIPAL + CORTES INDEPENDENTES
+DESIGNLABMOVEIS 1.100.46 — ESPAÇO PRINCIPAL SOMENTE COM 2 TOQUES
 
-Base: 1.100.42.
+Base: 1.100.45.
 
-NOVIDADE 1.100.43
-- O espaço criado originalmente continua sendo o espaço PRINCIPAL do móvel.
-- A ferramenta CORTE apenas subdivide esse espaço em cortes independentes.
-- Cada corte pode ser selecionado e ocultado separadamente.
-- O contorno do espaço principal continua como referência mesmo com cortes ocultos.
-- Ao ocultar um corte, o sistema tenta selecionar o corte mais próximo; em frente/trás isso facilita entrar no móvel.
-- Portas não cortam mais automaticamente o espaço de trabalho. Elas continuam sendo peças do móvel, mas não criam uma faixa que bloqueia o acesso ao interior.
-- Quando um espaço está ativo, uma porta na frente não impede selecionar um corte atrás dela.
-- Mostrar divisões ocultas continua reexibindo todos os cortes ocultados.
+CORREÇÃO 1.100.46
+- O ESPAÇO PRINCIPAL não abre mais a janela com um único toque.
+- 1 toque no espaço principal: somente seleciona o espaço e mantém a área de trabalho livre.
+- 2 toques no mesmo espaço principal: abre a janela flutuante Espaço/Divisão.
+- A mesma regra continua valendo para os cortes/divisões.
+- Ao criar um novo espaço, ele fica selecionado, mas a janela não abre automaticamente.
+- Adicionada proteção contra pointerdown duplicado em alguns Android/WebViews, evitando falso duplo toque.
+- A posição salva da janela flutuante continua funcionando.
+- Mantidos o painel administrativo restaurado da 1.100.45, o plano de corte, DXF e Aspire.
 
-Plano de corte, exportação DXF do modelo e Aspire permanecem como na 1.100.42.
+IMPORTANTE
+Se o topo do app ainda mostrar uma versão antiga (por exemplo 1.100.43), publique todos os arquivos desta versão no Netlify. O cache da 1.100.46 possui um nome novo e remove caches antigos ao ativar.

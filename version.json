@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.43",
+  "version": "1.100.46",
   "required": false,
-  "message": "Espaço principal preservado com cortes independentes: cada corte pode ser selecionado/ocultado; portas não cortam mais o espaço de trabalho e não bloqueiam a seleção dos cortes internos.",
-  "released_at": "2026-08-24T07:58:00-03:00"
+  "message": "Correção do espaço principal: 1 toque somente seleciona; o menu abre exclusivamente com 2 toques no mesmo espaço. Também evita falso duplo toque em alguns Android.",
+  "released_at": "2026-08-24T08:24:00-03:00"
 }
