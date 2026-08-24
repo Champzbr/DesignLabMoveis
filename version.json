@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.51",
+  "version": "1.100.52",
   "required": false,
-  "message": "Criação de portas: botão Salvar configuração guarda quantidade, vãos, puxador/cava e toda a furação de dobradiças para reutilizar nas próximas portas.",
-  "released_at": "2026-08-24T09:24:00-03:00"
+  "message": "Novo nome/ícone do app instalado e Biblioteca global: administrador cria pastas, publica/apaga modelos e todos os usuários podem inserir.",
+  "released_at": "2026-08-24T09:44:00-03:00"
 }

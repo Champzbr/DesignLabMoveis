@@ -8,10 +8,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.51 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.52 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -656,7 +658,7 @@
 
 
 
-  /* ==========================================================================\n     1.100.51 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  /* ==========================================================================\n     1.100.52 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
   #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
   .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
   .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
@@ -785,6 +787,11 @@
   .libraryItem .libInfo { font-size:10px; color:var(--muted); margin-top:2px; }
   .libraryItem button { min-height:36px; }
   #libraryTarget { color:var(--cyan); font-size:11px; font-weight:800; margin:4px 0 9px; }
+  .libraryScopeTabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:9px 0 8px; }
+  .libraryScopeTabs button { min-height:42px; font-size:11px; }
+  .libraryScopeTabs button.active { background:var(--blue); color:#fff; border-color:#6ca3ff; }
+  #libraryScopeHint { margin:0 0 8px; padding:8px 10px; border-radius:9px; background:#111820; border:1px solid #284052; color:#9fd9ff; font-size:9px; line-height:1.4; }
+  .globalLibraryBadge { display:inline-block; margin-left:5px; padding:2px 6px; border-radius:999px; background:rgba(45,125,250,.16); color:#79adff; font-size:8px; font-weight:900; vertical-align:middle; }
 
 
   /* ======================================================================
@@ -1118,7 +1125,7 @@
   .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
 
 
-  /* 1.100.51 · Painel administrativo restaurado no layout inicial */
+  /* 1.100.52 · Painel administrativo restaurado no layout inicial */
   #homeAdminPanel,#menuAdminPanel{display:none}
   #homeAdminPanel.show,#menuAdminPanel.show{display:block}
   #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
@@ -1331,7 +1338,7 @@
   }
 
   /* ==========================================================================
-     1.100.51 · HOME OPÇÃO 1
+     1.100.52 · HOME OPÇÃO 1
      Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
      Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
      ========================================================================== */
@@ -1742,7 +1749,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.51</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.52</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1836,7 +1843,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.51</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.52</span>
         </div>
       </div>
 
@@ -2177,7 +2184,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.51 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.52 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2816,7 +2823,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
       </div>
-      <span class="cutPlanBadge">1.100.51</span>
+      <span class="cutPlanBadge">1.100.52</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -3447,8 +3454,13 @@
 <div id="libraryDialog">
   <div class="card">
     <h3>Biblioteca de modelos</h3>
-    <p class="dialogHelp">Crie suas próprias pastas e organize os móveis salvos. Ex.: Armários → armario_2_portas.</p>
+    <p class="dialogHelp">Sua biblioteca fica neste dispositivo. A Biblioteca global é publicada pelo administrador e aparece para todas as contas.</p>
     <div id="libraryTarget">Espaço selecionado</div>
+    <div class="libraryScopeTabs">
+      <button id="libraryLocalTab" type="button" class="active">Minha biblioteca</button>
+      <button id="libraryGlobalTab" type="button" class="secondary">🌐 Biblioteca global</button>
+    </div>
+    <div id="libraryScopeHint">Pastas pessoais: somente você vê neste dispositivo.</div>
     <div id="libraryBreadcrumb" class="libraryBreadcrumb">Pastas</div>
     <div id="libraryFolderToolbar" class="libraryFolderToolbar">
       <button id="libraryBackBtn" type="button" class="secondary" style="display:none">← Pastas</button>
@@ -4016,7 +4028,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.51';
+const DESIGNLAB_APP_VERSION='1.100.52';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4801,7 +4813,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.51 · HOME OPÇÃO 1
+// 1.100.52 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -5022,7 +5034,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.51`:'DesignLabMoveis 1.100.51';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.52`:'DesignLabMoveis 1.100.52';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -5227,7 +5239,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.51'
+    thumbnail:null,appVersion:'1.100.52'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -5250,7 +5262,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.51'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.52'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -5280,7 +5292,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.51'
+    thumbnail:thumb,appVersion:'1.100.52'
   };
   await projectDbPut(next);
   if(original){
@@ -5348,7 +5360,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.51',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.52',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -5382,7 +5394,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.51'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.52'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -5443,7 +5455,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.51'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.52'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5769,8 +5781,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.51 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.51 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
+// 1.100.52 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.52 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // no aparelho mesmo depois de fechar/reabrir o app.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -6902,7 +6914,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.51: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.52: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -7130,7 +7142,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.51: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.52: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; para abrir, o usuário precisa dar dois toques no espaço.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -7190,7 +7202,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.51: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.52: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;
@@ -8228,7 +8240,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.51: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.52: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -9035,7 +9047,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.51', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.52', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -9819,7 +9831,7 @@ function axisVector(axis){
 // O duplo clique é atrasado alguns milissegundos para permitir que um terceiro
 // clique chegue sem abrir o espaço no meio do gesto.
 //
-// 1.100.51 · As DIVISÕES do espaço têm gesto próprio: um clique somente
+// 1.100.52 · As DIVISÕES do espaço têm gesto próprio: um clique somente
 // seleciona; dois cliques abrem a janela flutuante Espaço/Divisão. Isso evita
 // que a janela apareça no meio de cada seleção enquanto o usuário navega pelos
 // cortes internos do móvel.
@@ -9931,7 +9943,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.100.51: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.100.52: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -9946,7 +9958,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       const openMenu=registerSpaceDoubleTap(rootId,cellId);
-      // 1.100.51: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
+      // 1.100.52: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
       // seleciona e fecha a janela; somente o segundo toque no mesmo alvo abre.
       selectSpaceCellByIds(rootId,cellId,{showMenu:openMenu===true});
       dragMode=null; controls.enabled=true; return;
@@ -10505,7 +10517,7 @@ function pieceDivisionLayoutMm(widthM,thicknessM){
     message:ok?'':`Cada vão precisa ter pelo menos ${nice(minMm)} mm.`
   };
 }
-// ---------- 1.100.51 · Configuração salva de portas ----------
+// ---------- 1.100.52 · Configuração salva de portas ----------
 const DOOR_CREATE_CONFIG_KEY='designLabDoorCreateConfigV1';
 function captureDoorCreateConfig(){
   return {
@@ -10582,7 +10594,7 @@ function saveDoorCreateConfig(){
   }
 }
 
-// ---------- 1.100.51 · Portas paramétricas + dobradiças ----------
+// ---------- 1.100.52 · Portas paramétricas + dobradiças ----------
 function doorFieldNumber(id,fallback=0,min=-Infinity,max=Infinity){
   const n=parseDecimalInput($(id)?.value);
   const v=Number.isFinite(n)?n:fallback;
@@ -10690,7 +10702,7 @@ function appendDoorHingeDrilling(door,root,cfg,hingeSide){
   sanitizeMachiningForPiece(door);
   return {hinges,mountHoles,missingMount};
 }
-// 1.100.51 · inverter lado da dobradiça pelo menu de 3 cliques da porta.
+// 1.100.52 · inverter lado da dobradiça pelo menu de 3 cliques da porta.
 function doorInspectorRuntimeConfig(door){
   const h=door?.userData?.doorConfig?.hinge||{};
   const doorW=mm(door?.userData?.width||0),doorH=mm(door?.userData?.height||0);
@@ -12260,8 +12272,12 @@ const LEGACY_LIBRARY_KEY_V23='miniCadProV23_library';
 let customLibrary=[];
 let libraryFolders=[];
 let activeLibraryFolderId=null;
+let libraryScope='local';
+const globalLibraryState={folders:[],itemsByFolder:new Map(),records:new Map(),loaded:false,loading:false,error:''};
+
 try{ customLibrary=JSON.parse(localStorage.getItem(LIBRARY_KEY)||localStorage.getItem(LEGACY_LIBRARY_KEY_V30)||localStorage.getItem(LEGACY_LIBRARY_KEY_V28)||localStorage.getItem(LEGACY_LIBRARY_KEY_V27)||localStorage.getItem(LEGACY_LIBRARY_KEY_V26)||localStorage.getItem(LEGACY_LIBRARY_KEY_V25)||localStorage.getItem(LEGACY_LIBRARY_KEY_V24)||localStorage.getItem(LEGACY_LIBRARY_KEY_V23)||'[]'); if(!Array.isArray(customLibrary))customLibrary=[]; }catch{customLibrary=[];}
 try{ libraryFolders=JSON.parse(localStorage.getItem(LIBRARY_FOLDERS_KEY)||'[]'); if(!Array.isArray(libraryFolders))libraryFolders=[]; }catch{libraryFolders=[];}
+
 function persistLibrary(){
   localStorage.setItem(LIBRARY_KEY,JSON.stringify(customLibrary));
   localStorage.setItem(LIBRARY_FOLDERS_KEY,JSON.stringify(libraryFolders));
@@ -12276,7 +12292,6 @@ function createLibraryFolder(name,{quiet=false}={}){
   const folder={id:uid('libfolder'),name:uniqueLibraryFolderName(name)}; libraryFolders.push(folder);persistLibrary();
   if(!quiet)toast(`Pasta “${folder.name}” criada`);return folder;
 }
-// Migra modelos das versões antigas para uma pasta, sem perder a biblioteca existente.
 if(customLibrary.some(i=>!i.folderId)){
   let migrated=libraryFolders.find(f=>f.name==='Importados'); if(!migrated)migrated=createLibraryFolder('Importados',{quiet:true});
   for(const i of customLibrary)if(!i.folderId)i.folderId=migrated.id; persistLibrary();
@@ -12358,7 +12373,7 @@ function placeCustomTemplate(item,info){
         const width=Math.max(.001,nx1-nx0),height=Math.max(.001,ny1-ny0),depth=Math.max(.001,nz1-nz0);
         const x=(nx0+nx1)/2,yBase=ny0,z=(nz0+nz1)/2;
         if(p.kind==='cylinder') createCylinder({diameter:Math.min(width,depth),height,x,yBase,z,name:p.name||'Cilindro'},false);
-        else createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[]},false);
+        else createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain},false);
       }
       toast('Componente ajustado · medidas fixas preservadas');
     } else {
@@ -12366,7 +12381,7 @@ function placeCustomTemplate(item,info){
       for(const p of item.parts){
         const x=info.cell.minX+(p.x-sb.minX)*sx, yBase=info.cell.minY+(p.yBase-sb.minY)*sy, z=info.cell.minZ+(p.z-sb.minZ)*sz;
         if(p.kind==='cylinder') createCylinder({diameter:p.width*Math.min(sx,sz),height:p.height*sy,x,yBase,z,name:p.name||'Cilindro'},false);
-        else createBox({width:p.width*sx,depth:p.depth*sz,height:p.height*sy,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[]},false);
+        else createBox({width:p.width*sx,depth:p.depth*sz,height:p.height*sy,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain},false);
       }
       toast('Componente ajustado ao espaço');
     }
@@ -12387,29 +12402,207 @@ function builtinLibraryItems(){return [
   {id:'shelf18',name:'Prateleira 18 mm',info:'Cria uma prateleira no centro do espaço.'},
   {id:'fill',name:'Preencher volume',info:'Bloco único ocupando exatamente todo o espaço.'}
 ];}
-function updateLibraryFolderUi(){
-  const builtin=activeLibraryFolderId==='__builtins__',folder=libraryFolderById(activeLibraryFolderId),inside=!!folder||builtin;
-  $('libraryBackBtn').style.display=inside?'inline-flex':'none';
-  $('newLibraryFolderBtn').style.display=inside?'none':'inline-flex';
-  $('renameLibraryFolderBtn').style.display=folder?'inline-flex':'none';
-  $('deleteLibraryFolderBtn').style.display=folder?'inline-flex':'none';
-  $('saveFurnitureLibraryBtn').style.display=folder?'inline-flex':'none';
-  $('importLibraryBtn').style.display=folder?'inline-flex':'none';
-  $('libraryBreadcrumb').textContent=inside?`Pastas  ›  ${builtin?'Padrões':folder.name}`:'Pastas';
+
+function globalLibraryFolderById(id){return globalLibraryState.folders.find(f=>f.id===id)||null;}
+function setLibraryScope(scope){
+  libraryScope=scope==='global'?'global':'local';
+  activeLibraryFolderId=null;
+  const localBtn=$('libraryLocalTab'),globalBtn=$('libraryGlobalTab');
+  localBtn?.classList.toggle('active',libraryScope==='local');
+  localBtn?.classList.toggle('secondary',libraryScope!=='local');
+  globalBtn?.classList.toggle('active',libraryScope==='global');
+  globalBtn?.classList.toggle('secondary',libraryScope!=='global');
+  if(libraryScope==='global'&&!globalLibraryState.loaded&&!globalLibraryState.loading)loadGlobalLibraryFolders();
+  renderLibrary();
 }
-function libraryItemElement(item,{custom=false}={}){
+async function loadGlobalLibraryFolders({force=false}={}){
+  if(globalLibraryState.loading)return;
+  if(globalLibraryState.loaded&&!force)return;
+  if(!cloudAccountState.ok){
+    globalLibraryState.error='Entre na sua conta para acessar a Biblioteca global.';
+    globalLibraryState.loaded=false;renderLibrary();return;
+  }
+  globalLibraryState.loading=true;globalLibraryState.error='';renderLibrary();
+  try{
+    const data=await cloudApiFetch('/library/global/folders',{timeoutMs:20000});
+    globalLibraryState.folders=Array.isArray(data?.folders)?data.folders:[];
+    globalLibraryState.loaded=true;
+  }catch(err){
+    globalLibraryState.error=err.message||'Não foi possível carregar a Biblioteca global.';
+    globalLibraryState.loaded=false;
+  }finally{
+    globalLibraryState.loading=false;renderLibrary();
+  }
+}
+async function loadGlobalLibraryItems(folderId,{force=false}={}){
+  if(!folderId)return;
+  if(globalLibraryState.itemsByFolder.has(folderId)&&!force)return;
+  const data=await cloudApiFetch(`/library/global/folders/${encodeURIComponent(folderId)}/items`,{timeoutMs:20000});
+  globalLibraryState.itemsByFolder.set(folderId,Array.isArray(data?.items)?data.items:[]);
+}
+function globalTemplateFromFurniture(record,meta={}){
+  const parts=Array.isArray(record?.objects)?record.objects:[];
+  if(!parts.length)throw new Error('Modelo global sem peças');
+  let minX=Infinity,minY=Infinity,minZ=Infinity,maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+  for(const p of parts){
+    const w=Number(p.width),d=Number(p.depth),h=Number(p.height),x=Number(p.x),yb=Number(p.yBase),z=Number(p.z);
+    if(![w,d,h,x,yb,z].every(Number.isFinite))continue;
+    minX=Math.min(minX,x-w/2);maxX=Math.max(maxX,x+w/2);minY=Math.min(minY,yb);maxY=Math.max(maxY,yb+h);minZ=Math.min(minZ,z-d/2);maxZ=Math.max(maxZ,z+d/2);
+  }
+  if(!Number.isFinite(minX))throw new Error('Medidas do modelo global inválidas');
+  const sourceSpace=Array.isArray(record?.spaces)&&record.spaces.length?JSON.parse(JSON.stringify(record.spaces[0])):null;
+  const item={id:meta.id||uid('global'),name:meta.name||record.name||'Modelo global',sourceBounds:{minX,maxX,minY,maxY,minZ,maxZ},parts:JSON.parse(JSON.stringify(parts))};
+  if(sourceSpace)item.layout={space:sourceSpace};
+  return item;
+}
+async function placeGlobalLibraryItem(id){
+  const info=selectedCellInfo();if(!info){toast('Selecione um espaço');return;}
+  try{
+    let payload=globalLibraryState.records.get(id);
+    if(!payload){
+      payload=await cloudApiFetch(`/library/global/items/${encodeURIComponent(id)}`,{timeoutMs:30000});
+      globalLibraryState.records.set(id,payload);
+    }
+    const item=globalTemplateFromFurniture(payload?.record,{id,name:payload?.item?.name});
+    $('libraryDialog').style.display='none';
+    placeCustomTemplate(item,info);
+  }catch(err){toast(err.message||'Não foi possível abrir o modelo global');}
+}
+async function createGlobalLibraryFolder(){
+  if(!adminAllowed()){toast('Somente o administrador pode criar pastas globais');return;}
+  const name=(window.prompt('Nome da pasta global:','Armários')||'').trim();if(!name)return;
+  try{
+    await cloudApiFetch('/admin/library/folders',{method:'POST',body:{name},timeoutMs:20000});
+    globalLibraryState.itemsByFolder.clear();
+    await loadGlobalLibraryFolders({force:true});
+    toast(`Pasta global “${name}” criada`);
+  }catch(err){toast(err.message||'Não foi possível criar a pasta global');}
+}
+async function deleteGlobalLibraryFolder(){
+  if(!adminAllowed()){toast('Somente o administrador pode excluir pastas globais');return;}
+  const f=globalLibraryFolderById(activeLibraryFolderId);if(!f)return;
+  if(!window.confirm(`Excluir a pasta global “${f.name}” e todos os modelos dentro dela? Isso some para todos os usuários.`))return;
+  try{
+    await cloudApiFetch(`/admin/library/folders/${encodeURIComponent(f.id)}`,{method:'DELETE',body:{},timeoutMs:30000});
+    activeLibraryFolderId=null;globalLibraryState.itemsByFolder.delete(f.id);
+    await loadGlobalLibraryFolders({force:true});
+    toast('Pasta global excluída');
+  }catch(err){toast(err.message||'Não foi possível excluir a pasta global');}
+}
+async function publishCurrentFurnitureGlobal(){
+  if(!adminAllowed()){toast('Somente o administrador pode publicar modelos globais');return;}
+  const folder=globalLibraryFolderById(activeLibraryFolderId);if(!folder){toast('Abra uma pasta global');return;}
+  const root=selectedFurnitureRoot();if(!root){toast('Selecione um móvel');return;}
+  const name=(window.prompt('Nome do modelo para todos:',safeFileName(root.name||'movel','movel').replace(/-/g,'_'))||'').trim();if(!name)return;
+  try{
+    await cloudApiFetch('/admin/library/items',{method:'POST',body:{folder_id:folder.id,name,record:captureFurniture(root)},timeoutMs:30000});
+    globalLibraryState.itemsByFolder.delete(folder.id);
+    await loadGlobalLibraryItems(folder.id,{force:true});
+    await loadGlobalLibraryFolders({force:true});
+    renderLibrary();toast(`“${name}” publicado para todos`);
+  }catch(err){toast(err.message||'Não foi possível publicar o modelo');}
+}
+async function deleteGlobalLibraryItem(id){
+  if(!adminAllowed()){toast('Somente o administrador pode excluir modelos globais');return;}
+  const items=globalLibraryState.itemsByFolder.get(activeLibraryFolderId)||[],item=items.find(i=>i.id===id);
+  if(!item)return;
+  if(!window.confirm(`Excluir “${item.name}” da Biblioteca global? Ele deixará de aparecer para todos.`))return;
+  try{
+    await cloudApiFetch(`/admin/library/items/${encodeURIComponent(id)}`,{method:'DELETE',body:{},timeoutMs:20000});
+    globalLibraryState.records.delete(id);globalLibraryState.itemsByFolder.delete(activeLibraryFolderId);
+    await loadGlobalLibraryItems(activeLibraryFolderId,{force:true});
+    await loadGlobalLibraryFolders({force:true});
+    renderLibrary();toast('Modelo global excluído');
+  }catch(err){toast(err.message||'Não foi possível excluir o modelo global');}
+}
+function updateLibraryFolderUi(){
+  const global=libraryScope==='global',admin=adminAllowed();
+  const builtin=!global&&activeLibraryFolderId==='__builtins__';
+  const localFolder=!global?libraryFolderById(activeLibraryFolderId):null;
+  const globalFolder=global?globalLibraryFolderById(activeLibraryFolderId):null;
+  const folder=localFolder||globalFolder;
+  const inside=!!folder||builtin;
+
+  $('libraryBackBtn').style.display=inside?'inline-flex':'none';
+  $('newLibraryFolderBtn').style.display=(!inside&&(!global||admin))?'inline-flex':'none';
+  $('newLibraryFolderBtn').textContent=global?'＋ Nova pasta global':'＋ Nova pasta';
+  $('renameLibraryFolderBtn').style.display=localFolder?'inline-flex':'none';
+  $('deleteLibraryFolderBtn').style.display=folder&&(!global||admin)?'inline-flex':'none';
+  $('deleteLibraryFolderBtn').textContent=global?'Excluir pasta global':'Excluir pasta';
+  $('saveFurnitureLibraryBtn').style.display=folder&&(!global||admin)?'inline-flex':'none';
+  $('saveFurnitureLibraryBtn').textContent=global?'🌐 Publicar móvel para todos':'Salvar móvel nesta pasta';
+  $('importLibraryBtn').style.display=localFolder?'inline-flex':'none';
+  $('libraryBreadcrumb').textContent=inside?`${global?'Biblioteca global':'Pastas'}  ›  ${builtin?'Padrões':folder.name}`:(global?'Biblioteca global':'Pastas');
+  if($('libraryScopeHint'))$('libraryScopeHint').textContent=global
+    ?(admin?'Global: você é administrador. Pode criar/apagar pastas e publicar/apagar modelos. Todos os usuários enxergam este conteúdo.':'Global: conteúdo oficial publicado pelo administrador. Você pode inserir e editar uma cópia no seu projeto.')
+    :'Pastas pessoais: somente você vê neste dispositivo.';
+}
+function libraryItemElement(item,{custom=false,global=false}={}){
   const el=document.createElement('div');el.className='libraryItem';
   const txt=document.createElement('div');txt.style.minWidth='0';txt.innerHTML='<div class="libName"></div><div class="libInfo"></div>';
-  txt.querySelector('.libName').textContent=`📄 ${item.name}`;txt.querySelector('.libInfo').textContent=item.info||'Modelo salvo';
+  txt.querySelector('.libName').textContent=`📄 ${item.name}`;
+  if(global){
+    const badge=document.createElement('span');badge.className='globalLibraryBadge';badge.textContent='GLOBAL';txt.querySelector('.libName').appendChild(badge);
+  }
+  txt.querySelector('.libInfo').textContent=item.info||'Modelo salvo';
   const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='5px';actions.style.flexShrink='0';
-  const ins=document.createElement('button');ins.textContent='Inserir';ins.onclick=()=>placeLibraryItem(item.id);actions.appendChild(ins);
-  if(custom){const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteLibraryItem(item.id);actions.appendChild(del);}
+  const ins=document.createElement('button');ins.textContent='Inserir';ins.onclick=()=>global?placeGlobalLibraryItem(item.id):placeLibraryItem(item.id);actions.appendChild(ins);
+  if(global&&adminAllowed()){
+    const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteGlobalLibraryItem(item.id);actions.appendChild(del);
+  }else if(custom){
+    const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteLibraryItem(item.id);actions.appendChild(del);
+  }
   el.append(txt,actions);return el;
 }
 function renderLibrary(){
   const info=selectedCellInfo(); if(!info)return;
   $('libraryTarget').textContent=`Destino: ${mm(info.size.width)} × ${mm(info.size.depth)} × ${mm(info.size.height)} mm`;
   updateLibraryFolderUi(); const list=$('libraryList');list.innerHTML='';
+
+  if(libraryScope==='global'){
+    if(!cloudAccountState.ok){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Entre na sua conta para acessar os modelos globais.';list.appendChild(e);return;
+    }
+    if(globalLibraryState.loading){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Carregando Biblioteca global…';list.appendChild(e);return;
+    }
+    if(globalLibraryState.error){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent=globalLibraryState.error;list.appendChild(e);return;
+    }
+    if(!globalLibraryState.loaded){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Carregando Biblioteca global…';list.appendChild(e);
+      loadGlobalLibraryFolders();return;
+    }
+    if(activeLibraryFolderId===null){
+      if(!globalLibraryState.folders.length){
+        const e=document.createElement('div');e.className='libraryEmpty';e.textContent=adminAllowed()?'Nenhuma pasta global. Use “Nova pasta global” para começar.':'O administrador ainda não publicou pastas globais.';list.appendChild(e);return;
+      }
+      for(const f of globalLibraryState.folders){
+        const el=document.createElement('div');el.className='libraryFolder';
+        const t=document.createElement('div');t.innerHTML='<div class="folderName"></div><div class="folderInfo"></div>';
+        t.querySelector('.folderName').textContent=`🌐 📁 ${f.name}`;
+        t.querySelector('.folderInfo').textContent=`${Number(f.item_count||0)} modelo(s) disponível(is) para todos`;
+        const b=document.createElement('button');b.className='secondary';b.textContent='Abrir';
+        b.onclick=async()=>{activeLibraryFolderId=f.id;renderLibrary();try{await loadGlobalLibraryItems(f.id);renderLibrary();}catch(err){toast(err.message||'Erro ao abrir pasta global');}};
+        el.append(t,b);list.appendChild(el);
+      }
+      return;
+    }
+    const folder=globalLibraryFolderById(activeLibraryFolderId);
+    if(!folder){activeLibraryFolderId=null;renderLibrary();return;}
+    if(!globalLibraryState.itemsByFolder.has(folder.id)){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Carregando modelos…';list.appendChild(e);
+      loadGlobalLibraryItems(folder.id).then(renderLibrary).catch(err=>{toast(err.message||'Erro ao carregar modelos');});
+      return;
+    }
+    const items=globalLibraryState.itemsByFolder.get(folder.id)||[];
+    if(!items.length){
+      const e=document.createElement('div');e.className='libraryEmpty';e.textContent=adminAllowed()?'Pasta vazia. Selecione um móvel e toque em “Publicar móvel para todos”.':'Esta pasta ainda não possui modelos.';list.appendChild(e);return;
+    }
+    for(const i of items)list.appendChild(libraryItemElement({id:i.id,name:i.name,info:`Modelo oficial · ${Number(i.size_bytes||0)>0?Math.max(1,Math.round(Number(i.size_bytes)/1024))+' KB · ':''}atualizado ${adminDate(i.updated_at)}`},{global:true}));
+    return;
+  }
+
   if(activeLibraryFolderId===null){
     const folders=[{id:'__builtins__',name:'Padrões',builtin:true},...libraryFolders];
     if(!folders.length){const e=document.createElement('div');e.className='libraryEmpty';e.textContent='Nenhuma pasta. Toque em “Nova pasta” para começar.';list.appendChild(e);return;}
@@ -12431,14 +12624,17 @@ function renderLibrary(){
 }
 function openLibraryRoot(){activeLibraryFolderId=null;renderLibrary();$('libraryDialog').style.display='flex';}
 function newLibraryFolder(){
+  if(libraryScope==='global'){createGlobalLibraryFolder();return;}
   const name=(window.prompt('Nome da nova pasta:','Armários')||'').trim();if(!name)return;const f=createLibraryFolder(name);activeLibraryFolderId=f.id;renderLibrary();
 }
 function renameActiveLibraryFolder(){
+  if(libraryScope==='global')return;
   const f=libraryFolderById(activeLibraryFolderId);if(!f)return;const name=(window.prompt('Novo nome da pasta:',f.name)||'').trim();if(!name)return;
   if(libraryFolders.some(x=>x.id!==f.id&&x.name.toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR'))){toast('Já existe uma pasta com esse nome');return;}
   f.name=name;persistLibrary();renderLibrary();toast('Pasta renomeada');
 }
 function deleteActiveLibraryFolder(){
+  if(libraryScope==='global'){deleteGlobalLibraryFolder();return;}
   const f=libraryFolderById(activeLibraryFolderId);if(!f)return;const items=customLibrary.filter(i=>i.folderId===f.id);
   if(!window.confirm(`Excluir a pasta “${f.name}” e ${items.length} arquivo(s) dentro dela?`))return;
   customLibrary=customLibrary.filter(i=>i.folderId!==f.id);libraryFolders=libraryFolders.filter(x=>x.id!==f.id);activeLibraryFolderId=null;persistLibrary();renderLibrary();toast('Pasta excluída');
@@ -12460,6 +12656,7 @@ function importLibraryTemplate(data,name='Peça importada',folderId=activeLibrar
   toast(fixedCount?`Modelo salvo · ${fixedCount} faixa(s) fixa(s) preservadas`:'Modelo salvo na biblioteca');
 }
 function saveCurrentFurnitureToLibrary(){
+  if(libraryScope==='global'){publishCurrentFurnitureGlobal();return;}
   const folder=libraryFolderById(activeLibraryFolderId);if(!folder){toast('Abra uma pasta para salvar o móvel');return;}
   const root=selectedFurnitureRoot();if(!root){toast('Selecione um móvel');return;}
   const name=(window.prompt('Nome do arquivo/modelo:',safeFileName(root.name||'movel','movel').replace(/-/g,'_'))||'').trim();if(!name)return;
@@ -13201,7 +13398,7 @@ function removeAppliedHardware(match){
   return {removed,pieces};
 }
 
-// 1.100.51 — ciclo de vida das ferragens.
+// 1.100.52 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
@@ -13227,7 +13424,7 @@ function hardwareInstancesLinkedToObjects(doomed){
       const src=String(op.hardwareSourcePartId||''),contact=String(op.hardwareContactPartId||'');
       if((src&&partIds.has(src))||(contact&&partIds.has(contact))){ids.add(op.hardwareInstanceId);continue;}
 
-      // Fallback para arquivos salvos antes da 1.100.51, que ainda não tinham
+      // Fallback para arquivos salvos antes da 1.100.52, que ainda não tinham
       // hardwareSourcePartId/hardwareContactPartId.
       if(!src&&!contact&&names.has(String(op.hardwareContactName||'').trim()))ids.add(op.hardwareInstanceId);
     }
@@ -15201,7 +15398,7 @@ async function writeExportTarget(target,blob){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.51 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.52 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -15216,7 +15413,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.51 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.52 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -15752,7 +15949,7 @@ $('productionClearBands').onclick=productionClearSelectedBands;
 
 
 // ============================================================================
-// 1.100.51 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.52 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -16132,6 +16329,8 @@ $('sheetPreviewCanvas').addEventListener('dblclick',e=>{const w=sheetPreviewPoin
 
 $('exportAspireFromPartsBtn').onclick=()=>{setSheetPrefs(sheetPrefsFromUi());exportProjectAspireZip();};
 $('deleteSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
+$('libraryLocalTab').onclick=()=>setLibraryScope('local');
+$('libraryGlobalTab').onclick=()=>setLibraryScope('global');
 $('libraryBackBtn').onclick=()=>{activeLibraryFolderId=null;renderLibrary();};
 $('newLibraryFolderBtn').onclick=newLibraryFolder;
 $('renameLibraryFolderBtn').onclick=renameActiveLibraryFolder;

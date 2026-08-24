@@ -1,73 +1,34 @@
-DESIGNLABMOVEIS 1.100.51 — SALVAR CONFIGURAÇÃO DE PORTAS
+DESIGNLABMOVEIS 1.100.52 — ÍCONE DO APP + BIBLIOTECA GLOBAL
 
-NOVO EM 1.100.51
-- Em Criar peças > Portas há o botão “💾 Salvar configuração” ao lado de Cancelar.
-- Salva quantidade de portas, todos os vãos, tipo/tamanho de puxador ou cava e posição da cava.
-- Salva toda a furação das dobradiças: quantidade, lado, copo, profundidade, afastamentos e furação da lateral/divisão.
-- O padrão salvo é carregado automaticamente nas próximas criações de portas neste dispositivo.
-- A espessura continua usando o padrão já salvo do espaço, sem alterar as demais peças.
+NOVIDADES
+1. O PWA instalado passa a usar o nome “DesignLabMoveis” (sem número da versão no nome).
+2. O ícone do app foi trocado pela imagem fornecida.
+3. Biblioteca agora tem duas áreas:
+   - Minha biblioteca: continua local, como antes.
+   - Biblioteca global: conteúdo oficial compartilhado com todos os usuários.
+4. Administrador, dentro da Biblioteca global:
+   - cria pasta global;
+   - apaga pasta global;
+   - publica o móvel selecionado;
+   - apaga modelo publicado.
+5. Usuários comuns:
+   - enxergam as pastas/modelos globais;
+   - podem inserir uma cópia no projeto;
+   - não podem alterar nem apagar o conteúdo oficial.
 
-Base: 1.100.49.
+ATENÇÃO — CLOUDFLARE
+Esta versão adiciona API nova. Antes de usar a Biblioteca global:
+1. Execute cloudflare/4-biblioteca-global.sql no D1.
+2. Publique cloudflare/worker-1.100.52.js no Worker.
+3. Mantenha os bindings DB e PROJECTS já existentes.
 
-NOVO EM 1.100.51
-- Ao abrir Configuração da peça com 3 cliques/toques em uma porta, aparece a seção “Dobradiça da porta”.
-- Há duas opções: “Dobradiça lado esquerdo” e “Dobradiça lado direito”.
-- A seção aparece somente em peças reconhecidas como porta paramétrica (doorConfig).
-- Ao trocar o lado, o sistema remove a aplicação automática anterior e recria os copos Ø35/furação configurada no lado escolhido.
-- Se a furação da lateral/divisão estiver habilitada, os furos correspondentes também são removidos do lado antigo e recriados no lado novo.
-- A quantidade, diâmetro, profundidade, afastamentos e demais configurações da porta são preservados.
-- O botão do lado atual fica destacado no menu.
+O modelo global completo é salvo no R2 em:
+global-library/items/<ID_MODELO>.json
 
-MANTIDO
-- Plano de corte com usinagens da 1.100.49.
-- Portas paramétricas, cava/puxador e quantidade de portas.
-- Ferragens vinculadas e limpeza automática.
-- Espaços, painel administrativo, DXF e Aspire.
+Os metadados de pastas/modelos ficam no D1.
 
-------------------------------------------------------------
-HISTÓRICO DA BASE
-
-DESIGNLABMOVEIS 1.100.51 — USINAGENS VISÍVEIS NO PLANO DE CORTE
-
-Base: 1.100.48.
-
-CORRIGIDO EM 1.100.51
-- O plano de corte agora desenha as usinagens reais de cada peça.
-- Furos da face A aparecem em rosa; furos da face B aparecem em roxo tracejado.
-- Rasgos/canais aparecem em azul/ciano.
-- Furos de borda/laterais aparecem com marcador triangular laranja.
-- Encaixes de peças curvas também aparecem no plano.
-- Novo controle “usinagens” permite mostrar/ocultar essas marcações sem esconder o contorno das peças.
-- Ao tocar numa peça do plano, o painel lateral lista suas usinagens com diâmetro, profundidade, face e ferragem quando houver.
-- O resumo da chapa mostra a quantidade de furos A/B, furos de borda e rasgos.
-- A lista de peças também informa quando a peça possui usinagens.
-- A projeção usada no plano é a mesma usada pelo DXF/Aspire, inclusive quando a peça gira 90° na chapa.
-
-MANTIDO
-- Portas paramétricas e furação de dobradiças da 1.100.48.
-- Espaço principal com 1 toque para selecionar e 2 toques para abrir menu.
-- Ferragens vinculadas às peças e limpeza automática ao excluir.
-- Painel administrativo, DXF, Aspire e demais recursos anteriores.
-
-HISTÓRICO DA BASE 1.100.48
-DESIGNLABMOVEIS 1.100.51 — PORTAS PARAMÉTRICAS + DOBRADIÇAS
-
-Base: 1.100.47.
-
-NOVO EM 1.100.51
-- Em Criar peças > Portas agora é possível escolher de 1 a 12 portas.
-- O vão do meio passa a ser aplicado entre todas as portas.
-- Opção de puxador: sem puxador, puxador externo ou cava/perfil.
-- Cava/perfil desconta automaticamente o tamanho informado da altura da porta e pode ficar em cima ou embaixo.
-- Furação automática de dobradiça já vem ativada com copo Ø35 mm.
-- Configurações: quantidade de dobradiças (automática ou 2 a 6), lado, diâmetro/profundidade do copo, distância do copo à borda e distância topo/baixo.
-- Pode criar automaticamente os furos da placa da dobradiça na lateral ou divisão vertical encontrada ao lado da porta.
-- Padrão inicial da lateral: linha a 37 mm da frente, 32 mm entre furos, Ø5 mm e 12 mm de profundidade.
-- Os furos da porta e da lateral são vinculados pela mesma instância da dobradiça. Ao apagar a porta/lateral ou a ferragem, a furação vinculada é limpa pelo sistema da 1.100.47.
-- Configuração da porta é salva junto com o projeto e com modelos da biblioteca.
-
-MANTIDO
-- Espaço principal: 1 toque seleciona; 2 toques abrem o menu.
-- Ferragens vinculadas às peças e limpeza automática ao excluir.
-- Painel administrativo restaurado.
-- Plano de corte, DXF, Aspire e demais recursos anteriores.
+PWA / ANDROID
+O manifest agora usa name e short_name = DesignLabMoveis.
+Alguns celulares mantêm nome/ícone antigo em cache. Depois de publicar a versão,
+se o Android não atualizar o ícone automaticamente, remova o app instalado e
+instale novamente a partir do navegador.
