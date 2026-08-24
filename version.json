@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.46",
+  "version": "1.100.47",
   "required": false,
-  "message": "Correção do espaço principal: 1 toque somente seleciona; o menu abre exclusivamente com 2 toques no mesmo espaço. Também evita falso duplo toque em alguns Android.",
-  "released_at": "2026-08-24T08:24:00-03:00"
+  "message": "Ferragens agora acompanham o ciclo de vida das peças: ao apagar uma peça, a aplicação completa da ferragem e seus marcadores 3D são removidos das peças vinculadas.",
+  "released_at": "2026-08-24T08:31:00-03:00"
 }

@@ -1,16 +1,17 @@
-DESIGNLABMOVEIS 1.100.46 — ESPAÇO PRINCIPAL SOMENTE COM 2 TOQUES
+DESIGNLABMOVEIS 1.100.47 — FERRAGENS VINCULADAS ÀS PEÇAS
 
-Base: 1.100.45.
+Base: 1.100.46.
 
-CORREÇÃO 1.100.46
-- O ESPAÇO PRINCIPAL não abre mais a janela com um único toque.
-- 1 toque no espaço principal: somente seleciona o espaço e mantém a área de trabalho livre.
-- 2 toques no mesmo espaço principal: abre a janela flutuante Espaço/Divisão.
-- A mesma regra continua valendo para os cortes/divisões.
-- Ao criar um novo espaço, ele fica selecionado, mas a janela não abre automaticamente.
-- Adicionada proteção contra pointerdown duplicado em alguns Android/WebViews, evitando falso duplo toque.
-- A posição salva da janela flutuante continua funcionando.
-- Mantidos o painel administrativo restaurado da 1.100.45, o plano de corte, DXF e Aspire.
+CORREÇÃO 1.100.47
+- Ao apagar uma peça, as ferragens aplicadas nela também são removidas por completo.
+- Se a mesma aplicação gerou furos em uma peça de contato, esses furos também são removidos.
+- Os marcadores 3D rosa não ficam mais soltos no projeto depois da exclusão.
+- As novas aplicações salvam os IDs das duas peças ligadas pela ferragem, deixando a remoção confiável mesmo quando a ferragem fura somente um dos lados.
+- Projetos antigos recebem compatibilidade por hardwareInstanceId e nome de contato quando possível.
+- Ao apagar um móvel inteiro, conjunto de gavetas ou substituir uma estrutura curva, ferragens ligadas às peças removidas também são limpas.
+- Prévia temporária de ferragens/usinagem é limpa junto com a exclusão.
 
-IMPORTANTE
-Se o topo do app ainda mostrar uma versão antiga (por exemplo 1.100.43), publique todos os arquivos desta versão no Netlify. O cache da 1.100.46 possui um nome novo e remove caches antigos ao ativar.
+MANTIDO
+- Espaço principal: 1 toque seleciona; 2 toques abrem o menu.
+- Painel administrativo restaurado.
+- Plano de corte, DXF, Aspire e demais recursos da 1.100.46.
