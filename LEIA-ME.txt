@@ -1,0 +1,211 @@
+DESIGNLABMOVEIS 1.100.79 — INDEX DIVIDIDO COM SEGURANÇA
+
+- A lógica da 1.100.78 foi mantida e apenas separada fisicamente.
+- index.html agora contém principalmente a estrutura HTML e referências aos arquivos.
+- CSS separado em css/ por área, mantendo exatamente a ordem original da cascata.
+- JavaScript-fonte separado em js/src/ por área; js/app.js é gerado pela concatenação exata dessas partes e continua sendo carregado como module, preservando o escopo original.
+- O motor continua no mesmo escopo de módulo histórico para evitar reescrever milhares de referências nesta etapa.
+- Service Worker atualizado para armazenar todos os novos CSS/JS.
+- A versão monolítica 1.100.78 foi preservada em legacy/designlabmoveis-1.100.78-completo.html para comparação e recuperação.
+- Esta versão NÃO adiciona regra nova de CAD; o objetivo é somente organização estrutural.
+- Sem SQL novo e sem mudança de banco.
+
+HISTÓRICO — RECÁLCULO EXATO DO VÃO AO APAGAR PEÇAS
+
+- Laterais/base/chapéu/fundo/frente devolvem somente a própria espessura ao vão em que foram criadas.
+- Exemplo: corte de 60 mm + duas laterais; apagando as duas, o vão volta exatamente a 60 mm.
+- Não une o vão de 60 mm com os espaços vizinhos.
+- Novas peças guardam o limite original do vão para futuros recálculos.
+- Projetos antigos continuam compatíveis pelo tipo/nome da peça.
+- Menu de espaço/divisão: 1 toque seleciona; tocar e segurar abre.
+
+HISTÓRICO — RECÁLCULO DO VÃO + MENU DO ESPAÇO AO SEGURAR
+
+- Ao apagar Lateral esquerda/direita, Base, Chapéu, Prateleira, Fundo, Frente ou Divisão vertical, o espaço ocupado pela peça volta automaticamente ao vão.
+- Exemplo: um espaço de 600 mm com duas laterais volta a 600 mm após apagar as duas laterais.
+- O recálculo funciona também quando há compartimentos/prateleiras internos: cada vão vizinho recupera a faixa correspondente.
+- Ao apagar uma Divisão vertical, a faixa fixa vinculada à espessura da divisão também é removida para não interferir em redimensionamentos futuros.
+- Espaço principal e divisões agora usam o mesmo gesto da peça: 1 toque seleciona; tocar/clicar e segurar abre o menu flutuante.
+- O antigo duplo toque para abrir o menu do espaço deixa de ser necessário.
+- Sem alteração de SQL/Cloudflare.
+
+HISTÓRICO — NÃO PRODUZIR PEÇA
+
+Ao tocar/segurar uma peça e abrir Configuração da peça, existe a opção “Não produzir peça”.
+A peça continua visível e editável no projeto/3D, mas é removida do Plano de corte, Aspire/CNC, lista de produção e etiquetas.
+A escolha fica salva junto com o projeto, exportação/importação e Biblioteca.
+Não exige SQL nem alteração de banco.
+
+HISTÓRICO — ETIQUETAS DAS PEÇAS ESTILO OPENCUTLIST
+
+- Nova tela "Etiquetas das peças" acessível pelo menu Mais, painel de ferramentas e Materiais / fitas.
+- Código A/B/C acompanha o mesmo agrupamento de peças usado no plano de corte.
+- Mostra nome, medidas, espessura, material/código, projeto, cliente, ambiente e móvel.
+- Fitas aparecem por lado U− / U+ / V− / V+ com destaque visual nas bordas que recebem fita.
+- Mostra sentido do veio e quantidade de furos/rasgos.
+- Pode gerar uma etiqueta por peça física ou agrupar peças idênticas com quantidade.
+- Escopo configurável: projeto inteiro, móvel selecionado ou peça selecionada.
+- Tamanho padrão 70 × 40 mm, configurável em milímetros.
+- Impressão em folha A4 ou modo etiquetadora (uma etiqueta por página).
+- Botão "Imprimir / salvar PDF" usa a impressão do sistema; também é possível salvar um HTML pronto para imprimir.
+- Preferências das etiquetas ficam salvas no aparelho.
+- Sem alteração no banco/Cloudflare.
+
+HISTÓRICO — MONTANTES FINAIS DO MÓVEL CURVO
+
+- Ao inserir um móvel curvo pela Biblioteca/STL, os montantes verticais não usam mais a caixa retangular rotacionada para calcular posição.
+- Distância lado A = 0 mm e lado B = 0 mm deixam a borda do montante realmente rente à extremidade correspondente.
+- Montante central e montante do final da curva continuam presos à trajetória real.
+- A mesma regra vale para estrutura inteira e estrutura em 2 partes.
+- Novos modelos guardam também o índice estrutural do montante para reconstrução mais exata.
+
+HISTÓRICO — CORREÇÃO STL CURVO NA BIBLIOTECA
+
+- Corrige o caso em que um móvel curvo exportado em STL era salvo na Biblioteca e voltava quadrado ao ser inserido.
+- A Biblioteca local e a Biblioteca global agora recriam nervuras curvas, capa externa e montantes curvos com as configurações originais.
+- Formas paramétricas continuam preservadas.
+- Importação direta de móvel também remapeia corretamente os IDs do espaço/divisão nas configurações curvas.
+- Aspire, plano de corte e usinagem continuam em DXF.
+
+HISTÓRICO — MODELO STL / ASPIRE DXF
+
+- Exportar móvel agora gera STL binário 3D com a malha real, preservando curvas e formas.
+- O STL do DesignLab leva os dados internos do móvel após a malha para poder voltar editável ao importar.
+- Importar móvel e Biblioteca aceitam STL como formato principal; DXF/JSON antigos continuam aceitos por compatibilidade.
+- Aspire, plano de corte, furos, rasgos, encaixes e demais usinagens continuam em DXF.
+- Nenhuma migração de D1/Cloudflare é necessária nesta versão.
+
+HISTÓRICO — DXF NÃO VAZIO + IMPORTAÇÃO CURVA
+
+- Gera e valida o DXF antes de abrir o seletor de salvamento.
+- Grava bytes reais e confere o tamanho do arquivo salvo no Android.
+- Se o Android criar 0 KB, usa o fallback de compartilhamento/download.
+- Compartilhamento recria o anexo por bytes para evitar “arquivo vazio”.
+- “Importar móvel” agora aceita DXF e usa os dados internos DesignLab para preservar curvas e configurações.
+
+HISTÓRICO — CONTORNO REAL NO PLANO CNC / ASPIRE
+
+- Curvas e Formas usam o contorno real em CORTE_EXTERNO.
+- Aproveitamento/área usam a área líquida da peça, descontando encaixes.
+- Modo CNC faz uma segunda passada por polígono para aproveitar vazios reais de peças curvas, respeitando a folga configurada.
+- Plano de corte e Aspire usam a mesma geometria de contorno e usinagens.
+- Seccionadora continua usando blank retangular, pois seus cortes são retos; o contorno final especial fica para CNC/fresa.
+- Sem SQL novo nesta versão.
+
+HISTÓRICO — CORREÇÃO DE EXPORTAÇÃO NO ANDROID
+
+- Corrige o erro "Failed to execute createWritable on FileSystemFileHandle" ao exportar.
+- Exportar móvel DXF, Aspire ZIP do móvel e Aspire do projeto usam o mesmo salvamento robusto.
+- O app continua tentando gravar direto no local escolhido primeiro.
+- Se o Android/WebView devolver um handle sem escrita, tenta o compartilhamento/salvamento do sistema; se também não estiver disponível, salva em Downloads como modo de compatibilidade em vez de perder a exportação.
+- Nenhuma alteração em Cloudflare/D1 é necessária.
+
+HISTÓRICO — IMPORTAÇÃO DXF DE MODELOS ANTIGOS
+
+ALTERAÇÕES DESTA VERSÃO
+- A Biblioteca não exige mais que todo DXF antigo tenha entidades 3DFACE.
+- Importação reconhece DXF 3D por 3DFACE, SOLID/TRACE, LINE 3D e POLYLINE 3D.
+- DXFs 2D com LWPOLYLINE/POLYLINE fechada também podem ser adicionados à Biblioteca como painéis planos.
+- Contornos internos 2D contidos em uma peça são ignorados como peças separadas, evitando transformar furos/rasgos em componentes.
+- DXF exportado pelo DesignLab com payload continua sendo a opção de maior fidelidade e preserva peças, materiais, usinagens e configurações.
+- Sem alteração de banco/Cloudflare.
+
+HISTÓRICO — ENTRADA DE FRESA A PARTIR DE 0,5 MM
+
+ALTERAÇÕES DESTA VERSÃO
+- O campo Comprimento da entrada agora aceita 0,5 mm, com passos de 0,5 mm.
+- Corrigida a geometria: o comprimento não é mais automaticamente aumentado para o diâmetro da fresa.
+- Assim, Ø6 mm com comprimento 0,5 mm realmente entra somente 0,5 mm além do canto do encaixe.
+- Mantida a detecção de madeira da 1.100.64: se não houver madeira no lado, a entrada não é criada.
+- Vale para prévia 3D, plano de corte e DXF/Aspire.
+- Sem alteração de banco/Cloudflare.
+
+HISTÓRICO — DETECÇÃO DE MADEIRA NAS ENTRADAS DE FRESA
+
+ALTERAÇÕES DESTA VERSÃO
+- Móvel curvo: cada entrada diagonal de fresa agora verifica o contorno real da madeira antes de ser criada.
+- Se a entrada de um lado cair para fora da nervura/peça, aquele lado fica automaticamente sem entrada.
+- No modo 2 entradas, os dois lados são testados separadamente: pode manter uma entrada e remover somente a que cairia no vazio.
+- A mesma proteção foi aplicada aos encaixes dos montantes verticais, inclusive próximos das extremidades.
+- O resultado vale para a prévia 3D, plano de corte e DXF/Aspire, pois a geometria inválida deixa de ser criada na origem.
+- Sem alteração de banco/Cloudflare.
+
+HISTÓRICO — ENTRADA DE FRESA DIAGONAL
+
+ALTERAÇÕES DESTA VERSÃO
+- Corrigida a direção das entradas de fresa nos encaixes meia-madeira do móvel curvo.
+- As entradas agora saem em diagonal de 45° a partir do canto interno, em vez de avançarem reto pela frente da peça.
+- A mesma geometria é usada nas nervuras e nos montantes de 100 mm.
+- Opções simplificadas: 1 entrada, 2 entradas ou Sem entrada.
+- Removida a indicação “igual à foto” do seletor.
+- Ø e comprimento continuam configuráveis e entram no 3D, plano de corte e DXF/Aspire.
+- Sem alteração de banco/Cloudflare.
+
+HISTÓRICO — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
+
+ALTERAÇÕES DESTA VERSÃO
+- Corrigida a distribuição dos montantes de 100 mm no móvel curvo.
+- Agora existem 3 referências estruturais obrigatórias: extremidade inicial rente, centro exato da curva e final da curva com a BORDA do montante recuada (17 mm por padrão).
+- Os demais montantes são divididos de forma equilibrada somente nos trechos retos disponíveis.
+- Em estrutura de 2 partes, o espaço de emenda configurado fica livre e entra no cálculo da distribuição.
+- O campo "Final da curva recuado" permite alterar os 17 mm.
+- Nova configuração de entrada da fresa: 1 canal (igual à foto), 2 canais ou sem entrada.
+- Ø da entrada e comprimento do canal agora podem ser configurados. Padrão: Ø6 × 18 mm.
+- O alívio configurado é usado no 3D, no plano de corte e nos DXFs/Aspire porque faz parte do contorno real das peças.
+
+HISTÓRICO — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
+
+ALTERAÇÕES DESTA VERSÃO
+- Plano de corte: nervuras/formas especiais são desenhadas pelo contorno real, não mais como retângulo do blank.
+- Os encaixes meia-madeira continuam visíveis dentro do contorno curvo.
+- O aproveitamento visual passa a considerar a área real de peças com contorno especial.
+- Aspire: correção do erro FileSystemDirectoryHandle.getFileHandle em Android.
+- No celular, quando disponível, o DesignLab usa o seletor de salvar do sistema para escolher pasta/local sem download automático do navegador.
+- No desktop, continua preferindo a escolha direta da pasta e possui fallback seguro para o seletor de arquivo.
+
+- Minha Biblioteca agora importa arquivos DXF.
+- Administrador também pode importar DXF direto para uma pasta da Biblioteca global.
+- DXFs exportados a partir desta versão carregam dados internos do DesignLab em comentários DXF 999, ignorados pelo Aspire/AutoCAD, para restaurar peças e configurações ao importar.
+- DXFs antigos sem esses dados ainda podem ser importados pelas geometrias 3DFACE, mas não recuperam usinagens/metadados que nunca foram gravados no arquivo.
+
+DESIGNLABMOVEIS 1.100.55 — HISTÓRICO DE FERRAGENS + FERRAGENS GLOBAIS
+
+NOVO NA 1.100.55
+- Ferragens aplicadas a partir de uma peça agora aparecem em “Usinagens desta peça”, mesmo quando os furos ficam somente nas peças de contato.
+- Ex.: Pino de prateleira aplicado na prateleira aparece no histórico da própria prateleira e pode ser excluído por ali.
+- O histórico agrupa uma aplicação de ferragem em uma única linha e mostra quantos furos/peças estão vinculados.
+- Excluir a linha remove a aplicação inteira e todos os furos vinculados.
+- Reaplicar a mesma ferragem na mesma peça atualiza/substitui a aplicação anterior em vez de acumular pinos duplicados.
+- Ferragens agora têm duas áreas: “Minhas ferragens” e “Ferragens globais”.
+- Ferragens globais ficam disponíveis para todas as contas autenticadas.
+- Somente o administrador pode criar, editar ou excluir Ferragens globais.
+- O administrador também pode selecionar uma ferragem pessoal e usar “Publicar selecionada para todos”.
+- Ferragens já aplicadas em projetos não são apagadas se a definição global for removida do servidor.
+
+ATENÇÃO — CLOUDFLARE
+Para ativar Ferragens globais:
+1. Execute cloudflare/5-ferragens-globais.sql no D1.
+2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
+3. Publique cloudflare/worker-1.100.79.js no Worker.
+4. Mantenha os bindings DB e PROJECTS já existentes.
+
+A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
+
+
+APK NA TELA INICIAL
+- Coloque o arquivo DesignLabMoveis.apk na raiz do site/repositório, ao lado do index.html.
+- O botão “Baixar APK” da tela inicial aponta para ./DesignLabMoveis.apk.
+- Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
+
+
+1.100.79 — MÓVEL CURVO
+- Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
+- A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
+- Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
+
+NOVIDADE 1.100.79
+- Móvel curvo: distância do último montante do lado A e do lado B agora é configurável separadamente.
+- A medida é da borda do móvel até a borda do montante; 0 mm deixa rente.
+- A regra funciona na estrutura inteira e na opção Estrutura em 2 partes.
+- O espaço de emenda continua preservado e os montantes extras dividem somente os vãos retos livres.
+- Mantidos o montante central da curva e o montante do final da curva com recuo configurável (17 mm padrão).

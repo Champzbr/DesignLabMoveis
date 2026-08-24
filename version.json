@@ -1,0 +1,7 @@
+{
+  "app": "DesignLabMoveis",
+  "version": "1.100.79",
+  "required": false,
+  "message": "Estrutura do app separada em arquivos CSS e JavaScript por área, mantendo a lógica da 1.100.78. Service Worker atualizado para cachear todos os arquivos novos.",
+  "released_at": "2026-08-24T18:55:00-03:00"
+}
