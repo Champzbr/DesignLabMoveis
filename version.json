@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.69",
+  "version": "1.100.70",
   "required": false,
-  "message": "Plano CNC e Aspire agora usam contorno real de curvas/formas, área líquida e encaixe por forma nos vazios das curvas.",
-  "released_at": "2026-08-24T15:34:00-03:00"
+  "message": "DXF validado antes do salvamento, gravação Android conferida contra 0 KB e Importar móvel aceita DXF preservando curvas/configurações.",
+  "released_at": "2026-08-24T15:50:00-03:00"
 }
