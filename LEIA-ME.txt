@@ -1,3 +1,10 @@
+DESIGNLABMOVEIS 1.100.57 — IMPORTAR DXF NA BIBLIOTECA
+
+- Minha Biblioteca agora importa arquivos DXF.
+- Administrador também pode importar DXF direto para uma pasta da Biblioteca global.
+- DXFs exportados a partir desta versão carregam dados internos do DesignLab em comentários DXF 999, ignorados pelo Aspire/AutoCAD, para restaurar peças e configurações ao importar.
+- DXFs antigos sem esses dados ainda podem ser importados pelas geometrias 3DFACE, mas não recuperam usinagens/metadados que nunca foram gravados no arquivo.
+
 DESIGNLABMOVEIS 1.100.55 — HISTÓRICO DE FERRAGENS + FERRAGENS GLOBAIS
 
 NOVO NA 1.100.55
@@ -16,7 +23,13 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.55.js no Worker.
+3. Publique cloudflare/worker-1.100.57.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
+
+
+APK NA TELA INICIAL
+- Coloque o arquivo DesignLabMoveis.apk na raiz do site/repositório, ao lado do index.html.
+- O botão “Baixar APK” da tela inicial aponta para ./DesignLabMoveis.apk.
+- Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.

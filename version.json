@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.55",
+  "version": "1.100.57",
   "required": false,
-  "message": "Pino/ferragem agora aparece no histórico da peça, não duplica ao reaplicar e Ferragens globais ficam disponíveis para todos.",
-  "released_at": "2026-08-24T10:34:00-03:00"
+  "message": "Tela inicial agora tem botão para baixar o APK do DesignLabMoveis no Android.",
+  "released_at": "2026-08-24T11:25:00-03:00"
 }
