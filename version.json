@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.74",
+  "version": "1.100.75",
   "required": false,
-  "message": "Correção dos montantes finais do móvel curvo ao inserir/importar STL: distância 0 mm volta a ficar realmente rente às duas extremidades.",
-  "released_at": "2026-08-24T16:38:00-03:00"
+  "message": "Etiquetas de peças estilo OpenCutList: prévia, códigos A/B/C, medidas, material, fita, veio, usinagens e impressão em A4/etiquetadora.",
+  "released_at": "2026-08-24T16:48:00-03:00"
 }
