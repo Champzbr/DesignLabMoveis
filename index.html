@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.80 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.81 - Forma paramétrica</title>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/editor.css">
 <link rel="stylesheet" href="css/materials.css">
@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/mobile.css">
 
-<!-- 1.100.80: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.100.81: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -34,7 +34,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.80</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.81</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -128,7 +128,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.80</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.81</span>
         </div>
       </div>
 
@@ -475,7 +475,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.80 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.81 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -775,8 +775,8 @@
 
     <div class="productionSection">
       <div class="productionSectionHead">
-        <strong>Materiais do projeto</strong>
-        <span>MDF, MDP, compensado, cores e madeirados</span>
+        <strong>Materiais / chapas do projeto</strong>
+        <span>MDF, MDP, compensado, medidas da chapa, cores e madeirados</span>
       </div>
 
       <div class="productionFields">
@@ -784,13 +784,21 @@
         <label>Nome<input id="productionMaterialName" placeholder="Ex.: MDF Branco TX 18"></label>
         <label>Código / referência<input id="productionMaterialCode" placeholder="Ex.: BR-TX18"></label>
         <label>Espessura nominal (mm)<input id="productionMaterialThickness" type="number" value="18" min="0.1" step="0.1"></label>
+        <label>Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
+        <label>Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="100" step="1"></label>
+        <label>Sentido do veio na chapa
+          <select id="productionMaterialGrainDirection">
+            <option value="length">No comprimento da chapa</option>
+            <option value="width">Na largura da chapa</option>
+          </select>
+        </label>
         <label>Cor da face<input id="productionMaterialColor" type="color" value="#e7e1d4"></label>
         <label>Cor do miolo sem fita<input id="productionMaterialCoreColor" type="color" value="#c6a77b"></label>
       </div>
 
       <label class="productionCheck">
         <input id="productionMaterialGrain" type="checkbox">
-        <span><strong>Madeirado / possui sentido do veio</strong><br>Peças deste material não giram 90° no plano de corte, mesmo se o bloqueio global estiver desligado.</span>
+        <span><strong>Madeirado / possui sentido do veio</strong><br>Por padrão o veio acompanha o <b>comprimento da chapa</b> (ex.: 2750 mm). A opção acima permite usar a largura quando necessário.</span>
       </label>
 
       <div class="productionActions">
@@ -1200,17 +1208,25 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
       </div>
-      <span class="cutPlanBadge">1.100.80</span>
+      <span class="cutPlanBadge">1.100.81</span>
     </div>
 
     <div class="cutPlanSettings">
-      <div class="cutPlanSectionTitle">Chapa padrão</div>
+      <div class="cutPlanSectionTitle">Chapa padrão / fallback</div>
       <div class="spaceFields two">
         <label>Comprimento da chapa (mm)<input id="sheetWidth" type="number" value="2750" min="100" step="1"></label>
         <label>Largura da chapa (mm)<input id="sheetHeight" type="number" value="1850" min="100" step="1"></label>
         <label>Refilo em volta (mm)<input id="sheetMargin" type="number" value="10" min="0" step="0.1"></label>
         <label>Espessura do corte / fresa (mm)<input id="sheetGap" type="number" value="3" min="0" step="0.1"></label>
+        <label>Sentido do veio da chapa padrão
+          <select id="sheetGrainDirection">
+            <option value="length">No comprimento da chapa</option>
+            <option value="width">Na largura da chapa</option>
+          </select>
+        </label>
       </div>
+
+      <p class="dialogHelp" style="margin:6px 0 2px">Se o material tiver Comprimento/Largura cadastrados em Materiais, o plano usa essas medidas. Estes valores ficam para materiais antigos ou sem cadastro.</p>
 
       <div class="cutPlanSectionTitle" style="margin-top:10px">Otimização</div>
       <div class="spaceFields two">
@@ -1246,7 +1262,7 @@
 
     <label class="fixedChoice cutPlanGrainChoice">
       <input id="sheetGrain" type="checkbox">
-      <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: bloqueia giro de 90°. Mesmo desmarcado, peças cujo material já está marcado como madeirado continuam respeitando o veio.</span></div>
+      <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: respeita o sentido configurado da chapa. Materiais cadastrados usam suas próprias medidas e, por padrão, o veio segue o comprimento.</span></div>
     </label>
 
     <div id="partsSummary" class="partsSummary"></div>

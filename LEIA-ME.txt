@@ -1,4 +1,14 @@
-DESIGNLABMOVEIS 1.100.80 — INDEX DIVIDIDO COM SEGURANÇA
+DESIGNLABMOVEIS 1.100.81 — TAMANHO DA CHAPA + VEIO NO COMPRIMENTO
+
+- Cada material do projeto agora guarda Comprimento e Largura da chapa.
+- Padrão novo: 2750 × 1850 mm. Você pode cadastrar chapas menores ou maiores material por material.
+- Madeirados usam, por padrão, o veio no sentido do COMPRIMENTO da chapa (2750 no padrão).
+- Também existe opção para mudar o veio da chapa para o sentido da largura.
+- A rotação individual do veio da peça continua disponível no menu da peça.
+- Plano de corte, prévia e Aspire usam o tamanho cadastrado no material; a Chapa padrão do plano fica como fallback para materiais antigos/sem vínculo.
+- Não exige SQL nem migração Cloudflare.
+
+DESIGNLABMOVEIS 1.100.81 — INDEX DIVIDIDO COM SEGURANÇA
 
 - A lógica da 1.100.78 foi mantida e apenas separada fisicamente.
 - index.html agora contém principalmente a estrutura HTML e referências aos arquivos.
@@ -186,7 +196,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.80.js no Worker.
+3. Publique cloudflare/worker-1.100.81.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -198,12 +208,12 @@ APK NA TELA INICIAL
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
 
 
-1.100.80 — MÓVEL CURVO
+1.100.81 — MÓVEL CURVO
 - Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
 - A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
 - Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
 
-NOVIDADE 1.100.80
+NOVIDADE 1.100.81
 - Móvel curvo: distância do último montante do lado A e do lado B agora é configurável separadamente.
 - A medida é da borda do móvel até a borda do montante; 0 mm deixa rente.
 - A regra funciona na estrutura inteira e na opção Estrutura em 2 partes.

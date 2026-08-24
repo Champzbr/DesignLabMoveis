@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.80",
+  "version": "1.100.81",
   "required": false,
-  "message": "Configuração da peça agora permite rotacionar somente o sentido do veio em 90°, sem girar a geometria. Plano de corte, Aspire, etiquetas e biblioteca preservam essa orientação individual.",
-  "released_at": "2026-08-24T19:52:00-03:00"
+  "message": "Chapas agora têm comprimento e largura por material. Madeirados usam por padrão o veio no comprimento da chapa (ex.: 2750 mm), com opção para usar a largura; plano de corte e Aspire respeitam o tamanho cadastrado.",
+  "released_at": "2026-08-24T20:15:00-03:00"
 }
