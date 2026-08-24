@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.63",
+  "version": "1.100.64",
   "required": false,
-  "message": "Móvel curvo: distância dos últimos montantes dos lados A e B configurável, inclusive em estrutura de 2 partes.",
-  "released_at": "2026-08-24T14:13:00-03:00"
+  "message": "Móvel curvo: entrada de fresa só é criada quando existe madeira suficiente no lado; entradas que cairiam no vazio são ignoradas automaticamente.",
+  "released_at": "2026-08-24T14:35:00-03:00"
 }
