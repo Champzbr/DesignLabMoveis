@@ -1,4 +1,16 @@
-DESIGNLABMOVEIS 1.100.60 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
+DESIGNLABMOVEIS 1.100.61 — DISTRIBUIÇÃO DO MÓVEL CURVO + ENTRADA DA FRESA CONFIGURÁVEL
+
+ALTERAÇÕES DESTA VERSÃO
+- Corrigida a distribuição dos montantes de 100 mm no móvel curvo.
+- Agora existem 3 referências estruturais obrigatórias: extremidade inicial rente, centro exato da curva e final da curva com a BORDA do montante recuada (17 mm por padrão).
+- Os demais montantes são divididos de forma equilibrada somente nos trechos retos disponíveis.
+- Em estrutura de 2 partes, o espaço de emenda configurado fica livre e entra no cálculo da distribuição.
+- O campo "Final da curva recuado" permite alterar os 17 mm.
+- Nova configuração de entrada da fresa: 1 canal (igual à foto), 2 canais ou sem entrada.
+- Ø da entrada e comprimento do canal agora podem ser configurados. Padrão: Ø6 × 18 mm.
+- O alívio configurado é usado no 3D, no plano de corte e nos DXFs/Aspire porque faz parte do contorno real das peças.
+
+DESIGNLABMOVEIS 1.100.61 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
 
 ALTERAÇÕES DESTA VERSÃO
 - Plano de corte: nervuras/formas especiais são desenhadas pelo contorno real, não mais como retângulo do blank.
@@ -31,7 +43,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.60.js no Worker.
+3. Publique cloudflare/worker-1.100.61.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -43,7 +55,7 @@ APK NA TELA INICIAL
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
 
 
-1.100.60 — MÓVEL CURVO
+1.100.61 — MÓVEL CURVO
 - Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
 - A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
 - Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
