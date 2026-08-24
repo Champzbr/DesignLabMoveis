@@ -1,90 +1,19 @@
-DESIGNLABMOVEIS 1.100.38 — JANELA DO ESPAÇO FLUTUANTE E POSIÇÃO SALVA
+DESIGNLABMOVEIS 1.100.42 — PLANO DE CORTE ESTILO OPENCUTLIST
 
-NOVO: arraste a janela Espaço/Divisão pelo cabeçalho; a posição fica salva no aparelho e é restaurada ao reabrir o app.
-BASE
-1.100.36 completa.
+Base: 1.100.41.
 
-OBJETIVO
-Aplicar o visual da Opção 1 escolhida para a tela onde ficam os projetos,
-sem alterar o motor CAD, projetos, D1/R2, login, administrador ou ferramentas.
+NOVIDADE 1.100.42
+- Plano de corte visual refeito, inspirado no fluxo do OpenCutList.
+- Estratégia Otimizado usa cortes guilhotina e tenta concentrar sobras maiores.
+- Configurações: chapa, refilo, espessura de corte/fresa, otimização Média/Avançada e direção preferida.
+- Materiais madeirados continuam bloqueando giro de 90°.
+- Cada tipo de peça recebe código A, B, C... no diagrama.
+- Cada chapa mostra aproveitamento, comprimento estimado de corte e sobras reaproveitáveis.
+- Visualização clara da chapa, cortes horizontais/verticais e desperdícios.
+- Mantidos os modos CNC/Router e Seccionadora como alternativas.
 
-NOVO VISUAL
-- fundo azul-marinho/preto;
-- detalhes em ciano e verde;
-- marca DesignLabMoveis no topo;
-- card de boas-vindas;
-- nome do usuário no card;
-- status da nuvem;
-- avatar com iniciais da conta;
-- ilustração técnica/CAD feita em CSS;
-- botões grandes de ações rápidas;
-- Projetos recentes em lista horizontal;
-- status de nuvem mantido nos cards;
-- seção Modelos preparada visualmente;
-- barra inferior moderna.
+IMPORTANTE
+A exportação Aspire não foi substituída pelo novo visual do plano de corte. Ela continua usando o exportador já existente, conforme solicitado na 1.100.41.
 
-AÇÕES RÁPIDAS
-Novo projeto
-Abrir arquivo
-Importar .MCAD/JSON
-
-O comportamento interno continua usando as rotinas já existentes.
-
-PROJETO ATUAL
-Salvar e Salvar como continuam presentes.
-Quando não existe projeto atual, esses botões desaparecem porque já eram
-desabilitados pelo sistema.
-
-BARRA INFERIOR
-Início
-Projetos
-Modelagem
-Materiais
-Conta
-
-- Projetos rola até a lista.
-- Modelagem entra no editor se existe projeto atual.
-- Materiais entra no editor e abre a biblioteca de materiais se existe projeto.
-- Conta volta ao card do usuário.
-
-MODELOS
-A seção visual foi preparada, mas não cria funcionalidades falsas.
-Os cartões estão marcados como EM BREVE. A implementação da biblioteca de
-modelos pode ser feita numa próxima etapa sem mexer novamente no layout-base.
-
-ADMINISTRADOR / CONFIGURAÇÕES / ATUALIZAÇÃO
-Continuam no topo e mantêm os mesmos IDs e eventos.
-Administrador continua aparecendo somente para role=admin.
-
-SEGURANÇA DA ALTERAÇÃO
-A mudança foi concentrada na tela #projectHome.
-O editor CAD e os diálogos existentes não foram reestruturados.
-
-Foram preservados os IDs usados pelo JavaScript:
-projectAccountChip
-projectAccountAvatar
-projectAccountName
-projectAccountEmail
-projectAccountCloud
-homeLogoutBtn
-homeNewProject
-heroNewProject
-homeOpenFile
-heroOpenFile
-homeSaveProject
-homeSaveAsProject
-homeSettings
-homeCheckUpdate
-homeAdminPanel
-projectCurrentStrip
-projectCountText
-projectCards
-legacyProjectsSection
-legacyImportAllBtn
-legacyProjectCards
-
-VERSÃO
-Projetos de marcenaria · 1.100.38
-
-Não há SQL novo.
-Não é obrigatório atualizar o Worker.
+REFERÊNCIA FUNCIONAL
+O OpenCutList trabalha com bin packing, cortes guilhotina, rotação condicionada ao veio, espessura de serra, refilo, nível de otimização, direção preferida, eficiência e comprimento de cortes. A 1.100.42 reproduz essas ideias no DesignLabMoveis com implementação própria.

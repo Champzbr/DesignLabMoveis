@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.38",
+  "version": "1.100.42",
   "required": false,
-  "message": "Janela do espaço/divisão agora é flutuante: arraste pelo cabeçalho e o app lembra a posição.",
-  "released_at": "2026-08-23T19:58:00-03:00"
+  "message": "Plano de corte refeito com referência no OpenCutList: cortes guilhotina, refilo, espessura de corte, otimização média/avançada, direção preferida, aproveitamento, comprimento de corte, códigos por peça e sobras úteis. Aspire permanece no exportador anterior.",
+  "released_at": "2026-08-24T07:34:00-03:00"
 }

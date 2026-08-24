@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.38 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.42 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -650,6 +650,45 @@
 
 
 
+
+
+  /* ==========================================================================\n     1.100.42 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
+  .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
+  .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
+  .cutPlanBadge{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#f59e0b;color:#211500;font-size:9px;font-weight:950;letter-spacing:.02em}
+  .cutPlanSettings{margin:12px 14px 0;padding:12px;border:1px solid #363d42;border-radius:12px;background:#111416}
+  .cutPlanSectionTitle{margin-bottom:7px;color:#dbe1e5;font-size:11px;font-weight:950;text-transform:uppercase;letter-spacing:.055em}
+  .cutPlanInlineInputs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:center;margin-top:4px}.cutPlanInlineInputs span{color:#768088;font-weight:900;text-align:center}
+  .sheetModeHelp.open{border-left:3px solid #f59e0b;padding-left:8px}
+  .cutPlanGrainChoice{margin:10px 14px 0}
+  #partsSummary{margin:10px 14px 0;background:#111416;border-color:#363d42}
+  #partsList{margin:8px 14px 0 14px;padding-bottom:2px}
+  #partsList .partsGroup{border-color:#d4d6d8;background:#f7f7f5;color:#24282b}
+  #partsList .partsGroupHead{background:#ecebe7;color:#25282a;border-left:4px solid #f59e0b;padding-left:9px}
+  #partsList .partsGroupHead span:last-child{color:#8b5a00}
+  #partsList .partRow{border-top-color:#dededb}
+  #partsList .partRowMeta{color:#697077}
+  #partsList .partQty{background:#e5e5e1;color:#303438;border:1px solid #d1d1cd}
+  #partsList .sheetChip{cursor:pointer;background:#fff;color:#454a4e;border-color:#d2d4d5}.sheetChip:hover{border-color:#f59e0b}.sheetChip strong{color:#9c6500}
+  .cutPlanCode{display:inline-grid;place-items:center;min-width:26px;height:26px;margin-right:7px;padding:0 6px;border-radius:7px;background:#33383c;color:#fff;font-size:10px;font-weight:950;vertical-align:middle}
+  .cutPlanActions{position:sticky;bottom:0;margin-top:10px;padding:10px 14px;background:#202326;border-top:1px solid #34383b}
+
+  .cutPlanPreviewShell{background:#edece8!important;border-color:#a6aaad!important}
+  .cutPlanPreviewHead{background:#f5f4f1!important;border-bottom-color:#c9cbcc!important;color:#25292c}.cutPlanPreviewHead span{color:#6f777c!important}
+  .cutPlanPreviewToolbar{background:#e7e5df!important;border-bottom-color:#c5c6c3!important}.cutPlanPreviewToolbar select{background:#fff!important;color:#24282b!important;border-color:#b8bbbd!important}.cutPlanPreviewToolbar .sheetPreviewToggle{color:#4e555a!important}
+  .cutPlanCanvasWrap{background:#d7d5cf!important;background-image:linear-gradient(rgba(0,0,0,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.025) 1px,transparent 1px)!important;background-size:20px 20px!important}
+  .cutPlanPreviewSide{background:#f5f4f1!important;border-left-color:#c4c6c7!important;color:#262a2d}
+  .cutPlanPreviewSide .sheetPreviewStatus{background:#fff!important;border-color:#c6c9ca!important;color:#41474b}.cutPlanPreviewSide .sheetPreviewStatus strong{color:#8e5a00!important}
+  .cutPlanLegend .sheetLegendRow{color:#4d555a}.cutPlanLegendPart{color:#232629!important}.cutPlanLegendH{color:#1c8b5a!important}.cutPlanLegendV{color:#c8475d!important}.cutPlanLegendKeep{color:#53854a!important}.cutPlanLegendWaste{color:#92979a!important}
+  .cutPlanPartCard{background:#fff!important;border-color:#c7cacc!important;color:#282c2f}.cutPlanPartCard .meta{color:#6e767b!important}.cutPlanPartCard .sheetPreviewOp{background:#f3f2ef!important;border-color:#d6d8d8!important;color:#454b4f}
+  .cutPlanPreviewFoot{background:#e7e5df!important;border-top-color:#c5c6c3!important;color:#555d62!important}.cutPlanPreviewFoot strong{color:#25282a!important}
+
+  .cutPlanSummaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.cutPlanSummaryGrid span{display:flex;flex-direction:column;gap:1px;padding:7px;border-radius:8px;background:#1c2022;border:1px solid #30373b;text-align:center}.cutPlanSummaryGrid b{color:#fff;font-size:14px}.cutPlanSummaryGrid small{color:#8f999f;font-size:8px}.cutPlanSummaryText{margin-top:7px;color:#aab3b8;font-size:9px;line-height:1.45}.cutPlanSummaryText strong{color:#f1b84a!important}
+  @media(max-width:540px){.cutPlanSummaryGrid{grid-template-columns:1fr 1fr}}
+
+  @media(max-width:620px){#partsListDialog .cutPlanCard{width:100%;max-height:100%;border-radius:0}.cutPlanSettings{margin-left:8px;margin-right:8px}.cutPlanGrainChoice,#partsSummary,#partsList{margin-left:8px;margin-right:8px}.cutPlanTitleRow{padding-left:10px;padding-right:10px}.cutPlanActions{padding-left:8px;padding-right:8px}.cutPlanActions button{flex:1 1 160px}}
+
   #curvedStructureDialog .curvedPreview { margin-top:10px; padding:10px; border:1px solid #3a3a3a; border-radius:12px; background:#111; color:var(--cyan); font-size:12px; line-height:1.5; }
   #curvedStructureDialog .curvedHint { margin-top:8px; color:#bbb; font-size:11px; line-height:1.45; }
   .pieceTypeGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:10px 0; }
@@ -1282,7 +1321,7 @@
   }
 
   /* ==========================================================================
-     1.100.38 · HOME OPÇÃO 1
+     1.100.42 · HOME OPÇÃO 1
      Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
      Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
      ========================================================================== */
@@ -1691,7 +1730,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.38</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.42</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1785,7 +1824,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.38</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.42</span>
         </div>
       </div>
 
@@ -2120,7 +2159,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.38 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.42 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2741,82 +2780,106 @@
 </div>
 
 <div id="partsListDialog">
-  <div class="card">
-    <h3>Lista geral de peças</h3>
-    <p id="partsListInfo" class="dialogHelp">Todas as peças de todos os espaços do projeto e distribuição automática nas chapas.</p>
-    <div class="spaceFields two">
-      <label>Largura da chapa (mm)<input id="sheetWidth" type="number" value="2750" min="100" step="1"></label>
-      <label>Altura da chapa (mm)<input id="sheetHeight" type="number" value="1850" min="100" step="1"></label>
-      <label>Margem externa (mm)<input id="sheetMargin" type="number" value="10" min="0" step="1"></label>
-      <label>Folga entre peças (mm)<input id="sheetGap" type="number" value="10" min="0" step="1"></label>
+  <div class="card cutPlanCard">
+    <div class="cutPlanTitleRow">
+      <div>
+        <h3>Plano de corte</h3>
+        <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
+      </div>
+      <span class="cutPlanBadge">1.100.42</span>
     </div>
 
-    <div class="sheetModeBox">
-      <label>Modo de organização / corte
-        <select id="sheetCutMode">
-          <option value="cnc">CNC / Router · peças menores do centro para fora</option>
-          <option value="panel">Seccionadora · cortes retos / guilhotina</option>
-        </select>
-      </label>
-      <div id="sheetCutModeHelp" class="sheetModeHelp cnc">
-        <strong>CNC:</strong> melhora o aproveitamento primeiro e depois reorganiza cada chapa,
-        priorizando peças menores perto do centro. A ordem de corte é numerada do centro para fora.
+    <div class="cutPlanSettings">
+      <div class="cutPlanSectionTitle">Chapa padrão</div>
+      <div class="spaceFields two">
+        <label>Comprimento da chapa (mm)<input id="sheetWidth" type="number" value="2750" min="100" step="1"></label>
+        <label>Largura da chapa (mm)<input id="sheetHeight" type="number" value="1850" min="100" step="1"></label>
+        <label>Refilo em volta (mm)<input id="sheetMargin" type="number" value="10" min="0" step="0.1"></label>
+        <label>Espessura do corte / fresa (mm)<input id="sheetGap" type="number" value="3" min="0" step="0.1"></label>
+      </div>
+
+      <div class="cutPlanSectionTitle" style="margin-top:10px">Otimização</div>
+      <div class="spaceFields two">
+        <label>Estratégia
+          <select id="sheetCutMode">
+            <option value="open">Otimizado · estilo OpenCutList</option>
+            <option value="cnc">CNC / Router · encaixe livre</option>
+            <option value="panel">Seccionadora · cortes retos</option>
+          </select>
+        </label>
+        <label class="oclOnly">Nível de otimização
+          <select id="sheetOptimization">
+            <option value="medium">Média · mais rápida</option>
+            <option value="advanced">Avançada · testa mais combinações</option>
+          </select>
+        </label>
+        <label class="oclOnly">Direção preferida
+          <select id="sheetDirection">
+            <option value="auto">Automática · testar todas</option>
+            <option value="none">Sem preferência</option>
+            <option value="length">No comprimento da chapa</option>
+            <option value="width">Na largura da chapa</option>
+          </select>
+        </label>
+        <label class="oclOnly">Sobra útil mínima (mm)
+          <div class="cutPlanInlineInputs"><input id="sheetKeepLength" type="number" value="100" min="0" step="1" aria-label="Comprimento mínimo da sobra"><span>×</span><input id="sheetKeepWidth" type="number" value="100" min="0" step="1" aria-label="Largura mínima da sobra"></div>
+        </label>
+      </div>
+      <div id="sheetCutModeHelp" class="sheetModeHelp open">
+        <strong>Otimizado:</strong> usa cortes guilhotina, considera refilo e espessura de corte e tenta preservar sobras maiores em vez de espalhar retalhos pequenos.
       </div>
     </div>
 
-    <label class="fixedChoice">
+    <label class="fixedChoice cutPlanGrainChoice">
       <input id="sheetGrain" type="checkbox">
-      <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: nenhuma peça gira 90°. Desmarcado: o CAD pode girar as peças automaticamente para aproveitar melhor a chapa.</span></div>
+      <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: bloqueia giro de 90°. Mesmo desmarcado, peças cujo material já está marcado como madeirado continuam respeitando o veio.</span></div>
     </label>
+
     <div id="partsSummary" class="partsSummary"></div>
     <div id="partsList"></div>
-    <div class="dialogActions">
-      <button id="previewAspireFromPartsBtn" class="secondary">👁 Visualizar plano de corte</button>
-      <button id="exportAspireFromPartsBtn">Gerar DXFs de todas as chapas</button>
+    <div class="dialogActions cutPlanActions">
+      <button id="previewAspireFromPartsBtn">▦ Abrir plano de corte</button>
+      <button id="exportAspireFromPartsBtn" class="secondary">Aspire · manter exportação atual</button>
       <button id="closePartsList" class="secondary">Fechar</button>
     </div>
   </div>
 </div>
 
-
-<div id="sheetPreviewDialog" aria-label="Prévia Aspire">
-  <div class="sheetPreviewShell">
-    <div class="sheetPreviewHead">
-      <div><strong>👁 Prévia Aspire · plano de corte</strong><span id="sheetPreviewModeText">Usa a mesma geometria que será gravada no DXF.</span></div>
+<div id="sheetPreviewDialog" aria-label="Plano de corte">
+  <div class="sheetPreviewShell cutPlanPreviewShell">
+    <div class="sheetPreviewHead cutPlanPreviewHead">
+      <div><strong>▦ Plano de corte · estilo OpenCutList</strong><span id="sheetPreviewModeText">Cortes guilhotina, aproveitamento, comprimento de corte e sobras úteis.</span></div>
       <div class="sheetPreviewHeadActions">
-        <button id="sheetPreviewExport" type="button">Gerar Aspire ZIP</button>
+        <button id="sheetPreviewExport" type="button" class="secondary">Aspire ZIP</button>
         <button id="sheetPreviewClose" type="button" class="secondary">Fechar</button>
       </div>
     </div>
-    <div class="sheetPreviewToolbar">
+    <div class="sheetPreviewToolbar cutPlanPreviewToolbar">
       <button id="sheetPreviewPrev" type="button" class="secondary">← Chapa</button>
       <select id="sheetPreviewSelect"></select>
       <button id="sheetPreviewNext" type="button" class="secondary">Chapa →</button>
       <span class="spacer"></span>
-      <button type="button" class="secondary active" data-sheet-face="ALL">Todas</button>
-      <button type="button" class="secondary" data-sheet-face="A">Face A</button>
-      <button type="button" class="secondary" data-sheet-face="B">Face B</button>
-      <label class="sheetPreviewToggle"><input id="sheetPreviewLabels" type="checkbox" checked> nomes/medidas</label>
-      <label class="sheetPreviewToggle"><input id="sheetPreviewEdgeHoles" type="checkbox" checked> furos de borda</label>
+      <label class="sheetPreviewToggle"><input id="sheetPreviewLabels" type="checkbox" checked> códigos / medidas</label>
+      <label class="sheetPreviewToggle"><input id="sheetPreviewEdgeHoles" type="checkbox" checked> linhas de corte</label>
+      <label class="sheetPreviewToggle"><input id="sheetPreviewWaste" type="checkbox" checked> sobras</label>
     </div>
     <div class="sheetPreviewMain">
-      <div class="sheetCanvasWrap">
+      <div class="sheetCanvasWrap cutPlanCanvasWrap">
         <canvas id="sheetPreviewCanvas"></canvas>
         <div id="sheetPreviewEmpty">Não há nenhuma chapa para visualizar.</div>
       </div>
-      <aside class="sheetPreviewSide">
-        <div id="sheetPreviewStatus" class="sheetPreviewStatus">Calculando conferência...</div>
-        <div class="sheetPreviewLegend">
-          <div class="sheetLegendRow" style="color:#f0f0f0"><span class="sheetLegendSample"></span><span>Contorno de corte / peça</span></div>
-          <div class="sheetLegendRow" style="color:#ff4f9a"><span class="sheetLegendSample hole"></span><span>Furo de face que vai para o DXF</span></div>
-          <div class="sheetLegendRow" style="color:#34d9ff"><span class="sheetLegendSample"></span><span>Rasgo / rasgo de fundo</span></div>
-          <div class="sheetLegendRow" style="color:#ffd54b"><span class="sheetLegendSample"></span><span>Encaixe / forma especial</span></div>
-          <div class="sheetLegendRow" style="color:#ff9f32"><span class="sheetLegendSample edge"></span><span>Furo de borda: aviso; exige usinagem lateral/virar a peça</span></div>
-          <div id="sheetPanelSawLegend" class="sheetLegendRow" style="color:#2d7dfa;display:none"><span class="sheetLegendSample panelcut"></span><span>Corte reto / sequência da seccionadora</span></div>
+      <aside class="sheetPreviewSide cutPlanPreviewSide">
+        <div id="sheetPreviewStatus" class="sheetPreviewStatus">Calculando plano...</div>
+        <div class="sheetPreviewLegend cutPlanLegend">
+          <div class="sheetLegendRow cutPlanLegendPart"><span class="sheetLegendSample"></span><span>Peça / contorno de corte</span></div>
+          <div class="sheetLegendRow cutPlanLegendH"><span class="sheetLegendSample panelcut"></span><span>Corte horizontal</span></div>
+          <div class="sheetLegendRow cutPlanLegendV"><span class="sheetLegendSample panelcut"></span><span>Corte vertical</span></div>
+          <div class="sheetLegendRow cutPlanLegendKeep"><span class="sheetLegendSample"></span><span>Sobra reaproveitável</span></div>
+          <div class="sheetLegendRow cutPlanLegendWaste"><span class="sheetLegendSample"></span><span>Retalho / desperdício</span></div>
         </div>
-        <div id="sheetPreviewPartCard" class="sheetPreviewPartCard">
+        <div id="sheetPreviewPartCard" class="sheetPreviewPartCard cutPlanPartCard">
           <h4>Nenhuma peça selecionada</h4>
-          <div class="meta">Toque em uma peça da chapa para conferir medidas e operações.</div>
+          <div class="meta">Toque numa peça para ver código, medida, material e origem.</div>
           <div class="sheetPreviewPartActions">
             <button id="sheetPreviewIsolate" type="button" class="secondary" disabled>Ampliar peça</button>
             <button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button>
@@ -2824,14 +2887,13 @@
         </div>
       </aside>
     </div>
-    <div class="sheetPreviewFoot">
+    <div class="sheetPreviewFoot cutPlanPreviewFoot">
       <span id="sheetPreviewSheetInfo">—</span>
-      <span id="sheetPreviewFaceInfo">Todas as faces</span>
+      <span id="sheetPreviewFaceInfo">Plano otimizado</span>
       <span id="sheetPreviewPosition">X — · Y — mm</span>
     </div>
   </div>
 </div>
-
 
 <div id="editSpaceDialog">
   <div class="card">
@@ -3852,7 +3914,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.38';
+const DESIGNLAB_APP_VERSION='1.100.42';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4637,7 +4699,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.38 · HOME OPÇÃO 1
+// 1.100.42 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -4858,7 +4920,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.38`:'DesignLabMoveis 1.100.38';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.42`:'DesignLabMoveis 1.100.42';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -5063,7 +5125,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.38'
+    thumbnail:null,appVersion:'1.100.42'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -5086,7 +5148,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.38'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.42'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -5116,7 +5178,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.38'
+    thumbnail:thumb,appVersion:'1.100.42'
   };
   await projectDbPut(next);
   if(original){
@@ -5184,7 +5246,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.38',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.42',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -5218,7 +5280,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.38'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.42'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -5279,7 +5341,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.38'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.42'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5605,7 +5667,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.38 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.42 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.42 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // no aparelho mesmo depois de fechar/reabrir o app.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -8800,7 +8863,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.38', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.42', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -13117,11 +13180,102 @@ function captureFurniture(root){
   }));
   return {type:'mini-cad-furniture',version:56,unit:'meter',name:root.name||'Móvel',createdAt:new Date().toISOString(),objects:parts,spaces:[stateSpace],production:captureProductionState()};
 }
-function exportSelectedFurniture(){
+function dxfModelCleanLayerName(name,index){
+  const raw=String(name||`Peca ${index+1}`).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const clean=raw.replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||'Peca';
+  const prefix=`P${String(index+1).padStart(3,'0')}_`;
+  return (prefix+clean).slice(0,31);
+}
+function dxfModelNumber(v){
+  const n=Math.abs(Number(v))<0.00005?0:Number(v);
+  return Number.isFinite(n)?Number(n.toFixed(4)):0;
+}
+function dxfModelFace(layer,a,b,c){
+  const p=(code,v)=>`${code}\r\n${dxfModelNumber(v)}\r\n`;
+  return `0\r\n3DFACE\r\n8\r\n${layer}\r\n`+
+    p(10,a.x)+p(20,a.y)+p(30,a.z)+
+    p(11,b.x)+p(21,b.y)+p(31,b.z)+
+    p(12,c.x)+p(22,c.y)+p(32,c.z)+
+    p(13,c.x)+p(23,c.y)+p(33,c.z);
+}
+function furnitureModelMeshes(root){
+  return furnitureObjects(root).filter(o=>o?.isMesh&&o.geometry?.getAttribute?.('position'));
+}
+function buildFurnitureModelDxf(root){
+  const meshes=furnitureModelMeshes(root);
+  if(!meshes.length)throw new Error('Este móvel não possui geometria para exportar');
+  scene.updateMatrixWorld(true);
+
+  // O DXF do modelo usa X=largura, Y=profundidade e Z=altura.
+  // A origem é movida para o canto mínimo do móvel para facilitar abrir em outros CADs.
+  const min={x:Infinity,y:Infinity,z:Infinity};
+  const tmp=new THREE.Vector3();
+  for(const mesh of meshes){
+    mesh.updateWorldMatrix(true,false);
+    const pos=mesh.geometry.getAttribute('position');
+    for(let i=0;i<pos.count;i++){
+      tmp.fromBufferAttribute(pos,i).applyMatrix4(mesh.matrixWorld);
+      if(tmp.x<min.x)min.x=tmp.x;
+      if(tmp.z<min.y)min.y=tmp.z;
+      if(tmp.y<min.z)min.z=tmp.y;
+    }
+  }
+  if(![min.x,min.y,min.z].every(Number.isFinite))throw new Error('Não foi possível calcular a geometria do móvel');
+
+  const layerNames=meshes.map((mesh,i)=>dxfModelCleanLayerName(mesh.userData?.name,i));
+  let d='';
+  d+='0\r\nSECTION\r\n2\r\nHEADER\r\n';
+  d+='9\r\n$ACADVER\r\n1\r\nAC1009\r\n';
+  d+='9\r\n$MEASUREMENT\r\n70\r\n1\r\n';
+  d+='9\r\n$INSUNITS\r\n70\r\n4\r\n';
+  d+='0\r\nENDSEC\r\n';
+  d+='0\r\nSECTION\r\n2\r\nTABLES\r\n0\r\nTABLE\r\n2\r\nLAYER\r\n70\r\n'+(layerNames.length+1)+'\r\n';
+  d+='0\r\nLAYER\r\n2\r\n0\r\n70\r\n0\r\n62\r\n7\r\n6\r\nCONTINUOUS\r\n';
+  layerNames.forEach((layer,i)=>{
+    const color=1+(i%7);
+    d+=`0\r\nLAYER\r\n2\r\n${layer}\r\n70\r\n0\r\n62\r\n${color}\r\n6\r\nCONTINUOUS\r\n`;
+  });
+  d+='0\r\nENDTAB\r\n0\r\nENDSEC\r\n0\r\nSECTION\r\n2\r\nENTITIES\r\n';
+
+  let faces=0;
+  const va=new THREE.Vector3(),vb=new THREE.Vector3(),vc=new THREE.Vector3();
+  const toDxf=(v)=>({
+    x:(v.x-min.x)*1000,
+    y:(v.z-min.y)*1000,
+    z:(v.y-min.z)*1000
+  });
+  meshes.forEach((mesh,mi)=>{
+    const geom=mesh.geometry,pos=geom.getAttribute('position'),idx=geom.index,layer=layerNames[mi];
+    const getVertex=(vertex,out)=>out.fromBufferAttribute(pos,vertex).applyMatrix4(mesh.matrixWorld);
+    if(idx){
+      for(let i=0;i+2<idx.count;i+=3){
+        getVertex(idx.getX(i),va);getVertex(idx.getX(i+1),vb);getVertex(idx.getX(i+2),vc);
+        d+=dxfModelFace(layer,toDxf(va),toDxf(vb),toDxf(vc));faces++;
+      }
+    }else{
+      for(let i=0;i+2<pos.count;i+=3){
+        getVertex(i,va);getVertex(i+1,vb);getVertex(i+2,vc);
+        d+=dxfModelFace(layer,toDxf(va),toDxf(vb),toDxf(vc));faces++;
+      }
+    }
+  });
+  d+='0\r\nENDSEC\r\n0\r\nEOF\r\n';
+  return {text:d,pieces:meshes.length,faces};
+}
+async function exportSelectedFurniture(){
   const root=selectedFurnitureRoot(); if(!root){toast('Selecione um espaço do móvel');return;}
-  const data=captureFurniture(root);
-  downloadText(`${safeFileName(root.name,'movel')}.mini-cad.json`,JSON.stringify(data,null,2),'application/json');
-  toast(`Móvel exportado · ${data.objects.length} peça(s)`);
+  const filename=`${safeFileName(root.name,'movel')}.dxf`;
+  let target=null;
+  try{
+    // Exporta o móvel montado em DXF 3D; o fluxo Aspire permanece separado e inalterado.
+    target=await pickExportTarget(filename,'designlab-export-movel-dxf','application/dxf');
+    const model=buildFurnitureModelDxf(root);
+    await writeExportTarget(target,new Blob([model.text],{type:'application/dxf;charset=utf-8'}));
+    toast(`Modelo DXF salvo em ${target.locationLabel} · ${model.pieces} peça(s) · ${model.faces} face(s) 3D`);
+  }catch(err){
+    if(isExportPickerCancel(err)){toast('Exportação cancelada');return;}
+    toast(err.message||'Não foi possível exportar o modelo em DXF');
+  }
 }
 function projectMaxX(){
   let max=0,has=false;
@@ -13314,43 +13468,92 @@ function sheetPreviewCanvasSize(){
   if(canvas.width!==Math.floor(cssW*dpr)||canvas.height!==Math.floor(cssH*dpr)){canvas.width=Math.floor(cssW*dpr);canvas.height=Math.floor(cssH*dpr);canvas.style.width=cssW+'px';canvas.style.height=cssH+'px';}
   return {canvas,cssW,cssH,dpr};
 }
-function sheetPreviewDraw(){
+function sheetPreviewCutMetrics(group,cfg){
+  const area=group.parts.reduce((n,p)=>n+p.faceW*p.faceH,0);
+  const usable=Math.max(1,(cfg.width-2*cfg.margin)*(cfg.height-2*cfg.margin));
+  const cuts=group.panelCuts||[];
+  const cutLength=cuts.reduce((n,c)=>n+Number(c.length||0),0);
+  const primaryCuts=cuts.filter(c=>(Number(c.depth)||0)===0).length;
+  const leftovers=(group.leftovers||[]).filter(r=>r.w>.5&&r.h>.5);
+  const keep=leftovers.filter(r=>r.keep).sort((a,b)=>b.w*b.h-a.w*a.h);
+  return {area,usable,pct:area/usable*100,cuts,cutLength,primaryCuts,leftovers,keep};
+}
+function drawSheetLeftover(ctx,r,sx,sy,scale,keep){
+  const x=sx(r.x),y=sy(r.y+r.h),w=r.w*scale,h=r.h*scale;
+  if(w<1||h<1)return;
+  ctx.save();
+  ctx.fillStyle=keep?'rgba(86,148,100,.10)':'rgba(110,118,124,.045)';
+  ctx.strokeStyle=keep?'rgba(67,130,82,.62)':'rgba(115,122,128,.34)';
+  ctx.lineWidth=1;ctx.setLineDash(keep?[5,4]:[3,4]);ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);
+  ctx.clip();ctx.setLineDash([]);ctx.strokeStyle=keep?'rgba(67,130,82,.20)':'rgba(120,126,132,.13)';ctx.lineWidth=1;
+  for(let d=-h;d<w+h;d+=10){ctx.beginPath();ctx.moveTo(x+d,y+h);ctx.lineTo(x+d+h,y);ctx.stroke();}
+  ctx.restore();
+}
+function drawSheetCutLine(ctx,cut,sx,sy,mode){
+  const depth=Number(cut.depth)||0;
+  const primary=depth===0;
+  ctx.save();
+  ctx.strokeStyle=primary?'#d95f59':'#4f9c69';
+  ctx.lineWidth=primary?1.8:1.35;
+  ctx.setLineDash(mode==='panel'?[6,4]:[]);
+  ctx.beginPath();ctx.moveTo(sx(cut.x1),sy(cut.y1));ctx.lineTo(sx(cut.x2),sy(cut.y2));ctx.stroke();
+  const mx=(sx(cut.x1)+sx(cut.x2))/2,my=(sy(cut.y1)+sy(cut.y2))/2;
+  ctx.setLineDash([]);
+  if(cut.length>35){
+    const txt=nice(cut.length);
+    ctx.font='700 7px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    const tw=ctx.measureText(txt).width+6;
+    ctx.fillStyle='rgba(255,255,255,.88)';ctx.fillRect(mx-tw/2,my-5,tw,10);
+    ctx.fillStyle=primary?'#9a3d38':'#2f7046';ctx.fillText(txt,mx,my+.3);
+  }
+  ctx.restore();
+}
+function legacyV41_sheetPreviewDraw(){
   const group=sheetPreviewGroups[sheetPreviewIndex],cfg=getSheetPrefs(),size=sheetPreviewCanvasSize(),canvas=size.canvas,cssW=size.cssW,cssH=size.cssH,dpr=size.dpr,ctx=canvas.getContext('2d');
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cssW,cssH);
   if(!group){$('sheetPreviewEmpty').style.display='grid';return}
   $('sheetPreviewEmpty').style.display='none';
   const view=sheetPreviewViewport(group,cfg);sheetPreviewView=view;
-  const pad=18,scale=Math.min((cssW-pad*2)/view.w,(cssH-pad*2)/view.h),ox=(cssW-view.w*scale)/2-view.x*scale,oy=(cssH-view.h*scale)/2+(view.y+view.h)*scale;
+  const pad=34,scale=Math.min((cssW-pad*2)/view.w,(cssH-pad*2)/view.h),ox=(cssW-view.w*scale)/2-view.x*scale,oy=(cssH-view.h*scale)/2+(view.y+view.h)*scale;
   const sx=x=>ox+x*scale,sy=y=>oy-y*scale;sheetPreviewLastTransform={scale,ox,oy,sx,sy,cssW,cssH};
 
   const x0=sx(0),x1=sx(cfg.width),y0=sy(0),y1=sy(cfg.height);
-  ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=18;ctx.fillStyle='#f7f4ea';ctx.fillRect(x0,y1,x1-x0,y0-y1);ctx.restore();ctx.strokeStyle='#7e878e';ctx.lineWidth=1.5;ctx.strokeRect(x0,y1,x1-x0,y0-y1);
-  ctx.save();ctx.setLineDash([6,5]);ctx.strokeStyle='rgba(70,90,105,.5)';ctx.lineWidth=1;ctx.strokeRect(sx(cfg.margin),sy(cfg.height-cfg.margin),(cfg.width-2*cfg.margin)*scale,(cfg.height-2*cfg.margin)*scale);ctx.restore();
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=14;ctx.fillStyle='#fbfaf5';ctx.fillRect(x0,y1,x1-x0,y0-y1);ctx.restore();
+  ctx.strokeStyle='#60686d';ctx.lineWidth=1.5;ctx.strokeRect(x0,y1,x1-x0,y0-y1);
+
+  // Dimensões externas da chapa, como em um diagrama de corte técnico.
+  ctx.save();ctx.fillStyle='#d9dee1';ctx.font='700 8px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText(nice(cfg.width), (x0+x1)/2, y1-5);
+  ctx.translate(x0-8,(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText(nice(cfg.height),0,0);ctx.restore();
+
+  // Área útil após o refilo.
+  ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='rgba(104,112,118,.48)';ctx.lineWidth=1;
+  ctx.strokeRect(sx(cfg.margin),sy(cfg.height-cfg.margin),(cfg.width-2*cfg.margin)*scale,(cfg.height-2*cfg.margin)*scale);ctx.restore();
+
+  // Sobras/retalhos do plano guilhotina.
+  if(cfg.cutMode!=='cnc')for(const r of (group.leftovers||[]))drawSheetLeftover(ctx,r,sx,sy,scale,!!r.keep);
 
   for(const e of group.previewEntities||[]){
-    if(e.layer==='CHAPA_REFERENCIA'||!sheetPreviewFaceVisible(e))continue;
-    let stroke='#202428',fill=null,line=1.15;
-    if(e.layer==='CORTE_EXTERNO'){stroke=e.part===sheetPreviewSelectedPart?'#198cff':'#202428';fill=e.part===sheetPreviewSelectedPart?'rgba(25,140,255,.10)':'rgba(255,255,255,.015)';line=e.part===sheetPreviewSelectedPart?2.4:1.15}
-    else if(e.layer.startsWith('FURO_')){stroke='#ff2e88';line=2}
-    else if(e.layer.startsWith('RASGO')){stroke='#00a7d6';fill='rgba(0,180,230,.14)';line=2}
-    else if(e.layer==='ENCAIXE_MONTANTE'){stroke='#d69b00';fill='rgba(255,210,50,.12)';line=1.8}
-    else if(e.layer==='CORTE_SECCIONADORA'){stroke='#2d7dfa';line=1.55}
-    else{stroke='#8e44ff';line=1.6}
+    if(e.layer==='CHAPA_REFERENCIA'||e.layer==='CORTE_SECCIONADORA'||!sheetPreviewFaceVisible(e))continue;
+    let stroke='#25292c',fill=null,line=1.1;
+    if(e.layer==='CORTE_EXTERNO'){
+      stroke=e.part===sheetPreviewSelectedPart?'#1677d2':'#2f3437';
+      fill=e.part===sheetPreviewSelectedPart?'rgba(22,119,210,.14)':'rgba(40,45,48,.035)';
+      line=e.part===sheetPreviewSelectedPart?2.2:1.05;
+    }else if(e.layer.startsWith('FURO_')){stroke='#d62d7b';line=1.8}
+    else if(e.layer.startsWith('RASGO')){stroke='#0099c7';fill='rgba(0,153,199,.10)';line=1.8}
+    else if(e.layer==='ENCAIXE_MONTANTE'){stroke='#bf8a00';fill='rgba(218,168,16,.10)';line=1.6}
+    else{stroke='#7b43d1';line=1.5}
     ctx.save();ctx.strokeStyle=stroke;ctx.lineWidth=line;if(fill)ctx.fillStyle=fill;
-    if(e.layer==='CORTE_SECCIONADORA')ctx.setLineDash([7,5]);
     if(e.kind==='circle'){ctx.beginPath();ctx.arc(sx(e.x),sy(e.y),Math.max(2,e.r*scale),0,Math.PI*2);if(fill)ctx.fill();ctx.stroke()}
     else if(e.kind==='rect'){const rx=sx(e.x),ry=sy(e.y+e.h),rw=e.w*scale,rh=e.h*scale;if(fill)ctx.fillRect(rx,ry,rw,rh);ctx.strokeRect(rx,ry,rw,rh)}
     else if(e.kind==='poly'&&e.points?.length){ctx.beginPath();e.points.forEach((pt,i)=>{const x=sx(pt[0]),y=sy(pt[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();if(fill)ctx.fill();ctx.stroke()}
-    else if(e.kind==='line'){
-      ctx.beginPath();ctx.moveTo(sx(e.x1),sy(e.y1));ctx.lineTo(sx(e.x2),sy(e.y2));ctx.stroke();
-      if(e.cut?.order){
-        const mx=(sx(e.x1)+sx(e.x2))/2,my=(sy(e.y1)+sy(e.y2))/2;
-        ctx.setLineDash([]);ctx.fillStyle='#2d7dfa';ctx.beginPath();ctx.arc(mx,my,8,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#fff';ctx.font='700 8px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(e.cut.order),mx,my);
-      }
-    }
     ctx.restore();
   }
+
+  // Cortes guilhotina ficam visíveis no plano, mas o fluxo Aspire continua
+  // usando suas próprias layers/regras de exportação.
+  if(cfg.cutMode!=='cnc')for(const cut of (group.panelCuts||[]))drawSheetCutLine(ctx,cut,sx,sy,cfg.cutMode);
 
   if($('sheetPreviewEdgeHoles').checked)for(const p of group.parts)for(const mk of previewEdgeHoleMarkers(p)){const x=sx(mk.x),y=sy(mk.y),r=5;ctx.save();ctx.fillStyle='#ff8b1f';ctx.strokeStyle='#542900';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y-r);ctx.lineTo(x+r,y+r);ctx.lineTo(x-r,y+r);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
 
@@ -13358,31 +13561,57 @@ function sheetPreviewDraw(){
     ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
     for(const p of group.parts){
       const b=sheetPreviewPartBounds(p),cx=sx(b.x+b.w/2),cy=sy(b.y+b.h/2),pxW=b.w*scale,pxH=b.h*scale;
-      if(pxW<45||pxH<28)continue;
-      const fs=Math.max(8,Math.min(12,Math.min(pxW/13,pxH/5)));
-      ctx.font=`700 ${fs}px system-ui,sans-serif`;ctx.fillStyle='#111';
-      const prefix=cfg.cutMode==='cnc'&&p.cutOrder?`#${p.cutOrder} · `:'';
-      ctx.fillText((prefix+String(p.name||'Peça')).slice(0,34),cx,cy-fs*.55);
-      ctx.font=`${Math.max(7,fs-2)}px system-ui,sans-serif`;ctx.fillStyle='#485159';
-      ctx.fillText(`${nice(p.faceW)} × ${nice(p.faceH)}${p.rotated?' · 90°':''}`,cx,cy+fs*.65);
+      if(pxW<28||pxH<20)continue;
+      const code=String(p.diagramCode||'');
+      const count=p.diagramQty>1?`${p.diagramSeq}/${p.diagramQty}`:'';
+      const codeFs=Math.max(10,Math.min(22,Math.min(pxW/4,pxH/2.8)));
+      ctx.font=`800 ${codeFs}px system-ui,sans-serif`;ctx.fillStyle='#1f2326';
+      const main=cfg.cutMode==='cnc'&&p.cutOrder?`#${p.cutOrder} · ${code}`:code;
+      ctx.fillText(main,cx,cy-(pxH>48?codeFs*.20:0));
+      if(pxW>58&&pxH>40){
+        const fs=Math.max(7,Math.min(9,pxW/18));
+        ctx.font=`700 ${fs}px system-ui,sans-serif`;ctx.fillStyle='#4f585d';
+        ctx.fillText(`${String(p.name||'Peça').slice(0,22)}${count?' · '+count:''}`,cx,cy+codeFs*.72);
+      }
+      if(pxW>62){ctx.font='700 7px system-ui,sans-serif';ctx.fillStyle='#697176';ctx.fillText(nice(p.placedW),cx,sy(b.y+b.h)+8)}
+      if(pxH>62){ctx.save();ctx.translate(sx(b.x)+8,cy);ctx.rotate(-Math.PI/2);ctx.font='700 7px system-ui,sans-serif';ctx.fillStyle='#697176';ctx.fillText(nice(p.placedH),0,0);ctx.restore()}
     }
     ctx.restore();
   }
   renderSheetPreviewSide();
 }
+function renderSheetPreviewLeftovers(group,cfg){
+  const box=$('sheetPreviewLeftovers');if(!box)return;
+  if(cfg.cutMode==='cnc'){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='block';
+  const m=sheetPreviewCutMetrics(group,cfg),keep=m.keep;
+  const minText=`mín. ${nice(cfg.leftoverW)} × ${nice(cfg.leftoverH)} mm`;
+  if(!keep.length){box.innerHTML=`<strong>Sobras aproveitáveis</strong><br>Nenhuma sobra atende ${minText}.`;return;}
+  box.innerHTML=`<strong>Sobras para guardar · ${keep.length}</strong><br><span>${minText}</span>`+keep.slice(0,6).map((r,i)=>`<div class="sheetPreviewLeftoverRow"><span>${i+1}. ${nice(r.w)} × ${nice(r.h)} mm</span><b>${nice(r.w*r.h/1e6)} m²</b></div>`).join('')+(keep.length>6?`<div style="margin-top:4px">+ ${keep.length-6} sobra(s)</div>`:'');
+}
 function renderSheetPreviewSide(){
   const group=sheetPreviewGroups[sheetPreviewIndex],cfg=getSheetPrefs();if(!group)return;
-  const st=sheetPreviewStats(group),area=group.parts.reduce((n,p)=>n+p.faceW*p.faceH,0),usable=(cfg.width-2*cfg.margin)*(cfg.height-2*cfg.margin),pct=usable>0?area/usable*100:0,status=$('sheetPreviewStatus');
+  const st=sheetPreviewStats(group),m=sheetPreviewCutMetrics(group,cfg),status=$('sheetPreviewStatus');
   status.className='sheetPreviewStatus '+(st.errors?'bad':st.edge?'warn':'ok');
   const specialBlanks=group.parts.filter(p=>p.customOutline?.length).length;
-  const modeLine=cfg.cutMode==='panel'
-    ? `<br><span style="color:#75a7ff">▰ Seccionadora · ${group.panelCuts?.length||0} corte(s) reto(s) sequenciados.</span>${specialBlanks?`<br><span style="color:#ffae52">⚠ ${specialBlanks} peça(s) com forma especial: a seccionadora corta o blank retangular; o contorno final exige CNC/fresa.</span>`:''}`
-    : `<br><span style="color:#65e77c">◎ CNC · menores priorizadas no centro · corte numerado centro → fora.</span>`;
-  status.innerHTML=`<strong>${group.parts.length} peça(s)</strong> · aproveitamento ${nice(pct)}%${modeLine}<br>Furos face A: <b>${st.holesA}</b> · face B: <b>${st.holesB}</b><br>Rasgos A: <b>${st.groovesA}</b> · rasgos B: <b>${st.groovesB}</b>${st.slots?` · encaixes: <b>${st.slots}</b>`:''}<br>${st.edge?`<span style="color:#ffae52">⚠ ${st.edge} furo(s) de borda exigem usinagem lateral/virar peça.</span><br>`:''}${st.errors?`<span style="color:#ff6a64">✕ Divergência: DXF tem ${group.circleCount} círculos, esperado ${group.expectedFaceHoles}.</span>`:`<span style="color:#65e77c">✓ Conferência DXF: ${group.circleCount} círculo(s) de furação corretamente projetados.</span>`}`;
-  $('sheetPanelSawLegend').style.display=cfg.cutMode==='panel'?'grid':'none';
-  $('sheetPreviewModeText').textContent=cfg.cutMode==='panel'
-    ? 'Seccionadora · cortes retos numerados e layer CORTE_SECCIONADORA.'
-    : 'CNC · peças menores priorizadas perto do centro, com ordem centro → fora.';
+  let modeLine='';
+  if(cfg.cutMode==='ocl')modeLine=`<br><span style="color:#f0b24b">▦ Plano inteligente · guilhotina · ${group.panelCuts?.length||0} corte(s).</span>${specialBlanks?`<br><span style="color:#ffae52">⚠ ${specialBlanks} peça(s) com forma especial usam o blank retangular no encaixe.</span>`:''}`;
+  else if(cfg.cutMode==='panel')modeLine=`<br><span style="color:#75a7ff">▰ Seccionadora · ${group.panelCuts?.length||0} corte(s) reto(s) sequenciados.</span>${specialBlanks?`<br><span style="color:#ffae52">⚠ ${specialBlanks} peça(s) com forma especial: a seccionadora corta o blank retangular; o contorno final exige CNC/fresa.</span>`:''}`;
+  else modeLine='<br><span style="color:#65e77c">◎ CNC · menores priorizadas no centro · corte numerado centro → fora.</span>';
+  status.innerHTML=`<strong>${group.parts.length} peça(s)</strong> · aproveitamento <b>${nice(m.pct)}%</b>${modeLine}<br>Furos face A: <b>${st.holesA}</b> · face B: <b>${st.holesB}</b><br>Rasgos A: <b>${st.groovesA}</b> · rasgos B: <b>${st.groovesB}</b>${st.slots?` · encaixes: <b>${st.slots}</b>`:''}<br>${st.edge?`<span style="color:#ffae52">⚠ ${st.edge} furo(s) de borda exigem usinagem lateral/virar peça.</span><br>`:''}${st.errors?`<span style="color:#ff6a64">✕ Divergência: DXF tem ${group.circleCount} círculos, esperado ${group.expectedFaceHoles}.</span>`:`<span style="color:#65e77c">✓ Conferência DXF: ${group.circleCount} círculo(s) de furação projetados.</span>`}`;
+
+  const metric=$('sheetPreviewCutSummary');
+  const waste=Math.max(0,m.usable-m.area);
+  const optLabel=cfg.optimization==='advanced'?'Avançada':'Normal';
+  metric.innerHTML=`<div class="sheetPreviewMetric"><b>${nice(m.cutLength/1000)} m</b><span>comprimento de corte</span></div><div class="sheetPreviewMetric"><b>${m.cuts.length}</b><span>cortes${m.primaryCuts?` · ${m.primaryCuts} primário(s)`:''}</span></div><div class="sheetPreviewMetric"><b>${nice(waste/1e6)} m²</b><span>área não usada</span></div><div class="sheetPreviewMetric"><b>${cfg.cutMode==='ocl'?optLabel:sheetCutModeLabel(cfg)}</b><span>${cfg.cutMode==='ocl'?'otimização':'modo'}</span></div>`;
+
+  $('sheetPanelSawLegend').style.display=cfg.cutMode==='cnc'?'none':'grid';
+  $('sheetPreviewModeText').textContent=cfg.cutMode==='ocl'
+    ? `Plano inteligente · guilhotina · otimização ${optLabel.toLowerCase()} · direção ${cfg.preference==='auto'?'automática':cfg.preference==='length'?'comprimento':cfg.preference==='width'?'largura':'livre'}.`
+    : cfg.cutMode==='panel'
+      ? 'Seccionadora · cortes retos numerados em guilhotina.'
+      : 'CNC · peças menores priorizadas perto do centro, com ordem centro → fora.';
+  renderSheetPreviewLeftovers(group,cfg);
 
   const card=$('sheetPreviewPartCard'),p=sheetPreviewSelectedPart;
   if(!p||!group.parts.includes(p)){sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;card.innerHTML=`<h4>Nenhuma peça selecionada</h4><div class="meta">Toque em uma peça da chapa para conferir medidas e operações.</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary" disabled>Ampliar peça</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>`}
@@ -13393,14 +13622,14 @@ function renderSheetPreviewSide(){
       else{const face=entryAxisSign(op.entryAxis)>0?'A':'B';ops.push(`${op.preset==='drawer-bottom-groove'?'Rasgo fundo gaveta':op.preset==='back-groove'?'Rasgo de fundo':'Rasgo'} ${nice(op.length)} × ${nice(op.width)} × ${nice(operationDepthMm(p.object,op))} mm · ${face}`)}
     }
     if(p.customSlots?.length)ops.push(`${p.customSlots.length} encaixe(s) de contorno · ENCAIXE_MONTANTE`);
-    card.innerHTML=`<h4>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.material||'MDF')}<br>${escapeHtml(p.spaceName||'')} · X ${nice(p.x)} / Y ${nice(p.y)}${p.rotated?' · girada 90°':''}${cfg.cutMode==='cnc'&&p.cutOrder?` · ordem CNC #${p.cutOrder}`:''}</div><div class="sheetPreviewPartOps">${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>`
+    card.innerHTML=`<h4>${escapeHtml(p.diagramCode?`${p.diagramCode} · ${p.name||'Peça'}`:(p.name||'Peça'))}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.material||'MDF')}<br>${escapeHtml(p.spaceName||'')} · X ${nice(p.x)} / Y ${nice(p.y)}${p.rotated?' · girada 90°':''}${p.diagramQty>1?` · ${p.diagramSeq}/${p.diagramQty}`:''}${cfg.cutMode==='cnc'&&p.cutOrder?` · ordem CNC #${p.cutOrder}`:''}</div><div class="sheetPreviewPartOps">${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>`;
   }
   $('sheetPreviewIsolate').onclick=()=>{if(sheetPreviewSelectedPart){sheetPreviewIsolated=!sheetPreviewIsolated;sheetPreviewDraw()}};
   $('sheetPreviewFit').onclick=()=>{sheetPreviewIsolated=false;sheetPreviewDraw()};
-  $('sheetPreviewSheetInfo').innerHTML=`<strong>${escapeHtml(group.key.replace(/_/g,' '))}</strong> · chapa ${group.sheetNo}/${group.totalSheets} · ${nice(cfg.width)} × ${nice(cfg.height)} mm · ${cfg.cutMode==='panel'?'seccionadora':'CNC'}`;
+  $('sheetPreviewSheetInfo').innerHTML=`<strong>${escapeHtml(group.key.replace(/_/g,' '))}</strong> · chapa ${group.sheetNo}/${group.totalSheets} · ${nice(cfg.width)} × ${nice(cfg.height)} mm · ${sheetCutModeLabel(cfg)}`;
   $('sheetPreviewFaceInfo').textContent=sheetPreviewFace==='ALL'?'Todas as faces':`Mostrando Face ${sheetPreviewFace}`;
 }
-function prepareSheetPreviewGroups(){
+function legacyV41_prepareSheetPreviewGroups(){
   const grooves=repairAllDrawerBottomGrooves();
   const repaired=repairAllDrawerDrillingForAspire();
   if(repaired.sets>0&&repaired.holes===0)throw new Error('Há gavetas com furação marcada, mas nenhum furo pôde ser ligado às laterais.');
@@ -13416,12 +13645,12 @@ function prepareSheetPreviewGroups(){
   }
   return groups;
 }
-function refreshSheetPreviewSelect(){
+function legacyV41_refreshSheetPreviewSelect(){
   const sel=$('sheetPreviewSelect');sel.innerHTML='';
   sheetPreviewGroups.forEach((g,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${String(i+1).padStart(2,'0')} · ${g.key.replace(/_/g,' ')} · Chapa ${g.sheetNo}/${g.totalSheets} · ${g.parts.length} peças`;sel.appendChild(o)});
   sel.value=String(sheetPreviewIndex);$('sheetPreviewPrev').disabled=sheetPreviewIndex<=0;$('sheetPreviewNext').disabled=sheetPreviewIndex>=sheetPreviewGroups.length-1;
 }
-function openSheetPreview(){
+function legacyV41_openSheetPreview(){
   try{
     sheetPreviewGroups=prepareSheetPreviewGroups();
     if(!sheetPreviewGroups.length)throw new Error('Não há peças disponíveis para montar o plano de corte.');
@@ -13438,8 +13667,8 @@ function openSheetPreview(){
     toast(err.message||'Não foi possível montar a prévia Aspire');
   }
 }
-function closeSheetPreview(){$('sheetPreviewDialog').classList.remove('show');sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;sheetPreviewLastTransform=null}
-function selectSheetPreviewIndex(i){i=Math.max(0,Math.min(sheetPreviewGroups.length-1,Number(i)||0));if(i===sheetPreviewIndex)return;sheetPreviewIndex=i;sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw()}
+function legacyV41_closeSheetPreview(){$('sheetPreviewDialog').classList.remove('show');sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;sheetPreviewLastTransform=null}
+function legacyV41_selectSheetPreviewIndex(i){i=Math.max(0,Math.min(sheetPreviewGroups.length-1,Number(i)||0));if(i===sheetPreviewIndex)return;sheetPreviewIndex=i;sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw()}
 function sheetPreviewPointerToWorld(e){const canvas=$('sheetPreviewCanvas'),r=canvas.getBoundingClientRect(),t=sheetPreviewLastTransform;if(!t)return null;const cx=(e.clientX-r.left)*(t.cssW/r.width),cy=(e.clientY-r.top)*(t.cssH/r.height);return{x:(cx-t.ox)/t.scale,y:(t.oy-cy)/t.scale}}
 
 const SHEET_PREFS_KEY='miniCadProV50_sheetPrefs';
@@ -13453,12 +13682,12 @@ function normalizedSheetPrefs(raw={}){
   // grain=false => material sem sentido obrigatório => o plano pode girar 90°.
   // Mantemos "rotate" calculado para compatibilidade com o restante do exportador.
   const grain=raw.grain===true;
-  const cutMode=raw.cutMode==='panel'?'panel':'cnc';
+  const cutMode=['open','panel','cnc'].includes(raw.cutMode)?raw.cutMode:'open';
   return {
     width:num(raw.width,2750,100),
     height:num(raw.height,1850,100),
     margin:num(raw.margin,10,0),
-    gap:num(raw.gap,10,0),
+    gap:num(raw.gap,3,0),
     grain,
     cutMode,
     rotate:!grain
@@ -14104,7 +14333,7 @@ function packPartsIntoSheets(parts,cfg){
     : packPartsIntoSheetsCnc(parts,cfg);
 }
 
-function updateSheetCutModeUi(){
+function legacyV41_updateSheetCutModeUi(){
   const mode=$('sheetCutMode')?.value||'cnc';
   const help=$('sheetCutModeHelp');
   if(!help)return;
@@ -14376,11 +14605,40 @@ function zipStore(files){
   for(const f of files){const name=enc.encode(f.name),data=typeof f.data==='string'?enc.encode(f.data):f.data,crc=crc32(data);const local=concatBytes([u32(0x04034b50),u16(20),u16(0),u16(0),u16(dt.time),u16(dt.date),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),name,data]);locals.push(local);const central=concatBytes([u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(dt.time),u16(dt.date),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),name]);centrals.push(central);offset+=local.length;}
   const centralSize=centrals.reduce((n,b)=>n+b.length,0),end=concatBytes([u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(centralSize),u32(offset),u16(0)]);return new Blob([...locals,...centrals,end],{type:'application/zip'});
 }
-function downloadBlob(name,blob){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1800);}
+function exportMimeAccept(filename,mime='application/octet-stream'){
+  const dot=String(filename||'').lastIndexOf('.');
+  const ext=dot>=0?String(filename).slice(dot):'';
+  return ext?{[mime]:[ext]}:{[mime]:[]};
+}
+function isExportPickerCancel(err){return err?.name==='AbortError';}
+async function pickExportTarget(filename,pickerId='designlab-export',mime='application/octet-stream'){
+  if(!window.isSecureContext){
+    throw new Error('Para escolher uma pasta de exportação, abra o DesignLabMoveis pelo endereço HTTPS do site.');
+  }
+  if(typeof window.showDirectoryPicker==='function'){
+    const dir=await window.showDirectoryPicker({id:pickerId,mode:'readwrite'});
+    const file=await dir.getFileHandle(filename,{create:true});
+    return {kind:'directory',handle:file,locationLabel:`pasta “${dir.name||'selecionada'}”`};
+  }
+  if(typeof window.showSaveFilePicker==='function'){
+    const file=await window.showSaveFilePicker({
+      id:pickerId,
+      suggestedName:filename,
+      types:[{description:'Arquivo do DesignLabMoveis',accept:exportMimeAccept(filename,mime)}]
+    });
+    return {kind:'file',handle:file,locationLabel:'local escolhido'};
+  }
+  throw new Error('Este navegador não permite salvar direto em uma pasta. Use uma versão compatível do Chrome ou Edge para escolher a pasta de exportação.');
+}
+async function writeExportTarget(target,blob){
+  const writable=await target.handle.createWritable();
+  try{await writable.write(blob);await writable.close();}
+  catch(err){try{await writable.abort();}catch{}throw err;}
+}
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.38 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.42 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -14395,33 +14653,47 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.38 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.42 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
-function renderPartsList(){
+function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
   const list=$('partsList'),summary=$('partsSummary');list.innerHTML='';
   try{
     const groups=groupAspireProjectParts(cfg),allParts=groups.flatMap(g=>g.parts),byKey=new Map();
     const spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
-    for(const g of groups){if(!byKey.has(g.key))byKey.set(g.key,{sheets:0,parts:[],area:0});const x=byKey.get(g.key);x.sheets=Math.max(x.sheets,g.sheetNo);x.parts.push(...g.parts);x.area+=g.parts.reduce((n,p)=>n+p.faceW*p.faceH,0);}
-    const straightCuts=groups.reduce((n,g)=>n+(g.panelCuts?.length||0),0);
-    summary.innerHTML=`<strong>${allParts.length} peça(s)</strong> · ${spaces.length} espaço(s) · <strong>${groups.length} chapa(s)</strong> no total<br><strong>${sheetCutModeLabel(cfg)}</strong>${cfg.cutMode==='panel'?` · ${straightCuts} corte(s) reto(s)`:''}<br>Chapa ${nice(cfg.width)} × ${nice(cfg.height)} mm · margem ${nice(cfg.margin)} mm · folga/canal ${nice(cfg.gap)} mm${cfg.rotate?' · giro 90° permitido para materiais sem veio':' · sem giro 90°'} · materiais madeirados mantêm o sentido automaticamente`;
+    let totalArea=0,totalUsable=0,totalCutLength=0,totalCuts=0,totalKeep=0;
+    for(const g of groups){
+      const m=sheetPreviewCutMetrics(g,cfg);
+      totalArea+=m.area;totalUsable+=m.usable;totalCutLength+=m.cutLength;totalCuts+=m.cuts.length;totalKeep+=m.keep.length;
+      if(!byKey.has(g.key))byKey.set(g.key,{sheets:[],parts:[]});
+      const x=byKey.get(g.key);x.sheets.push({group:g,metrics:m});x.parts.push(...g.parts);
+    }
+    const totalPct=totalUsable>0?totalArea/totalUsable*100:0;
+    const opt=cfg.optimization==='advanced'?'avançada':'normal';
+    const pref=cfg.preference==='auto'?'automática':cfg.preference==='length'?'comprimento':cfg.preference==='width'?'largura':'sem preferência';
+    summary.innerHTML=`<strong>${allParts.length} peça(s)</strong> · ${spaces.length} espaço(s) · <strong>${groups.length} chapa(s)</strong><br><strong>${sheetCutModeLabel(cfg)}</strong> · aproveitamento geral <strong>${nice(totalPct)}%</strong>${cfg.cutMode!=='cnc'?` · ${totalCuts} corte(s) / ${nice(totalCutLength/1000)} m`:''}${cfg.cutMode!=='cnc'?` · ${totalKeep} sobra(s) para guardar`:''}<br>Chapa ${nice(cfg.width)} × ${nice(cfg.height)} mm · refilo ${nice(cfg.margin)} mm/lado · serra/canal ${nice(cfg.gap)} mm · otimização ${opt} · direção ${pref}${cfg.rotate?' · giro 90° permitido onde não há veio':' · giro 90° bloqueado'}`;
     for(const [key,data] of byKey.entries()){
+      const keyArea=data.sheets.reduce((n,x)=>n+x.metrics.area,0),keyUsable=data.sheets.reduce((n,x)=>n+x.metrics.usable,0),keyPct=keyUsable?keyArea/keyUsable*100:0;
       const box=document.createElement('div');box.className='partsGroup';
-      const head=document.createElement('div');head.className='partsGroupHead';const a=document.createElement('span');a.textContent=key.replace(/_/g,' ');const b=document.createElement('span');b.textContent=`${data.sheets} chapa(s)`;head.append(a,b);box.appendChild(head);
+      const head=document.createElement('div');head.className='partsGroupHead';const a=document.createElement('span');a.textContent=key.replace(/_/g,' ');const b=document.createElement('span');b.textContent=`${data.sheets.length} chapa(s) · ${nice(keyPct)}%`;head.append(a,b);box.appendChild(head);
       for(const p of groupedPartRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.textContent=p.name;const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${p.material}${p.materialCode?' · '+p.materialCode:''}${p.materialGrain?' · veio':''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;row.append(left,qty);box.appendChild(row);
       }
-      const chips=document.createElement('div');chips.style.padding='7px 10px 9px';for(let i=1;i<=data.sheets;i++){const c=document.createElement('span');c.className='sheetChip';c.textContent=`Chapa ${i}`;chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
+      const chips=document.createElement('div');chips.style.padding='7px 10px 9px';
+      data.sheets.forEach((x,i)=>{const c=document.createElement('span');c.className='sheetChip';c.textContent=`Chapa ${i+1} · ${nice(x.metrics.pct)}%${cfg.cutMode!=='cnc'?` · ${x.metrics.cuts.length} cortes`:''}`;chips.appendChild(c);});
+      box.appendChild(chips);list.appendChild(box);
     }
-    $('partsListInfo').textContent=cfg.cutMode==='panel'
-      ? `Projeto completo · modo Seccionadora: distribuição por cortes retos em guilhotina, combinando ${spaces.length} espaço(s).`
-      : `Projeto completo · modo CNC: calcula o aproveitamento e reorganiza as peças menores do centro para fora, combinando ${spaces.length} espaço(s).`;
+    if(cfg.cutMode==='ocl')$('partsListInfo').textContent=`Projeto completo · plano guilhotina inteligente inspirado no OpenCutList: combina ${spaces.length} espaço(s), testa múltiplas ordens/direções e preserva sobras aproveitáveis.`;
+    else if(cfg.cutMode==='panel')$('partsListInfo').textContent=`Projeto completo · modo Seccionadora: distribuição por cortes retos em guilhotina, combinando ${spaces.length} espaço(s).`;
+    else $('partsListInfo').textContent=`Projeto completo · modo CNC: calcula o aproveitamento e reorganiza as peças menores do centro para fora, combinando ${spaces.length} espaço(s).`;
   }catch(err){summary.textContent=err.message||'Não foi possível calcular as chapas';$('partsListInfo').textContent='Lista geral de peças de todos os espaços do projeto.';}
 }
-function openPartsListDialog(){applySheetPrefsToUi();renderPartsList();$('partsListDialog').style.display='flex';}
-function exportProjectAspireZip(){
+function legacyV41_openPartsListDialog(){applySheetPrefsToUi();renderPartsList();$('partsListDialog').style.display='flex';}
+async function exportProjectAspireZip(){
+  let target=null;
   try{
+    // Abre o seletor primeiro para preservar a permissão iniciada pelo clique.
+    target=await pickExportTarget('projeto-completo-aspire.zip','designlab-export-aspire-projeto','application/zip');
     const grooves=repairAllDrawerBottomGrooves();
     const repaired=repairAllDrawerDrillingForAspire();
     if(repaired.sets>0&&repaired.holes===0)throw new Error('Há gavetas com furação marcada, mas nenhum furo pôde ser ligado às laterais. Selecione uma lateral do móvel e confira se ela pertence ao mesmo espaço.');
@@ -14434,15 +14706,22 @@ function exportProjectAspireZip(){
     if(cfg.cutMode==='panel')files.push({name:'cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)});
     files.push({name:'usinagens.csv',data:buildMachiningCsv(groups)});
     files.push({name:'LEIA-ME.txt',data:buildProjectAspireReadme(groups,cfg)});
-    downloadBlob('projeto-completo-aspire.zip',zipStore(files));
+    await writeExportTarget(target,zipStore(files));
     const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0);
-    toast(`Projeto Aspire · ${groups.length} chapa(s) · ${groups.reduce((n,g)=>n+g.parts.length,0)} peça(s) · ${ops} operação(ões)${grooves.sets?` · RASGOS FUNDO: ${grooves.created}`:''}${repaired.sets?` · FUROS CORREDIÇA: ${repaired.holes}${repaired.forced?` (fallback ${repaired.forced})`:''}`:''}`);
-  }catch(err){toast(err.message||'Não foi possível exportar o projeto para Aspire');}
+    toast(`Projeto Aspire salvo em ${target.locationLabel} · ${groups.length} chapa(s) · ${groups.reduce((n,g)=>n+g.parts.length,0)} peça(s) · ${ops} operação(ões)${grooves.sets?` · RASGOS FUNDO: ${grooves.created}`:''}${repaired.sets?` · FUROS CORREDIÇA: ${repaired.holes}${repaired.forced?` (fallback ${repaired.forced})`:''}`:''}`);
+  }catch(err){
+    if(isExportPickerCancel(err)){toast('Exportação cancelada');return;}
+    toast(err.message||'Não foi possível exportar o projeto para Aspire');
+  }
 }
-function exportSelectedAspireDxf(){
+async function exportSelectedAspireDxf(){
   const root=selectedFurnitureRoot();
   if(!root){toast('Selecione um espaço do móvel');return;}
+  const filename=`${safeFileName(root.name,'movel')}-aspire.zip`;
+  let target=null;
   try{
+    // A pasta/local é escolhida antes de montar o ZIP, sem usar download do navegador.
+    target=await pickExportTarget(filename,'designlab-export-aspire-movel','application/zip');
     const grooves=repairDrawerBottomGroovesForRoot(root);
     const repaired=repairDrawerDrillingForRoot(root);
 
@@ -14457,11 +14736,12 @@ function exportSelectedAspireDxf(){
     if(cfg.cutMode==='panel')files.push({name:'cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)});
     files.push({name:'usinagens.csv',data:buildMachiningCsv(groups)});
     files.push({name:'LEIA-ME.txt',data:buildAspireReadme(root,groups,cfg)});
-    downloadBlob(`${safeFileName(root.name,'movel')}-aspire.zip`,zipStore(files));
+    await writeExportTarget(target,zipStore(files));
 
     const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0);
-    toast(`Aspire ZIP · ${groups.length} chapa(s) · ${ops} operação(ões)${grooves.sets?` · RASGOS FUNDO: ${grooves.created}`:''}${repaired.sets?` · FUROS CORREDIÇA: ${repaired.holes}${repaired.forced?` (fallback ${repaired.forced})`:''}`:''}`);
+    toast(`Aspire ZIP salvo em ${target.locationLabel} · ${groups.length} chapa(s) · ${ops} operação(ões)${grooves.sets?` · RASGOS FUNDO: ${grooves.created}`:''}${repaired.sets?` · FUROS CORREDIÇA: ${repaired.holes}${repaired.forced?` (fallback ${repaired.forced})`:''}`:''}`);
   }catch(err){
+    if(isExportPickerCancel(err)){toast('Exportação cancelada');return;}
     toast(err.message||'Não foi possível exportar pacote Aspire');
   }
 }
@@ -14897,11 +15177,326 @@ $('productionBandDelete').onclick=productionDeleteBand;
 document.querySelectorAll('[data-edge-key]').forEach(sel=>sel.addEventListener('change',()=>productionAssignEdge(sel.dataset.edgeKey,sel.value)));
 $('productionClearBands').onclick=productionClearSelectedBands;
 
+
+// ============================================================================
+// 1.100.42 · PLANO DE CORTE ESTILO OPENCUTLIST
+// Mantém a exportação Aspire existente separada. Este bloco cuida somente
+// do cálculo e da visualização do plano de corte na interface.
+// ============================================================================
+const CUT_PLAN_PREFS_KEY='designlabCutPlanV42';
+let cutPlanLastGroups=[];
+
+function cutPlanReadExtraPrefs(){
+  try{return JSON.parse(localStorage.getItem(CUT_PLAN_PREFS_KEY)||'{}')||{};}catch(_){return {}}
+}
+function cutPlanSaveExtraPrefs(){
+  const p={
+    optimization:$('sheetOptimization')?.value||'medium',
+    direction:$('sheetDirection')?.value||'auto',
+    keepLength:Math.max(0,Number($('sheetKeepLength')?.value)||0),
+    keepWidth:Math.max(0,Number($('sheetKeepWidth')?.value)||0)
+  };
+  localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify(p));return p;
+}
+function applyCutPlanExtraPrefs(){
+  const p=cutPlanReadExtraPrefs();
+  if($('sheetOptimization'))$('sheetOptimization').value=p.optimization==='advanced'?'advanced':'medium';
+  if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
+  if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
+  if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
+}
+function cutPlanCfgFromUi(){
+  const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
+  return {...base,optimization:x.optimization,direction:x.direction,keepLength:x.keepLength,keepWidth:x.keepWidth};
+}
+function cutPlanModeLabel(cfg){
+  return cfg.cutMode==='panel'?'Seccionadora · cortes retos':cfg.cutMode==='cnc'?'CNC / Router · encaixe livre':'Otimizado · estilo OpenCutList';
+}
+function updateSheetCutModeUi(){
+  const mode=$('sheetCutMode')?.value||'open',help=$('sheetCutModeHelp');
+  document.querySelectorAll('.oclOnly').forEach(el=>el.style.display=mode==='open'?'block':'none');
+  if(!help)return;
+  if(mode==='panel'){
+    help.className='sheetModeHelp panel';
+    help.innerHTML='<strong>Seccionadora:</strong> prioriza cortes horizontais/verticais em guilhotina. É uma alternativa simples para execução manual; a exportação Aspire continua no fluxo existente.';
+  }else if(mode==='cnc'){
+    help.className='sheetModeHelp cnc';
+    help.innerHTML='<strong>CNC / Router:</strong> usa encaixe livre para aproveitar área. Não força sequência guilhotina no plano visual.';
+  }else{
+    help.className='sheetModeHelp open';
+    help.innerHTML='<strong>Otimizado:</strong> usa cortes guilhotina, considera refilo e espessura de corte, testa orientações e tenta concentrar a sobra em retalhos maiores e reaproveitáveis.';
+  }
+}
+
+function cutPlanCode(index){
+  let n=Math.max(0,index|0),s='';
+  do{s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)-1;}while(n>=0);
+  return s;
+}
+function cutPlanPartSignature(p){
+  return [p.name,p.material,p.materialCode||'',roundMmNumber(p.thickness,3),roundMmNumber(p.faceW,3),roundMmNumber(p.faceH,3),p.materialGrain?'1':'0',p.edgeBandSignature||''].join('|');
+}
+function cutPlanAssignCodes(parts){
+  const sigs=[...new Set(parts.map(cutPlanPartSignature))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true,sensitivity:'base'}));
+  const map=new Map(sigs.map((s,i)=>[s,cutPlanCode(i)]));
+  return parts.map(p=>({...p,cutCode:map.get(cutPlanPartSignature(p))||'?'}));
+}
+function cutPlanOrder(parts,mode){
+  const a=[...parts];
+  if(mode==='max')return a.sort((x,y)=>(Math.max(y.faceW,y.faceH)-Math.max(x.faceW,x.faceH))||(y.faceW*y.faceH-x.faceW*x.faceH));
+  if(mode==='width')return a.sort((x,y)=>(y.faceW-x.faceW)||(y.faceW*y.faceH-x.faceW*x.faceH));
+  if(mode==='height')return a.sort((x,y)=>(y.faceH-x.faceH)||(y.faceW*y.faceH-x.faceW*x.faceH));
+  if(mode==='perimeter')return a.sort((x,y)=>((y.faceW+y.faceH)-(x.faceW+x.faceH))||(y.faceW*y.faceH-x.faceW*x.faceH));
+  return a.sort((x,y)=>(y.faceW*y.faceH-x.faceW*x.faceH)||(Math.max(y.faceW,y.faceH)-Math.max(x.faceW,x.faceH)));
+}
+function cutPlanSplitRects(free,o,cfg,split){
+  const remW=free.w-o.w,remH=free.h-o.h,k=Math.max(0,cfg.gap),out=[];
+  if(split==='V'){
+    if(remW>k+.001)out.push({x:free.x+o.w+k,y:free.y,w:remW-k,h:free.h});
+    if(remH>k+.001)out.push({x:free.x,y:free.y+o.h+k,w:o.w,h:remH-k});
+  }else{
+    if(remH>k+.001)out.push({x:free.x,y:free.y+o.h+k,w:free.w,h:remH-k});
+    if(remW>k+.001)out.push({x:free.x+o.w+k,y:free.y,w:remW-k,h:o.h});
+  }
+  return out.filter(r=>r.w>.001&&r.h>.001);
+}
+function cutPlanCandidateScore(free,o,cfg,split,direction='none'){
+  if(o.w>free.w+.001||o.h>free.h+.001)return null;
+  const kids=cutPlanSplitRects(free,o,cfg,split),waste=free.w*free.h-o.w*o.h;
+  const largest=kids.length?Math.max(...kids.map(r=>r.w*r.h)):0;
+  const sliverPenalty=kids.reduce((n,r)=>n+(Math.min(r.w,r.h)<Math.max(45,cfg.gap*5)?1:0),0);
+  const cutLength=(split==='V'?(free.w-o.w>.001?free.h:0)+(free.h-o.h>.001?o.w:0):(free.h-o.h>.001?free.w:0)+(free.w-o.w>.001?o.h:0));
+  const dirPenalty=direction==='length'?(split==='H'?0:1):direction==='width'?(split==='V'?0:1):0;
+  const rotatePenalty=o.rotated?.12:0;
+  return [sliverPenalty,dirPenalty,waste,-largest,cutLength,rotatePenalty,free.y,free.x];
+}
+function cutPlanFindPlacement(sheet,part,cfg,direction){
+  let best=null;
+  for(let fi=0;fi<sheet.freeRects.length;fi++){
+    const free=sheet.freeRects[fi];
+    for(const o of partOrientations(part,cfg))for(const split of ['H','V']){
+      const score=cutPlanCandidateScore(free,o,cfg,split,direction);if(!score)continue;
+      if(!best||compareSheetScores(score,best.score)<0)best={fi,free,o,split,score};
+    }
+  }
+  return best;
+}
+function cutPlanNewSheet(cfg){
+  const w=cfg.width-2*cfg.margin,h=cfg.height-2*cfg.margin;
+  if(w<=0||h<=0)throw new Error('O refilo é maior que a área útil da chapa.');
+  return {freeRects:[{x:0,y:0,w,h}],placements:[],cuts:[]};
+}
+function cutPlanAddCut(sheet,cut){
+  if(!(cut.length>.001))return;
+  const key=[cut.orientation,roundMmNumber(cut.x1,2),roundMmNumber(cut.y1,2),roundMmNumber(cut.x2,2),roundMmNumber(cut.y2,2)].join('|');
+  if(sheet._cutKeys?.has(key))return;
+  if(!sheet._cutKeys)sheet._cutKeys=new Set();sheet._cutKeys.add(key);
+  cut.order=sheet.cuts.length+1;sheet.cuts.push(cut);
+}
+function cutPlanCommitPlacement(sheet,part,cfg,best){
+  const free=best.free,o=best.o,k=Math.max(0,cfg.gap),fx=cfg.margin+free.x,fy=cfg.margin+free.y;
+  sheet.freeRects.splice(best.fi,1,...cutPlanSplitRects(free,o,cfg,best.split));
+  const placed={...part,x:fx,y:fy,rotated:o.rotated,placedW:o.w,placedH:o.h};sheet.placements.push(placed);
+  const remW=free.w-o.w,remH=free.h-o.h;
+  if(best.split==='V'){
+    if(remW>.001)cutPlanAddCut(sheet,{orientation:'V',x1:fx+o.w+k/2,y1:fy,x2:fx+o.w+k/2,y2:fy+free.h,length:free.h});
+    if(remH>.001)cutPlanAddCut(sheet,{orientation:'H',x1:fx,y1:fy+o.h+k/2,x2:fx+o.w,y2:fy+o.h+k/2,length:o.w});
+  }else{
+    if(remH>.001)cutPlanAddCut(sheet,{orientation:'H',x1:fx,y1:fy+o.h+k/2,x2:fx+free.w,y2:fy+o.h+k/2,length:free.w});
+    if(remW>.001)cutPlanAddCut(sheet,{orientation:'V',x1:fx+o.w+k/2,y1:fy,x2:fx+o.w+k/2,y2:fy+o.h,length:o.h});
+  }
+  return placed;
+}
+function cutPlanPackAttempt(parts,cfg,orderMode,direction){
+  const ordered=cutPlanOrder(parts,orderMode),sheets=[];
+  const usableW=cfg.width-2*cfg.margin,usableH=cfg.height-2*cfg.margin;
+  for(const part of ordered){
+    if(!partOrientations(part,cfg).some(o=>o.w<=usableW+.001&&o.h<=usableH+.001))throw new Error(`${part.name}: ${nice(part.faceW)} × ${nice(part.faceH)} mm não cabe na chapa ${nice(cfg.width)} × ${nice(cfg.height)} mm.`);
+    let bestSheet=-1,best=null;
+    for(let i=0;i<sheets.length;i++){
+      const c=cutPlanFindPlacement(sheets[i],part,cfg,direction);if(!c)continue;
+      if(!best||compareSheetScores(c.score,best.score)<0){best=c;bestSheet=i;}
+    }
+    if(bestSheet<0){const s=cutPlanNewSheet(cfg),c=cutPlanFindPlacement(s,part,cfg,direction);if(!c)throw new Error(`${part.name}: não foi possível posicionar.`);cutPlanCommitPlacement(s,part,cfg,c);sheets.push(s);}else cutPlanCommitPlacement(sheets[bestSheet],part,cfg,best);
+  }
+  return sheets;
+}
+function cutPlanAttemptScore(sheets,cfg){
+  let fragmentation=0,cutLength=0,cutCount=0,largestReusable=0;
+  for(const s of sheets){
+    fragmentation+=(s.freeRects||[]).length;
+    cutLength+=(s.cuts||[]).reduce((n,c)=>n+c.length,0);cutCount+=(s.cuts||[]).length;
+    for(const r of s.freeRects||[])if(r.w>=cfg.keepLength&&r.h>=cfg.keepWidth)largestReusable=Math.max(largestReusable,r.w*r.h);
+  }
+  return [sheets.length,fragmentation,cutLength,cutCount,-largestReusable];
+}
+function cutPlanPackOpen(parts,cfg){
+  const dirs=cfg.direction==='auto'?['none','length','width']:[cfg.direction||'none'];
+  const modes=cfg.optimization==='advanced'?['area','max','width','height','perimeter']:['area','max'];
+  let best=null,lastError=null;
+  for(const dir of dirs)for(const mode of modes){
+    try{
+      const sheets=cutPlanPackAttempt(parts,cfg,mode,dir),score=cutPlanAttemptScore(sheets,cfg);
+      if(!best||compareSheetScores(score,best.score)<0)best={sheets,score};
+    }catch(err){lastError=err;}
+  }
+  if(!best)throw lastError||new Error('Não foi possível calcular o plano de corte.');
+  return best.sheets;
+}
+function cutPlanSheetStats(sheet,cfg){
+  const area=sheet.placements.reduce((n,p)=>n+p.faceW*p.faceH,0),usable=Math.max(1,(cfg.width-2*cfg.margin)*(cfg.height-2*cfg.margin));
+  const cutLength=(sheet.cuts||[]).reduce((n,c)=>n+c.length,0);
+  const reusable=(sheet.freeRects||[]).filter(r=>r.w>=cfg.keepLength&&r.h>=cfg.keepWidth).sort((a,b)=>b.w*b.h-a.w*a.h);
+  return {area,efficiency:area/usable*100,cutLength,reusable};
+}
+function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
+  const raw=allProjectFurnitureParts();if(!raw.length)throw new Error('O projeto ainda não possui peças para o plano de corte.');
+  const byMaterial=new Map();
+  for(const p of raw){const mat=normalizedLayer(p.material||'MDF')||'MDF',key=`${mat}_${layerNum(p.thickness)}mm`;if(!byMaterial.has(key))byMaterial.set(key,[]);byMaterial.get(key).push(p);}
+  const groups=[];
+  for(const [key,baseParts] of byMaterial.entries()){
+    const parts=cutPlanAssignCodes(baseParts);let sheets;
+    if(cfg.cutMode==='panel')sheets=packPartsIntoSheetsPanelSaw(parts,cfg);
+    else if(cfg.cutMode==='cnc')sheets=chooseBestCompactPacking(parts,cfg);
+    else sheets=cutPlanPackOpen(parts,cfg);
+    sheets.forEach((s,i)=>{
+      const stats=cutPlanSheetStats(s,cfg),first=s.placements[0];
+      groups.push({
+        key,displayName:`${first?.materialCode||first?.material||'Material'} · ${nice(first?.thickness||0)} mm`,
+        sheetNo:i+1,totalSheets:sheets.length,parts:s.placements,panelCuts:s.cuts||[],freeRects:s.freeRects||[],stats,cfg:{...cfg},planMode:cfg.cutMode
+      });
+    });
+  }
+  return groups;
+}
+function cutPlanGroupRows(parts){
+  const map=new Map();
+  for(const p of parts){const k=cutPlanPartSignature(p);if(!map.has(k))map.set(k,{...p,qty:0,spaceNames:new Set()});const r=map.get(k);r.qty++;if(p.spaceName)r.spaceNames.add(p.spaceName);}
+  return [...map.values()].sort((a,b)=>String(a.cutCode).localeCompare(String(b.cutCode),'en',{numeric:true}));
+}
+function renderPartsList(){
+  const cfg=cutPlanCfgFromUi();setSheetPrefs(cfg);updateSheetCutModeUi();
+  const list=$('partsList'),summary=$('partsSummary');list.innerHTML='';
+  try{
+    const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;
+    const allParts=groups.flatMap(g=>g.parts),spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
+    const totalArea=allParts.reduce((n,p)=>n+p.faceW*p.faceH,0),usableSheetArea=Math.max(1,(cfg.width-2*cfg.margin)*(cfg.height-2*cfg.margin)),sheetArea=groups.length*usableSheetArea,totalEff=sheetArea?totalArea/sheetArea*100:0,totalCut=groups.reduce((n,g)=>n+g.stats.cutLength,0);
+    const reusable=groups.reduce((n,g)=>n+g.stats.reusable.length,0);
+    summary.innerHTML=`<div class="cutPlanSummaryGrid"><span><b>${allParts.length}</b><small>peças</small></span><span><b>${groups.length}</b><small>chapas</small></span><span><b>${nice(totalEff)}%</b><small>aproveitamento</small></span><span><b>${nice(totalCut/1000)} m</b><small>corte estimado</small></span></div><div class="cutPlanSummaryText"><strong>${escapeHtml(cutPlanModeLabel(cfg))}</strong> · chapa ${nice(cfg.width)} × ${nice(cfg.height)} mm · refilo ${nice(cfg.margin)} mm · corte ${nice(cfg.gap)} mm · ${reusable} sobra(s) útil(eis) · ${spaces.length} espaço(s)</div>`;
+
+    const byKey=new Map();
+    groups.forEach((g,gi)=>{if(!byKey.has(g.key))byKey.set(g.key,{name:g.displayName,sheets:[],parts:[]});const d=byKey.get(g.key);d.sheets.push({g,gi});d.parts.push(...g.parts);});
+    for(const [key,data] of byKey.entries()){
+      const box=document.createElement('div');box.className='partsGroup';
+      const eff=data.sheets.reduce((n,x)=>n+x.g.stats.efficiency,0)/Math.max(1,data.sheets.length);
+      const head=document.createElement('div');head.className='partsGroupHead';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(eff)}%</span>`;box.appendChild(head);
+      for(const p of cutPlanGroupRows(data.parts)){
+        const row=document.createElement('div');row.className='partRow';
+        const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
+        const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?' · veio':''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
+        const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;row.append(left,qty);box.appendChild(row);
+      }
+      const chips=document.createElement('div');chips.style.padding='8px 10px 10px';
+      for(const x of data.sheets){const c=document.createElement('button');c.type='button';c.className='sheetChip';c.innerHTML=`<strong>Chapa ${x.g.sheetNo}</strong> · ${nice(x.g.stats.efficiency)}% · ${nice(x.g.stats.cutLength/1000)} m corte`;c.onclick=()=>openSheetPreviewAt(x.gi);chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
+    }
+    $('partsListInfo').textContent=cfg.cutMode==='open'?'Plano inspirado no OpenCutList: cortes guilhotina, refilo, espessura de corte, nível de otimização, direção preferida e sobras úteis.':'Plano calculado com a estratégia selecionada. O Aspire continua com o exportador existente da versão anterior.';
+  }catch(err){cutPlanLastGroups=[];summary.textContent=err.message||'Não foi possível calcular as chapas';$('partsListInfo').textContent='Lista geral de peças de todos os espaços do projeto.';}
+}
+function openPartsListDialog(){
+  applySheetPrefsToUi();applyCutPlanExtraPrefs();
+  if(!localStorage.getItem(CUT_PLAN_PREFS_KEY+'-mode')){$('sheetCutMode').value='open';localStorage.setItem(CUT_PLAN_PREFS_KEY+'-mode','1');}
+  updateSheetCutModeUi();renderPartsList();$('partsListDialog').style.display='flex';
+}
+
+function prepareSheetPreviewGroups(){return cutPlanLastGroups.length?cutPlanLastGroups:cutPlanBuildGroups(cutPlanCfgFromUi());}
+function refreshSheetPreviewSelect(){
+  const sel=$('sheetPreviewSelect');sel.innerHTML='';
+  sheetPreviewGroups.forEach((g,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${String(i+1).padStart(2,'0')} · ${g.displayName} · Chapa ${g.sheetNo}/${g.totalSheets} · ${nice(g.stats.efficiency)}%`;sel.appendChild(o)});
+  sel.value=String(sheetPreviewIndex);$('sheetPreviewPrev').disabled=sheetPreviewIndex<=0;$('sheetPreviewNext').disabled=sheetPreviewIndex>=sheetPreviewGroups.length-1;
+}
+function openSheetPreview(){openSheetPreviewAt(0)}
+function openSheetPreviewAt(index=0){
+  try{
+    sheetPreviewGroups=prepareSheetPreviewGroups();if(!sheetPreviewGroups.length)throw new Error('Não há chapas para visualizar.');
+    sheetPreviewIndex=Math.max(0,Math.min(sheetPreviewGroups.length-1,Number(index)||0));sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;refreshSheetPreviewSelect();$('sheetPreviewDialog').classList.add('show');requestAnimationFrame(sheetPreviewDraw);
+  }catch(err){toast(err.message||'Não foi possível montar o plano de corte');}
+}
+function closeSheetPreview(){$('sheetPreviewDialog').classList.remove('show');sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;sheetPreviewLastTransform=null}
+function selectSheetPreviewIndex(i){i=Math.max(0,Math.min(sheetPreviewGroups.length-1,Number(i)||0));sheetPreviewIndex=i;sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw()}
+function cutPlanCanvasSize(){
+  const canvas=$('sheetPreviewCanvas'),wrap=canvas.parentElement,r=wrap.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),cssW=Math.max(300,Math.floor(r.width-20)),cssH=Math.max(280,Math.floor(r.height-20));
+  if(canvas.width!==Math.floor(cssW*dpr)||canvas.height!==Math.floor(cssH*dpr)){canvas.width=Math.floor(cssW*dpr);canvas.height=Math.floor(cssH*dpr);canvas.style.width=cssW+'px';canvas.style.height=cssH+'px';}
+  return {canvas,cssW,cssH,dpr};
+}
+function cutPlanDrawWaste(ctx,g,cfg,sx,sy,scale){
+  if(g.planMode==='cnc'||!$('sheetPreviewWaste')?.checked)return;
+  for(const r of g.freeRects||[]){
+    const x=cfg.margin+r.x,y=cfg.margin+r.y,rx=sx(x),ry=sy(y+r.h),rw=r.w*scale,rh=r.h*scale,keep=r.w>=cfg.keepLength&&r.h>=cfg.keepWidth;
+    ctx.save();ctx.fillStyle=keep?'rgba(107,150,82,.15)':'rgba(80,86,89,.045)';ctx.strokeStyle=keep?'rgba(77,128,64,.68)':'rgba(119,124,126,.38)';ctx.lineWidth=1;ctx.setLineDash(keep?[5,3]:[3,4]);ctx.fillRect(rx,ry,rw,rh);ctx.strokeRect(rx,ry,rw,rh);ctx.setLineDash([]);
+    if(rw>48&&rh>32){ctx.strokeStyle=keep?'rgba(80,130,67,.35)':'rgba(120,124,126,.23)';ctx.beginPath();ctx.moveTo(rx+5,ry+5);ctx.lineTo(rx+rw-5,ry+rh-5);ctx.moveTo(rx+rw-5,ry+5);ctx.lineTo(rx+5,ry+rh-5);ctx.stroke();ctx.fillStyle=keep?'#4c7541':'#858b8e';ctx.font='600 8px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(`${nice(r.w)} × ${nice(r.h)}`,rx+rw/2,ry+rh/2);}
+    ctx.restore();
+  }
+}
+function cutPlanDrawGrain(ctx,p,b,sx,sy,scale){
+  if(!p.materialGrain)return;const x1=sx(b.x+b.w*.18),x2=sx(b.x+b.w*.82),y=sy(b.y+b.h*.18);if(Math.abs(x2-x1)<24)return;
+  ctx.save();ctx.strokeStyle='rgba(112,83,39,.55)';ctx.fillStyle='rgba(112,83,39,.75)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y);ctx.lineTo(x2-5,y-3);ctx.lineTo(x2-5,y+3);ctx.closePath();ctx.fill();ctx.restore();
+}
+function cutPlanRenderSide(){
+  const g=sheetPreviewGroups[sheetPreviewIndex];if(!g)return;const cfg=g.cfg,st=g.stats,status=$('sheetPreviewStatus');
+  const keep=st.reusable.slice(0,4).map(r=>`${nice(r.w)} × ${nice(r.h)}`).join(' · ');
+  status.className='sheetPreviewStatus ok';
+  status.innerHTML=`<strong>${escapeHtml(g.displayName)}</strong><br>Chapa ${g.sheetNo}/${g.totalSheets} · ${g.parts.length} peça(s)<br>Aproveitamento <b>${nice(st.efficiency)}%</b> · corte estimado <b>${nice(st.cutLength/1000)} m</b><br>Chapa ${nice(cfg.width)} × ${nice(cfg.height)} · refilo ${nice(cfg.margin)} · corte ${nice(cfg.gap)} mm${keep?`<br>Sobras úteis: ${escapeHtml(keep)}`:'<br>Sem sobra útil acima do mínimo configurado.'}`;
+  $('sheetPreviewModeText').textContent=g.planMode==='open'?'Otimizado · cortes guilhotina e sobras concentradas.':g.planMode==='panel'?'Seccionadora · cortes retos em guilhotina.':'CNC / Router · encaixe livre por área.';
+  const p=sheetPreviewSelectedPart,card=$('sheetPreviewPartCard');
+  if(!p||!g.parts.includes(p)){
+    sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;card.innerHTML='<h4>Nenhuma peça selecionada</h4><div class="meta">Toque numa peça para ver código, medida, material e origem.</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary" disabled>Ampliar peça</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>';
+  }else{
+    const same=g.parts.filter(x=>x.cutCode===p.cutCode).length;
+    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?'veio mantido · ':''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>`;
+  }
+  $('sheetPreviewIsolate').onclick=()=>{if(sheetPreviewSelectedPart){sheetPreviewIsolated=!sheetPreviewIsolated;sheetPreviewDraw()}};
+  $('sheetPreviewFit').onclick=()=>{sheetPreviewIsolated=false;sheetPreviewDraw()};
+  $('sheetPreviewSheetInfo').innerHTML=`<strong>${escapeHtml(g.displayName)}</strong> · chapa ${g.sheetNo}/${g.totalSheets}`;
+  $('sheetPreviewFaceInfo').textContent=`${nice(st.efficiency)}% · ${nice(st.cutLength/1000)} m de corte`;
+}
+function sheetPreviewDraw(){
+  const g=sheetPreviewGroups[sheetPreviewIndex],size=cutPlanCanvasSize(),canvas=size.canvas,cssW=size.cssW,cssH=size.cssH,dpr=size.dpr,ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cssW,cssH);
+  if(!g){$('sheetPreviewEmpty').style.display='grid';return}$('sheetPreviewEmpty').style.display='none';const cfg=g.cfg;
+  const view=sheetPreviewViewport(g,cfg),pad=34,scale=Math.min((cssW-pad*2)/view.w,(cssH-pad*2)/view.h),ox=(cssW-view.w*scale)/2-view.x*scale,oy=(cssH-view.h*scale)/2+(view.y+view.h)*scale;
+  const sx=x=>ox+x*scale,sy=y=>oy-y*scale;sheetPreviewLastTransform={scale,ox,oy,sx,sy,cssW,cssH};
+  const x0=sx(0),x1=sx(cfg.width),y0=sy(0),y1=sy(cfg.height);
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.26)';ctx.shadowBlur=14;ctx.fillStyle='#fff';ctx.fillRect(x0,y1,x1-x0,y0-y1);ctx.restore();ctx.strokeStyle='#41474b';ctx.lineWidth=1.5;ctx.strokeRect(x0,y1,x1-x0,y0-y1);
+  ctx.save();ctx.fillStyle='rgba(140,140,132,.08)';ctx.fillRect(x0,y1,x1-x0,y0-y1);ctx.clearRect(sx(cfg.margin),sy(cfg.height-cfg.margin),(cfg.width-2*cfg.margin)*scale,(cfg.height-2*cfg.margin)*scale);ctx.setLineDash([5,4]);ctx.strokeStyle='#9ba0a2';ctx.lineWidth=1;ctx.strokeRect(sx(cfg.margin),sy(cfg.height-cfg.margin),(cfg.width-2*cfg.margin)*scale,(cfg.height-2*cfg.margin)*scale);ctx.restore();
+
+  cutPlanDrawWaste(ctx,g,cfg,sx,sy,scale);
+
+  for(const p of g.parts){
+    const b=sheetPreviewPartBounds(p),rx=sx(b.x),ry=sy(b.y+b.h),rw=b.w*scale,rh=b.h*scale,sel=p===sheetPreviewSelectedPart;
+    ctx.save();ctx.fillStyle=sel?'#e6f0ff':'#f7f7f5';ctx.strokeStyle=sel?'#2d7dfa':'#262a2d';ctx.lineWidth=sel?2.5:1.25;ctx.fillRect(rx,ry,rw,rh);ctx.strokeRect(rx,ry,rw,rh);cutPlanDrawGrain(ctx,p,b,sx,sy,scale);
+    if($('sheetPreviewLabels')?.checked){
+      const codeFs=Math.max(10,Math.min(30,Math.min(rw*.26,rh*.34)));ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#25282a';ctx.font=`900 ${codeFs}px system-ui,sans-serif`;if(rw>24&&rh>20)ctx.fillText(String(p.cutCode||'?'),rx+rw/2,ry+rh/2-(rh>58?5:0));
+      if(rw>82&&rh>52){ctx.font='700 8px system-ui,sans-serif';ctx.fillStyle='#5e6569';ctx.fillText(`${nice(p.faceW)} × ${nice(p.faceH)}`,rx+rw/2,ry+rh/2+codeFs*.65);}
+      if(rw>125&&rh>74){ctx.font='600 7px system-ui,sans-serif';ctx.fillStyle='#7a8084';ctx.fillText(String(p.name||'Peça').slice(0,28),rx+rw/2,ry+rh-10);}
+    }
+    ctx.restore();
+  }
+
+  if($('sheetPreviewEdgeHoles')?.checked)for(const cut of g.panelCuts||[]){
+    const col=cut.orientation==='H'?'#168758':'#c9445b';ctx.save();ctx.strokeStyle=col;ctx.globalAlpha=.78;ctx.lineWidth=Math.max(1.2,Math.min(4,cfg.gap*scale*.55));ctx.beginPath();ctx.moveTo(sx(cut.x1),sy(cut.y1));ctx.lineTo(sx(cut.x2),sy(cut.y2));ctx.stroke();ctx.globalAlpha=1;
+    if((cut.length||0)*scale>55){const mx=(sx(cut.x1)+sx(cut.x2))/2,my=(sy(cut.y1)+sy(cut.y2))/2;ctx.fillStyle=col;ctx.beginPath();ctx.arc(mx,my,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='800 7px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(cut.order||''),mx,my);}ctx.restore();
+  }
+
+  ctx.save();ctx.fillStyle='#32373a';ctx.font='800 9px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(nice(cfg.width)+' mm',(x0+x1)/2,Math.max(11,y1-8));ctx.translate(Math.max(11,x0-11),(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText(nice(cfg.height)+' mm',0,0);ctx.restore();
+  cutPlanRenderSide();
+}
+
 $('closePartsList').onclick=()=>{$('partsListDialog').style.display='none';};
 $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsListDialog'))$('partsListDialog').style.display='none';});
-['sheetWidth','sheetHeight','sheetMargin','sheetGap'].forEach(id=>$(id).addEventListener('input',renderPartsList));
+['sheetWidth','sheetHeight','sheetMargin','sheetGap','sheetKeepLength','sheetKeepWidth'].forEach(id=>$(id).addEventListener('input',renderPartsList));
 $('sheetGrain').addEventListener('change',renderPartsList);
 $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPartsList();});
+$('sheetOptimization').addEventListener('change',renderPartsList);
+$('sheetDirection').addEventListener('change',renderPartsList);
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
 $('sheetPreviewClose').onclick=closeSheetPreview;
@@ -14912,6 +15507,7 @@ $('sheetPreviewSelect').addEventListener('change',e=>selectSheetPreviewIndex(e.t
 document.querySelectorAll('[data-sheet-face]').forEach(b=>b.addEventListener('click',()=>{sheetPreviewFace=b.dataset.sheetFace||'ALL';document.querySelectorAll('[data-sheet-face]').forEach(x=>x.classList.toggle('active',x===b));sheetPreviewDraw()}));
 $('sheetPreviewLabels').addEventListener('change',sheetPreviewDraw);
 $('sheetPreviewEdgeHoles').addEventListener('change',sheetPreviewDraw);
+$('sheetPreviewWaste').addEventListener('change',sheetPreviewDraw);
 $('sheetPreviewDialog').addEventListener('pointerdown',e=>{if(e.target===$('sheetPreviewDialog'))closeSheetPreview()});
 $('sheetPreviewCanvas').addEventListener('pointermove',e=>{const p=sheetPreviewPointerToWorld(e);$('sheetPreviewPosition').textContent=p?`X ${nice(p.x)} · Y ${nice(p.y)} mm`:'X — · Y — mm'});
 $('sheetPreviewCanvas').addEventListener('pointerleave',()=>{$('sheetPreviewPosition').textContent='X — · Y — mm'});
