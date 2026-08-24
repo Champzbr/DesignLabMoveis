@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.79 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.80 · extraído do monólito 1.100.78 · ordem preservada */
   /* v95 · Prévia Aspire / plano de corte */
   #sheetPreviewDialog{position:fixed;inset:0;z-index:125;display:none;padding:10px;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);touch-action:auto}
   #sheetPreviewDialog.show{display:flex}

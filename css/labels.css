@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.79 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.80 · extraído do monólito 1.100.78 · ordem preservada */
   /* 1.100.78 · Etiquetas de peças inspiradas no fluxo do OpenCutList */
   #labelsDialog{position:fixed;inset:0;z-index:94;background:#000a;display:none;align-items:center;justify-content:center;padding:14px}
   #labelsDialog .card{width:min(920px,100%);max-height:94vh;overflow:auto;background:#1b1d1f;border:1px solid #45494d;border-radius:18px;padding:14px;box-shadow:0 22px 70px #0009}
