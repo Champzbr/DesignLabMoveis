@@ -1,4 +1,12 @@
-DESIGNLABMOVEIS 1.100.58 — IMPORTAR DXF NA BIBLIOTECA
+DESIGNLABMOVEIS 1.100.60 — CONTORNO CURVO NO PLANO + EXPORTAÇÃO ASPIRE ANDROID
+
+ALTERAÇÕES DESTA VERSÃO
+- Plano de corte: nervuras/formas especiais são desenhadas pelo contorno real, não mais como retângulo do blank.
+- Os encaixes meia-madeira continuam visíveis dentro do contorno curvo.
+- O aproveitamento visual passa a considerar a área real de peças com contorno especial.
+- Aspire: correção do erro FileSystemDirectoryHandle.getFileHandle em Android.
+- No celular, quando disponível, o DesignLab usa o seletor de salvar do sistema para escolher pasta/local sem download automático do navegador.
+- No desktop, continua preferindo a escolha direta da pasta e possui fallback seguro para o seletor de arquivo.
 
 - Minha Biblioteca agora importa arquivos DXF.
 - Administrador também pode importar DXF direto para uma pasta da Biblioteca global.
@@ -23,7 +31,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.58.js no Worker.
+3. Publique cloudflare/worker-1.100.60.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -33,3 +41,9 @@ APK NA TELA INICIAL
 - Coloque o arquivo DesignLabMoveis.apk na raiz do site/repositório, ao lado do index.html.
 - O botão “Baixar APK” da tela inicial aponta para ./DesignLabMoveis.apk.
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
+
+
+1.100.60 — MÓVEL CURVO
+- Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
+- A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
+- Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.

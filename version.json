@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.58",
+  "version": "1.100.60",
   "required": false,
-  "message": "Tela inicial agora tem botão para baixar o APK do DesignLabMoveis no Android.",
-  "released_at": "2026-08-24T11:25:00-03:00"
+  "message": "Plano de corte mostra o contorno curvo real das nervuras e o Aspire usa salvamento compatível com Android.",
+  "released_at": "2026-08-24T13:17:00-03:00"
 }
