@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.100.52 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.100.55 - Forma paramétrica</title>
 <style>
   :root {
     --bg: #171717;
@@ -133,7 +133,7 @@
   }
 
 
-  /* 1.100.31 · 3 cliques / apagar / duplicação protegida */
+  /* 1.100.55 · segurar para abrir / confirmação de duplicação */
   .pieceDeleteRow{
     margin-top:8px;padding-top:8px;border-top:1px solid #373c3f;
   }
@@ -141,6 +141,21 @@
   .pieceTripleHint{
     display:block;margin-top:3px;color:#88a5bd;font-size:8px;font-weight:700;
   }
+  #inspectorHeader{
+    touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
+    padding:2px 2px 5px;border-radius:9px;
+  }
+  #inspectorHeader:active{cursor:grabbing}
+  #inspectorHeader button{touch-action:manipulation;cursor:pointer}
+  .pieceInspectorDragNote{display:block;margin-top:2px;color:#7f8b91;font-size:8px;font-weight:700}
+  .pieceDuplicateConfirm{
+    display:none;margin-top:7px;padding:8px;border-radius:10px;
+    border:1px solid rgba(255,190,70,.34);background:rgba(255,190,70,.07);
+  }
+  .pieceDuplicateConfirm.show{display:block}
+  .pieceDuplicateConfirmText{color:#ffd07a;font-size:9px;font-weight:800;line-height:1.35;margin-bottom:7px}
+  .pieceDuplicateConfirmBtns{display:grid;grid-template-columns:1fr auto;gap:6px}
+  .pieceDuplicateConfirmBtns button{min-height:40px}
 
   /* ==========================================================================
      1.100.30 · CONFIGURAÇÃO DA PEÇA
@@ -658,7 +673,7 @@
 
 
 
-  /* ==========================================================================\n     1.100.52 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  /* ==========================================================================\n     1.100.55 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
   #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
   .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
   .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
@@ -1125,7 +1140,7 @@
   .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
 
 
-  /* 1.100.52 · Painel administrativo restaurado no layout inicial */
+  /* 1.100.55 · Painel administrativo restaurado no layout inicial */
   #homeAdminPanel,#menuAdminPanel{display:none}
   #homeAdminPanel.show,#menuAdminPanel.show{display:block}
   #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
@@ -1338,7 +1353,7 @@
   }
 
   /* ==========================================================================
-     1.100.52 · HOME OPÇÃO 1
+     1.100.55 · HOME OPÇÃO 1
      Layout escuro premium com acentos ciano/verde, inspirado no mockup escolhido.
      Somente a tela inicial foi redesenhada; editor/CAD e IDs funcionais foram preservados.
      ========================================================================== */
@@ -1749,7 +1764,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.52</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.100.55</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -1843,7 +1858,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.52</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.100.55</span>
         </div>
       </div>
 
@@ -2184,7 +2199,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.100.52 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.100.55 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -2204,14 +2219,18 @@
 <div id="toast"></div>
 
 <div id="inspector">
-  <div id="inspectorHeader">
-    <div><div id="objectName">Peça</div><div id="objectType">Caixa</div></div>
+  <div id="inspectorHeader" title="Arraste para mover a janela">
+    <div>
+      <div id="objectName">Peça</div>
+      <div id="objectType">Caixa</div>
+      <span class="pieceInspectorDragNote">segure aqui e arraste para mover a janela</span>
+    </div>
     <button id="closeInspector" class="small secondary">×</button>
   </div>
 
   <div class="pieceConfigHeading">
     ⚙ Configuração da peça
-    <span class="pieceTripleHint">3 cliques/toques rápidos na mesma peça para abrir</span>
+    <span class="pieceTripleHint">Clique/toque e segure a peça para abrir</span>
   </div>
 
   <input id="partNameInput" placeholder="Nome da peça">
@@ -2233,7 +2252,14 @@
     </div>
     <div class="inspectorBtns">
       <button id="applyExact">Aplicar medidas / posição</button>
-      <button id="duplicateBtn" class="secondary">Duplicar</button>
+      <button id="duplicateBtn" class="secondary">Duplicar peça</button>
+    </div>
+    <div id="duplicateConfirmRow" class="pieceDuplicateConfirm">
+      <div id="duplicateConfirmText" class="pieceDuplicateConfirmText">Confirmar duplicação desta peça?</div>
+      <div class="pieceDuplicateConfirmBtns">
+        <button id="confirmDuplicateBtn" type="button">✓ Confirmar duplicação</button>
+        <button id="cancelDuplicateBtn" type="button" class="secondary">Cancelar</button>
+      </div>
     </div>
   </div>
 
@@ -2626,14 +2652,20 @@
     </div>
     <div id="hardwarePanel" class="hardwarePanel">
       <div class="machiningPresetBox">
-        <div class="machiningPresetHead"><strong>⚙ Ferragens inteligentes</strong><span class="dialogHelp" style="margin:0">Criadas pelo usuário</span></div>
+        <div class="machiningPresetHead"><strong>⚙ Ferragens inteligentes</strong><span id="hardwareScopeLabel" class="dialogHelp" style="margin:0">Ferragens globais</span></div>
+        <div class="libraryScopeTabs" style="margin-top:7px">
+          <button id="hardwareLocalTab" type="button" class="secondary">Minhas ferragens</button>
+          <button id="hardwareGlobalTab" type="button" class="secondary active">🌐 Ferragens globais</button>
+        </div>
+        <div id="hardwareScopeHint" style="margin:0 0 8px;padding:8px 10px;border-radius:9px;background:#111820;border:1px solid #284052;color:#9fd9ff;font-size:9px;line-height:1.4">Ferragens oficiais publicadas pelo administrador e disponíveis para todas as contas.</div>
         <label>Ferragem<select id="hardwarePresetSelect"></select></label>
         <div class="machiningPresetActions">
-          <button id="createHardwarePreset" type="button" class="secondary">＋ Nova ferragem</button>
+          <button id="createHardwarePreset" type="button" class="secondary">＋ Nova ferragem global</button>
           <button id="editHardwarePreset" type="button" class="secondary">Editar ferragem</button>
+          <button id="publishHardwarePreset" type="button" class="secondary" style="grid-column:1 / -1;display:none">🌐 Publicar selecionada para todos</button>
           <button id="deleteHardwarePreset" type="button" class="danger" style="grid-column:1 / -1">Excluir ferragem</button>
         </div>
-        <div id="hardwarePresetInfo" class="dialogHelp" style="margin-top:7px">Crie uma ferragem definindo como ela trabalha na peça selecionada e nas peças que encostam nela.</div>
+        <div id="hardwarePresetInfo" class="dialogHelp" style="margin-top:7px">As ferragens globais funcionam como a Biblioteca global: todos podem usar, somente o administrador publica, edita ou exclui.</div>
       </div>
       <div id="hardwareContactSummary" class="hardwareContactBox">Selecione ou crie uma ferragem.</div>
       <button id="previewHardware3D" type="button" class="machiningPreview3DBtn">👁 Visualizar ferragem em 3D</button>
@@ -2823,7 +2855,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura, inspirada no fluxo do OpenCutList.</p>
       </div>
-      <span class="cutPlanBadge">1.100.52</span>
+      <span class="cutPlanBadge">1.100.55</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2979,11 +3011,14 @@
     <h3 id="newSpaceTitle">Criar espaço</h3>
     <p id="newSpaceHelp" class="dialogHelp">O primeiro espaço nasce na origem. Os próximos podem ser posicionados automaticamente em relação a outro espaço.</p>
 
+    <div class="spaceFields" style="grid-template-columns:1fr;margin-bottom:8px">
+      <label>Nome do espaço<input id="spaceName" value="Espaço 1" maxlength="60" autocomplete="off" placeholder="Ex.: Armário aéreo"></label>
+    </div>
+
     <div id="spaceReferenceBlock">
       <div class="spaceRefHint">Referência para o novo espaço</div>
-      <div class="spaceFields two">
+      <div class="spaceFields" style="grid-template-columns:1fr">
         <label>Espaço de referência<select id="spaceReference"></select></label>
-        <label>Nome<input id="spaceName" value="Espaço 1"></label>
       </div>
       <div class="spaceRelationGrid">
         <button class="secondary active" data-space-relation="right">Direita →</button>
@@ -4028,7 +4063,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.52';
+const DESIGNLAB_APP_VERSION='1.100.55';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -4813,7 +4848,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.52 · HOME OPÇÃO 1
+// 1.100.55 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -5034,7 +5069,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.52`:'DesignLabMoveis 1.100.52';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.55`:'DesignLabMoveis 1.100.55';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -5239,7 +5274,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.52'
+    thumbnail:null,appVersion:'1.100.55'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -5262,7 +5297,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.52'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.55'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -5292,7 +5327,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.52'
+    thumbnail:thumb,appVersion:'1.100.55'
   };
   await projectDbPut(next);
   if(original){
@@ -5360,7 +5395,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.52',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.55',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -5394,7 +5429,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.52'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.55'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -5455,7 +5490,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.52'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.55'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -5781,8 +5816,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.52 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.52 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
+// 1.100.55 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.55 · Exportar móvel: DXF 3D do modelo montado. Aspire continua com o mesmo fluxo da 1.100.39.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // no aparelho mesmo depois de fechar/reabrir o app.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -5860,6 +5895,68 @@ function initSpaceActionsDrag(){
     saveSpaceActionsPosition();
   });
 }
+
+// ============================================================================
+// 1.100.55 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// ============================================================================
+const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
+function clampPieceInspectorPosition(left,top){
+  const panel=$('inspector');if(!panel)return {left,top};
+  const r=panel.getBoundingClientRect(),margin=6;
+  const w=Math.max(80,r.width||Math.min(370,innerWidth-16));
+  const h=Math.max(80,Math.min(r.height||420,innerHeight-margin*2));
+  return {
+    left:Math.max(margin,Math.min(Math.max(margin,innerWidth-w-margin),Number(left)||margin)),
+    top:Math.max(margin,Math.min(Math.max(margin,innerHeight-h-margin),Number(top)||margin))
+  };
+}
+function restorePieceInspectorPosition(clampNow=false){
+  const panel=$('inspector');if(!panel)return;
+  try{
+    const pos=JSON.parse(localStorage.getItem(PIECE_INSPECTOR_POS_KEY)||'null');
+    if(!pos||!Number.isFinite(pos.left)||!Number.isFinite(pos.top))return;
+    const c=clampNow?clampPieceInspectorPosition(pos.left,pos.top):pos;
+    panel.style.left=c.left+'px';panel.style.top=c.top+'px';
+    panel.style.right='auto';panel.style.bottom='auto';panel.style.width='min(370px,calc(100vw - 16px))';
+  }catch{}
+}
+function savePieceInspectorPosition(){
+  const panel=$('inspector');if(!panel||!elementIsVisible(panel))return;
+  const r=panel.getBoundingClientRect();
+  try{localStorage.setItem(PIECE_INSPECTOR_POS_KEY,JSON.stringify({left:r.left,top:r.top}));}catch{}
+}
+function initPieceInspectorFloating(){
+  const panel=$('inspector'),handle=$('inspectorHeader');if(!panel||!handle)return;
+  let drag=null,moved=false;
+  handle.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button,input,select,textarea'))return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    const r=panel.getBoundingClientRect();
+    drag={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top,sx:e.clientX,sy:e.clientY};moved=false;
+    handle.setPointerCapture?.(e.pointerId);e.preventDefault();
+  });
+  handle.addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>2)moved=true;
+    const c=clampPieceInspectorPosition(e.clientX-drag.dx,e.clientY-drag.dy);
+    panel.style.left=c.left+'px';panel.style.top=c.top+'px';
+    panel.style.right='auto';panel.style.bottom='auto';panel.style.width='min(370px,calc(100vw - 16px))';
+    e.preventDefault();
+  });
+  const finish=e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    handle.releasePointerCapture?.(e.pointerId);drag=null;
+    if(moved)savePieceInspectorPosition();
+  };
+  handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
+  window.addEventListener('resize',()=>{
+    if(!elementIsVisible(panel))return;
+    const r=panel.getBoundingClientRect(),c=clampPieceInspectorPosition(r.left,r.top);
+    panel.style.left=c.left+'px';panel.style.top=c.top+'px';panel.style.right='auto';panel.style.bottom='auto';
+    savePieceInspectorPosition();
+  });
+}
+
 function renderToolDockEditor(){
   const list=$('toolDockEditList'); if(!list)return;
   if(!Array.isArray(toolDockDraft))toolDockDraft=[...toolDockPrefs];
@@ -6914,7 +7011,7 @@ function renderSpaces(){
   for(const root of spaceRoots){
     const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
 
-    // 1.100.52: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
+    // 1.100.55: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
     // principal fica como referência e não participa da seleção.
     const rootOutlineMat=new THREE.LineBasicMaterial({
@@ -7142,7 +7239,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   yBase=Math.max(0,Number(yBase)||0);
   const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
-  // 1.100.52: criar o espaço principal apenas o seleciona. O menu nunca abre
+  // 1.100.55: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; para abrir, o usuário precisa dar dois toques no espaço.
   selectSpaceCellByIds(root.id,root.cells[0].id,{showMenu:false});
   resetSpaceDoubleTap();
@@ -7202,7 +7299,7 @@ function setFrontWorldView(){
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
-  // 1.100.52: cortar nunca cria outro móvel principal. O root continua sendo
+  // 1.100.55: cortar nunca cria outro móvel principal. O root continua sendo
   // o espaço original; apenas a célula selecionada vira dois cortes irmãos.
   if(!selectedSpaceCell) return false;
   const root=getSpaceRoot(selectedSpaceCell.rootId), cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId); if(!root||!cell)return false;
@@ -8194,8 +8291,9 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.31: um clique apenas seleciona.
-    // O painel só abre com 3 cliques/toques rápidos na mesma peça.
+    // 1.100.55: um clique apenas seleciona.
+    // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
+    cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
     $('inspector').style.display='none';
   }else{
@@ -8209,10 +8307,12 @@ function openPieceInspector(mesh=selected){
   if(!mesh)return;
   if(mesh!==selected)selectObject(mesh);
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  cancelDuplicateConfirmation?.();
   updateInspector();
   $('morePanel').style.display='none';
   $('inspector').classList.remove('compact');
   $('inspector').style.display='block';
+  requestAnimationFrame(()=>restorePieceInspectorPosition(true));
 }
 
 function updateInspector(){
@@ -8240,7 +8340,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.52: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.55: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -9047,7 +9147,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.100.52', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.100.55', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -9381,6 +9481,25 @@ function rotateBox(axis){
 
 let duplicatePieceLocked=false;
 let duplicatePieceUnlockTimer=null;
+
+function cancelDuplicateConfirmation(){
+  const row=$('duplicateConfirmRow');if(row)row.classList.remove('show');
+  const btn=$('duplicateBtn');if(btn&&!duplicatePieceLocked)btn.disabled=false;
+}
+function requestDuplicateSelected(){
+  if(!selected){toast('Selecione uma peça');return;}
+  if(selected.userData?.drawerSetId){
+    toast('O conjunto de gavetas é paramétrico. Edite ou crie outro conjunto pelo espaço.');
+    openDrawerSystemDialog(selected);return;
+  }
+  const row=$('duplicateConfirmRow'),txt=$('duplicateConfirmText');
+  if(txt)txt.textContent=`Duplicar “${selected.userData?.name||'Peça'}”? Toque em Confirmar duplicação.`;
+  row?.classList.add('show');
+}
+function confirmDuplicateSelected(){
+  const row=$('duplicateConfirmRow');row?.classList.remove('show');
+  duplicateSelected();
+}
 
 function duplicateSelected(){
   if(!selected)return;
@@ -9825,13 +9944,13 @@ function axisVector(axis){
 }
 
 // 1 clique = seleciona
-// 2 cliques = abre o espaço/móvel
-// 3 cliques = abre Configuração da peça
+// 2 cliques = abre o espaço/móvel vinculado
+// clicar/tocar e SEGURAR = abre Configuração da peça
 //
-// O duplo clique é atrasado alguns milissegundos para permitir que um terceiro
-// clique chegue sem abrir o espaço no meio do gesto.
+// O duplo clique tem um pequeno atraso para que o gesto de segurar tenha
+// prioridade quando o segundo toque permanece pressionado.
 //
-// 1.100.52 · As DIVISÕES do espaço têm gesto próprio: um clique somente
+// 1.100.55 · As DIVISÕES do espaço têm gesto próprio: um clique somente
 // seleciona; dois cliques abrem a janela flutuante Espaço/Divisão. Isso evita
 // que a janela apareça no meio de cada seleção enquanto o usuário navega pelos
 // cortes internos do móvel.
@@ -9863,75 +9982,81 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-let pieceTapState={
-  count:0,lastAt:0,lastX:0,lastY:0,
-  obj:null,rootId:null,tripleEligible:false,doubleTimer:null
-};
+let pieceTapState={count:0,lastAt:0,lastX:0,lastY:0,obj:null,rootId:null,doubleTimer:null};
 const PIECE_MULTI_TAP_GAP_MS=560;
 const PIECE_MULTI_TAP_PX=64;
-const PIECE_DOUBLE_ACTION_DELAY_MS=390;
+const PIECE_DOUBLE_ACTION_DELAY_MS=620;
 
 function resetLinkedDoubleTap(){
   if(pieceTapState.doubleTimer)clearTimeout(pieceTapState.doubleTimer);
-  pieceTapState={
-    count:0,lastAt:0,lastX:0,lastY:0,
-    obj:null,rootId:null,tripleEligible:false,doubleTimer:null
-  };
+  pieceTapState={count:0,lastAt:0,lastX:0,lastY:0,obj:null,rootId:null,doubleTimer:null};
 }
 function registerLinkedDoubleTap(obj){
   const now=performance.now();
-  const root=rootForObject(obj);
-  const rootId=root?.id||null;
-  const closeEnough=
-    Math.hypot(downClientX-pieceTapState.lastX,downClientY-pieceTapState.lastY)
-      <=PIECE_MULTI_TAP_PX;
-  const inTime=(now-pieceTapState.lastAt)<=PIECE_MULTI_TAP_GAP_MS;
+  const root=rootForObject(obj),rootId=root?.id||null;
+  const distance=Math.hypot(downClientX-pieceTapState.lastX,downClientY-pieceTapState.lastY);
+  const closeEnough=distance<=PIECE_MULTI_TAP_PX;
+  const elapsed=now-pieceTapState.lastAt;
+  const inTime=elapsed<=PIECE_MULTI_TAP_GAP_MS;
   const sameRoot=pieceTapState.rootId===rootId;
   const sameObject=pieceTapState.obj===obj;
 
-  if(!pieceTapState.count||!closeEnough||!inTime||!sameRoot){
+  // Evita pointerdown duplicado do mesmo contato em alguns WebViews Android.
+  const duplicateEvent=pieceTapState.count&&sameObject&&distance<=12&&elapsed>=0&&elapsed<110;
+  if(duplicateEvent)return false;
+
+  if(!pieceTapState.count||!closeEnough||!inTime||!sameRoot||!sameObject){
     resetLinkedDoubleTap();
-    pieceTapState.count=1;
-    pieceTapState.lastAt=now;
-    pieceTapState.lastX=downClientX;
-    pieceTapState.lastY=downClientY;
-    pieceTapState.obj=obj;
-    pieceTapState.rootId=rootId;
-    pieceTapState.tripleEligible=true;
+    pieceTapState={count:1,lastAt:now,lastX:downClientX,lastY:downClientY,obj,rootId,doubleTimer:null};
     return false;
   }
 
-  pieceTapState.count++;
-  pieceTapState.lastAt=now;
-  pieceTapState.lastX=downClientX;
-  pieceTapState.lastY=downClientY;
-  pieceTapState.tripleEligible=pieceTapState.tripleEligible&&sameObject;
-
-  if(pieceTapState.count===2){
+  // Duplo toque/clique continua abrindo o espaço/móvel vinculado, como antes.
+  if(pieceTapState.count===1){
+    pieceTapState.count=2;pieceTapState.lastAt=now;pieceTapState.lastX=downClientX;pieceTapState.lastY=downClientY;
     const pendingObj=obj,pendingRoot=root;
-    if(pieceTapState.doubleTimer)clearTimeout(pieceTapState.doubleTimer);
-
     pieceTapState.doubleTimer=setTimeout(()=>{
       if(pieceTapState.count!==2)return;
       resetLinkedDoubleTap();
       if(pendingRoot)openSpaceFromObject(pendingObj);
     },PIECE_DOUBLE_ACTION_DELAY_MS);
-
-    return true;
-  }
-
-  if(pieceTapState.count>=3&&pieceTapState.tripleEligible){
-    if(pieceTapState.doubleTimer)clearTimeout(pieceTapState.doubleTimer);
-    const target=obj;
-    resetLinkedDoubleTap();
-    selectObject(target);
-    openPieceInspector(target);
-    toast('Configuração da peça');
     return true;
   }
 
   resetLinkedDoubleTap();
   return false;
+}
+
+// 1.100.55 · segurar a peça abre a configuração (mouse e touch).
+let pieceLongPressTimer=null;
+let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
+const PIECE_LONG_PRESS_MS=520;
+const PIECE_LONG_PRESS_MOVE_PX=18;
+function cancelPieceLongPress(){
+  if(pieceLongPressTimer){clearTimeout(pieceLongPressTimer);pieceLongPressTimer=null;}
+  pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
+}
+function startPieceLongPress(obj,pointerId,x,y){
+  cancelPieceLongPress();
+  if(!obj||toolMode!=='select')return;
+  pieceLongPress={id:pointerId,obj,x,y,triggered:false};
+  pieceLongPressTimer=setTimeout(()=>{
+    pieceLongPressTimer=null;
+    if(toolMode!=='select'||pieceLongPress.obj!==obj)return;
+    pieceLongPress.triggered=true;
+    resetLinkedDoubleTap();
+    selectObject(obj);
+    openPieceInspector(obj);
+    try{if(navigator.vibrate)navigator.vibrate(18);}catch{}
+    toast('Configuração da peça');
+  },PIECE_LONG_PRESS_MS);
+}
+function cancelPieceLongPressOnMove(e){
+  if(!pieceLongPressTimer||pieceLongPress.id!==e.pointerId)return;
+  if(Math.hypot(e.clientX-pieceLongPress.x,e.clientY-pieceLongPress.y)>PIECE_LONG_PRESS_MOVE_PX){
+    cancelPieceLongPress();
+    resetLinkedDoubleTap();
+  }
 }
 
 function beginPick(){
@@ -9943,7 +10068,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.100.52: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.100.55: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -9958,7 +10083,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       const openMenu=registerSpaceDoubleTap(rootId,cellId);
-      // 1.100.52: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
+      // 1.100.55: vale também para o ESPAÇO PRINCIPAL. Um toque sempre apenas
       // seleciona e fecha a janela; somente o segundo toque no mesmo alvo abre.
       selectSpaceCellByIds(rootId,cellId,{showMenu:openMenu===true});
       dragMode=null; controls.enabled=true; return;
@@ -9980,15 +10105,21 @@ function beginPick(){
     toast('Use Selecionar, Mover ou as ações do espaço');
     dragMode=null; controls.enabled=true; return;
   }
+  let linkedDoublePending=false;
   if(toolMode==='select'){
     resetSpaceDoubleTap();
-    if(registerLinkedDoubleTap(obj)){
-      dragMode=null; controls.enabled=true; return;
-    }
+    linkedDoublePending=registerLinkedDoubleTap(obj);
   } else {
     resetLinkedDoubleTap();
   }
   selectObject(obj);
+  if(toolMode==='select'){
+    startPieceLongPress(obj,activePointerId,downClientX,downClientY);
+    // No segundo toque também iniciamos o temporizador de segurar. Se o usuário
+    // apenas tocar duas vezes, o espaço vinculado abre; se mantiver pressionado,
+    // a configuração da peça ganha prioridade e cancela o duplo toque.
+    if(linkedDoublePending){dragMode=null;controls.enabled=true;return;}
+  }
   const f=worldAxisForFace(hit,obj);
   const u=obj.userData;
   dragStartState=stateString(); dragChanged=false;
@@ -10233,8 +10364,8 @@ if(desktopSketchupNavigation){
 }
 
 renderer.domElement.addEventListener('dblclick',e=>{
-  // pointerdown já reconhece 1 / 2 / 3 cliques de forma igual no mouse e touch.
-  // Aqui só impedimos a seleção nativa do navegador.
+  // O duplo clique continua reservado ao espaço/móvel vinculado.
+  // Configuração de peça agora abre ao clicar/tocar e segurar.
   if(toolMode==='select')e.preventDefault();
 });
 
@@ -10348,6 +10479,7 @@ window.addEventListener('pointercancel',e=>{
 renderer.domElement.addEventListener('pointermove',e=>{
   if(toolMode==='tape') return;
   if(activePointerId!==null && e.pointerId!==activePointerId) return;
+  cancelPieceLongPressOnMove(e);
   getPointerNDC(e);
 
   if(!dragMode) return;
@@ -10385,10 +10517,12 @@ function endDrag(e){
 
 renderer.domElement.addEventListener('pointerup',e=>{
   if(toolMode==='tape') return;
+  cancelPieceLongPress();
   endDrag(e);
 });
 renderer.domElement.addEventListener('pointercancel',e=>{
   if(toolMode==='tape') return;
+  cancelPieceLongPress();
   endDrag(e);
 });
 
@@ -10517,7 +10651,7 @@ function pieceDivisionLayoutMm(widthM,thicknessM){
     message:ok?'':`Cada vão precisa ter pelo menos ${nice(minMm)} mm.`
   };
 }
-// ---------- 1.100.52 · Configuração salva de portas ----------
+// ---------- 1.100.55 · Configuração salva de portas ----------
 const DOOR_CREATE_CONFIG_KEY='designLabDoorCreateConfigV1';
 function captureDoorCreateConfig(){
   return {
@@ -10594,7 +10728,7 @@ function saveDoorCreateConfig(){
   }
 }
 
-// ---------- 1.100.52 · Portas paramétricas + dobradiças ----------
+// ---------- 1.100.55 · Portas paramétricas + dobradiças ----------
 function doorFieldNumber(id,fallback=0,min=-Infinity,max=Infinity){
   const n=parseDecimalInput($(id)?.value);
   const v=Number.isFinite(n)?n:fallback;
@@ -10702,7 +10836,7 @@ function appendDoorHingeDrilling(door,root,cfg,hingeSide){
   sanitizeMachiningForPiece(door);
   return {hinges,mountHoles,missingMount};
 }
-// 1.100.52 · inverter lado da dobradiça pelo menu de 3 cliques da porta.
+// 1.100.55 · inverter lado da dobradiça pelo menu de configuração da porta.
 function doorInspectorRuntimeConfig(door){
   const h=door?.userData?.doorConfig?.hinge||{};
   const doorW=mm(door?.userData?.width||0),doorH=mm(door?.userData?.height||0);
@@ -13231,13 +13365,49 @@ function closeShapeDialog(){restoreShapePreview();$('shapeDialog').style.display
 
 // ---------- Ferragens inteligentes por contato ----------
 const HARDWARE_PRESET_KEY='miniCadProV54_hardwarePresets';
+const HARDWARE_SCOPE_KEY='designLabHardwareScopeV1';
 let hardwareBuilderEditId=null;
+let hardwareBuilderScope='local';
 let hardwarePreviewOps=[];
+let hardwareScope=localStorage.getItem(HARDWARE_SCOPE_KEY)==='local'?'local':'global';
+const globalHardwareState={items:[],loaded:false,loading:false,error:''};
+
 function getHardwarePresets(){
   try{const a=JSON.parse(localStorage.getItem(HARDWARE_PRESET_KEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&x.id&&x.name):[];}catch(_){return [];}
 }
 function setHardwarePresets(a){localStorage.setItem(HARDWARE_PRESET_KEY,JSON.stringify(a));}
-function findHardwarePreset(id){return getHardwarePresets().find(x=>x.id===id)||null;}
+function currentHardwarePresets(){return hardwareScope==='global'?globalHardwareState.items:getHardwarePresets();}
+function findHardwarePreset(id){
+  if(hardwareScope==='global')return globalHardwareState.items.find(x=>x.id===id)||null;
+  return getHardwarePresets().find(x=>x.id===id)||null;
+}
+async function loadGlobalHardwarePresets({force=false}={}){
+  if(globalHardwareState.loading)return;
+  if(globalHardwareState.loaded&&!force)return;
+  if(!cloudAccountState.ok){
+    globalHardwareState.error='Entre na sua conta para acessar as Ferragens globais.';
+    globalHardwareState.loaded=false;refreshHardwarePresetSelect();return;
+  }
+  globalHardwareState.loading=true;globalHardwareState.error='';refreshHardwarePresetSelect();
+  try{
+    const data=await cloudApiFetch('/hardware/global',{timeoutMs:20000});
+    globalHardwareState.items=Array.isArray(data?.items)?data.items.filter(x=>x&&x.id&&x.name):[];
+    globalHardwareState.loaded=true;
+  }catch(err){
+    globalHardwareState.items=[];globalHardwareState.loaded=false;
+    globalHardwareState.error=err.message||'Não foi possível carregar as Ferragens globais.';
+  }finally{
+    globalHardwareState.loading=false;refreshHardwarePresetSelect();
+  }
+}
+function setHardwareScope(scope){
+  hardwareScope=scope==='local'?'local':'global';
+  localStorage.setItem(HARDWARE_SCOPE_KEY,hardwareScope);
+  $('hardwareLocalTab')?.classList.toggle('active',hardwareScope==='local');
+  $('hardwareGlobalTab')?.classList.toggle('active',hardwareScope==='global');
+  refreshHardwarePresetSelect();
+  if(hardwareScope==='global'&&!globalHardwareState.loaded&&!globalHardwareState.loading)loadGlobalHardwarePresets();
+}
 function objectBoundsMm(o){
   const u=o.userData;return {minX:mmPrec(o.position.x-u.width/2),maxX:mmPrec(o.position.x+u.width/2),minY:mmPrec(o.position.y-u.height/2),maxY:mmPrec(o.position.y+u.height/2),minZ:mmPrec(o.position.z-u.depth/2),maxZ:mmPrec(o.position.z+u.depth/2)};
 }
@@ -13344,16 +13514,42 @@ function hardwarePlan(source,preset,{instanceId=uid('hwinst')}={}){
   return {instanceId,contacts:used,operations};
 }
 function refreshHardwarePresetSelect(keep=''){
-  const sel=$('hardwarePresetSelect');if(!sel)return;const list=getHardwarePresets();sel.innerHTML='';const e=document.createElement('option');e.value='';e.textContent=list.length?'Escolha uma ferragem…':'Nenhuma ferragem criada';sel.appendChild(e);for(const p of list){const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);}if(list.some(p=>p.id===keep))sel.value=keep;updateHardwarePanel();
+  const sel=$('hardwarePresetSelect');if(!sel)return;
+  const local=hardwareScope==='local',list=currentHardwarePresets();
+  $('hardwareLocalTab')?.classList.toggle('active',local);
+  $('hardwareGlobalTab')?.classList.toggle('active',!local);
+  sel.innerHTML='';
+  const e=document.createElement('option');e.value='';
+  if(!local&&globalHardwareState.loading)e.textContent='Carregando ferragens globais…';
+  else if(!local&&globalHardwareState.error)e.textContent='Ferragens globais indisponíveis';
+  else e.textContent=list.length?'Escolha uma ferragem…':(local?'Nenhuma ferragem criada':'Nenhuma ferragem global publicada');
+  sel.appendChild(e);
+  for(const p of list){const o=document.createElement('option');o.value=p.id;o.textContent=(local?'':'🌐 ')+p.name;sel.appendChild(o);}
+  if(list.some(p=>p.id===keep))sel.value=keep;
+  updateHardwarePanel();
 }
 function updateHardwarePanel(){
-  const p=findHardwarePreset($('hardwarePresetSelect')?.value),del=$('deleteHardwarePreset'),edit=$('editHardwarePreset');if(del)del.disabled=!p;if(edit)edit.disabled=!p;
+  const p=findHardwarePreset($('hardwarePresetSelect')?.value),del=$('deleteHardwarePreset'),edit=$('editHardwarePreset'),create=$('createHardwarePreset'),publish=$('publishHardwarePreset');
+  const local=hardwareScope==='local',admin=adminAllowed();
+  if(create){create.disabled=!local&&!admin;create.textContent=local?'＋ Nova ferragem':'＋ Nova ferragem global';}
+  if(edit)edit.disabled=!p||(!local&&!admin);
+  if(del)del.disabled=!p||(!local&&!admin);
+  if(publish){publish.style.display=local&&admin&&p?'inline-flex':'none';publish.disabled=!p;}
+  if($('hardwareScopeLabel'))$('hardwareScopeLabel').textContent=local?'Minhas ferragens':'Ferragens globais';
+  if($('hardwareScopeHint'))$('hardwareScopeHint').textContent=local
+    ?(admin?'Ferragens deste aparelho. Selecione uma e use “Publicar selecionada para todos” para disponibilizar globalmente.':'Ferragens pessoais salvas somente neste aparelho.')
+    :(admin?'Ferragens oficiais: você pode criar, editar e excluir. Todos os usuários conectados enxergam esta lista.':'Ferragens oficiais publicadas pelo administrador. Você pode aplicar normalmente, mas somente o administrador altera a lista.');
   const info=$('hardwarePresetInfo'),sum=$('hardwareContactSummary'),applied=$('hardwareAppliedInfo');if(!info||!sum)return;
-  if(!p){info.textContent='Crie uma ferragem definindo contato, posição e os furos de cada lado da união.';sum.textContent='Selecione ou crie uma ferragem.';if(applied)applied.textContent='';return;}
+  if(!p){
+    if(!local&&globalHardwareState.loading){info.textContent='Carregando Ferragens globais…';sum.textContent='Aguarde o carregamento.';}
+    else if(!local&&globalHardwareState.error){info.textContent=globalHardwareState.error;sum.textContent='Confira sua conexão e a configuração da API.';}
+    else {info.textContent=local?'Crie uma ferragem definindo contato, posição e os furos de cada lado da união.':'Escolha uma Ferragem global publicada pelo administrador.';sum.textContent='Selecione uma ferragem.';}
+    if(applied)applied.textContent=hardwareSourceHistoryText(selected);return;
+  }
   const contacts=hardwareContacts(selected,p),axis=contacts[0]?.axis||(p.contactAxis==='auto'?'automático':p.contactAxis),[a,b]=tangentAxesForContact(axis==='auto'?'x':axis);
-  info.textContent=`${p.name} · contato ${p.contactAxis==='auto'?'automático':contactAxisName(p.contactAxis)} · ${p.sourceEnabled?'fura selecionada':''}${p.sourceEnabled&&p.targetEnabled?' + ':''}${p.targetEnabled?'fura contato':''}.`;
+  info.textContent=`${!local?'GLOBAL · ':''}${p.name} · contato ${p.contactAxis==='auto'?'automático':contactAxisName(p.contactAxis)} · ${p.sourceEnabled?'fura selecionada':''}${p.sourceEnabled&&p.targetEnabled?' + ':''}${p.targetEnabled?'fura contato':''}.`;
   sum.textContent=contacts.length?`${contacts.length} contato(s) encontrado(s): ${contacts.map(c=>`${c.target.userData?.name||'Peça'} (${contactSideName(c.axis,c.dir)}, ${c.points||hardwarePointWorlds(selected,c,p).length} ponto(s))`).join(' · ')}. Eixos de posição: ${axisLabel(a)} e ${axisLabel(b)}.`:'Nenhum contato compatível encontrado com a peça selecionada. Confira eixo, lado e tolerância.';
-  if(applied){const names=new Set();for(const o of objects)for(const op of (o.userData?.machining||[]))if(op.hardwareName)names.add(op.hardwareName);applied.textContent=names.size?`Ferragens já usadas no projeto: ${[...names].join(', ')}`:'';}
+  if(applied)applied.textContent=hardwareSourceHistoryText(selected);
 }
 function hardwareBuilderAxis(){
   let a=$('hardwareContactAxis')?.value||'auto';if(a!=='auto')return a;const tmp={contactAxis:'auto',contactSide:$('hardwareContactSide')?.value||'both',tolerance:Number($('hardwareContactTolerance')?.value)||2};return hardwareContacts(selected,tmp)[0]?.axis||'x';
@@ -13370,9 +13566,43 @@ function readHardwareBuilder(strict=true){
   if(!strict)return p;if(!p.name)throw new Error('Digite um nome para a ferragem');if(!p.sourceEnabled&&!p.targetEnabled)throw new Error('Marque pelo menos uma peça para furar');if(!(p.tolerance>=0&&p.tolerance<=20))throw new Error('Confira a tolerância de contato');if(p.bMode==='ends'&&!(p.bEdge>=0))throw new Error('Confira a distância das extremidades');if(p.bMode==='series'&&(!(p.bSeriesCount>=1)||p.bSeriesCount>100||!(p.bSeriesStep>0)))throw new Error('Confira a série de pontos');for(const [on,d,dep,label] of [[p.sourceEnabled,p.sourceDiameter,p.sourceDepth,'peça selecionada'],[p.targetEnabled,p.targetDiameter,p.targetDepth,'peça de contato']])if(on&&(!(d>0)||!(dep>0)))throw new Error(`Confira diâmetro/profundidade da ${label}`);return p;
 }
 function openHardwareBuilder(existing=null){
-  hardwareBuilderEditId=existing?.id||null;$('hardwareName').value=existing?.name||'Nova ferragem';$('hardwareContactAxis').value=existing?.contactAxis||'auto';$('hardwareContactSide').value=existing?.contactSide||'both';$('hardwareContactTolerance').value=existing?.tolerance??2;$('hardwareAAnchor').value=existing?.aAnchor||'center';$('hardwareAOffset').value=nice(existing?.aOffset??0);$('hardwareBMode').value=existing?.bMode||'single';$('hardwareBAnchor').value=existing?.bAnchor||'center';$('hardwareBOffset').value=nice(existing?.bOffset??50);$('hardwareBEdge').value=existing?.bEdge??50;$('hardwareBSeriesAnchor').value=existing?.bSeriesAnchor||'start';$('hardwareBSeriesOffset').value=nice(existing?.bSeriesOffset??50);$('hardwareBSeriesCount').value=existing?.bSeriesCount??2;$('hardwareBSeriesStep').value=existing?.bSeriesStep??100;$('hardwareBSeriesDirection').value=String(Number(existing?.bSeriesDirection)<0?-1:1);$('hardwareSourceEnabled').checked=!!existing?.sourceEnabled;$('hardwareSourceDiameter').value=existing?.sourceDiameter??8;$('hardwareSourceDepth').value=existing?.sourceDepth??20;$('hardwareTargetEnabled').checked=existing?.targetEnabled!==false;$('hardwareTargetDiameter').value=existing?.targetDiameter??5;$('hardwareTargetDepth').value=existing?.targetDepth??10;updateHardwareBuilderUi();$('hardwareBuilderDialog').style.display='flex';
+  hardwareBuilderScope=hardwareScope;
+  if(hardwareBuilderScope==='global'&&!adminAllowed()){toast('Somente o administrador pode criar ou editar Ferragens globais');return;}
+  hardwareBuilderEditId=existing?.id||null;$('hardwareName').value=existing?.name||'Nova ferragem';$('hardwareContactAxis').value=existing?.contactAxis||'auto';$('hardwareContactSide').value=existing?.contactSide||'both';$('hardwareContactTolerance').value=existing?.tolerance??2;$('hardwareAAnchor').value=existing?.aAnchor||'center';$('hardwareAOffset').value=nice(existing?.aOffset??0);$('hardwareBMode').value=existing?.bMode||'single';$('hardwareBAnchor').value=existing?.bAnchor||'center';$('hardwareBOffset').value=nice(existing?.bOffset??50);$('hardwareBEdge').value=existing?.bEdge??50;$('hardwareBSeriesAnchor').value=existing?.bSeriesAnchor||'start';$('hardwareBSeriesOffset').value=nice(existing?.bSeriesOffset??50);$('hardwareBSeriesCount').value=existing?.bSeriesCount??2;$('hardwareBSeriesStep').value=existing?.bSeriesStep??100;$('hardwareBSeriesDirection').value=String(Number(existing?.bSeriesDirection)<0?-1:1);$('hardwareSourceEnabled').checked=!!existing?.sourceEnabled;$('hardwareSourceDiameter').value=existing?.sourceDiameter??8;$('hardwareSourceDepth').value=existing?.sourceDepth??20;$('hardwareTargetEnabled').checked=existing?.targetEnabled!==false;$('hardwareTargetDiameter').value=existing?.targetDiameter??5;$('hardwareTargetDepth').value=existing?.targetDepth??10;
+  $('hardwareBuilderDialog').querySelector('h3').textContent=hardwareBuilderScope==='global'?'🌐 Criar / editar Ferragem global':'⚙ Criar ferragem';
+  $('saveHardwareBuilder').textContent=hardwareBuilderScope==='global'?'Salvar para todos':'Salvar ferragem';
+  updateHardwareBuilderUi();$('hardwareBuilderDialog').style.display='flex';
 }
-function saveHardwareBuilder(){try{const p=readHardwareBuilder(true),arr=getHardwarePresets(),i=arr.findIndex(x=>x.id===p.id);if(i>=0)arr[i]=p;else arr.push(p);setHardwarePresets(arr);$('hardwareBuilderDialog').style.display='none';hardwareBuilderEditId=null;refreshHardwarePresetSelect(p.id);toast('Ferragem salva');}catch(err){toast(err.message||'Não foi possível salvar a ferragem');}}
+async function saveHardwareBuilder(){
+  try{
+    const p=readHardwareBuilder(true);
+    if(hardwareBuilderScope==='global'){
+      if(!adminAllowed())throw new Error('Somente o administrador pode salvar Ferragens globais.');
+      let data;
+      if(hardwareBuilderEditId){
+        data=await cloudApiFetch(`/admin/hardware/global/${encodeURIComponent(hardwareBuilderEditId)}`,{method:'PUT',body:{preset:p},timeoutMs:20000});
+      }else{
+        data=await cloudApiFetch('/admin/hardware/global',{method:'POST',body:{preset:p},timeoutMs:20000});
+      }
+      $('hardwareBuilderDialog').style.display='none';hardwareBuilderEditId=null;
+      await loadGlobalHardwarePresets({force:true});
+      refreshHardwarePresetSelect(data?.item?.id||data?.preset?.id||'');
+      toast('Ferragem global salva para todos');
+      return;
+    }
+    const arr=getHardwarePresets(),i=arr.findIndex(x=>x.id===p.id);if(i>=0)arr[i]=p;else arr.push(p);setHardwarePresets(arr);
+    $('hardwareBuilderDialog').style.display='none';hardwareBuilderEditId=null;refreshHardwarePresetSelect(p.id);toast('Ferragem salva');
+  }catch(err){toast(err.message||'Não foi possível salvar a ferragem');}
+}
+async function publishSelectedHardwarePreset(){
+  if(!adminAllowed()){toast('Somente o administrador pode publicar Ferragens globais');return;}
+  const p=hardwareScope==='local'?findHardwarePreset($('hardwarePresetSelect')?.value):null;if(!p){toast('Selecione uma ferragem pessoal para publicar');return;}
+  if(!window.confirm(`Publicar “${p.name}” para todas as contas?`))return;
+  try{
+    const data=await cloudApiFetch('/admin/hardware/global',{method:'POST',body:{preset:p},timeoutMs:20000});
+    await loadGlobalHardwarePresets({force:true});setHardwareScope('global');refreshHardwarePresetSelect(data?.item?.id||'');toast('Ferragem publicada para todos');
+  }catch(err){toast(err.message||'Não foi possível publicar a ferragem');}
+}
 function appliedHardwareStats(match){
   let operations=0,pieces=0,instances=new Set();
   for(const o of objects){
@@ -13382,23 +13612,65 @@ function appliedHardwareStats(match){
   }
   return {operations,pieces,instances};
 }
+function hardwareInstanceSummary(instanceId){
+  let operations=0;const pieces=new Set();let name='Ferragem',presetId='',sourcePartId='';
+  for(const o of objects){
+    for(const op of (Array.isArray(o.userData?.machining)?o.userData.machining:[])){
+      if(op?.hardwareInstanceId!==instanceId)continue;
+      operations++;pieces.add(o);name=op.hardwareName||name;presetId=op.hardwarePresetId||presetId;sourcePartId=op.hardwareSourcePartId||sourcePartId;
+    }
+  }
+  return {instanceId,operations,pieces:pieces.size,name,presetId,sourcePartId};
+}
+function hardwareSourceApplications(source){
+  const partId=String(source?.userData?.partId||'');if(!partId)return [];
+  const ids=new Set();
+  for(const o of objects)for(const op of (Array.isArray(o.userData?.machining)?o.userData.machining:[])){
+    if(op?.hardwareInstanceId&&String(op.hardwareSourcePartId||'')===partId)ids.add(op.hardwareInstanceId);
+  }
+  return [...ids].map(hardwareInstanceSummary).filter(x=>x.operations>0);
+}
+function hardwareSourceHistoryText(source){
+  const list=hardwareSourceApplications(source);
+  if(!list.length)return 'Nenhuma ferragem aplicada a partir desta peça.';
+  return `Ferragens aplicadas a partir desta peça: ${list.map(x=>`${x.name} (${x.operations} furo(s) / ${x.pieces} peça(s))`).join(' · ')}`;
+}
+function hardwareInstancesForSourcePreset(source,presetId){
+  const partId=String(source?.userData?.partId||'');const ids=new Set();if(!partId||!presetId)return ids;
+  for(const o of objects)for(const op of (Array.isArray(o.userData?.machining)?o.userData.machining:[])){
+    if(op?.hardwareInstanceId&&op.hardwarePresetId===presetId&&String(op.hardwareSourcePartId||'')===partId)ids.add(op.hardwareInstanceId);
+  }
+  return ids;
+}
 function refreshAfterHardwareRemoval(){
   clearMachiningDraftPreview();hardwarePreviewOps=[];machiningPreviewActive=false;machiningPreviewOwner=null;
   machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
   renderMachiningVisuals();renderMachiningList();updateInspector();updateHardwarePanel();
 }
-function removeAppliedHardware(match){
+function removeAppliedHardware(match,{refresh=true}={}){
   let removed=0,pieces=0;
   for(const o of objects){
     const arr=Array.isArray(o.userData?.machining)?o.userData.machining:null;if(!arr)continue;
     const keep=arr.filter(op=>!match(op)),n=arr.length-keep.length;
     if(n){removed+=n;pieces++;o.userData.machining=keep;}
   }
-  refreshAfterHardwareRemoval();
+  if(refresh)refreshAfterHardwareRemoval();
   return {removed,pieces};
 }
+function removeHardwareInstances(ids,{refresh=true}={}){
+  const set=ids instanceof Set?ids:new Set(Array.isArray(ids)?ids:[ids]);
+  return removeAppliedHardware(op=>op?.hardwareInstanceId&&set.has(op.hardwareInstanceId),{refresh});
+}
+function deleteHardwareInstance(instanceId,name='Ferragem'){
+  const st=hardwareInstanceSummary(instanceId);if(!st.operations)return;
+  if(!window.confirm(`Excluir a ferragem aplicada “${name||st.name}” inteira?
 
-// 1.100.52 — ciclo de vida das ferragens.
+Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vinculada(s) a esta aplicação.`))return;
+  removeHardwareInstances(new Set([instanceId]),{refresh:true});
+  commitHistory();toast(`${name||st.name} removida por completo`);
+}
+
+// 1.100.55 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
@@ -13408,24 +13680,17 @@ function hardwareInstancesLinkedToObjects(doomed){
   const names=new Set(list.map(o=>String(o.userData?.name||'').trim()).filter(Boolean));
   const ids=new Set();
 
-  // Compatibilidade com projetos antigos: se a peça apagada possui algum
-  // furo da aplicação, o hardwareInstanceId já é suficiente para achar o resto.
   for(const o of list){
     for(const op of (Array.isArray(o.userData?.machining)?o.userData.machining:[])){
       if(op?.hardwareInstanceId)ids.add(op.hardwareInstanceId);
     }
   }
 
-  // Projetos novos guardam os IDs das duas peças participantes. Isso também
-  // resolve ferragens configuradas para furar somente a peça de contato.
   for(const o of objects){
     for(const op of (Array.isArray(o.userData?.machining)?o.userData.machining:[])){
       if(!op?.hardwareInstanceId)continue;
       const src=String(op.hardwareSourcePartId||''),contact=String(op.hardwareContactPartId||'');
       if((src&&partIds.has(src))||(contact&&partIds.has(contact))){ids.add(op.hardwareInstanceId);continue;}
-
-      // Fallback para arquivos salvos antes da 1.100.52, que ainda não tinham
-      // hardwareSourcePartId/hardwareContactPartId.
       if(!src&&!contact&&names.has(String(op.hardwareContactName||'').trim()))ids.add(op.hardwareInstanceId);
     }
   }
@@ -13435,21 +13700,26 @@ function removeHardwareLinkedToObjects(doomed,{refresh=false}={}){
   const ids=hardwareInstancesLinkedToObjects(doomed);
   let operations=0,pieces=0;
   if(ids.size){
-    for(const o of objects){
-      const arr=Array.isArray(o.userData?.machining)?o.userData.machining:null;if(!arr)continue;
-      const keep=arr.filter(op=>!op?.hardwareInstanceId||!ids.has(op.hardwareInstanceId));
-      const n=arr.length-keep.length;
-      if(n){operations+=n;pieces++;o.userData.machining=keep;}
-    }
+    const r=removeHardwareInstances(ids,{refresh:false});operations=r.removed;pieces=r.pieces;
   }
-  // Também elimina qualquer prévia/visual temporário que tenha ficado preso.
   clearMachiningDraftPreview();hardwarePreviewOps=[];machiningPreviewActive=false;machiningPreviewOwner=null;
   machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
   if(refresh)refreshAfterHardwareRemoval();
   return {instances:ids.size,operations,pieces};
 }
-function deleteSelectedHardwarePreset(){
+async function deleteSelectedHardwarePreset(){
   const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)return;
+  if(hardwareScope==='global'){
+    if(!adminAllowed()){toast('Somente o administrador pode excluir Ferragens globais');return;}
+    if(!window.confirm(`Excluir a Ferragem global “${p.name}”?
+
+Ela deixará de aparecer para todos. Ferragens já aplicadas em projetos existentes não serão alteradas.`))return;
+    try{
+      await cloudApiFetch(`/admin/hardware/global/${encodeURIComponent(p.id)}`,{method:'DELETE',body:{},timeoutMs:20000});
+      await loadGlobalHardwarePresets({force:true});refreshHardwarePresetSelect();toast('Ferragem global excluída');
+    }catch(err){toast(err.message||'Não foi possível excluir a Ferragem global');}
+    return;
+  }
   const st=appliedHardwareStats(op=>op.hardwarePresetId===p.id);
   const msg=st.operations
     ?`Excluir a ferragem “${p.name}”?
@@ -13457,7 +13727,7 @@ function deleteSelectedHardwarePreset(){
 Ela está aplicada em ${st.pieces} peça(s), com ${st.operations} furação(ões). Ao excluir, essas furações também serão removidas do projeto e do desenho 3D.`
     :`Excluir a ferragem “${p.name}” da biblioteca?`;
   if(!window.confirm(msg))return;
-  if(st.operations)removeAppliedHardware(op=>op.hardwarePresetId===p.id);
+  if(st.operations)removeAppliedHardware(op=>op.hardwarePresetId===p.id,{refresh:true});
   setHardwarePresets(getHardwarePresets().filter(x=>x.id!==p.id));refreshHardwarePresetSelect();commitHistory();
   toast(st.operations?`Ferragem excluída · ${st.operations} furação(ões) removida(s)`:'Ferragem excluída da biblioteca');
 }
@@ -13471,7 +13741,15 @@ function focusHardwarePlan(plan){
 function previewHardware3D(){try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p,{instanceId:'preview'});renderHardwarePreviewOps(plan);machiningPreviewOwner=selected;machiningPreviewActive=true;machiningVisualGroup.visible=false;$('machiningDialog').style.display='none';$('machining3DPreviewBar').style.display='flex';$('machining3DPreviewInfo').textContent=`${p.name} · ${plan.contacts.length} contato(s) · ${plan.operations.length} furação(ões) · ainda não salvo`;focusHardwarePlan(plan);toast('Prévia 3D · amarelo = furos da ferragem');}catch(err){clearMachiningDraftPreview();machiningVisualGroup.visible=true;toast(err.message||'Não foi possível visualizar a ferragem');}}
 function applySelectedHardware(){
   clearMachiningDraftPreview();machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
-  try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p);for(const x of plan.operations){const arr=x.owner.userData.machining||(x.owner.userData.machining=[]);arr.push(x.op);sanitizeMachiningForPiece(x.owner);}renderMachiningVisuals();updateInspector();commitHistory();updateHardwarePanel();renderMachiningList();toast(`${p.name} aplicada · ${plan.operations.length} furação(ões)`);}catch(err){toast(err.message||'Não foi possível aplicar a ferragem');}
+  try{
+    const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');
+    const oldIds=hardwareInstancesForSourcePreset(selected,p.id);
+    const plan=hardwarePlan(selected,p);
+    if(oldIds.size)removeHardwareInstances(oldIds,{refresh:false});
+    for(const x of plan.operations){const arr=x.owner.userData.machining||(x.owner.userData.machining=[]);arr.push(x.op);sanitizeMachiningForPiece(x.owner);}
+    renderMachiningVisuals();updateInspector();commitHistory();updateHardwarePanel();renderMachiningList();
+    toast(`${p.name} ${oldIds.size?'atualizada':'aplicada'} · ${plan.operations.length} furação(ões)`);
+  }catch(err){toast(err.message||'Não foi possível aplicar a ferragem');}
 }
 function fillHardwareShelfPinExample(){hardwareBuilderEditId=null;$('hardwareName').value='Pino de prateleira';$('hardwareContactAxis').value='x';$('hardwareContactSide').value='both';$('hardwareContactTolerance').value=2;$('hardwareAAnchor').value='start';$('hardwareAOffset').value='-5';$('hardwareBMode').value='ends';$('hardwareBEdge').value=50;$('hardwareSourceEnabled').checked=false;$('hardwareTargetEnabled').checked=true;$('hardwareTargetDiameter').value=5;$('hardwareTargetDepth').value=10;updateHardwareBuilderUi();}
 function fillHardwareDowelExample(){hardwareBuilderEditId=null;$('hardwareName').value='Cavilha base/lateral';$('hardwareContactAxis').value='x';$('hardwareContactSide').value='both';$('hardwareContactTolerance').value=2;$('hardwareAAnchor').value='center';$('hardwareAOffset').value='0';$('hardwareBMode').value='ends';$('hardwareBEdge').value=50;$('hardwareSourceEnabled').checked=true;$('hardwareSourceDiameter').value=8;$('hardwareSourceDepth').value=20;$('hardwareTargetEnabled').checked=true;$('hardwareTargetDiameter').value=8;$('hardwareTargetDepth').value=15;updateHardwareBuilderUi();}
@@ -13854,15 +14132,39 @@ function updateMachiningUI(){
   $('machiningPreview').textContent=txt;$('saveMachining').textContent=machiningEditId?'Salvar alteração':(machiningType==='hole'?'Adicionar furo':'Adicionar rasgo');
 }
 function renderMachiningList(){
-  const list=$('machiningList');list.innerHTML='';if(!selected)return;const ops=selected.userData.machining||[];
-  if(!ops.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma usinagem nesta peça.';list.appendChild(d);return;}
+  const list=$('machiningList');list.innerHTML='';if(!selected)return;
+  const ops=Array.isArray(selected.userData?.machining)?selected.userData.machining:[];
+  const renderedInstances=new Set();let rows=0;
+
+  function appendHardwareRow(instanceId,name,sourceOnly=false){
+    if(!instanceId||renderedInstances.has(instanceId))return;
+    const st=hardwareInstanceSummary(instanceId);if(!st.operations)return;
+    renderedInstances.add(instanceId);rows++;
+    const item=document.createElement('div');item.className='machiningItem';
+    const text=document.createElement('div');text.innerHTML='<div class="miName"></div><div class="miInfo"></div>';
+    text.querySelector('.miName').textContent=`⚙ ${name||st.name||'Ferragem'}`;
+    text.querySelector('.miInfo').textContent=`${st.operations} furação(ões) em ${st.pieces} peça(s) · ${sourceOnly?'aplicada a partir desta peça':'ferragem vinculada'} · toque em Excluir para remover a aplicação inteira`;
+    const btns=document.createElement('div');btns.className='miBtns';
+    const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteHardwareInstance(instanceId,name||st.name);
+    btns.append(del);item.append(text,btns);list.appendChild(item);
+  }
+
   for(const op of ops){
+    if(op?.hardwareInstanceId){appendHardwareRow(op.hardwareInstanceId,op.hardwareName,false);continue;}
+    rows++;
     const item=document.createElement('div');item.className='machiningItem';const text=document.createElement('div'),depth=operationDepthMm(selected,op),res=resolvedMachiningCoords(selected,op),neg=machiningHasNegativeRef(op);
     text.innerHTML=`<div class="miName"></div><div class="miInfo"></div>`;
-    text.querySelector('.miName').textContent=(op.hardwareName?`⚙ ${op.hardwareName} · `:'')+(op.type==='hole'?(op.seriesEnabled&&op.seriesCount>1?`Série ${op.seriesCount}× · Ø ${nice(op.diameter)} mm`:`Furo Ø ${nice(op.diameter)} mm`):(op.preset==='back-groove'?`Rasgo de fundo · ${nice(op.length)} × ${nice(op.width)} mm`:op.preset==='drawer-bottom-groove'?`Rasgo fundo gaveta · ${nice(op.length)} × ${nice(op.width)} mm`:`Rasgo ${nice(op.length)} × ${nice(op.width)} mm`));
-    text.querySelector('.miInfo').textContent=`${op.entryAxis.toUpperCase()} · ref. ${machiningCoordRefText(op)}${neg?` · real X ${nice(res.x)} Y ${nice(res.y)} Z ${nice(res.z)}`:''} · prof. ${nice(depth)} mm${op.seriesEnabled&&op.seriesCount>1?` · ${axisLabel(op.seriesAxis)} / ${nice(op.seriesStep)} mm`:''}${op.preset==='back-groove'?` · traseira ${nice(op.rearOffset)} mm`:''}${op.hardwareName?` · ferragem / ${op.hardwareRole==='contact'?'peça de contato':'peça selecionada'}`:''}${op.through?' · atravessa':''}`;
+    text.querySelector('.miName').textContent=op.type==='hole'?(op.seriesEnabled&&op.seriesCount>1?`Série ${op.seriesCount}× · Ø ${nice(op.diameter)} mm`:`Furo Ø ${nice(op.diameter)} mm`):(op.preset==='back-groove'?`Rasgo de fundo · ${nice(op.length)} × ${nice(op.width)} mm`:op.preset==='drawer-bottom-groove'?`Rasgo fundo gaveta · ${nice(op.length)} × ${nice(op.width)} mm`:`Rasgo ${nice(op.length)} × ${nice(op.width)} mm`);
+    text.querySelector('.miInfo').textContent=`${op.entryAxis.toUpperCase()} · ref. ${machiningCoordRefText(op)}${neg?` · real X ${nice(res.x)} Y ${nice(res.y)} Z ${nice(res.z)}`:''} · prof. ${nice(depth)} mm${op.seriesEnabled&&op.seriesCount>1?` · ${axisLabel(op.seriesAxis)} / ${nice(op.seriesStep)} mm`:''}${op.preset==='back-groove'?` · traseira ${nice(op.rearOffset)} mm`:''}${op.through?' · atravessa':''}`;
     const btns=document.createElement('div');btns.className='miBtns';const edit=document.createElement('button');edit.className='secondary';edit.textContent='Editar';edit.onclick=()=>loadMachiningForEdit(op.id);const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteMachining(op.id);btns.append(edit,del);item.append(text,btns);list.appendChild(item);
   }
+
+  // Ferragens como pino de prateleira podem furar somente as laterais. Nesse
+  // caso a prateleira é a origem da aplicação, mas não possui um furo próprio.
+  // Mesmo assim a aplicação precisa aparecer no histórico da prateleira.
+  for(const app of hardwareSourceApplications(selected))appendHardwareRow(app.instanceId,app.name,true);
+
+  if(!rows){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma usinagem ou ferragem aplicada nesta peça.';list.appendChild(d);}
 }
 function openMachiningDialog(type='hole'){
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
@@ -13870,7 +14172,7 @@ function openMachiningDialog(type='hole'){
   if(!selected){toast('Selecione uma peça');return;} if(selected.userData?.kind==='cylinder'){toast('Furo/rasgo em cilindro ainda não está disponível');return;}
   $('morePanel').style.display='none'; machiningEditId=null; machiningType=type==='groove'?'groove':type==='hardware'?'hardware':'hole'; $('machiningTitle').textContent=`Usinagem · ${selected.userData.name||'Peça'}`;
   const ti=pieceThicknessInfo(selected); $('machiningPartInfo').textContent=`Peça ${nice(ti.faceW)} × ${nice(ti.faceH)} × ${nice(ti.thickness)} mm · espessura no eixo ${axisLabel(ti.thicknessAxis)}. X=esquerda→direita, Y=baixo→cima, Z=trás→frente. Valor negativo mede do lado oposto (ex.: Y −100 = 100 mm do topo). DXF sem giro: ${axisLabel(ti.uAxis)} horizontal × ${axisLabel(ti.vAxis)} vertical.`;
-  populateMachiningFaceOptions(); setMachiningType(machiningType,machiningType!=='hardware'); if(machiningType!=='hardware')refreshMachiningPresetSelect(); else refreshHardwarePresetSelect(); renderMachiningList(); $('machiningDialog').style.display='flex';
+  populateMachiningFaceOptions(); setMachiningType(machiningType,machiningType!=='hardware'); if(machiningType!=='hardware')refreshMachiningPresetSelect(); else setHardwareScope(hardwareScope); renderMachiningList(); $('machiningDialog').style.display='flex';
 }
 function saveMachining(){
   clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=true; $('machining3DPreviewBar').style.display='none'; machiningPreviewOwner=null;
@@ -15398,7 +15700,7 @@ async function writeExportTarget(target,blob){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.100.52 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.100.55 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -15413,7 +15715,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.100.52 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.100.55 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa configurada: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Material madeirado/veio: ${cfg.grain?'SIM · rotação bloqueada':'NÃO · rotação automática permitida'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>'- '+k+': '+n+' chapa(s)').join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final das peças, incluindo Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -15647,10 +15949,10 @@ function updateNewSpacePreview(){
     return;
   }
   if(!ref){
-    out.innerHTML=`Primeiro espaço · base a <strong>${mm(p.yBase)} mm</strong> do chão<br>Referência horizontal: canto traseiro esquerdo em X/Z = 0<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
+    out.innerHTML=`<strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong> · primeiro espaço · base a <strong>${mm(p.yBase)} mm</strong> do chão<br>Referência horizontal: canto traseiro esquerdo em X/Z = 0<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
     return;
   }
-  out.innerHTML=`Referência: <strong>${ref.name}</strong> · ${relationLabel(newSpaceRelation)} · afastamento ${mm(p.gap)} mm<br>Altura do chão resultante: <strong>${mm(p.yBase)} mm</strong><br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
+  out.innerHTML=`Novo espaço: <strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong><br>Referência: <strong>${ref.name}</strong> · ${relationLabel(newSpaceRelation)} · afastamento ${mm(p.gap)} mm<br>Altura do chão resultante: <strong>${mm(p.yBase)} mm</strong><br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
 }
 function openNewSpaceDialog(preferredRoot=null){
   const prefs=getSpaceCreatePrefs();
@@ -15780,7 +16082,7 @@ function updateCutPreview(){
 $('cancelSpace').onclick=()=>{$('newSpaceDialog').style.display='none';};
 $('spaceReference').addEventListener('change',()=>{newSpaceReferenceId=$('spaceReference').value||null;const ref=currentNewSpaceReference();if(ref && !(newSpaceRelation==='top'||newSpaceRelation==='bottom')) $('spaceBaseY').value=mm(ref.yBase);updateNewSpacePreview();});
 document.querySelectorAll('[data-space-relation]').forEach(b=>b.addEventListener('click',()=>setNewSpaceRelation(b.dataset.spaceRelation)));
-['spaceW','spaceD','spaceH','spaceBaseY','spaceGap'].forEach(id=>$(id).addEventListener('input',updateNewSpacePreview));
+['spaceName','spaceW','spaceD','spaceH','spaceBaseY','spaceGap'].forEach(id=>$(id).addEventListener('input',updateNewSpacePreview));
 $('spaceDefaultMaterial').addEventListener('change',()=>{updateSpaceMaterialPreview();updateNewSpacePreview();});
 $('confirmSpace').onclick=()=>{
   const p=proposedSpacePlacement(); if(!p||p.w<.002||p.d<.002||p.h<.002){toast('Confira as medidas do espaço');return;}
@@ -15949,7 +16251,7 @@ $('productionClearBands').onclick=productionClearSelectedBands;
 
 
 // ============================================================================
-// 1.100.52 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.55 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -16352,7 +16654,9 @@ document.querySelectorAll('[data-thickness]').forEach(b=>b.onclick=()=>{$('newT'
 $('applyExact').onclick=applyExactPanel;
 $('applyPieceRelative').onclick=applyPieceRelativeConfig;
 $('resetPieceRelative').onclick=resetPieceRelativeInputs;
-$('duplicateBtn').onclick=duplicateSelected;
+$('duplicateBtn').onclick=requestDuplicateSelected;
+$('confirmDuplicateBtn').onclick=confirmDuplicateSelected;
+$('cancelDuplicateBtn').onclick=cancelDuplicateConfirmation;
 $('deletePieceInspectorBtn').onclick=deleteSelectedFromInspector;
 $('doorHingeLeftInspectorBtn').onclick=()=>setSelectedDoorHingeSide('left');
 $('doorHingeRightInspectorBtn').onclick=()=>setSelectedDoorHingeSide('right');
@@ -16436,6 +16740,7 @@ function hideFloatingPanel(id){
 function closeInspectorOutside(){
   const el=$('inspector');
   if(!el||!elementIsVisible(el))return;
+  cancelDuplicateConfirmation?.();
   el.classList.add('compact');
   el.style.display='none';
 }
@@ -16521,7 +16826,7 @@ function installOutsideMenuClose(){
 }
 
 
-$('closeInspector').onclick=()=>{$('inspector').classList.add('compact');};
+$('closeInspector').onclick=()=>{cancelDuplicateConfirmation();$('inspector').classList.add('compact');$('inspector').style.display='none';};
 
 $('showInspectorBtn').onclick=()=>{if(!selected){toast('Selecione uma peça');return;}openPieceInspector(selected);};
 $('openFurnitureSpaceBtn').onclick=()=>{openSpaceFromObject(selected);};
@@ -16562,8 +16867,11 @@ $('cancelShape').onclick=closeShapeDialog;
 $('shapeDialog').addEventListener('pointerdown',e=>{if(e.target===$('shapeDialog'))closeShapeDialog();});
 
 $('hardwarePresetSelect').addEventListener('change',updateHardwarePanel);
+$('hardwareLocalTab').onclick=()=>setHardwareScope('local');
+$('hardwareGlobalTab').onclick=()=>setHardwareScope('global');
 $('createHardwarePreset').onclick=()=>openHardwareBuilder(null);
 $('editHardwarePreset').onclick=()=>{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(p)openHardwareBuilder(p);};
+$('publishHardwarePreset').onclick=publishSelectedHardwarePreset;
 $('deleteHardwarePreset').onclick=deleteSelectedHardwarePreset;
 $('previewHardware3D').onclick=previewHardware3D;
 $('applyHardware').onclick=applySelectedHardware;
@@ -16780,6 +17088,7 @@ setFrontWorldView();
 history=[stateString()]; historyIndex=0;
 initToolDock();
 initSpaceActionsDrag();
+initPieceInspectorFloating();
 initProjectHub().catch(err=>{console.error(err);toast('Não foi possível abrir o gerenciador de projetos');});
 initOnlineIdentity().catch(err=>{console.error(err);setAuthStatus('Falha ao iniciar a autenticação.','error');});
 

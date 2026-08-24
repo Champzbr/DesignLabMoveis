@@ -1,34 +1,22 @@
-DESIGNLABMOVEIS 1.100.52 — ÍCONE DO APP + BIBLIOTECA GLOBAL
+DESIGNLABMOVEIS 1.100.55 — HISTÓRICO DE FERRAGENS + FERRAGENS GLOBAIS
 
-NOVIDADES
-1. O PWA instalado passa a usar o nome “DesignLabMoveis” (sem número da versão no nome).
-2. O ícone do app foi trocado pela imagem fornecida.
-3. Biblioteca agora tem duas áreas:
-   - Minha biblioteca: continua local, como antes.
-   - Biblioteca global: conteúdo oficial compartilhado com todos os usuários.
-4. Administrador, dentro da Biblioteca global:
-   - cria pasta global;
-   - apaga pasta global;
-   - publica o móvel selecionado;
-   - apaga modelo publicado.
-5. Usuários comuns:
-   - enxergam as pastas/modelos globais;
-   - podem inserir uma cópia no projeto;
-   - não podem alterar nem apagar o conteúdo oficial.
+NOVO NA 1.100.55
+- Ferragens aplicadas a partir de uma peça agora aparecem em “Usinagens desta peça”, mesmo quando os furos ficam somente nas peças de contato.
+- Ex.: Pino de prateleira aplicado na prateleira aparece no histórico da própria prateleira e pode ser excluído por ali.
+- O histórico agrupa uma aplicação de ferragem em uma única linha e mostra quantos furos/peças estão vinculados.
+- Excluir a linha remove a aplicação inteira e todos os furos vinculados.
+- Reaplicar a mesma ferragem na mesma peça atualiza/substitui a aplicação anterior em vez de acumular pinos duplicados.
+- Ferragens agora têm duas áreas: “Minhas ferragens” e “Ferragens globais”.
+- Ferragens globais ficam disponíveis para todas as contas autenticadas.
+- Somente o administrador pode criar, editar ou excluir Ferragens globais.
+- O administrador também pode selecionar uma ferragem pessoal e usar “Publicar selecionada para todos”.
+- Ferragens já aplicadas em projetos não são apagadas se a definição global for removida do servidor.
 
 ATENÇÃO — CLOUDFLARE
-Esta versão adiciona API nova. Antes de usar a Biblioteca global:
-1. Execute cloudflare/4-biblioteca-global.sql no D1.
-2. Publique cloudflare/worker-1.100.52.js no Worker.
-3. Mantenha os bindings DB e PROJECTS já existentes.
+Para ativar Ferragens globais:
+1. Execute cloudflare/5-ferragens-globais.sql no D1.
+2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
+3. Publique cloudflare/worker-1.100.55.js no Worker.
+4. Mantenha os bindings DB e PROJECTS já existentes.
 
-O modelo global completo é salvo no R2 em:
-global-library/items/<ID_MODELO>.json
-
-Os metadados de pastas/modelos ficam no D1.
-
-PWA / ANDROID
-O manifest agora usa name e short_name = DesignLabMoveis.
-Alguns celulares mantêm nome/ícone antigo em cache. Depois de publicar a versão,
-se o Android não atualizar o ícone automaticamente, remova o app instalado e
-instale novamente a partir do navegador.
+A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.

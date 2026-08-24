@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.52",
+  "version": "1.100.55",
   "required": false,
-  "message": "Novo nome/ícone do app instalado e Biblioteca global: administrador cria pastas, publica/apaga modelos e todos os usuários podem inserir.",
-  "released_at": "2026-08-24T09:44:00-03:00"
+  "message": "Pino/ferragem agora aparece no histórico da peça, não duplica ao reaplicar e Ferragens globais ficam disponíveis para todos.",
+  "released_at": "2026-08-24T10:34:00-03:00"
 }
