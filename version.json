@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.87",
+  "version": "1.100.88",
   "required": false,
-  "message": "Impressão do plano de corte redesenhada em formato técnico, sem indicador de veio e com lista lateral de peças por chapa.",
-  "released_at": "2026-08-25T08:44:00-03:00"
+  "message": "Etiquetas A4 agora têm espaçamento horizontal entre colunas e vertical entre linhas configurados separadamente, com prévia e impressão fiéis.",
+  "released_at": "2026-08-25T09:38:00-03:00"
 }

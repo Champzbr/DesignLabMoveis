@@ -1,3 +1,14 @@
+DESIGNLABMOVEIS 1.100.88 — ESPAÇAMENTO INDEPENDENTE DAS ETIQUETAS
+
+NOVIDADE
+- A4 mantém margens independentes: esquerda, direita, cima e baixo.
+- Novo campo “Entre colunas · horizontal” controla somente o vão lateral entre etiquetas.
+- Novo campo “Entre linhas · vertical” controla somente o vão de cima/baixo entre etiquetas.
+- Migração: o antigo “espaço entre etiquetas” vira o espaçamento horizontal; o vertical inicia em 0 mm.
+- Prévia A4 e impressão usam exatamente os dois valores separados.
+- As preferências continuam sincronizadas na conta do usuário pelo sistema da 1.100.86.
+- Não há SQL nem Worker novo nesta versão.
+
 DESIGNLABMOVEIS 1.100.87 — IMPRESSÃO TÉCNICA DO PLANO DE CORTE
 
 - Impressão do plano de corte não mostra mais seta, símbolo, rotação ou texto de sentido do veio.
