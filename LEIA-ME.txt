@@ -1,4 +1,14 @@
-DESIGNLABMOVEIS 1.100.91
+DESIGNLABMOVEIS 1.100.93
+
+CORREÇÃO PWA / CELULAR SEM BARRA DE URL
+- Manifesto fixado na raiz: id=/, start_url=/ e scope=/.
+- display=standalone, como no Contas Fácil.
+- Service Worker registrado em /sw.js com escopo /.
+- Em celular aberto no navegador, o DesignLab oferece instalação como app.
+- Depois de instalado e aberto pelo ícone DesignLabMoveis, não aparece a barra de endereço do navegador.
+
+ATENÇÃO
+Se houver um atalho antigo que abre com X/endereço/Compartilhar no topo, remova esse atalho e instale novamente após publicar esta versão. Uma página comum não pode ocultar a interface do navegador por JavaScript; o modo sem barra é o PWA instalado.
 
 CORREÇÃO PRINCIPAL - MINGLIPANELSAW / ZAW
 

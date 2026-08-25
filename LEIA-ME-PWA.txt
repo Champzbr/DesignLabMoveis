@@ -1,0 +1,18 @@
+DESIGNLABMOVEIS 1.100.93 — PWA SEM BARRA DE ENDEREÇO
+
+O QUE FOI CORRIGIDO
+- manifest.json agora usa id=/, start_url=/ e scope=/, como no Contas Fácil.
+- display=standalone.
+- Service Worker registrado em /sw.js com scope /.
+- Manifesto, ícones e atalhos usam caminhos absolutos na raiz.
+- No celular, se o DesignLab estiver aberto como página do navegador, aparece a opção Instalar.
+
+IMPORTANTE
+Uma página comum não pode esconder a barra de endereço do Chrome/Samsung Internet por JavaScript.
+A barra desaparece quando o DesignLab é instalado como PWA e aberto pelo ícone do aplicativo.
+
+SE JÁ EXISTE UM ATALHO ANTIGO COM BARRA
+1. Remova o atalho antigo da tela inicial.
+2. Abra https://designlabmoveis.netlify.app/ no Chrome/Samsung Internet.
+3. Toque em Instalar no aviso do próprio DesignLab ou no menu do navegador.
+4. Abra pelo novo ícone DesignLabMoveis.

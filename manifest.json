@@ -1,23 +1,30 @@
 {
-  "id": "./",
+  "id": "/",
   "name": "DesignLabMoveis",
   "short_name": "DesignLabMoveis",
   "description": "DesignLabMoveis para projeto, produção e usinagem de móveis sob medida.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone"
+  ],
   "background_color": "#171717",
   "theme_color": "#171717",
   "orientation": "any",
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
