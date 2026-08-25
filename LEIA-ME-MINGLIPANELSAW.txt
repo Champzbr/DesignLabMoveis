@@ -1,26 +1,25 @@
-DESIGNLABMOVEIS 1.100.89 — MINGLIPANELSAW / SECCIONADORA DE PINÇA
+DESIGNLABMOVEIS 1.100.90 — MINGLIPANELSAW / ZAW DE TESTE
 
-O modo Seccionadora foi preparado para máquina automática de pinça que NÃO gira a faixa/peça sozinha.
+O formato .ZAW foi reconstruído a partir das fotos do Result.zaw real gerado pelo MingliPanelSaw/Zhongde.
+A estrutura usada segue o XML observado: ZhongdeModelResult, Materials, ProductData, CutLines, CutScheme0, Step000, CutN, Scheme0, Product e Spare.
 
-FLUXO DO PLANO
-1. Carregar a chapa.
-2. Fazer a primeira etapa e formar as faixas F1, F2, F3...
-3. Retirar a faixa indicada.
-4. Girar a faixa 90 graus UMA VEZ manualmente.
-5. Recolocar a faixa e executar os cortes transversais indicados.
-6. Repetir para a próxima faixa.
+COMO O DESIGNLAB EXPORTA
+- ETAPA 1: 1 arquivo .ZAW por chapa para formar as faixas.
+- ETAPA 2: 1 arquivo .ZAW para cada faixa. O operador gira a faixa manualmente 90 graus antes de carregar o arquivo correspondente.
+- Espessura da serra (KnifeWidth) vem da configuração Serra/canal do plano de corte.
+- Refilo (EdgeExcludedWidth / Trim) vem da margem do plano de corte.
+- O pacote também contém LEIA-ME-ZAW.txt com a ordem dos arquivos.
 
-EXPORTAÇÃO CSV
-O arquivo de sequência contém as ações:
-- CARREGAR_CHAPA
-- FORMAR_FAIXA
-- GIRAR_90
-- CORTE_FAIXA
+PRIMEIRO TESTE
+1. Selecione Seccionadora no plano de corte.
+2. Clique em Mingli .ZAW (teste).
+3. Extraia o ZIP no computador da máquina.
+4. Abra primeiro o arquivo ETAPA_1_FAIXAS.zaw no MingliPanelSaw.
+5. Confira na tela: chapa, espessura, serra, refilo, quantidade e medidas.
+6. Depois abra um ETAPA_2_Fxx.zaw e confira as peças da faixa.
+7. NÃO execute o corte automático até a prévia do MingliPanelSaw bater com o plano impresso do DesignLab.
 
-ATENÇÃO
-Este CSV é um formato de conferência/integração do DesignLabMoveis. Ainda NÃO está confirmado como formato nativo de importação do MingliPanelSaw.
+Se o software abrir e desenhar corretamente, a estrutura principal do ZAW está compatível. Caso alguma medida/campo apareça diferente, uma foto da tela do MingliPanelSaw após abrir o ZAW será suficiente para ajustar a próxima versão.
 
-PARA IDENTIFICAR O FORMATO NATIVO DA MÁQUINA
-Abra o MingliPanelSaw e procure uma opção como File / Open / Import / Import Cutting Plan.
-Envie ao desenvolvimento uma foto da janela de seleção de arquivo mostrando o campo "Tipo de arquivo" ou, melhor ainda, copie para um pendrive um trabalho/ordem já salvo pelo próprio programa e envie esse arquivo.
-Com um arquivo de exemplo é possível identificar a extensão e a estrutura real e criar o exportador direto no DesignLabMoveis sem adivinhação.
+ARQUIVO DE REFERÊNCIA
+A pasta TESTE-MINGLI contém Result-referencia-8x45.zaw, montado com as mesmas medidas e posições que aparecem na foto enviada. Ele serve para confirmar rapidamente se o MingliPanelSaw aceita a estrutura XML gerada pelo DesignLab.

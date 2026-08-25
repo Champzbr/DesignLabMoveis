@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.89",
+  "version": "1.100.90",
   "required": false,
-  "message": "Modo Seccionadora em 2 etapas para máquina de pinça: forma faixas, pede um único giro manual de 90° por faixa e gera sequência CSV para conferência/integração.",
-  "released_at": "2026-08-25T10:40:00-03:00"
+  "message": "Exportação MingliPanelSaw .ZAW em modo de teste: um ZAW para formar faixas e um ZAW por faixa após o giro manual de 90°.",
+  "released_at": "2026-08-25T11:25:00-03:00"
 }
