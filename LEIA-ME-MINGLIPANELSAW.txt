@@ -1,22 +1,13 @@
-DESIGNLABMOVEIS 1.100.93 - MINGLIPANELSAW / ZAW DE TESTE
+DESIGNLABMOVEIS 1.100.94 - MINGLIPANELSAW / ZAW DE TESTE
 
-CORREÇÕES DESTA VERSÃO
-- Mantém 1 arquivo .ZAW por chapa física.
-- Corrige a árvore Step/Cut do plano em duas etapas.
-- Cada faixa que precisa de corte transversal ganha um Step filho.
-- Cada Step filho aponta para o Cut correto do Step000.
-- Cada peça aponta para o stepform/stepcutform que realmente a produz.
-- Faixas que já são peças finais ficam diretamente no Step000, como no Result.zaw real.
-- Faixas iguais e finais podem ser agrupadas em Cut0 Num=N, igual ao exemplo 8 x 45.
-- WidthDirection é invertido no corte transversal.
-- ZAW é gravado com BOM UTF-8 e CRLF.
+CORREÇÃO DE COMPATIBILIDADE
+- Mantido 1 arquivo .ZAW por chapa física.
+- Adicionado o atributo stepformproductid="" em cada Step do XML, conforme observado no Result.zaw real da máquina.
+- Mantidos stepform, stepcutform, CurrentStep, WidthDirection, Cut, Num, Dri, Compensate, ID e RemainID.
+- UTF-8 com BOM e quebras CRLF.
 
 TESTE RECOMENDADO
-1. Abra primeiro TESTE-MINGLI/Result-referencia-8x45.zaw.
-2. Se abrir, gere um plano simples no DesignLab e exporte Mingli .ZAW.
-3. Confira desenho, dimensões, serra, refilo e sequência na tela.
-4. NÃO execute corte automático enquanto o desenho não estiver correto.
-
-Se o arquivo de referência ainda gerar "Object reference not set...", falta pelo menos
-um atributo que está fora da parte visível da linha Step000 na foto original. Nesse caso,
-será necessário fotografar a continuação da linha rolando o Notepad horizontalmente para a direita.
+1. Abra primeiro TESTE-MINGLI/Result-referencia-8x45.zaw no MingliPanelSaw.
+2. Confira se abre e desenha 8 peças 1730 x 45 em chapa 1730 x 430 x 18.
+3. Não execute corte automático enquanto o arquivo de referência não abrir sem erro.
+4. Se ainda aparecer "Object reference not set to an instance of an object", fotografe a continuação completa da linha <Step000 ...> do ZAW original, especialmente tudo depois de stepformproductid.
