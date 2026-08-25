@@ -489,7 +489,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.91';
+const DESIGNLAB_APP_VERSION='1.100.93';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -497,6 +497,78 @@ let designLabLastUpdateCheck=0;
 let designLabAvailableUpdate=null;
 let designLabUpdating=false;
 let designLabSwRegistration=null;
+
+// ============================================================================
+// 1.100.93 · PWA / APP SEM BARRA DE ENDEREÇO
+// Mesma estratégia usada no Contas Fácil: manifesto e SW na raiz + instalação
+// real como app. Navegadores não permitem que uma página comum esconda a barra
+// por JavaScript; por isso celulares fora do modo standalone recebem a opção de
+// instalar o DesignLab em vez de criar apenas um atalho de navegador.
+// ============================================================================
+let designLabDeferredInstallPrompt=null;
+let designLabInstallHintShown=false;
+
+function designLabStandaloneMode(){
+  return !!(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true);
+}
+function designLabIsMobile(){
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'') || Math.min(innerWidth||9999,innerHeight||9999)<800;
+}
+function removeDesignLabInstallCard(){
+  document.getElementById('designLabInstallCard')?.remove();
+}
+function designLabInstallInstructions(){
+  const ua=navigator.userAgent||'';
+  if(/SamsungBrowser/i.test(ua))return 'No Samsung Internet: menu ☰ → Adicionar página a → Tela inicial → Instalar.';
+  if(/iPhone|iPad|iPod/i.test(ua))return 'No Safari: Compartilhar → Adicionar à Tela de Início.';
+  return 'Abra este endereço no Chrome e use ⋮ → Instalar app (ou Adicionar à tela inicial). Depois abra pelo ícone DesignLabMoveis.';
+}
+function showDesignLabInstallCard(force=false){
+  if(designLabStandaloneMode() || !designLabIsMobile())return;
+  if(document.getElementById('designLabInstallCard'))return;
+  if(!force && designLabInstallHintShown)return;
+  designLabInstallHintShown=true;
+  const card=document.createElement('div');
+  card.id='designLabInstallCard';
+  card.className='designLabInstallCard';
+  card.innerHTML=`<div class="designLabInstallIcon">DL</div>
+    <div class="designLabInstallText"><strong>Abrir como aplicativo</strong><span>Instale o DesignLab para abrir sem a barra de endereço do navegador.</span></div>
+    <button type="button" class="designLabInstallPrimary">Instalar</button>
+    <button type="button" class="designLabInstallClose" aria-label="Fechar">×</button>`;
+  document.body.appendChild(card);
+  card.querySelector('.designLabInstallClose').onclick=()=>removeDesignLabInstallCard();
+  card.querySelector('.designLabInstallPrimary').onclick=async()=>{
+    if(designLabDeferredInstallPrompt){
+      const prompt=designLabDeferredInstallPrompt;
+      designLabDeferredInstallPrompt=null;
+      try{
+        await prompt.prompt();
+        const choice=await prompt.userChoice;
+        if(choice?.outcome==='accepted')removeDesignLabInstallCard();
+        else toast('Instalação cancelada');
+      }catch(err){console.warn('Instalação PWA:',err);toast(designLabInstallInstructions());}
+      return;
+    }
+    toast(designLabInstallInstructions());
+  };
+}
+function initDesignLabInstallExperience(){
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    designLabDeferredInstallPrompt=e;
+    if(!designLabStandaloneMode())setTimeout(()=>showDesignLabInstallCard(true),250);
+  });
+  window.addEventListener('appinstalled',()=>{
+    designLabDeferredInstallPrompt=null;
+    removeDesignLabInstallCard();
+    toast('DesignLabMoveis instalado · abra pelo ícone para usar sem barra de endereço');
+  });
+  const mq=window.matchMedia?.('(display-mode: standalone)');
+  mq?.addEventListener?.('change',()=>{if(designLabStandaloneMode())removeDesignLabInstallCard();});
+  // Se o navegador não emitir beforeinstallprompt (ex.: aba personalizada),
+  // ainda explicamos como abrir/instalar corretamente.
+  setTimeout(()=>showDesignLabInstallCard(false),1800);
+}
 
 function compareAppVersions(a,b){
   const aa=String(a||'').split('.').map(n=>Number(n)||0);
@@ -628,7 +700,7 @@ async function initDesignLabServiceWorker(){
 
   if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
   try{
-    designLabSwRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+    designLabSwRegistration=await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'});
 
     // Pede ao navegador para conferir sw.js imediatamente a cada abertura.
     await designLabSwRegistration.update().catch(()=>{});
@@ -950,7 +1022,7 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 }
 
 // ============================================================================
-// 1.100.91 · PREFERÊNCIAS DA CONTA — CELULAR / PC
+// 1.100.93 · PREFERÊNCIAS DA CONTA — CELULAR / PC
 // ============================================================================
 // Projetos continuam no fluxo próprio (IndexedDB + R2). Este bloco sincroniza
 // somente preferências/configurações do DesignLabMoveis no D1, por usuário.
@@ -1427,7 +1499,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.91 · HOME OPÇÃO 1
+// 1.100.93 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -1648,7 +1720,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.91`:'DesignLabMoveis 1.100.91';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.93`:'DesignLabMoveis 1.100.93';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -1853,7 +1925,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.91'
+    thumbnail:null,appVersion:'1.100.93'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -1876,7 +1948,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.91'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.93'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -1906,7 +1978,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.91'
+    thumbnail:thumb,appVersion:'1.100.93'
   };
   await projectDbPut(next);
   if(original){
@@ -1974,7 +2046,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.91',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.93',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -2008,7 +2080,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.91'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.93'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2069,7 +2141,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.91'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.93'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -2397,8 +2469,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.91 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.91 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
+// 1.100.93 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.93 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // na conta e restaurada depois de fechar/reabrir o app ou trocar de aparelho.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
