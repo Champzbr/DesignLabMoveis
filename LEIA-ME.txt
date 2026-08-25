@@ -1,3 +1,16 @@
+DESIGNLABMOVEIS 1.100.89 — SECCIONADORA DE PINÇA EM 2 ETAPAS
+
+- Novo plano específico para seccionadora automática de pinça que não gira a peça/faixa sozinha.
+- Etapa 1: a chapa é dividida em faixas com cortes retos.
+- Etapa 2: o operador gira cada faixa uma única vez em 90° e executa os cortes transversais das peças.
+- O otimizador testa a direção das faixas e prioriza menos chapas, menos faixas/giros e menos cortes.
+- Opção para escolher automaticamente, faixas no comprimento da chapa ou faixas na largura.
+- Prévia informa a sequência e quantos giros manuais serão necessários.
+- Impressão A4 mostra a sequência F1, F2... e os cortes de cada faixa; o veio continua fora da impressão.
+- Novo CSV de sequência com ações CARREGAR_CHAPA, FORMAR_FAIXA, GIRAR_90 e CORTE_FAIXA.
+- IMPORTANTE: o CSV é para conferência/integração. O formato nativo aceito pelo MingliPanelSaw ainda precisa ser confirmado no menu Importar/Abrir da máquina ou a partir de um arquivo de exemplo gerado por ela.
+- Não há SQL nem Worker novo nesta versão.
+
 DESIGNLABMOVEIS 1.100.88 — ESPAÇAMENTO INDEPENDENTE DAS ETIQUETAS
 
 NOVIDADE

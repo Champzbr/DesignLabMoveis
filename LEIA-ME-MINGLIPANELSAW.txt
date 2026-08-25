@@ -1,0 +1,26 @@
+DESIGNLABMOVEIS 1.100.89 — MINGLIPANELSAW / SECCIONADORA DE PINÇA
+
+O modo Seccionadora foi preparado para máquina automática de pinça que NÃO gira a faixa/peça sozinha.
+
+FLUXO DO PLANO
+1. Carregar a chapa.
+2. Fazer a primeira etapa e formar as faixas F1, F2, F3...
+3. Retirar a faixa indicada.
+4. Girar a faixa 90 graus UMA VEZ manualmente.
+5. Recolocar a faixa e executar os cortes transversais indicados.
+6. Repetir para a próxima faixa.
+
+EXPORTAÇÃO CSV
+O arquivo de sequência contém as ações:
+- CARREGAR_CHAPA
+- FORMAR_FAIXA
+- GIRAR_90
+- CORTE_FAIXA
+
+ATENÇÃO
+Este CSV é um formato de conferência/integração do DesignLabMoveis. Ainda NÃO está confirmado como formato nativo de importação do MingliPanelSaw.
+
+PARA IDENTIFICAR O FORMATO NATIVO DA MÁQUINA
+Abra o MingliPanelSaw e procure uma opção como File / Open / Import / Import Cutting Plan.
+Envie ao desenvolvimento uma foto da janela de seleção de arquivo mostrando o campo "Tipo de arquivo" ou, melhor ainda, copie para um pendrive um trabalho/ordem já salvo pelo próprio programa e envie esse arquivo.
+Com um arquivo de exemplo é possível identificar a extensão e a estrutura real e criar o exportador direto no DesignLabMoveis sem adivinhação.

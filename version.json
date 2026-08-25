@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.88",
+  "version": "1.100.89",
   "required": false,
-  "message": "Etiquetas A4 agora têm espaçamento horizontal entre colunas e vertical entre linhas configurados separadamente, com prévia e impressão fiéis.",
-  "released_at": "2026-08-25T09:38:00-03:00"
+  "message": "Modo Seccionadora em 2 etapas para máquina de pinça: forma faixas, pede um único giro manual de 90° por faixa e gera sequência CSV para conferência/integração.",
+  "released_at": "2026-08-25T10:40:00-03:00"
 }
