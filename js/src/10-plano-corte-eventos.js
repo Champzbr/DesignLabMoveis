@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.83 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.84 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================

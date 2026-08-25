@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.83 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// 1.100.84 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
 // ============================================================================
 const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
 function clampPieceInspectorPosition(left,top){
@@ -396,6 +396,70 @@ controls.enableDamping = true;
 controls.dampingFactor = .09;
 controls.target.set(0,.45,0);
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+
+// 1.100.84 · ZOOM DE APROXIMAÇÃO FINO
+// O zoom agora acompanha o ponto sob o cursor, aceita aproximação de poucos
+// milímetros e reduz progressivamente a velocidade ao chegar perto da peça.
+// Isso evita o efeito de "pular" para dentro da chapa quando o usuário quer
+// apenas conferir uma quina, furo, fita ou encontro entre peças.
+const CAD_ZOOM_DEFAULT_SPEED=.72;
+const CAD_ZOOM_CLOSE_SPEED=.14;
+const CAD_ZOOM_SLOW_ZONE=.12;      // começa a desacelerar a 120 mm da superfície
+const CAD_ZOOM_SURFACE_GAP=.004;    // para a aproximadamente 4 mm da superfície
+controls.zoomSpeed=CAD_ZOOM_DEFAULT_SPEED;
+controls.zoomToCursor=true;
+controls.minDistance=.004;
+controls.maxDistance=250;
+
+const cadZoomRaycaster=new THREE.Raycaster();
+const cadZoomNdc=new THREE.Vector2();
+function cadZoomPhysicalObjects(){
+  if(typeof objects==='undefined')return [];
+  return objects.filter(o=>{
+    if(!o||o.visible===false||!o.isObject3D)return false;
+    const u=o.userData||{};
+    if(u.kind==='hardware-visual'||u.kind==='cylinder')return false;
+    if(u.isVisualEdge||u.isMachiningVisual||u.isSpacePick||u.kind==='space-cell'||u.kind==='space-root-outline')return false;
+    return o.isMesh===true;
+  });
+}
+function cadZoomSurfaceDistance(clientX,clientY){
+  if(camera!==perspectiveCamera||viewMode2D)return Infinity;
+  const rect=renderer.domElement.getBoundingClientRect();
+  if(!rect.width||!rect.height)return Infinity;
+  cadZoomNdc.set(
+    ((clientX-rect.left)/rect.width)*2-1,
+    -((clientY-rect.top)/rect.height)*2+1
+  );
+  cadZoomRaycaster.setFromCamera(cadZoomNdc,perspectiveCamera);
+  const hits=cadZoomRaycaster.intersectObjects(cadZoomPhysicalObjects(),false);
+  return hits.length?hits[0].distance:Infinity;
+}
+function cadZoomAdaptiveSpeed(distance){
+  if(!Number.isFinite(distance))return CAD_ZOOM_DEFAULT_SPEED;
+  const t=THREE.MathUtils.clamp(
+    (distance-CAD_ZOOM_SURFACE_GAP)/(CAD_ZOOM_SLOW_ZONE-CAD_ZOOM_SURFACE_GAP),
+    0,1
+  );
+  return THREE.MathUtils.lerp(CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_DEFAULT_SPEED,t);
+}
+// Capture roda antes do OrbitControls: aproximando, a velocidade cai conforme
+// a distância real até a chapa. Ao atingir a folga mínima, só bloqueamos o
+// movimento para dentro; afastar continua funcionando imediatamente.
+renderer.domElement.addEventListener('wheel',e=>{
+  if(camera!==perspectiveCamera||viewMode2D)return;
+  if(e.deltaY<0){
+    const d=cadZoomSurfaceDistance(e.clientX,e.clientY);
+    controls.zoomSpeed=cadZoomAdaptiveSpeed(d);
+    if(Number.isFinite(d)&&d<=CAD_ZOOM_SURFACE_GAP*1.08){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
+  }else{
+    controls.zoomSpeed=CAD_ZOOM_DEFAULT_SPEED;
+  }
+},{passive:false,capture:true});
 
 
 // ============================================================================
