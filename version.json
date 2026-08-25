@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.81",
+  "version": "1.100.82",
   "required": false,
-  "message": "Chapas agora têm comprimento e largura por material. Madeirados usam por padrão o veio no comprimento da chapa (ex.: 2750 mm), com opção para usar a largura; plano de corte e Aspire respeitam o tamanho cadastrado.",
-  "released_at": "2026-08-24T20:15:00-03:00"
+  "message": "Plano de corte agora permite rotacionar o veio diretamente na lista e na peça selecionada da prévia; o plano recalcula automaticamente após a alteração.",
+  "released_at": "2026-08-24T20:54:00-03:00"
 }
