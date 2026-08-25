@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.82 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.83 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -249,11 +249,11 @@ function renderPartsList(){
       for(const p of cutPlanGroupRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
-        const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?` · veio ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${actualMachiningCount(p)?' · USINAGENS: '+actualMachiningCount(p):''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
+        const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?` · veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${actualMachiningCount(p)?' · USINAGENS: '+actualMachiningCount(p):''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
         const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;
         const right=document.createElement('div');right.className='cutPlanRowActions';
         if(p.materialGrain){
-          const grainBtn=document.createElement('button');grainBtn.type='button';grainBtn.className='cutPlanGrainBtn';grainBtn.textContent=p.qty>1?`↻ Veio ×${p.qty}`:'↻ Veio';grainBtn.title=p.qty>1?'Rotacionar 90° o veio de todas as peças iguais desta linha':'Rotacionar 90° somente o veio desta peça';
+          const grainBtn=document.createElement('button');grainBtn.type='button';grainBtn.className='cutPlanGrainBtn';const grainAxis=cutPlanPieceGrainAxis(p,{placed:false});grainBtn.textContent=p.qty>1?`↻ Veio ${grainAxis.localSymbol} ×${p.qty}`:`↻ Veio ${grainAxis.localSymbol}`;grainBtn.title=p.qty>1?'Rotacionar 90° o veio de todas as peças iguais desta linha':'Rotacionar 90° somente o veio desta peça';
           grainBtn.onclick=e=>{e.preventDefault();e.stopPropagation();cutPlanToggleGrainObjects(p.sourceObjects)};
           right.appendChild(grainBtn);
         }
@@ -300,18 +300,50 @@ function cutPlanDrawWaste(ctx,g,cfg,sx,sy,scale){
     ctx.restore();
   }
 }
+function cutPlanPieceGrainAxis(p,{placed=true}={}){
+  const grainRot=normalizePieceGrainRotation(p?.materialGrainRotation);
+  const alongFaceW=grainRot===90;
+  // No desenho da chapa, uma peça girada 90° troca também o eixo visual do veio.
+  // Assim a seta representa o veio REAL que o operador verá na peça já posicionada.
+  const alongX=placed?(alongFaceW!==!!p?.rotated):alongFaceW;
+  return {grainRot,alongFaceW,alongX,symbol:alongX?'↔':'↕',localSymbol:alongFaceW?'↔':'↕'};
+}
 function cutPlanDrawGrain(ctx,p,b,cfg,sx,sy,scale){
   if(!p.materialGrain)return;
-  const alongWidth=(cfg.grainDirection||'length')==='width';
-  ctx.save();ctx.strokeStyle='rgba(112,83,39,.55)';ctx.fillStyle='rgba(112,83,39,.75)';ctx.lineWidth=1;ctx.beginPath();
-  if(alongWidth){
-    const x=sx(b.x+b.w*.18),y1=sy(b.y+b.h*.18),y2=sy(b.y+b.h*.82);if(Math.abs(y2-y1)<24){ctx.restore();return;}
-    ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y2);ctx.lineTo(x-3,y2+5);ctx.lineTo(x+3,y2+5);
-  }else{
-    const x1=sx(b.x+b.w*.18),x2=sx(b.x+b.w*.82),y=sy(b.y+b.h*.18);if(Math.abs(x2-x1)<24){ctx.restore();return;}
-    ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x2,y);ctx.lineTo(x2-5,y-3);ctx.lineTo(x2-5,y+3);
+  const axis=cutPlanPieceGrainAxis(p),rx=sx(b.x),ry=sy(b.y+b.h),rw=b.w*scale,rh=b.h*scale;
+  if(rw<14||rh<14)return;
+  const horizontal=axis.alongX;
+  // Deixamos a seta fora do centro para não ficar escondida pelo código/letra da peça.
+  const cx=horizontal?rx+rw/2:rx+Math.min(rw/2,Math.max(9,rw*.20));
+  const cy=horizontal?ry+Math.min(rh/2,Math.max(9,rh*.20)):ry+rh/2;
+  const available=horizontal?rw:rh;
+  const len=Math.max(12,Math.min(available*.64,110));
+  const x1=horizontal?cx-len/2:cx,y1=horizontal?cy:cy+len/2;
+  const x2=horizontal?cx+len/2:cx,y2=horizontal?cy:cy-len/2;
+  const head=Math.max(4,Math.min(8,len*.13));
+  const drawArrow=(stroke,lineWidth)=>{
+    ctx.strokeStyle=stroke;ctx.fillStyle=stroke;ctx.lineWidth=lineWidth;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    const headAt=(x,y,dir)=>{
+      ctx.beginPath();
+      if(horizontal){ctx.moveTo(x,y);ctx.lineTo(x-dir*head,y-head*.62);ctx.moveTo(x,y);ctx.lineTo(x-dir*head,y+head*.62);}
+      else{ctx.moveTo(x,y);ctx.lineTo(x-head*.62,y+dir*head);ctx.moveTo(x,y);ctx.lineTo(x+head*.62,y+dir*head);}
+      ctx.stroke();
+    };
+    headAt(x2,y2,1);headAt(x1,y1,-1);
+  };
+  ctx.save();
+  // Halo claro + traço laranja forte: continua legível sobre peças claras,
+  // seleção azul e linhas de usinagem.
+  drawArrow('rgba(255,255,255,.96)',5.4);
+  drawArrow('#b96700',2.35);
+  if(rw>62&&rh>38){
+    const fs=Math.max(7,Math.min(10,Math.min(rw,rh)*.16));
+    ctx.font=`900 ${fs}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    const tx=horizontal?cx:cx+Math.min(22,rw*.24),ty=horizontal?cy+Math.min(13,rh*.22):cy;
+    ctx.lineWidth=3;ctx.strokeStyle='rgba(255,255,255,.96)';ctx.strokeText('VEIO',tx,ty);ctx.fillStyle='#8a4b00';ctx.fillText('VEIO',tx,ty);
   }
-  ctx.closePath();ctx.fill();ctx.restore();
+  ctx.restore();
 }
 function cutPlanDrawMachining(ctx,g,sx,sy,scale){
   if(!$('sheetPreviewMachining')?.checked)return;
@@ -362,7 +394,7 @@ function cutPlanRenderSide(){
   }else{
     const same=g.parts.filter(x=>x.cutCode===p.cutCode).length;
     const ops=cutPlanMachiningSummary(p);
-    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button>${p.materialGrain?`<button id="sheetPreviewRotateGrain" type="button" class="cutPlanPreviewGrainBtn">↻ Rotacionar veio 90° desta peça</button>`:''}</div>`;
+    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button>${p.materialGrain?`<button id="sheetPreviewRotateGrain" type="button" class="cutPlanPreviewGrainBtn">↻ Veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} · Rotacionar 90°</button>`:''}</div>`;
   }
   $('sheetPreviewIsolate').onclick=()=>{if(sheetPreviewSelectedPart){sheetPreviewIsolated=!sheetPreviewIsolated;sheetPreviewDraw()}};
   $('sheetPreviewFit').onclick=()=>{sheetPreviewIsolated=false;sheetPreviewDraw()};
