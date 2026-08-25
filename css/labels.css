@@ -1,5 +1,5 @@
-/* DesignLabMoveis 1.100.84 · extraído do monólito 1.100.78 · ordem preservada */
-  /* 1.100.78 · Etiquetas de peças inspiradas no fluxo do OpenCutList */
+/* DesignLabMoveis 1.100.86 · extraído do monólito 1.100.78 · ordem preservada */
+  /* 1.100.78 · Etiquetas técnicas de fabricação */
   #labelsDialog{position:fixed;inset:0;z-index:94;background:#000a;display:none;align-items:center;justify-content:center;padding:14px}
   #labelsDialog .card{width:min(920px,100%);max-height:94vh;overflow:auto;background:#1b1d1f;border:1px solid #45494d;border-radius:18px;padding:14px;box-shadow:0 22px 70px #0009}
   .labelsTop{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
@@ -10,7 +10,19 @@
   .labelsChecks label{display:flex;align-items:center;gap:6px;padding:8px;border:1px solid #343a3e;border-radius:9px;background:#151819;font-size:9px;color:#d5dadd}
   .labelsChecks input{width:17px;height:17px;accent-color:var(--green)}
   .labelsSummary{margin-top:10px;padding:9px 10px;border-radius:10px;border:1px solid #355842;background:#101813;color:#b9d7c2;font-size:10px;line-height:1.45}
-  .labelsPreviewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+  .labelsPreviewGrid{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:10px;padding:10px;overflow:auto;background:#0f1112;border:1px solid #30363a;border-radius:12px}
+  .labelsPreviewPage{position:relative;flex:none;width:420px;height:594px;background:#fff;color:#111;box-shadow:0 8px 28px #0008;border:1px solid #c9cdcf;overflow:hidden}
+  .labelsPreviewPage::after{content:attr(data-page-label);position:absolute;right:6px;bottom:4px;font:700 8px system-ui,sans-serif;color:#8a9094;pointer-events:none}
+  .labelsPreviewMarginGuide{position:absolute;border:1px dashed #a7adb0;pointer-events:none;z-index:1}
+  .labelsPreviewPage .labelCardPreview{position:absolute;z-index:2;box-sizing:border-box;background:#fff;color:#111;border:1px solid #24282a;border-radius:0;padding:4px;min-height:0;aspect-ratio:auto;box-shadow:none;display:flex;flex-direction:column;overflow:hidden}
+  .labelsPreviewPage .labelCardPreview .lpHead{gap:4px;border-bottom:1px solid #171717;padding-bottom:2px}
+  .labelsPreviewPage .labelCardPreview .lpCode{font-size:14px}.labelsPreviewPage .labelCardPreview .lpName{font-size:7px}.labelsPreviewPage .labelCardPreview .lpQty{font-size:6px;padding:1px 2px;border-radius:2px}
+  .labelsPreviewPage .labelCardPreview .lpDims{font-size:9px;margin-top:2px}.labelsPreviewPage .labelCardPreview .lpMaterial{font-size:5.6px;margin-top:1px}
+  .labelsPreviewPage .labelCardPreview .lpMeta{font-size:4.4px;line-height:1.2;margin-top:1px;gap:2px}.labelsPreviewPage .labelCardPreview .lpGrain{font-size:10px}
+  .labelsPreviewPage .labelCardPreview .lpEdges{gap:1px;margin-top:2px}.labelsPreviewPage .labelCardPreview .lpEdge{font-size:4px;border-width:1px;border-radius:1px;padding:1px}.labelsPreviewPage .labelCardPreview .lpEdge.on{border-width:1px;padding:1px}
+  .labelsPreviewPage .labelCardPreview .lpFoot{padding-top:1px;font-size:3.8px;gap:2px}
+  .labelsRollPreview{display:flex;justify-content:center;width:100%;padding:12px}
+  .labelsRollPreview .labelCardPreview{width:min(420px,100%);min-height:180px}
   .labelCardPreview{background:#f7f7f4;color:#111;border:1px solid #cfd2d1;border-radius:10px;padding:9px;aspect-ratio:1.75/1;min-height:135px;box-shadow:0 5px 16px #0004;display:flex;flex-direction:column;overflow:hidden}
   .labelCardPreview .lpHead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;border-bottom:2px solid #171717;padding-bottom:5px}
   .labelCardPreview .lpCode{font-size:24px;font-weight:950;line-height:1}.labelCardPreview .lpName{font-size:13px;font-weight:900;line-height:1.1;flex:1;min-width:0}.labelCardPreview .lpQty{font-size:11px;font-weight:900;border:1px solid #111;border-radius:5px;padding:2px 5px;white-space:nowrap}
@@ -20,7 +32,7 @@
   .labelCardPreview .lpFoot{margin-top:auto;border-top:1px solid #aaa;padding-top:3px;font-size:7px;display:flex;justify-content:space-between;gap:6px}.labelCardPreview .lpGrain{font-weight:900;font-size:14px;line-height:1}.labelCardPreview .lpId{font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .labelsActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.labelsActions button{min-height:42px;flex:1 1 150px}
   @media(max-width:700px){.labelsSettings{grid-template-columns:repeat(2,minmax(0,1fr))}.labelsChecks{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media(max-width:420px){.labelsSettings,.labelsChecks{grid-template-columns:1fr}.labelsPreviewGrid{grid-template-columns:1fr}}
+  @media(max-width:420px){.labelsSettings,.labelsChecks{grid-template-columns:1fr}.labelsPreviewGrid{align-items:flex-start}.labelsPreviewPage{width:420px;height:594px}}
 
 
   /* 1.100.19 · material padrão por espaço */

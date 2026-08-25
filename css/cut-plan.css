@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.84 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.86 · extraído do monólito 1.100.78 · ordem preservada */
   /* v95 · Prévia Aspire / plano de corte */
   #sheetPreviewDialog{position:fixed;inset:0;z-index:125;display:none;padding:10px;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);touch-action:auto}
   #sheetPreviewDialog.show{display:flex}
@@ -30,7 +30,7 @@
 
 
 
-  /* ==========================================================================\n     1.100.78 · PLANO DE CORTE INSPIRADO NO OPENCUTLIST\n     ========================================================================== */
+  /* ==========================================================================\n     1.100.78 · PLANO DE CORTE OTIMIZADO\n     ========================================================================== */
   #partsListDialog .cutPlanCard{width:min(980px,100%);max-height:92%;padding:0;overflow:auto;background:#17191b;border-color:#3c4246}
   .cutPlanTitleRow{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 15px 10px;background:#202326;border-bottom:1px solid #34383b}
   .cutPlanTitleRow h3{margin:0 0 4px!important;font-size:18px!important}.cutPlanTitleRow .dialogHelp{margin:0}
@@ -62,7 +62,7 @@
   .cutPlanPartCard{background:#fff!important;border-color:#c7cacc!important;color:#282c2f}.cutPlanPartCard .meta{color:#6e767b!important}.cutPlanPartCard .sheetPreviewOp{background:#f3f2ef!important;border-color:#d6d8d8!important;color:#454b4f}
   .cutPlanPreviewFoot{background:#e7e5df!important;border-top-color:#c5c6c3!important;color:#555d62!important}.cutPlanPreviewFoot strong{color:#25282a!important}
 
-  /* 1.100.84 · ajuste rápido do veio diretamente no plano de corte */
+  /* 1.100.86 · ajuste rápido do veio diretamente no plano de corte */
   #partsList .cutPlanRowActions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
   #partsList .cutPlanGrainBtn{min-height:30px;padding:5px 8px;border-radius:7px;border:1px solid #c99b45;background:#fff8e8;color:#72500c;font-size:9px;font-weight:900;white-space:nowrap;touch-action:manipulation}
   #partsList .cutPlanGrainBtn:active{background:#f3c45d;color:#231700}
