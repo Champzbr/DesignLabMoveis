@@ -72,7 +72,7 @@
 
 
 
-/* 1.100.93 · convite PWA: evita atalho comum com barra de URL */
+/* 1.100.94 · convite PWA: evita atalho comum com barra de URL */
 .designLabInstallCard{
   position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
   z-index:2147483000;width:min(520px,calc(100% - 20px));display:grid;
