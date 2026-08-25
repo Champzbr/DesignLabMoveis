@@ -1,6 +1,6 @@
-DESIGNLABMOVEIS 1.100.90 — MAPA DOS ARQUIVOS CSS
+DESIGNLABMOVEIS 1.100.93 — MAPA DOS ARQUIVOS CSS
 
-Os estilos foram separados mantendo exatamente a ordem original da 1.100.90 para evitar mudanças de cascata.
+Os estilos foram separados mantendo exatamente a ordem original da 1.100.93 para evitar mudanças de cascata.
 base.css — base visual
 editor.css — editor, ferramentas, diálogos e inspector
 materials.css — materiais/fitas
