@@ -116,7 +116,7 @@ function libraryCurvedPostPlacementForTarget(p,cfg,info){
   const tag=stored.postStructuralTag||null;
   let sample=null;
 
-  // 1.100.93: montantes estruturais não podem ser posicionados usando a caixa
+  // 1.100.94: montantes estruturais não podem ser posicionados usando a caixa
   // retangular da peça rotacionada. Isso deslocava principalmente o último
   // montante mesmo quando a configuração era 0 mm (rente). Recalculamos a
   // posição pela própria trajetória curva e pelas regras estruturais.
@@ -708,7 +708,7 @@ function closeProductionDialog(){
   $('productionDialog').style.display='none';
 }
 
-// ---------- 1.100.93 · Etiquetas A4 com margens e espaçamentos independentes ----------
+// ---------- 1.100.94 · Etiquetas A4 com margens e espaçamentos independentes ----------
 const LABELS_PREFS_KEY='designlabLabelsV110075';
 function labelsPrefs(){
   const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',marginLeft:8,marginRight:8,marginTop:8,marginBottom:8,gapHorizontal:3,gapVertical:0,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
@@ -721,7 +721,7 @@ function labelsPrefs(){
       marginRight:Number.isFinite(Number(raw.marginRight))?Number(raw.marginRight):(raw.margin!=null?legacy:d.marginRight),
       marginTop:Number.isFinite(Number(raw.marginTop))?Number(raw.marginTop):(raw.margin!=null?legacy:d.marginTop),
       marginBottom:Number.isFinite(Number(raw.marginBottom))?Number(raw.marginBottom):(raw.margin!=null?legacy:d.marginBottom),
-      // Migração 1.100.93: o espaçamento antigo passa a representar somente o vão horizontal.
+      // Migração 1.100.94: o espaçamento antigo passa a representar somente o vão horizontal.
       // Na vertical começamos em 0 mm para etiquetas que são coladas entre as linhas.
       gapHorizontal:Number.isFinite(Number(raw.gapHorizontal))?Number(raw.gapHorizontal):(Number.isFinite(Number(raw.gap))?Number(raw.gap):d.gapHorizontal),
       gapVertical:Number.isFinite(Number(raw.gapVertical))?Number(raw.gapVertical):d.gapVertical
@@ -1539,7 +1539,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.93 — ciclo de vida das ferragens.
+// 1.100.94 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
