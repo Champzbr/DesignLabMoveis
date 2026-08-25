@@ -448,6 +448,6 @@ $('labelsDialog').addEventListener('pointerdown',e=>{if(e.target===$('labelsDial
 $('refreshLabelsPreview').onclick=renderLabelsPreview;
 $('printLabelsBtn').onclick=labelsPrint;
 $('saveLabelsHtml').onclick=labelsSaveHtml;
-['labelsScope','labelsMode','labelsWidth','labelsHeight','labelsPaper','labelsMarginLeft','labelsMarginRight','labelsMarginTop','labelsMarginBottom','labelsGap','labelsSort','labelsShowProject','labelsShowSpace','labelsShowBands','labelsShowMachining','labelsShowGrain','labelsShowId'].forEach(id=>$(id).addEventListener(id.startsWith('labelsShow')?'change':'input',renderLabelsPreview));
+['labelsScope','labelsMode','labelsWidth','labelsHeight','labelsPaper','labelsMarginLeft','labelsMarginRight','labelsMarginTop','labelsMarginBottom','labelsGapHorizontal','labelsGapVertical','labelsSort','labelsShowProject','labelsShowSpace','labelsShowBands','labelsShowMachining','labelsShowGrain','labelsShowId'].forEach(id=>$(id).addEventListener(id.startsWith('labelsShow')?'change':'input',renderLabelsPreview));
 
 

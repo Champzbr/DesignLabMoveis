@@ -116,7 +116,7 @@ function libraryCurvedPostPlacementForTarget(p,cfg,info){
   const tag=stored.postStructuralTag||null;
   let sample=null;
 
-  // 1.100.87: montantes estruturais não podem ser posicionados usando a caixa
+  // 1.100.88: montantes estruturais não podem ser posicionados usando a caixa
   // retangular da peça rotacionada. Isso deslocava principalmente o último
   // montante mesmo quando a configuração era 0 mm (rente). Recalculamos a
   // posição pela própria trajetória curva e pelas regras estruturais.
@@ -708,10 +708,10 @@ function closeProductionDialog(){
   $('productionDialog').style.display='none';
 }
 
-// ---------- 1.100.87 · Etiquetas A4 com margens independentes e prévia física ----------
+// ---------- 1.100.88 · Etiquetas A4 com margens e espaçamentos independentes ----------
 const LABELS_PREFS_KEY='designlabLabelsV110075';
 function labelsPrefs(){
-  const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',marginLeft:8,marginRight:8,marginTop:8,marginBottom:8,gap:3,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
+  const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',marginLeft:8,marginRight:8,marginTop:8,marginBottom:8,gapHorizontal:3,gapVertical:0,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
   try{
     const raw=JSON.parse(localStorage.getItem(LABELS_PREFS_KEY)||'{}')||{};
     // Migração das versões antigas, que tinham uma margem única para os 4 lados.
@@ -720,7 +720,11 @@ function labelsPrefs(){
       marginLeft:Number.isFinite(Number(raw.marginLeft))?Number(raw.marginLeft):(raw.margin!=null?legacy:d.marginLeft),
       marginRight:Number.isFinite(Number(raw.marginRight))?Number(raw.marginRight):(raw.margin!=null?legacy:d.marginRight),
       marginTop:Number.isFinite(Number(raw.marginTop))?Number(raw.marginTop):(raw.margin!=null?legacy:d.marginTop),
-      marginBottom:Number.isFinite(Number(raw.marginBottom))?Number(raw.marginBottom):(raw.margin!=null?legacy:d.marginBottom)
+      marginBottom:Number.isFinite(Number(raw.marginBottom))?Number(raw.marginBottom):(raw.margin!=null?legacy:d.marginBottom),
+      // Migração 1.100.88: o espaçamento antigo passa a representar somente o vão horizontal.
+      // Na vertical começamos em 0 mm para etiquetas que são coladas entre as linhas.
+      gapHorizontal:Number.isFinite(Number(raw.gapHorizontal))?Number(raw.gapHorizontal):(Number.isFinite(Number(raw.gap))?Number(raw.gap):d.gapHorizontal),
+      gapVertical:Number.isFinite(Number(raw.gapVertical))?Number(raw.gapVertical):d.gapVertical
     };
   }catch(_){return d}
 }
@@ -731,7 +735,7 @@ function labelsSavePrefs(){
     paper:$('labelsPaper')?.value||'a4',
     marginLeft:Math.max(0,Number($('labelsMarginLeft')?.value)||0),marginRight:Math.max(0,Number($('labelsMarginRight')?.value)||0),
     marginTop:Math.max(0,Number($('labelsMarginTop')?.value)||0),marginBottom:Math.max(0,Number($('labelsMarginBottom')?.value)||0),
-    gap:Math.max(0,Number($('labelsGap')?.value)||0),sort:$('labelsSort')?.value||'code',
+    gapHorizontal:Math.max(0,Number($('labelsGapHorizontal')?.value)||0),gapVertical:Math.max(0,Number($('labelsGapVertical')?.value)||0),sort:$('labelsSort')?.value||'code',
     showProject:!!$('labelsShowProject')?.checked,showSpace:!!$('labelsShowSpace')?.checked,showBands:!!$('labelsShowBands')?.checked,
     showMachining:!!$('labelsShowMachining')?.checked,showGrain:!!$('labelsShowGrain')?.checked,showId:!!$('labelsShowId')?.checked
   };
@@ -740,7 +744,7 @@ function labelsSavePrefs(){
 function labelsApplyPrefs(){
   const p=labelsPrefs(),set=(id,v)=>{if($(id))$(id).value=v},chk=(id,v)=>{if($(id))$(id).checked=!!v};
   set('labelsScope',p.scope);set('labelsMode',p.mode);set('labelsWidth',p.width);set('labelsHeight',p.height);set('labelsPaper',p.paper);
-  set('labelsMarginLeft',p.marginLeft);set('labelsMarginRight',p.marginRight);set('labelsMarginTop',p.marginTop);set('labelsMarginBottom',p.marginBottom);set('labelsGap',p.gap);set('labelsSort',p.sort);
+  set('labelsMarginLeft',p.marginLeft);set('labelsMarginRight',p.marginRight);set('labelsMarginTop',p.marginTop);set('labelsMarginBottom',p.marginBottom);set('labelsGapHorizontal',p.gapHorizontal);set('labelsGapVertical',p.gapVertical);set('labelsSort',p.sort);
   chk('labelsShowProject',p.showProject);chk('labelsShowSpace',p.showSpace);chk('labelsShowBands',p.showBands);chk('labelsShowMachining',p.showMachining);chk('labelsShowGrain',p.showGrain);chk('labelsShowId',p.showId);
 }
 function labelsSourceParts(scope){
@@ -797,19 +801,21 @@ function labelHtmlCard(p,prefs,{preview=false}={}){
   return `<article class="${cls}"><div class="lpHead"><div class="lpCode">${escapeHtml(labelCodeText(p))}</div><div class="lpName">${escapeHtml(p.name||'Peça')}</div>${p.qty>1?`<div class="lpQty">×${p.qty}</div>`:''}</div><div class="lpDims">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm</div><div class="lpMaterial">${escapeHtml(p.material||'MDF')}${p.materialCode?` · ${escapeHtml(p.materialCode)}`:''}</div><div class="lpMeta"><div>${info.join('')}</div>${prefs.showGrain&&p.materialGrain?`<div class="lpGrain" title="Sentido do veio · ${normalizePieceGrainRotation(p.materialGrainRotation)}°">${normalizePieceGrainRotation(p.materialGrainRotation)===90?'↔':'↕'}</div>`:''}</div>${edgeHtml}<div class="lpFoot">${prefs.showId?`<span class="lpId">ID ${escapeHtml(p.partId||'—')}</span>`:'<span></span>'}<span>${p.materialGrain?`VEIO ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:'SEM VEIO'}</span></div></article>`;
 }
 function labelsA4Layout(prefs){
-  const pageW=210,pageH=297,left=Math.max(0,prefs.marginLeft||0),right=Math.max(0,prefs.marginRight||0),top=Math.max(0,prefs.marginTop||0),bottom=Math.max(0,prefs.marginBottom||0),gap=Math.max(0,prefs.gap||0);
+  const pageW=210,pageH=297,left=Math.max(0,prefs.marginLeft||0),right=Math.max(0,prefs.marginRight||0),top=Math.max(0,prefs.marginTop||0),bottom=Math.max(0,prefs.marginBottom||0);
+  const gapHorizontal=Math.max(0,prefs.gapHorizontal||0),gapVertical=Math.max(0,prefs.gapVertical||0);
   const usableW=pageW-left-right,usableH=pageH-top-bottom;
   if(usableW<=0||usableH<=0)throw new Error('As margens ocupam toda a folha A4.');
   if(prefs.width>usableW+.001||prefs.height>usableH+.001)throw new Error('A etiqueta não cabe na área útil da folha A4 com essas margens.');
-  const cols=Math.max(1,Math.floor((usableW+gap)/(prefs.width+gap)+1e-9)),rows=Math.max(1,Math.floor((usableH+gap)/(prefs.height+gap)+1e-9));
-  return {pageW,pageH,left,right,top,bottom,gap,usableW,usableH,cols,rows,perPage:cols*rows};
+  const cols=Math.max(1,Math.floor((usableW+gapHorizontal)/(prefs.width+gapHorizontal)+1e-9));
+  const rows=Math.max(1,Math.floor((usableH+gapVertical)/(prefs.height+gapVertical)+1e-9));
+  return {pageW,pageH,left,right,top,bottom,gapHorizontal,gapVertical,usableW,usableH,cols,rows,perPage:cols*rows};
 }
 function labelsPreviewA4(items,prefs){
   const lay=labelsA4Layout(prefs),scale=2,totalPages=Math.max(1,Math.ceil(items.length/lay.perPage)),previewPages=Math.min(totalPages,3),pages=[];
   for(let pi=0;pi<previewPages;pi++){
     const chunk=items.slice(pi*lay.perPage,(pi+1)*lay.perPage),cards=[];
     chunk.forEach((p,i)=>{
-      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gap),y=lay.top+row*(prefs.height+lay.gap);
+      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gapHorizontal),y=lay.top+row*(prefs.height+lay.gapVertical);
       cards.push(labelHtmlCard(p,prefs,{preview:true}).replace('class="labelCardPreview"',`class="labelCardPreview" style="left:${x*scale}px;top:${y*scale}px;width:${prefs.width*scale}px;height:${prefs.height*scale}px"`));
     });
     pages.push(`<section class="labelsPreviewPage" data-page-label="A4 · página ${pi+1}/${totalPages}"><div class="labelsPreviewMarginGuide" style="left:${lay.left*scale}px;top:${lay.top*scale}px;width:${lay.usableW*scale}px;height:${lay.usableH*scale}px"></div>${cards.join('')}</section>`);
@@ -827,7 +833,7 @@ function renderLabelsPreview(){
     }else{
       const pv=labelsPreviewA4(items,prefs);
       grid.innerHTML=pv.html;
-      sum.innerHTML=`<strong>${items.length} etiqueta(s)</strong> na impressão · ${physical} peça(s) física(s) · ${pv.layout.cols} coluna(s) × ${pv.layout.rows} linha(s) por A4 · ${pv.totalPages} página(s).<br>Margens A4: esquerda ${nice(prefs.marginLeft)} · direita ${nice(prefs.marginRight)} · cima ${nice(prefs.marginTop)} · baixo ${nice(prefs.marginBottom)} mm${pv.totalPages>pv.previewPages?` · prévia mostrando ${pv.previewPages} página(s)`:''}.`;
+      sum.innerHTML=`<strong>${items.length} etiqueta(s)</strong> na impressão · ${physical} peça(s) física(s) · ${pv.layout.cols} coluna(s) × ${pv.layout.rows} linha(s) por A4 · ${pv.totalPages} página(s).<br>Margens A4: esquerda ${nice(prefs.marginLeft)} · direita ${nice(prefs.marginRight)} · cima ${nice(prefs.marginTop)} · baixo ${nice(prefs.marginBottom)} mm.<br>Entre etiquetas: horizontal ${nice(prefs.gapHorizontal)} mm · vertical ${nice(prefs.gapVertical)} mm${pv.totalPages>pv.previewPages?` · prévia mostrando ${pv.previewPages} página(s)`:''}.`;
     }
   }catch(err){sum.textContent=err.message||'Não foi possível gerar as etiquetas';grid.innerHTML='';}
 }
@@ -845,7 +851,7 @@ function labelsPrintDocument(items,prefs){
   for(let pi=0;pi<totalPages;pi++){
     const chunk=items.slice(pi*lay.perPage,(pi+1)*lay.perPage),cards=[];
     chunk.forEach((p,i)=>{
-      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gap),y=lay.top+row*(prefs.height+lay.gap);
+      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gapHorizontal),y=lay.top+row*(prefs.height+lay.gapVertical);
       cards.push(labelHtmlCard(p,prefs).replace('class="printLabel"',`class="printLabel" style="position:absolute;left:${x}mm;top:${y}mm;width:${prefs.width}mm;height:${prefs.height}mm"`));
     });
     pages.push(`<section class="printPage">${cards.join('')}</section>`);
@@ -1533,7 +1539,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.87 — ciclo de vida das ferragens.
+// 1.100.88 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
