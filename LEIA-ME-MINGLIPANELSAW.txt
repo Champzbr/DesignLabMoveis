@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.95 - MINGLIPANELSAW / ZAW DE TESTE
+DESIGNLABMOVEIS 1.100.96 - MINGLIPANELSAW / ZAW DE TESTE
 
 Nesta versão o XML foi corrigido conforme a foto nítida do Result.zaw original gerado pelo MingliPanelSaw.
 
@@ -13,3 +13,6 @@ A exportação continua gerando 1 arquivo .ZAW por chapa física.
 
 Antes de testar um projeto real, abra TESTE-MINGLI/Result-referencia-foto-2x3000x270.zaw.
 Se carregar sem erro, confira desenho, dimensões e sequência antes de qualquer corte automático.
+
+
+1.100.96: ZAW sem BOM; cada chapa em CHAPA_xx_.../Result.zaw para reproduzir o nome nativo do Mingli.

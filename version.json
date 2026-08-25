@@ -1,6 +1,6 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.95",
+  "version": "1.100.96",
   "required": false,
   "message": "Mingli ZAW corrigido com nomes e capitalização exatos observados no Result.zaw real.",
   "released_at": "2026-08-25T16:19:00-03:00"
