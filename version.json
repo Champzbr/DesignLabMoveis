@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.82",
+  "version": "1.100.83",
   "required": false,
-  "message": "Plano de corte agora permite rotacionar o veio diretamente na lista e na peça selecionada da prévia; o plano recalcula automaticamente após a alteração.",
-  "released_at": "2026-08-24T20:54:00-03:00"
+  "message": "Plano de corte agora mostra uma seta grande e clara em cada peça madeirada indicando o sentido real do veio, além do indicador ↕/↔ nos controles de rotação.",
+  "released_at": "2026-08-24T21:08:00-03:00"
 }
