@@ -1,4 +1,23 @@
-DESIGNLABMOVEIS 1.100.84 — ZOOM 3D FINO E PROGRESSIVO
+DESIGNLABMOVEIS 1.100.86 — CONFIGURAÇÕES NA CONTA
+
+- Configurações do DesignLabMoveis sincronizadas pelo usuário entre celular e computador.
+- Primeira sincronização aproveita automaticamente as configurações que já estavam no aparelho.
+- Alterações futuras são enviadas para a conta com pequeno debounce.
+- Ao entrar em outro aparelho, as preferências da conta são carregadas automaticamente.
+- Interface limpa de referências externas de inspiração/comparação.
+
+CLOUDFLARE: execute cloudflare/6-preferencias-da-conta.sql e depois publique cloudflare/worker-1.100.86.js.
+
+DESIGNLABMOVEIS 1.100.86 — ETIQUETAS A4 + IMPRESSÃO DO PLANO DE CORTE
+
+- Margens das etiquetas separadas: esquerda, direita, cima e baixo.
+- Configurações antigas com margem única são migradas automaticamente.
+- Prévia das etiquetas agora mostra a folha A4 real, com posição e tamanho proporcionais em milímetros.
+- A mesma geometria de margens/folgas usada na prévia é usada na impressão.
+- Novo botão “Imprimir plano de corte” na lista de peças e dentro da prévia.
+- Impressão gera todas as chapas calculadas em páginas A4 horizontais, com peças, códigos, medidas, veio, cortes e usinagens.
+
+DESIGNLABMOVEIS 1.100.86 — ZOOM 3D FINO E PROGRESSIVO
 
 - Zoom 3D agora acompanha o ponto sob o cursor para aproximar exatamente onde o usuário está olhando.
 - A aproximação desacelera progressivamente nos últimos 120 mm.
@@ -7,7 +26,7 @@ DESIGNLABMOVEIS 1.100.84 — ZOOM 3D FINO E PROGRESSIVO
 - Pinça no celular usa o zoom fino do OrbitControls e também pode aproximar muito mais.
 - Nenhuma lógica de peças, espaços, plano de corte, etiquetas ou Aspire foi alterada.
 
-DESIGNLABMOVEIS 1.100.84 — SETA DO VEIO NO PLANO DE CORTE
+DESIGNLABMOVEIS 1.100.86 — SETA DO VEIO NO PLANO DE CORTE
 
 - Cada peça madeirada na prévia do plano de corte mostra uma seta grande de duas pontas indicando o sentido REAL do veio na chapa.
 - A seta acompanha a rotação da própria peça no encaixe: se a peça gira 90°, o indicador gira junto corretamente.
@@ -16,7 +35,7 @@ DESIGNLABMOVEIS 1.100.84 — SETA DO VEIO NO PLANO DE CORTE
 - A seta tem contorno claro e traço forte para continuar visível sobre seleção, etiquetas e usinagens.
 - Nenhuma alteração SQL ou Cloudflare é necessária.
 
-DESIGNLABMOVEIS 1.100.84 — VEIO DIRETO NO PLANO DE CORTE
+DESIGNLABMOVEIS 1.100.86 — VEIO DIRETO NO PLANO DE CORTE
 
 - Peças madeiradas agora mostram o botão “↻ Veio” diretamente na lista do Plano de corte.
 - Quando a linha representa várias peças idênticas, o botão informa a quantidade e altera o veio de todas as peças daquela linha.
@@ -25,7 +44,7 @@ DESIGNLABMOVEIS 1.100.84 — VEIO DIRETO NO PLANO DE CORTE
 - A alteração fica salva no projeto e continua valendo para etiquetas, Aspire/DXF, STL e Biblioteca.
 - Nenhuma migração SQL ou alteração no Worker é necessária para este recurso.
 
-DESIGNLABMOVEIS 1.100.84 — TAMANHO DA CHAPA + VEIO NO COMPRIMENTO
+DESIGNLABMOVEIS 1.100.86 — TAMANHO DA CHAPA + VEIO NO COMPRIMENTO
 
 - Cada material do projeto agora guarda Comprimento e Largura da chapa.
 - Padrão novo: 2750 × 1850 mm. Você pode cadastrar chapas menores ou maiores material por material.
@@ -35,7 +54,7 @@ DESIGNLABMOVEIS 1.100.84 — TAMANHO DA CHAPA + VEIO NO COMPRIMENTO
 - Plano de corte, prévia e Aspire usam o tamanho cadastrado no material; a Chapa padrão do plano fica como fallback para materiais antigos/sem vínculo.
 - Não exige SQL nem migração Cloudflare.
 
-DESIGNLABMOVEIS 1.100.84 — INDEX DIVIDIDO COM SEGURANÇA
+DESIGNLABMOVEIS 1.100.86 — INDEX DIVIDIDO COM SEGURANÇA
 
 - A lógica da 1.100.78 foi mantida e apenas separada fisicamente.
 - index.html agora contém principalmente a estrutura HTML e referências aos arquivos.
@@ -73,7 +92,7 @@ A peça continua visível e editável no projeto/3D, mas é removida do Plano de
 A escolha fica salva junto com o projeto, exportação/importação e Biblioteca.
 Não exige SQL nem alteração de banco.
 
-HISTÓRICO — ETIQUETAS DAS PEÇAS ESTILO OPENCUTLIST
+HISTÓRICO — ETIQUETAS DAS PEÇAS ESTILO plano de corte otimizado
 
 - Nova tela "Etiquetas das peças" acessível pelo menu Mais, painel de ferramentas e Materiais / fitas.
 - Código A/B/C acompanha o mesmo agrupamento de peças usado no plano de corte.
@@ -174,7 +193,7 @@ ALTERAÇÕES DESTA VERSÃO
 - As entradas agora saem em diagonal de 45° a partir do canto interno, em vez de avançarem reto pela frente da peça.
 - A mesma geometria é usada nas nervuras e nos montantes de 100 mm.
 - Opções simplificadas: 1 entrada, 2 entradas ou Sem entrada.
-- Removida a indicação “igual à foto” do seletor.
+- Removida a indicação “padrão visual anterior” do seletor.
 - Ø e comprimento continuam configuráveis e entram no 3D, plano de corte e DXF/Aspire.
 - Sem alteração de banco/Cloudflare.
 
@@ -186,7 +205,7 @@ ALTERAÇÕES DESTA VERSÃO
 - Os demais montantes são divididos de forma equilibrada somente nos trechos retos disponíveis.
 - Em estrutura de 2 partes, o espaço de emenda configurado fica livre e entra no cálculo da distribuição.
 - O campo "Final da curva recuado" permite alterar os 17 mm.
-- Nova configuração de entrada da fresa: 1 canal (igual à foto), 2 canais ou sem entrada.
+- Nova configuração de entrada da fresa: 1 canal (padrão visual anterior), 2 canais ou sem entrada.
 - Ø da entrada e comprimento do canal agora podem ser configurados. Padrão: Ø6 × 18 mm.
 - O alívio configurado é usado no 3D, no plano de corte e nos DXFs/Aspire porque faz parte do contorno real das peças.
 
@@ -223,7 +242,7 @@ ATENÇÃO — CLOUDFLARE
 Para ativar Ferragens globais:
 1. Execute cloudflare/5-ferragens-globais.sql no D1.
 2. Se ainda não executou a Biblioteca global, execute também cloudflare/4-biblioteca-global.sql.
-3. Publique cloudflare/worker-1.100.84.js no Worker.
+3. Publique cloudflare/worker-1.100.86.js no Worker.
 4. Mantenha os bindings DB e PROJECTS já existentes.
 
 A Biblioteca global de móveis, o ícone/nome do PWA, nomeação de espaços, toque longo para Configuração da peça e demais recursos anteriores foram mantidos.
@@ -235,12 +254,12 @@ APK NA TELA INICIAL
 - Se o Netlify estiver ligado a esse GitHub, ao publicar o repositório o APK ficará disponível pelo próprio site.
 
 
-1.100.84 — MÓVEL CURVO
+1.100.86 — MÓVEL CURVO
 - Botão “Visualizar móvel em 3D” no final da janela de criação/edição.
 - A prévia é temporária e não grava no histórico nem altera o projeto até Salvar/Criar.
 - Na prévia, é possível girar e aproximar o modelo; “Voltar e editar” restaura o projeto original e mantém os valores digitados no formulário.
 
-NOVIDADE 1.100.84
+NOVIDADE 1.100.86
 - Móvel curvo: distância do último montante do lado A e do lado B agora é configurável separadamente.
 - A medida é da borda do móvel até a borda do montante; 0 mm deixa rente.
 - A regra funciona na estrutura inteira e na opção Estrutura em 2 partes.
