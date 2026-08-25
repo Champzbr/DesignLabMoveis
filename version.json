@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.83",
+  "version": "1.100.84",
   "required": false,
-  "message": "Plano de corte agora mostra uma seta grande e clara em cada peça madeirada indicando o sentido real do veio, além do indicador ↕/↔ nos controles de rotação.",
-  "released_at": "2026-08-24T21:08:00-03:00"
+  "message": "Zoom 3D mais preciso: aproxima até poucos milímetros da peça, desacelera progressivamente perto da superfície e usa o ponto sob o cursor como referência.",
+  "released_at": "2026-08-24T21:37:00-03:00"
 }
