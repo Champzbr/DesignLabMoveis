@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.84 — MAPA DOS ARQUIVOS JAVASCRIPT
+DESIGNLABMOVEIS 1.100.86 — MAPA DOS ARQUIVOS JAVASCRIPT
 
 OBJETIVO DESTA VERSÃO
 Separar o código para manutenção SEM transformar o motor antigo em módulos independentes ainda.
@@ -19,10 +19,10 @@ FONTES ORGANIZADAS
 07-biblioteca-usinagem-etiquetas.js — biblioteca, usinagem, ferragens, materiais e etiquetas
 08-exportacao-aspire.js — STL, importação/exportação, Aspire e preparação do plano
 09-espacos-cortes-curvo-ui.js — edição/criação de espaços, cortes e controles do móvel curvo
-10-plano-corte-eventos.js — plano OpenCutList, eventos finais e inicialização
+10-plano-corte-eventos.js — plano de corte otimizado, eventos finais e inicialização
 
 REGERAR APP.JS
 Execute: python js/build-app.py
 
 IMPORTANTE
-Não altere a ordem dos arquivos js/src sem testar. Na próxima etapa, depois de validar a 1.100.84, podemos começar a transformar áreas em módulos ES reais com import/export.
+Não altere a ordem dos arquivos js/src sem testar. Na próxima etapa, depois de validar a 1.100.86, podemos começar a transformar áreas em módulos ES reais com import/export.
