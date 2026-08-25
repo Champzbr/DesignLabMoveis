@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.89 · PLANO DE CORTE OTIMIZADO
+// 1.100.90 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -39,7 +39,7 @@ function updateSheetCutModeUi(){
   if(!help)return;
   if(mode==='panel'){
     help.className='sheetModeHelp panel';
-    help.innerHTML='<strong>Seccionadora de pinça:</strong> monta o plano em 2 etapas. Primeiro corta a chapa em faixas; depois o operador gira cada faixa <b>uma única vez em 90°</b> e executa os cortes das peças. O CSV gerado é uma sequência de integração/conferência; o formato direto do MingliPanelSaw depende do importador instalado na máquina.';
+    help.innerHTML='<strong>Seccionadora de pinça:</strong> monta o plano em 2 etapas. Primeiro corta a chapa em faixas; depois o operador gira cada faixa <b>uma única vez em 90°</b> e executa os cortes das peças. Além da sequência CSV, a versão 1.100.90 gera pacote Mingli .ZAW de teste baseado no Result.zaw real: etapa 1 para formar faixas e etapa 2 com um ZAW para cada faixa depois do giro manual.';
   }else if(mode==='cnc'){
     help.className='sheetModeHelp cnc';
     help.innerHTML='<strong>CNC / Router:</strong> usa encaixe livre para aproveitar área. Não força sequência guilhotina no plano visual.';
@@ -454,7 +454,7 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
-// ---------- 1.100.89 · impressão técnica do plano de corte em A4 ----------
+// ---------- 1.100.90 · impressão técnica do plano de corte em A4 ----------
 // A impressão é propositalmente independente do indicador de veio da tela.
 // O sentido continua sendo respeitado no cálculo/encaixe, mas não é desenhado
 // nem escrito no relatório impresso.
@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.100.89</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.100.90</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -557,6 +557,26 @@ function exportPanelSawSequenceCsv(){
   }catch(err){toast(err.message||'Não foi possível gerar a sequência da seccionadora');}
 }
 
+
+async function exportPanelSawMingliZaw(){
+  let target=null;
+  try{
+    const cfg=cutPlanCfgFromUi();
+    if(cfg.cutMode!=='panel')throw new Error('Selecione a estratégia Seccionadora para gerar o Mingli ZAW.');
+    const groups=prepareSheetPreviewGroups().filter(g=>g.planMode==='panel'||g.cutMode==='panel');
+    if(!groups.length)throw new Error('Não há chapas de seccionadora para exportar.');
+    const files=buildMingliZawFiles(groups,cfg);
+    const filename=`${safeFileName(currentProjectRecord?.name||'projeto')}-MINGLI-ZAW-TESTE.zip`;
+    target=await pickExportTarget(filename,'designlab-export-mingli-zaw','application/zip');
+    const result=await writeExportTarget(target,zipStore(files),filename);
+    const zawCount=files.filter(f=>/\.zaw$/i.test(f.name)).length;
+    toast(`Mingli ZAW salvo em ${result.locationLabel} · ${zawCount} arquivo(s) .zaw. Primeiro confira todos no software antes de mandar cortar.`);
+  }catch(err){
+    if(isExportPickerCancel(err)){toast('Exportação ZAW cancelada');return;}
+    toast(err.message||'Não foi possível gerar o pacote Mingli ZAW');
+  }
+}
+
 $('closePartsList').onclick=()=>{$('partsListDialog').style.display='none';};
 $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsListDialog'))$('partsListDialog').style.display='none';});
 ['sheetWidth','sheetHeight','sheetMargin','sheetGap','sheetKeepLength','sheetKeepWidth'].forEach(id=>$(id).addEventListener('input',renderPartsList));
@@ -569,7 +589,9 @@ if($('sheetPanelFirst'))$('sheetPanelFirst').addEventListener('change',renderPar
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
 if($('exportPanelSawSequenceBtn'))$('exportPanelSawSequenceBtn').onclick=exportPanelSawSequenceCsv;
+if($('exportPanelSawZawBtn'))$('exportPanelSawZawBtn').onclick=exportPanelSawMingliZaw;
 if($('sheetPreviewPanelCsv'))$('sheetPreviewPanelCsv').onclick=exportPanelSawSequenceCsv;
+if($('sheetPreviewPanelZaw'))$('sheetPreviewPanelZaw').onclick=exportPanelSawMingliZaw;
 $('printCutPlanFromPartsBtn').onclick=printCutPlan;
 $('sheetPreviewClose').onclick=closeSheetPreview;
 $('sheetPreviewPrint').onclick=printCutPlan;
