@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.83 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.84 · extraído do monólito 1.100.78 · ordem preservada */
   /* 1.100.78 · segurar para abrir / confirmação de duplicação */
   .pieceDeleteRow{
     margin-top:8px;padding-top:8px;border-top:1px solid #373c3f;
@@ -33,7 +33,7 @@
   .pieceProductionToggle.isExcluded strong{color:#ff938c}
 
 
-  /* 1.100.83 · rotação independente do veio por peça */
+  /* 1.100.84 · rotação independente do veio por peça */
   .pieceGrainRotateBtn{width:100%;min-height:42px;font-weight:850}
   .pieceGrainStatus{margin-top:7px;padding:7px 8px;border-radius:8px;background:#101314;border:1px solid #343a3d;color:#a9c9ff;font-size:9px;font-weight:800;line-height:1.35}
   .pieceGrainStatus.rotated{color:#ffd06d;border-color:rgba(255,190,70,.38);background:rgba(255,190,70,.06)}

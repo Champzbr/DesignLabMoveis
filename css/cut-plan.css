@@ -1,4 +1,4 @@
-/* DesignLabMoveis 1.100.83 · extraído do monólito 1.100.78 · ordem preservada */
+/* DesignLabMoveis 1.100.84 · extraído do monólito 1.100.78 · ordem preservada */
   /* v95 · Prévia Aspire / plano de corte */
   #sheetPreviewDialog{position:fixed;inset:0;z-index:125;display:none;padding:10px;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);touch-action:auto}
   #sheetPreviewDialog.show{display:flex}
@@ -62,7 +62,7 @@
   .cutPlanPartCard{background:#fff!important;border-color:#c7cacc!important;color:#282c2f}.cutPlanPartCard .meta{color:#6e767b!important}.cutPlanPartCard .sheetPreviewOp{background:#f3f2ef!important;border-color:#d6d8d8!important;color:#454b4f}
   .cutPlanPreviewFoot{background:#e7e5df!important;border-top-color:#c5c6c3!important;color:#555d62!important}.cutPlanPreviewFoot strong{color:#25282a!important}
 
-  /* 1.100.83 · ajuste rápido do veio diretamente no plano de corte */
+  /* 1.100.84 · ajuste rápido do veio diretamente no plano de corte */
   #partsList .cutPlanRowActions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
   #partsList .cutPlanGrainBtn{min-height:30px;padding:5px 8px;border-radius:7px;border:1px solid #c99b45;background:#fff8e8;color:#72500c;font-size:9px;font-weight:900;white-space:nowrap;touch-action:manipulation}
   #partsList .cutPlanGrainBtn:active{background:#f3c45d;color:#231700}
