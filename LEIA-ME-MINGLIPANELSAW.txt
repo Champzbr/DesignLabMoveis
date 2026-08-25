@@ -1,25 +1,6 @@
-DESIGNLABMOVEIS 1.100.90 — MINGLIPANELSAW / ZAW DE TESTE
+DESIGNLABMOVEIS 1.100.91 - MINGLIPANELSAW / ZAW DE TESTE
 
-O formato .ZAW foi reconstruído a partir das fotos do Result.zaw real gerado pelo MingliPanelSaw/Zhongde.
-A estrutura usada segue o XML observado: ZhongdeModelResult, Materials, ProductData, CutLines, CutScheme0, Step000, CutN, Scheme0, Product e Spare.
+Nesta versão a exportação gera 1 arquivo .ZAW por chapa física.
+A estrutura XML foi corrigida para reproduzir a capitalização vista no Result.zaw real, inclusive width com w minúsculo.
 
-COMO O DESIGNLAB EXPORTA
-- ETAPA 1: 1 arquivo .ZAW por chapa para formar as faixas.
-- ETAPA 2: 1 arquivo .ZAW para cada faixa. O operador gira a faixa manualmente 90 graus antes de carregar o arquivo correspondente.
-- Espessura da serra (KnifeWidth) vem da configuração Serra/canal do plano de corte.
-- Refilo (EdgeExcludedWidth / Trim) vem da margem do plano de corte.
-- O pacote também contém LEIA-ME-ZAW.txt com a ordem dos arquivos.
-
-PRIMEIRO TESTE
-1. Selecione Seccionadora no plano de corte.
-2. Clique em Mingli .ZAW (teste).
-3. Extraia o ZIP no computador da máquina.
-4. Abra primeiro o arquivo ETAPA_1_FAIXAS.zaw no MingliPanelSaw.
-5. Confira na tela: chapa, espessura, serra, refilo, quantidade e medidas.
-6. Depois abra um ETAPA_2_Fxx.zaw e confira as peças da faixa.
-7. NÃO execute o corte automático até a prévia do MingliPanelSaw bater com o plano impresso do DesignLab.
-
-Se o software abrir e desenhar corretamente, a estrutura principal do ZAW está compatível. Caso alguma medida/campo apareça diferente, uma foto da tela do MingliPanelSaw após abrir o ZAW será suficiente para ajustar a próxima versão.
-
-ARQUIVO DE REFERÊNCIA
-A pasta TESTE-MINGLI contém Result-referencia-8x45.zaw, montado com as mesmas medidas e posições que aparecem na foto enviada. Ele serve para confirmar rapidamente se o MingliPanelSaw aceita a estrutura XML gerada pelo DesignLab.
+IMPORTANTE: abra e confira o arquivo no MingliPanelSaw antes de qualquer corte automático. Só use na máquina quando desenho, medidas, kerf/refilo e sequência estiverem idênticos ao plano impresso.

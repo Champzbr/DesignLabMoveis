@@ -1,13 +1,17 @@
-DESIGNLABMOVEIS 1.100.90
+DESIGNLABMOVEIS 1.100.91
 
-NOVIDADE PRINCIPAL
-Exportação experimental para MingliPanelSaw em .ZAW, baseada no Result.zaw real mostrado pelo usuário.
+CORREÇÃO PRINCIPAL - MINGLIPANELSAW / ZAW
 
-No modo Seccionadora, o botão “Mingli .ZAW (teste)” gera um ZIP com:
-- 1 ZAW por chapa para ETAPA 1 / formar faixas;
-- 1 ZAW por faixa para ETAPA 2 / cortar as peças após giro manual de 90°;
-- LEIA-ME-ZAW.txt com a sequência de operação.
+No modo Seccionadora, a exportação Mingli agora gera UM arquivo .ZAW por chapa física.
+Exemplo:
+- CHAPA_01_MDF18.zaw
+- CHAPA_02_MDF18.zaw
 
-A estratégia em dois arquivos/etapas evita depender de comandos internos de giro que não apareceram no arquivo de referência e combina com a seccionadora de pinça sem giro automático.
+As etapas de formar faixas e cortar as faixas ficam reunidas dentro da mesma CutScheme do arquivo da chapa.
 
-Veja LEIA-ME-MINGLIPANELSAW.txt antes do primeiro teste.
+CORREÇÃO DE COMPATIBILIDADE XML
+Comparando com o Result.zaw real mostrado no MingliPanelSaw, foi corrigida a grafia dos atributos de largura para `width` com w minúsculo em Materials, ProductData, CutScheme, Step, Scheme, Product e Spare.
+A versão anterior usava `Width`, o que pode fazer esse software antigo retornar erro de objeto nulo ao procurar o atributo esperado.
+
+IMPORTANTE
+A integração .ZAW ainda está em teste. Abra o arquivo no MingliPanelSaw e confira desenho, medidas, quantidade de peças, serra/refilo e sequência. Não execute corte automático enquanto a prévia no Mingli não estiver idêntica ao plano impresso do DesignLabMoveis.
