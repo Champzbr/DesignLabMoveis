@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.94",
+  "version": "1.100.95",
   "required": false,
-  "message": "Corrigida a estrutura Mingli .ZAW: árvore Step/Cut coerente, vínculo real das peças às etapas e 1 arquivo por chapa.",
-  "released_at": "2026-08-25T13:25:00-03:00"
+  "message": "Mingli ZAW corrigido com nomes e capitalização exatos observados no Result.zaw real.",
+  "released_at": "2026-08-25T16:19:00-03:00"
 }

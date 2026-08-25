@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.94 — PWA SEM BARRA DE ENDEREÇO
+DESIGNLABMOVEIS 1.100.95 — PWA SEM BARRA DE ENDEREÇO
 
 O QUE FOI CORRIGIDO
 - manifest.json agora usa id=/, start_url=/ e scope=/, como no Contas Fácil.

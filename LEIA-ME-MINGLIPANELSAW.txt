@@ -1,13 +1,15 @@
-DESIGNLABMOVEIS 1.100.94 - MINGLIPANELSAW / ZAW DE TESTE
+DESIGNLABMOVEIS 1.100.95 - MINGLIPANELSAW / ZAW DE TESTE
 
-CORREÇÃO DE COMPATIBILIDADE
-- Mantido 1 arquivo .ZAW por chapa física.
-- Adicionado o atributo stepformproductid="" em cada Step do XML, conforme observado no Result.zaw real da máquina.
-- Mantidos stepform, stepcutform, CurrentStep, WidthDirection, Cut, Num, Dri, Compensate, ID e RemainID.
-- UTF-8 com BOM e quebras CRLF.
+Nesta versão o XML foi corrigido conforme a foto nítida do Result.zaw original gerado pelo MingliPanelSaw.
 
-TESTE RECOMENDADO
-1. Abra primeiro TESTE-MINGLI/Result-referencia-8x45.zaw no MingliPanelSaw.
-2. Confira se abre e desenha 8 peças 1730 x 45 em chapa 1730 x 430 x 18.
-3. Não execute corte automático enquanto o arquivo de referência não abrir sem erro.
-4. Se ainda aparecer "Object reference not set to an instance of an object", fotografe a continuação completa da linha <Step000 ...> do ZAW original, especialmente tudo depois de stepformproductid.
+Nomes/capitalização copiados do arquivo real:
+- ZhongDeModelResult
+- EdgeExcludeWidth
+- knifewidth
+- ProductUseed
+- stepformProductID
+
+A exportação continua gerando 1 arquivo .ZAW por chapa física.
+
+Antes de testar um projeto real, abra TESTE-MINGLI/Result-referencia-foto-2x3000x270.zaw.
+Se carregar sem erro, confira desenho, dimensões e sequência antes de qualquer corte automático.
