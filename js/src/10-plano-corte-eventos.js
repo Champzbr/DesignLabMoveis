@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.84 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.86 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -30,7 +30,7 @@ function cutPlanCfgFromUi(){
   return {...base,optimization:x.optimization,direction:x.direction,keepLength:x.keepLength,keepWidth:x.keepWidth};
 }
 function cutPlanModeLabel(cfg){
-  return cfg.cutMode==='panel'?'Seccionadora · cortes retos':cfg.cutMode==='cnc'?'CNC / Router · encaixe livre':'Otimizado · estilo OpenCutList';
+  return cfg.cutMode==='panel'?'Seccionadora · cortes retos':cfg.cutMode==='cnc'?'CNC / Router · encaixe livre':'Otimizado · cortes guilhotina';
 }
 function updateSheetCutModeUi(){
   const mode=$('sheetCutMode')?.value||'open',help=$('sheetCutModeHelp');
@@ -262,7 +262,7 @@ function renderPartsList(){
       const chips=document.createElement('div');chips.style.padding='8px 10px 10px';
       for(const x of data.sheets){const c=document.createElement('button');c.type='button';c.className='sheetChip';c.innerHTML=`<strong>Chapa ${x.g.sheetNo}</strong> · ${nice(x.g.stats.efficiency)}% · ${nice(x.g.stats.cutLength/1000)} m corte`;c.onclick=()=>openSheetPreviewAt(x.gi);chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
     }
-    $('partsListInfo').textContent=cfg.cutMode==='open'?'Plano inspirado no OpenCutList: cortes guilhotina, refilo, espessura de corte, nível de otimização, direção preferida e sobras úteis.':'Plano calculado com a estratégia selecionada. O Aspire continua com o exportador existente da versão anterior.';
+    $('partsListInfo').textContent=cfg.cutMode==='open'?'Plano otimizado: cortes guilhotina, refilo, espessura de corte, nível de otimização, direção preferida e sobras úteis.':'Plano calculado com a estratégia selecionada. O Aspire continua com o exportador existente da versão anterior.';
   }catch(err){cutPlanLastGroups=[];summary.textContent=err.message||'Não foi possível calcular as chapas';$('partsListInfo').textContent='Lista geral de peças de todos os espaços do projeto.';}
 }
 function openPartsListDialog(){
@@ -440,6 +440,58 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
+// ---------- 1.100.86 · impressão do plano de corte em A4 ----------
+function cutPlanPrintSvg(group){
+  const g=group,cfg=g.cfg,toY=y=>cfg.height-y,parts=[],mach=[],cuts=[],waste=[];
+  const defs=`<defs><marker id="grainArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto-start-reverse"><path d="M0,0 L7,3.5 L0,7 z" fill="#a45b00"/></marker></defs>`;
+  if($('sheetPreviewWaste')?.checked&&g.planMode!=='cnc')for(const r of (g.freeRects||[])){
+    const x=cfg.margin+r.x,y=toY(cfg.margin+r.y+r.h),keep=r.w>=cfg.keepLength&&r.h>=cfg.keepWidth;
+    waste.push(`<rect x="${x}" y="${y}" width="${r.w}" height="${r.h}" fill="${keep?'#edf5e9':'#f7f7f7'}" stroke="${keep?'#5f8b50':'#b6b9bb'}" stroke-width="5" stroke-dasharray="18 12"/>`);
+  }
+  for(const p of (g.parts||[])){
+    const outline=sheetPreviewPlacedOutline(p),b=sheetPreviewPartBounds(p);
+    if(outline?.length){
+      const pts=outline.map(q=>`${q[0]},${toY(q[1])}`).join(' ');parts.push(`<polygon points="${pts}" fill="#fbfbf8" stroke="#222" stroke-width="6"/>`);
+    }else parts.push(`<rect x="${b.x}" y="${toY(b.y+b.h)}" width="${b.w}" height="${b.h}" fill="#fbfbf8" stroke="#222" stroke-width="6"/>`);
+    if(p.materialGrain){
+      const axis=cutPlanPieceGrainAxis(p),cx=b.x+b.w/2,cy=toY(b.y+b.h/2),len=Math.max(90,Math.min(axis.alongX?b.w:b.h,520)*.55);
+      const x1=axis.alongX?cx-len/2:cx,y1=axis.alongX?cy:cy-len/2,x2=axis.alongX?cx+len/2:cx,y2=axis.alongX?cy:cy+len/2;
+      parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#a45b00" stroke-width="18" marker-start="url(#grainArrow)" marker-end="url(#grainArrow)"/>`);
+    }
+    if($('sheetPreviewLabels')?.checked){
+      const fs=Math.max(42,Math.min(105,Math.min(b.w,b.h)*.23)),cx=b.x+b.w/2,cy=toY(b.y+b.h/2);
+      parts.push(`<text x="${cx}" y="${cy-fs*.08}" text-anchor="middle" dominant-baseline="middle" font-family="Arial,sans-serif" font-size="${fs}" font-weight="900" fill="#202426">${escapeHtml(String(p.cutCode||'?'))}</text>`);
+      if(b.w>430&&b.h>250)parts.push(`<text x="${cx}" y="${cy+fs*.72}" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#555">${escapeHtml(`${nice(p.faceW)} × ${nice(p.faceH)}`)}</text>`);
+    }
+  }
+  if($('sheetPreviewMachining')?.checked){
+    for(const e of (g.previewEntities||[])){
+      if(e.role!=='machining'&&e.layer!=='ENCAIXE_MONTANTE')continue;
+      if(e.kind==='circle')mach.push(`<circle cx="${e.x}" cy="${toY(e.y)}" r="${Math.max(8,e.r)}" fill="none" stroke="#c22970" stroke-width="9"/>`);
+      else if(e.kind==='rect')mach.push(`<rect x="${e.x}" y="${toY(e.y+e.h)}" width="${e.w}" height="${e.h}" fill="none" stroke="#008db7" stroke-width="9"/>`);
+      else if(e.points?.length)mach.push(`<polygon points="${e.points.map(pt=>`${pt[0]},${toY(pt[1])}`).join(' ')}" fill="none" stroke="#b98500" stroke-width="9"/>`);
+    }
+    for(const p of (g.parts||[]))for(const mk of previewEdgeHoleMarkers(p))mach.push(`<polygon points="${mk.x},${toY(mk.y)-18} ${mk.x+17},${toY(mk.y)+15} ${mk.x-17},${toY(mk.y)+15}" fill="#e47a16" stroke="#7c3a00" stroke-width="5"/>`);
+  }
+  if($('sheetPreviewEdgeHoles')?.checked)for(const cut of (g.panelCuts||[]))cuts.push(`<line x1="${cut.x1}" y1="${toY(cut.y1)}" x2="${cut.x2}" y2="${toY(cut.y2)}" stroke="${cut.orientation==='H'?'#168758':'#c9445b'}" stroke-width="12"/>`);
+  return `<svg class="planSvg" viewBox="0 0 ${cfg.width} ${cfg.height}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Plano da chapa">${defs}<rect x="0" y="0" width="${cfg.width}" height="${cfg.height}" fill="#fff" stroke="#333" stroke-width="9"/><rect x="${cfg.margin}" y="${cfg.margin}" width="${Math.max(0,cfg.width-2*cfg.margin)}" height="${Math.max(0,cfg.height-2*cfg.margin)}" fill="none" stroke="#969b9e" stroke-width="6" stroke-dasharray="22 15"/>${waste.join('')}${parts.join('')}${mach.join('')}${cuts.join('')}</svg>`;
+}
+function cutPlanPrintDocument(groups){
+  const project=escapeHtml(currentProjectRecord?.name||'DesignLabMoveis'),pages=groups.map((g,i)=>{
+    const st=g.stats,mach=sheetPreviewStats(g),machTotal=mach.holesA+mach.holesB+mach.edge+mach.groovesA+mach.groovesB+mach.slots;
+    return `<section class="printCutPage"><header><div><h1>${project}</h1><h2>${escapeHtml(g.displayName)} · Chapa ${g.sheetNo}/${g.totalSheets}</h2></div><div class="pageNo">${i+1}/${groups.length}</div></header><div class="stats">Chapa ${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm · aproveitamento <b>${nice(st.efficiency)}%</b> · corte estimado <b>${nice(st.cutLength/1000)} m</b> · ${g.parts.length} peça(s) · ${machTotal} usinagem(ns)</div><div class="drawing">${cutPlanPrintSvg(g)}</div><footer><span>Refilo ${nice(g.cfg.margin)} mm · corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.100.86</span></footer></section>`;
+  }).join('');
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.printCutPage{height:194mm;display:flex;flex-direction:column;break-after:page;page-break-after:always;overflow:hidden}.printCutPage:last-child{break-after:auto;page-break-after:auto}header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:.45mm solid #222;padding-bottom:2mm}h1{font-size:5mm;margin:0}h2{font-size:3.4mm;margin:1mm 0 0;color:#333}.pageNo{font-size:4mm;font-weight:900}.stats{font-size:2.8mm;padding:2mm 0}.drawing{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;border:.25mm solid #bbb;padding:2mm}.planSvg{width:100%;height:100%;display:block}footer{display:flex;justify-content:space-between;font-size:2.5mm;padding-top:1.5mm;color:#555}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${pages}</body></html>`;
+}
+function printCutPlan(){
+  try{
+    const groups=prepareSheetPreviewGroups();if(!groups.length)throw new Error('Não há chapas para imprimir.');
+    const html=cutPlanPrintDocument(groups),w=window.open('','_blank');
+    if(!w){downloadText(`${safeFileName(currentProjectRecord?.name||'projeto')}-plano-de-corte.html`,html,'text/html;charset=utf-8');toast('O navegador bloqueou a impressão · salvei o plano de corte em HTML');return;}
+    w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(_){}},400);
+  }catch(err){toast(err.message||'Não foi possível imprimir o plano de corte');}
+}
+
 $('closePartsList').onclick=()=>{$('partsListDialog').style.display='none';};
 $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsListDialog'))$('partsListDialog').style.display='none';});
 ['sheetWidth','sheetHeight','sheetMargin','sheetGap','sheetKeepLength','sheetKeepWidth'].forEach(id=>$(id).addEventListener('input',renderPartsList));
@@ -450,7 +502,9 @@ $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
+$('printCutPlanFromPartsBtn').onclick=printCutPlan;
 $('sheetPreviewClose').onclick=closeSheetPreview;
+$('sheetPreviewPrint').onclick=printCutPlan;
 $('sheetPreviewExport').onclick=()=>{setSheetPrefs(sheetPrefsFromUi());exportProjectAspireZip();};
 $('sheetPreviewPrev').onclick=()=>selectSheetPreviewIndex(sheetPreviewIndex-1);
 $('sheetPreviewNext').onclick=()=>selectSheetPreviewIndex(sheetPreviewIndex+1);
@@ -853,7 +907,7 @@ window.addEventListener('keydown',e=>{
     e.preventDefault();openProjectMetaDialog('new');
   }
 });
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')projectAutosaveNow();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){projectAutosaveNow();if(currentIdentityUser&&cloudAccountState.ok)saveCloudPreferences({silent:true});}});
 window.addEventListener('pagehide',()=>{projectAutosaveNow();});
 
 
@@ -935,7 +989,7 @@ window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);p
 
 initDesignLabServiceWorker().catch(()=>{});
 setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
-window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});});
+window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible')checkDesignLabUpdate().catch(()=>{});

@@ -819,7 +819,7 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.84: um clique apenas seleciona.
+    // 1.100.86: um clique apenas seleciona.
     // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
@@ -868,7 +868,7 @@ function updateInspector(){
     $('objectType').textContent=(u.kind==='hardware-visual'?'Ferragem · ':'MDF · ')+(cfg.slideName||'Conjunto de gavetas')+` · gaveta ${(Number(u.drawerIndex)||0)+1}`;
   }
 
-  // 1.100.84: a troca do lado da dobradiça só existe no menu de uma PORTA.
+  // 1.100.86: a troca do lado da dobradiça só existe no menu de uma PORTA.
   const doorHingeSection=$('doorInspectorHingeSection');
   const isParametricDoor=!!u.doorConfig;
   if(doorHingeSection)doorHingeSection.style.display=isParametricDoor?'block':'none';
@@ -895,7 +895,7 @@ function updateInspector(){
     $('objectType').textContent += ' · 🚫 NÃO PRODUZIR';
   }
 
-  // 1.100.84: o veio pode girar 90° sem alterar a geometria/posição da peça.
+  // 1.100.86: o veio pode girar 90° sem alterar a geometria/posição da peça.
   const grainSection=$('pieceGrainSection'),grainBtn=$('rotatePieceGrainBtn'),grainStatus=$('pieceGrainStatus');
   const hasGrain=canControlProduction&&!!u.materialGrain;
   const grainRot=normalizePieceGrainRotation(u.materialGrainRotation);

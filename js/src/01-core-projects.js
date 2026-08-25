@@ -489,7 +489,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.100.84';
+const DESIGNLAB_APP_VERSION='1.100.86';
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
@@ -948,6 +948,157 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
     throw err;
   }finally{clearTimeout(timer);}
 }
+
+// ============================================================================
+// 1.100.86 · PREFERÊNCIAS DA CONTA — CELULAR / PC
+// ============================================================================
+// Projetos continuam no fluxo próprio (IndexedDB + R2). Este bloco sincroniza
+// somente preferências/configurações do DesignLabMoveis no D1, por usuário.
+// Configurações antigas do aparelho são aproveitadas no primeiro sincronismo.
+const CLOUD_PREFERENCES_EXACT_KEYS=new Set([
+  'miniCadToolDockPrefsV62','miniCadToolDockPrefsV61','miniCadToolDockPosV61',
+  'designLabSpaceActionsPosV1','designLabPieceInspectorPosV1',
+  'miniCadProCadBackgroundV2','miniCadProCadGridVisibleV1','miniCadProXray3DV2',
+  'designlabCutPlanV42','designlabCutPlanV42-mode',
+  'miniCadProV50_sheetPrefs','miniCadProV49_sheetPrefs','miniCadProV48_sheetPrefs','miniCadProV46_sheetPrefs',
+  'designLabDoorCreateConfigV1','miniCadProV88_drawerSlideLibrary',
+  'designlabLabelsV110075','miniCadProV78_shapePresets',
+  'miniCadProV54_hardwarePresets','designLabHardwareScopeV1','miniCadProV50_machiningPresets',
+  'miniCadSpaceCreatePrefsV38'
+]);
+const CLOUD_PREFERENCES_DYNAMIC_PREFIXES=[
+  'designlab-cut-space-prefs-v134:',
+  'designlab-piece-thickness-v135:'
+];
+let cloudPreferencesApplying=false;
+let cloudPreferencesSaveTimer=null;
+let cloudPreferencesSyncing=false;
+let cloudPreferencesRevision=0;
+let cloudPreferencesUpdatedAt=null;
+let cloudPreferencesHookInstalled=false;
+
+function cloudPreferencesOwnerId(){
+  return String(currentIdentityUser?.id||cloudAccountState?.user?.id||'').trim();
+}
+function isCloudPreferenceKey(key){
+  key=String(key||'');
+  if(CLOUD_PREFERENCES_EXACT_KEYS.has(key))return true;
+  const owner=cloudPreferencesOwnerId();
+  if(!owner)return false;
+  return CLOUD_PREFERENCES_DYNAMIC_PREFIXES.some(prefix=>{
+    if(!key.startsWith(prefix))return false;
+    const suffix=key.slice(prefix.length);
+    return suffix===owner || suffix.startsWith(owner+':');
+  });
+}
+function captureCloudPreferences(){
+  const settings={};
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(!isCloudPreferenceKey(key))continue;
+    const value=localStorage.getItem(key);
+    if(value!==null)settings[key]=value;
+  }
+  return settings;
+}
+function cloudPreferenceStorageChanged(key){
+  if(cloudPreferencesApplying||!isCloudPreferenceKey(key))return;
+  if(authLocalMode||!currentIdentityUser||!cloudAccountState.ok)return;
+  clearTimeout(cloudPreferencesSaveTimer);
+  cloudPreferencesSaveTimer=setTimeout(()=>saveCloudPreferences({silent:true}),350);
+}
+function installCloudPreferenceStorageHook(){
+  if(cloudPreferencesHookInstalled||typeof Storage==='undefined')return;
+  cloudPreferencesHookInstalled=true;
+  const nativeSet=Storage.prototype.setItem;
+  const nativeRemove=Storage.prototype.removeItem;
+  Storage.prototype.setItem=function(key,value){
+    const out=nativeSet.call(this,key,value);
+    try{if(this===localStorage)cloudPreferenceStorageChanged(key);}catch{}
+    return out;
+  };
+  Storage.prototype.removeItem=function(key){
+    const out=nativeRemove.call(this,key);
+    try{if(this===localStorage)cloudPreferenceStorageChanged(key);}catch{}
+    return out;
+  };
+}
+function cloudPreferencesReloadStamp(revision){
+  return `designlab-cloud-prefs-applied:${cloudPreferencesOwnerId()}:${Number(revision)||0}`;
+}
+function applyCloudPreferences(settings,revision){
+  if(!settings||typeof settings!=='object'||Array.isArray(settings))return false;
+  let changed=false;
+  cloudPreferencesApplying=true;
+  try{
+    // A nuvem é a fonte da verdade para a conta. Remove do aparelho qualquer
+    // preferência sincronizável que não exista mais no perfil remoto.
+    const localKeys=[];
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(isCloudPreferenceKey(key))localKeys.push(key);
+    }
+    for(const key of localKeys){
+      if(Object.prototype.hasOwnProperty.call(settings,key))continue;
+      localStorage.removeItem(key);changed=true;
+    }
+    for(const [key,raw] of Object.entries(settings)){
+      if(!isCloudPreferenceKey(key))continue;
+      const value=String(raw??'');
+      if(localStorage.getItem(key)!==value){localStorage.setItem(key,value);changed=true;}
+    }
+  }finally{cloudPreferencesApplying=false;}
+  cloudPreferencesRevision=Number(revision)||cloudPreferencesRevision||0;
+  return changed;
+}
+async function saveCloudPreferences({silent=true}={}){
+  if(authLocalMode||!currentIdentityUser||!cloudAccountState.ok||cloudPreferencesApplying)return null;
+  clearTimeout(cloudPreferencesSaveTimer);cloudPreferencesSaveTimer=null;
+  try{
+    const data=await cloudApiFetch('/preferences',{method:'PUT',body:{settings:captureCloudPreferences()},timeoutMs:20000});
+    cloudPreferencesRevision=Number(data?.revision)||cloudPreferencesRevision||0;
+    cloudPreferencesUpdatedAt=data?.updated_at||new Date().toISOString();
+    if(!silent)toast('Configurações salvas na conta');
+    return data;
+  }catch(err){
+    console.warn('Cloud preferences save:',err);
+    if(!silent)toast('Não foi possível salvar as configurações na conta');
+    return null;
+  }
+}
+async function syncCloudPreferences({silent=true,allowReload=true}={}){
+  if(cloudPreferencesSyncing||authLocalMode||!currentIdentityUser||!cloudAccountState.ok)return null;
+  cloudPreferencesSyncing=true;
+  try{
+    const data=await cloudApiFetch('/preferences',{timeoutMs:20000});
+    if(!data?.exists){
+      // Migração transparente: a primeira conta que ainda não possui preferências
+      // recebe as configurações já existentes neste aparelho.
+      const saved=await saveCloudPreferences({silent:true});
+      if(!silent&&saved)toast('Configurações deste aparelho salvas na sua conta');
+      return {ok:!!saved,seeded:!!saved,reloading:false};
+    }
+    const changed=applyCloudPreferences(data.settings||{},data.revision);
+    cloudPreferencesUpdatedAt=data.updated_at||null;
+    if(changed&&allowReload){
+      const stamp=cloudPreferencesReloadStamp(data.revision);
+      if(sessionStorage.getItem('designlabCloudPrefsReloadStamp')!==stamp){
+        sessionStorage.setItem('designlabCloudPrefsReloadStamp',stamp);
+        setTimeout(()=>location.reload(),0);
+        return {ok:true,changed:true,reloading:true};
+      }
+    }
+    if(!silent)toast(changed?'Configurações da conta carregadas':'Configurações da conta sincronizadas');
+    return {ok:true,changed,reloading:false};
+  }catch(err){
+    // Não bloqueia login/projetos se o Worker ainda não foi atualizado ou se
+    // a conexão caiu. O próximo login/retorno online tenta novamente.
+    console.warn('Cloud preferences sync:',err);
+    return {ok:false,error:err,reloading:false};
+  }finally{cloudPreferencesSyncing=false;}
+}
+installCloudPreferenceStorageHook();
+
 async function syncCloudAccount({silent=false}={}){
   if(authLocalMode||!currentIdentityUser){
     cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
@@ -964,6 +1115,8 @@ async function syncCloudAccount({silent=false}={}){
     };
     updateCloudAccountChrome();
 
+    const prefSync=await syncCloudPreferences({silent:true,allowReload:true});
+    if(prefSync?.reloading)return data;
     await syncCloudProjects({silent:true});
     if(document.body.classList.contains('project-home-active'))await renderProjectHome();
 
@@ -986,7 +1139,7 @@ async function syncCloudAccount({silent=false}={}){
     return null;
   }
 }
-window.designLabCloud={apiBase:CLOUD_API_BASE,getState(){return JSON.parse(JSON.stringify(cloudAccountState));},sync(){return syncCloudAccount({silent:false});},apiFetch:cloudApiFetch};
+window.designLabCloud={apiBase:CLOUD_API_BASE,getState(){return JSON.parse(JSON.stringify(cloudAccountState));},sync(){return syncCloudAccount({silent:false});},syncPreferences(){return syncCloudPreferences({silent:false,allowReload:true});},savePreferences(){return saveCloudPreferences({silent:false});},apiFetch:cloudApiFetch};
 
 
 
@@ -1274,7 +1427,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.100.84 · HOME OPÇÃO 1
+// 1.100.86 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -1495,7 +1648,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.84`:'DesignLabMoveis 1.100.84';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.100.86`:'DesignLabMoveis 1.100.86';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -1700,7 +1853,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.100.84'
+    thumbnail:null,appVersion:'1.100.86'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -1723,7 +1876,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.84'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.100.86'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -1753,7 +1906,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.100.84'
+    thumbnail:thumb,appVersion:'1.100.86'
   };
   await projectDbPut(next);
   if(original){
@@ -1821,7 +1974,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.84',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.100.86',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -1855,7 +2008,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.100.84'
+    thumbnail:p.thumbnail||null,appVersion:'1.100.86'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -1916,7 +2069,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.84'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.100.86'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -2244,10 +2397,10 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.100.84 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.100.84 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
+// 1.100.86 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.100.86 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
-// no aparelho mesmo depois de fechar/reabrir o app.
+// na conta e restaurada depois de fechar/reabrir o app ou trocar de aparelho.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
 function clampSpaceActionsPosition(left,top){
   const panel=$('spaceActions'); if(!panel)return {left,top};

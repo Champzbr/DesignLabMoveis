@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.84 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
+// 1.100.86 · JANELA DE CONFIGURAÇÃO DA PEÇA FLUTUANTE
 // ============================================================================
 const PIECE_INSPECTOR_POS_KEY='designLabPieceInspectorPosV1';
 function clampPieceInspectorPosition(left,top){
@@ -129,7 +129,7 @@ const CAD_BACKGROUND_KEY='miniCadProCadBackgroundV2';
 const CAD_GRID_KEY='miniCadProCadGridVisibleV1';
 const XRAY_3D_KEY='miniCadProXray3DV2';
 
-// Padrão tipo SketchUp:
+// Padrão tipo CAD:
 // - fundo branco;
 // - grade desligada;
 // - Raio-X 3D desligado.
@@ -259,7 +259,7 @@ scene.add(grid);
 applyCadBackground(cadBackgroundMode,{persist:false});
 applyCadGridVisibility(cadGridVisible,{persist:false});
 
-// Eixos globais estilo SketchUp.
+// Eixos globais estilo CAD.
 // X = vermelho, Y(vertical interno) = azul, Z = amarelo.
 // 1.100.18: respeitam o depth buffer. Se uma chapa estiver na frente do eixo,
 // o trecho encoberto NÃO atravessa mais o móvel.
@@ -379,7 +379,7 @@ function setVisualMode(on,{notify=true,frame=true}={}){
     visualMode=true; applyVisualSceneState();
     if(frame)frameFurnitureVisual();
     $('morePanel').style.display='none'; $('inspector').style.display='none';
-    $('hintText').textContent=desktopSketchupNavigation
+    $('hintText').textContent=desktopCadNavigation
       ? 'Visual limpo · rodinha pressionada: orbitar · Shift + rodinha: mover vista · roda: zoom'
       : 'Visual limpo · arraste para girar · pinça para zoom · toque em Projeto para editar';
     if(notify)toast('Modo Visual');
@@ -397,7 +397,7 @@ controls.dampingFactor = .09;
 controls.target.set(0,.45,0);
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
-// 1.100.84 · ZOOM DE APROXIMAÇÃO FINO
+// 1.100.86 · ZOOM DE APROXIMAÇÃO FINO
 // O zoom agora acompanha o ponto sob o cursor, aceita aproximação de poucos
 // milímetros e reduz progressivamente a velocidade ao chegar perto da peça.
 // Isso evita o efeito de "pular" para dentro da chapa quando o usuário quer
@@ -463,7 +463,7 @@ renderer.domElement.addEventListener('wheel',e=>{
 
 
 // ============================================================================
-// 1.100.14 · NAVEGAÇÃO DE MOUSE NO ESTILO SKETCHUP (SOMENTE PC)
+// 1.100.14 · NAVEGAÇÃO DE MOUSE NO ESTILO CAD (SOMENTE PC)
 // ----------------------------------------------------------------------------
 // Mouse com ponteiro preciso:
 // - botão esquerdo: reservado para selecionar/mover/desenhar no CAD;
@@ -474,10 +474,10 @@ renderer.domElement.addEventListener('wheel',e=>{
 // Em celulares/tablets com ponteiro coarse o mapeamento NÃO é alterado.
 // Os gestos touch continuam exatamente como já estavam.
 // ============================================================================
-const desktopSketchupNavigation=!!window.matchMedia?.('(pointer:fine)').matches;
+const desktopCadNavigation=!!window.matchMedia?.('(pointer:fine)').matches;
 
-function applyDesktopSketchupNavigation(){
-  if(!desktopSketchupNavigation)return;
+function applyDesktopCadNavigation(){
+  if(!desktopCadNavigation)return;
 
   // OrbitControls r160 interpreta Shift/Ctrl/Meta + ação ROTATE como PAN.
   // Portanto mapear MIDDLE para ROTATE entrega:
@@ -493,13 +493,13 @@ function applyDesktopSketchupNavigation(){
   controls.enablePan=true;
   controls.enableZoom=true;
 
-  // SketchUp responde diretamente ao mouse, sem "rastro" ou inércia.
+  // CAD responde diretamente ao mouse, sem "rastro" ou inércia.
   // O damping do OrbitControls era o delay percebido no PC.
   controls.enableDamping=false;
   controls.dampingFactor=0;
 }
 
-applyDesktopSketchupNavigation();
+applyDesktopCadNavigation();
 controls.update();
 
 const last3DView = {

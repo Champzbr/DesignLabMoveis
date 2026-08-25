@@ -116,7 +116,7 @@ function libraryCurvedPostPlacementForTarget(p,cfg,info){
   const tag=stored.postStructuralTag||null;
   let sample=null;
 
-  // 1.100.84: montantes estruturais não podem ser posicionados usando a caixa
+  // 1.100.86: montantes estruturais não podem ser posicionados usando a caixa
   // retangular da peça rotacionada. Isso deslocava principalmente o último
   // montante mesmo quando a configuração era 0 mm (rente). Recalculamos a
   // posição pela própria trajetória curva e pelas regras estruturais.
@@ -708,17 +708,30 @@ function closeProductionDialog(){
   $('productionDialog').style.display='none';
 }
 
-// ---------- 1.100.84 · Etiquetas das peças estilo OpenCutList ----------
+// ---------- 1.100.86 · Etiquetas A4 com margens independentes e prévia física ----------
 const LABELS_PREFS_KEY='designlabLabelsV110075';
 function labelsPrefs(){
-  const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',margin:8,gap:3,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
-  try{return {...d,...JSON.parse(localStorage.getItem(LABELS_PREFS_KEY)||'{}')};}catch(_){return d}
+  const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',marginLeft:8,marginRight:8,marginTop:8,marginBottom:8,gap:3,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
+  try{
+    const raw=JSON.parse(localStorage.getItem(LABELS_PREFS_KEY)||'{}')||{};
+    // Migração das versões antigas, que tinham uma margem única para os 4 lados.
+    const legacy=Math.max(0,Number(raw.margin)||0);
+    return {...d,...raw,
+      marginLeft:Number.isFinite(Number(raw.marginLeft))?Number(raw.marginLeft):(raw.margin!=null?legacy:d.marginLeft),
+      marginRight:Number.isFinite(Number(raw.marginRight))?Number(raw.marginRight):(raw.margin!=null?legacy:d.marginRight),
+      marginTop:Number.isFinite(Number(raw.marginTop))?Number(raw.marginTop):(raw.margin!=null?legacy:d.marginTop),
+      marginBottom:Number.isFinite(Number(raw.marginBottom))?Number(raw.marginBottom):(raw.margin!=null?legacy:d.marginBottom)
+    };
+  }catch(_){return d}
 }
 function labelsSavePrefs(){
   const p={
     scope:$('labelsScope')?.value||'project',mode:$('labelsMode')?.value||'piece',
     width:Math.max(30,Number($('labelsWidth')?.value)||70),height:Math.max(20,Number($('labelsHeight')?.value)||40),
-    paper:$('labelsPaper')?.value||'a4',margin:Math.max(0,Number($('labelsMargin')?.value)||0),gap:Math.max(0,Number($('labelsGap')?.value)||0),sort:$('labelsSort')?.value||'code',
+    paper:$('labelsPaper')?.value||'a4',
+    marginLeft:Math.max(0,Number($('labelsMarginLeft')?.value)||0),marginRight:Math.max(0,Number($('labelsMarginRight')?.value)||0),
+    marginTop:Math.max(0,Number($('labelsMarginTop')?.value)||0),marginBottom:Math.max(0,Number($('labelsMarginBottom')?.value)||0),
+    gap:Math.max(0,Number($('labelsGap')?.value)||0),sort:$('labelsSort')?.value||'code',
     showProject:!!$('labelsShowProject')?.checked,showSpace:!!$('labelsShowSpace')?.checked,showBands:!!$('labelsShowBands')?.checked,
     showMachining:!!$('labelsShowMachining')?.checked,showGrain:!!$('labelsShowGrain')?.checked,showId:!!$('labelsShowId')?.checked
   };
@@ -726,7 +739,8 @@ function labelsSavePrefs(){
 }
 function labelsApplyPrefs(){
   const p=labelsPrefs(),set=(id,v)=>{if($(id))$(id).value=v},chk=(id,v)=>{if($(id))$(id).checked=!!v};
-  set('labelsScope',p.scope);set('labelsMode',p.mode);set('labelsWidth',p.width);set('labelsHeight',p.height);set('labelsPaper',p.paper);set('labelsMargin',p.margin);set('labelsGap',p.gap);set('labelsSort',p.sort);
+  set('labelsScope',p.scope);set('labelsMode',p.mode);set('labelsWidth',p.width);set('labelsHeight',p.height);set('labelsPaper',p.paper);
+  set('labelsMarginLeft',p.marginLeft);set('labelsMarginRight',p.marginRight);set('labelsMarginTop',p.marginTop);set('labelsMarginBottom',p.marginBottom);set('labelsGap',p.gap);set('labelsSort',p.sort);
   chk('labelsShowProject',p.showProject);chk('labelsShowSpace',p.showSpace);chk('labelsShowBands',p.showBands);chk('labelsShowMachining',p.showMachining);chk('labelsShowGrain',p.showGrain);chk('labelsShowId',p.showId);
 }
 function labelsSourceParts(scope){
@@ -749,7 +763,7 @@ function labelsBuildItems(prefs=labelsSavePrefs()){
   if(prefs.mode==='group'){
     const grouped=new Map();
     for(const p of parts){const k=labelsSignature(p);if(!grouped.has(k))grouped.set(k,{...p,qty:0});grouped.get(k).qty++;}
-    items.push(...grouped.values().map(p=>({...p,seq:1,total:p.qty,grouped:true}))); 
+    items.push(...grouped.values().map(p=>({...p,seq:1,total:p.qty,grouped:true})));
   }else{
     for(const p of parts){const k=labelsSignature(p),seq=(seen.get(k)||0)+1;seen.set(k,seq);items.push({...p,qty:1,seq,total:counts.get(k)||1});}
   }
@@ -782,13 +796,39 @@ function labelHtmlCard(p,prefs,{preview=false}={}){
   const info=[];if(prefs.showProject&&projectLine)info.push(`<div>${projectLine}</div>`);if(prefs.showSpace&&spaceLine)info.push(`<div>${spaceLine}</div>`);if(machine)info.push(machine);
   return `<article class="${cls}"><div class="lpHead"><div class="lpCode">${escapeHtml(labelCodeText(p))}</div><div class="lpName">${escapeHtml(p.name||'Peça')}</div>${p.qty>1?`<div class="lpQty">×${p.qty}</div>`:''}</div><div class="lpDims">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm</div><div class="lpMaterial">${escapeHtml(p.material||'MDF')}${p.materialCode?` · ${escapeHtml(p.materialCode)}`:''}</div><div class="lpMeta"><div>${info.join('')}</div>${prefs.showGrain&&p.materialGrain?`<div class="lpGrain" title="Sentido do veio · ${normalizePieceGrainRotation(p.materialGrainRotation)}°">${normalizePieceGrainRotation(p.materialGrainRotation)===90?'↔':'↕'}</div>`:''}</div>${edgeHtml}<div class="lpFoot">${prefs.showId?`<span class="lpId">ID ${escapeHtml(p.partId||'—')}</span>`:'<span></span>'}<span>${p.materialGrain?`VEIO ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:'SEM VEIO'}</span></div></article>`;
 }
+function labelsA4Layout(prefs){
+  const pageW=210,pageH=297,left=Math.max(0,prefs.marginLeft||0),right=Math.max(0,prefs.marginRight||0),top=Math.max(0,prefs.marginTop||0),bottom=Math.max(0,prefs.marginBottom||0),gap=Math.max(0,prefs.gap||0);
+  const usableW=pageW-left-right,usableH=pageH-top-bottom;
+  if(usableW<=0||usableH<=0)throw new Error('As margens ocupam toda a folha A4.');
+  if(prefs.width>usableW+.001||prefs.height>usableH+.001)throw new Error('A etiqueta não cabe na área útil da folha A4 com essas margens.');
+  const cols=Math.max(1,Math.floor((usableW+gap)/(prefs.width+gap)+1e-9)),rows=Math.max(1,Math.floor((usableH+gap)/(prefs.height+gap)+1e-9));
+  return {pageW,pageH,left,right,top,bottom,gap,usableW,usableH,cols,rows,perPage:cols*rows};
+}
+function labelsPreviewA4(items,prefs){
+  const lay=labelsA4Layout(prefs),scale=2,totalPages=Math.max(1,Math.ceil(items.length/lay.perPage)),previewPages=Math.min(totalPages,3),pages=[];
+  for(let pi=0;pi<previewPages;pi++){
+    const chunk=items.slice(pi*lay.perPage,(pi+1)*lay.perPage),cards=[];
+    chunk.forEach((p,i)=>{
+      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gap),y=lay.top+row*(prefs.height+lay.gap);
+      cards.push(labelHtmlCard(p,prefs,{preview:true}).replace('class="labelCardPreview"',`class="labelCardPreview" style="left:${x*scale}px;top:${y*scale}px;width:${prefs.width*scale}px;height:${prefs.height*scale}px"`));
+    });
+    pages.push(`<section class="labelsPreviewPage" data-page-label="A4 · página ${pi+1}/${totalPages}"><div class="labelsPreviewMarginGuide" style="left:${lay.left*scale}px;top:${lay.top*scale}px;width:${lay.usableW*scale}px;height:${lay.usableH*scale}px"></div>${cards.join('')}</section>`);
+  }
+  return {html:pages.join(''),layout:lay,totalPages,previewPages};
+}
 function renderLabelsPreview(){
   const grid=$('labelsPreviewGrid'),sum=$('labelsSummary');if(!grid||!sum)return;
   grid.innerHTML='';
   try{
-    const prefs=labelsSavePrefs(),items=labelsBuildItems(prefs),show=items.slice(0,12),physical=prefs.mode==='group'?items.reduce((n,p)=>n+(p.qty||1),0):items.length;
-    grid.innerHTML=show.map(p=>labelHtmlCard(p,prefs,{preview:true})).join('');
-    sum.innerHTML=`<strong>${items.length} etiqueta(s)</strong> na impressão · ${physical} peça(s) física(s) · ${nice(prefs.width)} × ${nice(prefs.height)} mm${items.length>show.length?` · prévia mostrando as primeiras ${show.length}`:''}.<br>O código A/B/C… é o mesmo padrão usado na lista/plano de corte para peças idênticas.`;
+    const prefs=labelsSavePrefs(),items=labelsBuildItems(prefs),physical=prefs.mode==='group'?items.reduce((n,p)=>n+(p.qty||1),0):items.length;
+    if(prefs.paper==='roll'){
+      const first=items[0];grid.innerHTML=first?`<div class="labelsRollPreview">${labelHtmlCard(first,prefs,{preview:true})}</div>`:'';
+      sum.innerHTML=`<strong>${items.length} etiqueta(s)</strong> · ${physical} peça(s) física(s) · ${nice(prefs.width)} × ${nice(prefs.height)} mm.<br>Prévia da etiquetadora: uma etiqueta por página.`;
+    }else{
+      const pv=labelsPreviewA4(items,prefs);
+      grid.innerHTML=pv.html;
+      sum.innerHTML=`<strong>${items.length} etiqueta(s)</strong> na impressão · ${physical} peça(s) física(s) · ${pv.layout.cols} coluna(s) × ${pv.layout.rows} linha(s) por A4 · ${pv.totalPages} página(s).<br>Margens A4: esquerda ${nice(prefs.marginLeft)} · direita ${nice(prefs.marginRight)} · cima ${nice(prefs.marginTop)} · baixo ${nice(prefs.marginBottom)} mm${pv.totalPages>pv.previewPages?` · prévia mostrando ${pv.previewPages} página(s)`:''}.`;
+    }
   }catch(err){sum.textContent=err.message||'Não foi possível gerar as etiquetas';grid.innerHTML='';}
 }
 function openLabelsDialog({scope=null}={}){
@@ -796,11 +836,21 @@ function openLabelsDialog({scope=null}={}){
 }
 function closeLabelsDialog(){$('labelsDialog').style.display='none'}
 function labelsPrintDocument(items,prefs){
-  const paper=prefs.paper==='roll'?`@page{size:${prefs.width}mm ${prefs.height}mm;margin:0}`:'@page{size:A4 portrait;margin:'+prefs.margin+'mm}';
-  const grid=prefs.paper==='roll'?`display:block`:`display:grid;grid-template-columns:repeat(auto-fill,${prefs.width}mm);grid-auto-rows:${prefs.height}mm;gap:${prefs.gap}mm;align-content:start`;
-  const labelBreak=prefs.paper==='roll'?'page-break-after:always;break-after:page;':'';
-  const cards=items.map(p=>labelHtmlCard(p,prefs).replace('class="printLabel"',`class="printLabel" style="width:${prefs.width}mm;height:${prefs.height}mm;${labelBreak}"`)).join('');
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Etiquetas · ${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</title><style>${paper}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}body{${prefs.paper==='roll'?'':'padding:0'}}.labelsPage{${grid}}.printLabel{border:0.25mm solid #111;padding:2.2mm;background:#fff;overflow:hidden;display:flex;flex-direction:column}.lpHead{display:flex;align-items:flex-start;gap:2mm;border-bottom:.6mm solid #111;padding-bottom:1mm}.lpCode{font-size:7mm;font-weight:900;line-height:1}.lpName{font-size:3.6mm;font-weight:900;line-height:1.05;flex:1;overflow:hidden}.lpQty{font-size:3mm;font-weight:900;border:.3mm solid #111;border-radius:1mm;padding:.5mm 1mm}.lpDims{font-size:4.5mm;font-weight:900;margin-top:1mm;white-space:nowrap}.lpMaterial{font-size:2.8mm;font-weight:800;margin-top:.6mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lpMeta{font-size:2.15mm;line-height:1.28;margin-top:.7mm;display:grid;grid-template-columns:1fr auto;gap:1.2mm}.lpGrain{font-size:5mm;font-weight:900}.lpEdges{display:grid;grid-template-columns:1fr 1fr;gap:.5mm;margin-top:.8mm}.lpEdge{font-size:1.9mm;border:.25mm solid #aaa;border-radius:.6mm;padding:.45mm .65mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.lpEdge.on{border:.55mm solid #111;font-weight:900;padding:.15mm .35mm}.lpFoot{margin-top:auto;border-top:.25mm solid #999;padding-top:.6mm;font-size:1.75mm;display:flex;justify-content:space-between;gap:1mm}.lpId{font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media print{.printLabel{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><main class="labelsPage">${cards}</main></body></html>`;
+  const common=`*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.printLabel{border:.25mm solid #111;padding:2.2mm;background:#fff;overflow:hidden;display:flex;flex-direction:column}.lpHead{display:flex;align-items:flex-start;gap:2mm;border-bottom:.6mm solid #111;padding-bottom:1mm}.lpCode{font-size:7mm;font-weight:900;line-height:1}.lpName{font-size:3.6mm;font-weight:900;line-height:1.05;flex:1;overflow:hidden}.lpQty{font-size:3mm;font-weight:900;border:.3mm solid #111;border-radius:1mm;padding:.5mm 1mm}.lpDims{font-size:4.5mm;font-weight:900;margin-top:1mm;white-space:nowrap}.lpMaterial{font-size:2.8mm;font-weight:800;margin-top:.6mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lpMeta{font-size:2.15mm;line-height:1.28;margin-top:.7mm;display:grid;grid-template-columns:1fr auto;gap:1.2mm}.lpGrain{font-size:5mm;font-weight:900}.lpEdges{display:grid;grid-template-columns:1fr 1fr;gap:.5mm;margin-top:.8mm}.lpEdge{font-size:1.9mm;border:.25mm solid #aaa;border-radius:.6mm;padding:.45mm .65mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.lpEdge.on{border:.55mm solid #111;font-weight:900;padding:.15mm .35mm}.lpFoot{margin-top:auto;border-top:.25mm solid #999;padding-top:.6mm;font-size:1.75mm;display:flex;justify-content:space-between;gap:1mm}.lpId{font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media print{.printLabel{-webkit-print-color-adjust:exact;print-color-adjust:exact}}`;
+  if(prefs.paper==='roll'){
+    const cards=items.map(p=>`<section class="rollPage">${labelHtmlCard(p,prefs).replace('class="printLabel"',`class="printLabel" style="width:${prefs.width}mm;height:${prefs.height}mm"`)}</section>`).join('');
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Etiquetas · ${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</title><style>@page{size:${prefs.width}mm ${prefs.height}mm;margin:0}${common}.rollPage{width:${prefs.width}mm;height:${prefs.height}mm;break-after:page;page-break-after:always}.rollPage:last-child{break-after:auto;page-break-after:auto}</style></head><body>${cards}</body></html>`;
+  }
+  const lay=labelsA4Layout(prefs),totalPages=Math.max(1,Math.ceil(items.length/lay.perPage)),pages=[];
+  for(let pi=0;pi<totalPages;pi++){
+    const chunk=items.slice(pi*lay.perPage,(pi+1)*lay.perPage),cards=[];
+    chunk.forEach((p,i)=>{
+      const col=i%lay.cols,row=Math.floor(i/lay.cols),x=lay.left+col*(prefs.width+lay.gap),y=lay.top+row*(prefs.height+lay.gap);
+      cards.push(labelHtmlCard(p,prefs).replace('class="printLabel"',`class="printLabel" style="position:absolute;left:${x}mm;top:${y}mm;width:${prefs.width}mm;height:${prefs.height}mm"`));
+    });
+    pages.push(`<section class="printPage">${cards.join('')}</section>`);
+  }
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Etiquetas · ${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</title><style>@page{size:A4 portrait;margin:0}${common}.printPage{position:relative;width:210mm;height:297mm;break-after:page;page-break-after:always;overflow:hidden}.printPage:last-child{break-after:auto;page-break-after:auto}</style></head><body>${pages.join('')}</body></html>`;
 }
 function labelsPrint(){
   try{
@@ -1350,7 +1400,7 @@ function updateHardwarePanel(){
   if(publish){publish.style.display=local&&admin&&p?'inline-flex':'none';publish.disabled=!p;}
   if($('hardwareScopeLabel'))$('hardwareScopeLabel').textContent=local?'Minhas ferragens':'Ferragens globais';
   if($('hardwareScopeHint'))$('hardwareScopeHint').textContent=local
-    ?(admin?'Ferragens deste aparelho. Selecione uma e use “Publicar selecionada para todos” para disponibilizar globalmente.':'Ferragens pessoais salvas somente neste aparelho.')
+    ?(admin?'Ferragens da sua conta. Selecione uma e use “Publicar selecionada para todos” para disponibilizar globalmente.':'Ferragens pessoais salvas na sua conta e sincronizadas entre seus aparelhos.')
     :(admin?'Ferragens oficiais: você pode criar, editar e excluir. Todos os usuários conectados enxergam esta lista.':'Ferragens oficiais publicadas pelo administrador. Você pode aplicar normalmente, mas somente o administrador altera a lista.');
   const info=$('hardwarePresetInfo'),sum=$('hardwareContactSummary'),applied=$('hardwareAppliedInfo');if(!info||!sum)return;
   if(!p){
@@ -1483,7 +1533,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.84 — ciclo de vida das ferragens.
+// 1.100.86 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
