@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.81 · PLANO DE CORTE ESTILO OPENCUTLIST
+// 1.100.82 · PLANO DE CORTE ESTILO OPENCUTLIST
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -193,8 +193,41 @@ function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
 }
 function cutPlanGroupRows(parts){
   const map=new Map();
-  for(const p of parts){const k=cutPlanPartSignature(p);if(!map.has(k))map.set(k,{...p,qty:0,spaceNames:new Set()});const r=map.get(k);r.qty++;if(p.spaceName)r.spaceNames.add(p.spaceName);}
+  for(const p of parts){
+    const k=cutPlanPartSignature(p);
+    if(!map.has(k))map.set(k,{...p,qty:0,spaceNames:new Set(),sourceObjects:[]});
+    const r=map.get(k);r.qty++;if(p.spaceName)r.spaceNames.add(p.spaceName);
+    if(p.object&&!r.sourceObjects.includes(p.object))r.sourceObjects.push(p.object);
+  }
   return [...map.values()].sort((a,b)=>String(a.cutCode).localeCompare(String(b.cutCode),'en',{numeric:true}));
+}
+function cutPlanToggleGrainObjects(sourceObjects,{keepPreview=false,previewObject=null}={}){
+  const targets=[...new Set((sourceObjects||[]).filter(Boolean))].filter(o=>o.userData?.materialGrain);
+  if(!targets.length){toast('Esta peça não usa material madeirado / com veio');return;}
+  for(const o of targets){
+    const u=o.userData||{};
+    u.materialGrainRotation=normalizePieceGrainRotation(u.materialGrainRotation)===90?0:90;
+  }
+  commitHistory();
+  // Recalcula imediatamente porque mudar o veio pode obrigar a peça a girar
+  // 90° na chapa e, por consequência, reorganizar todo o plano de corte.
+  renderPartsList();
+  if(keepPreview){
+    const wanted=previewObject||targets[0];
+    sheetPreviewGroups=cutPlanLastGroups;
+    let foundGroup=-1,foundPart=null;
+    for(let gi=0;gi<sheetPreviewGroups.length;gi++){
+      const p=sheetPreviewGroups[gi].parts.find(x=>x.object===wanted||(wanted.userData?.partId&&x.partId===wanted.userData.partId));
+      if(p){foundGroup=gi;foundPart=p;break;}
+    }
+    if(foundGroup>=0){
+      sheetPreviewIndex=foundGroup;sheetPreviewSelectedPart=foundPart;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw();
+    }else{
+      sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw();
+    }
+  }
+  const rot=normalizePieceGrainRotation(targets[0].userData?.materialGrainRotation);
+  toast(targets.length>1?`Veio alterado em ${targets.length} peças · ${rot}°`:`Veio da peça alterado para ${rot}°`);
 }
 function renderPartsList(){
   const cfg=cutPlanCfgFromUi();setSheetPrefs(cfg);updateSheetCutModeUi();
@@ -217,7 +250,14 @@ function renderPartsList(){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
         const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?` · veio ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${actualMachiningCount(p)?' · USINAGENS: '+actualMachiningCount(p):''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
-        const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;row.append(left,qty);box.appendChild(row);
+        const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;
+        const right=document.createElement('div');right.className='cutPlanRowActions';
+        if(p.materialGrain){
+          const grainBtn=document.createElement('button');grainBtn.type='button';grainBtn.className='cutPlanGrainBtn';grainBtn.textContent=p.qty>1?`↻ Veio ×${p.qty}`:'↻ Veio';grainBtn.title=p.qty>1?'Rotacionar 90° o veio de todas as peças iguais desta linha':'Rotacionar 90° somente o veio desta peça';
+          grainBtn.onclick=e=>{e.preventDefault();e.stopPropagation();cutPlanToggleGrainObjects(p.sourceObjects)};
+          right.appendChild(grainBtn);
+        }
+        right.appendChild(qty);row.append(left,right);box.appendChild(row);
       }
       const chips=document.createElement('div');chips.style.padding='8px 10px 10px';
       for(const x of data.sheets){const c=document.createElement('button');c.type='button';c.className='sheetChip';c.innerHTML=`<strong>Chapa ${x.g.sheetNo}</strong> · ${nice(x.g.stats.efficiency)}% · ${nice(x.g.stats.cutLength/1000)} m corte`;c.onclick=()=>openSheetPreviewAt(x.gi);chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
@@ -322,10 +362,12 @@ function cutPlanRenderSide(){
   }else{
     const same=g.parts.filter(x=>x.cutCode===p.cutCode).length;
     const ops=cutPlanMachiningSummary(p);
-    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>`;
+    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button>${p.materialGrain?`<button id="sheetPreviewRotateGrain" type="button" class="cutPlanPreviewGrainBtn">↻ Rotacionar veio 90° desta peça</button>`:''}</div>`;
   }
   $('sheetPreviewIsolate').onclick=()=>{if(sheetPreviewSelectedPart){sheetPreviewIsolated=!sheetPreviewIsolated;sheetPreviewDraw()}};
   $('sheetPreviewFit').onclick=()=>{sheetPreviewIsolated=false;sheetPreviewDraw()};
+  const grainBtn=$('sheetPreviewRotateGrain');
+  if(grainBtn&&sheetPreviewSelectedPart?.object)grainBtn.onclick=()=>cutPlanToggleGrainObjects([sheetPreviewSelectedPart.object],{keepPreview:true,previewObject:sheetPreviewSelectedPart.object});
   $('sheetPreviewSheetInfo').innerHTML=`<strong>${escapeHtml(g.displayName)}</strong> · chapa ${g.sheetNo}/${g.totalSheets}`;
   $('sheetPreviewFaceInfo').textContent=`${nice(st.efficiency)}% · ${nice(st.cutLength/1000)} m de corte`;
 }

@@ -116,7 +116,7 @@ function libraryCurvedPostPlacementForTarget(p,cfg,info){
   const tag=stored.postStructuralTag||null;
   let sample=null;
 
-  // 1.100.81: montantes estruturais não podem ser posicionados usando a caixa
+  // 1.100.82: montantes estruturais não podem ser posicionados usando a caixa
   // retangular da peça rotacionada. Isso deslocava principalmente o último
   // montante mesmo quando a configuração era 0 mm (rente). Recalculamos a
   // posição pela própria trajetória curva e pelas regras estruturais.
@@ -708,7 +708,7 @@ function closeProductionDialog(){
   $('productionDialog').style.display='none';
 }
 
-// ---------- 1.100.81 · Etiquetas das peças estilo OpenCutList ----------
+// ---------- 1.100.82 · Etiquetas das peças estilo OpenCutList ----------
 const LABELS_PREFS_KEY='designlabLabelsV110075';
 function labelsPrefs(){
   const d={scope:'project',mode:'piece',width:70,height:40,paper:'a4',margin:8,gap:3,sort:'code',showProject:true,showSpace:true,showBands:true,showMachining:true,showGrain:true,showId:true};
@@ -1483,7 +1483,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
   commitHistory();toast(`${name||st.name} removida por completo`);
 }
 
-// 1.100.81 — ciclo de vida das ferragens.
+// 1.100.82 — ciclo de vida das ferragens.
 // Uma aplicação de ferragem pode gerar furos em duas ou mais peças. Se uma
 // dessas peças for apagada, toda a aplicação ligada a ela deve desaparecer,
 // inclusive os marcadores 3D que pertencem às peças de contato.
