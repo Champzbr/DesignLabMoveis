@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.200.03 · PLANO DE CORTE OTIMIZADO
+// 1.200.04 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -454,7 +454,7 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
-// ---------- 1.200.03 · impressão técnica do plano de corte em A4 ----------
+// ---------- 1.200.04 · impressão técnica do plano de corte em A4 ----------
 // A impressão é propositalmente independente do indicador de veio da tela.
 // O sentido continua sendo respeitado no cálculo/encaixe, mas não é desenhado
 // nem escrito no relatório impresso.
@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.03</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.04</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>

@@ -710,7 +710,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.200.03', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.200.04', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -1415,7 +1415,7 @@ function bestCellNearPoint(root,p){
   return visible.reduce((best,c)=>distanceSqPointToCell(p,c)<distanceSqPointToCell(p,best)?c:best,visible[0]);
 }
 
-// 1.200.03 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
+// 1.200.04 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
 // ao(s) vão(s) vizinho(s). Isso resolve principalmente lateral esquerda/direita,
 // base, chapéu, prateleira, fundo/frente e divisão vertical.
 function isSpaceCuttingPieceForHeal(o){
@@ -1690,7 +1690,7 @@ function axisVector(axis){
 
 // PEÇAS: 1 clique seleciona; segurar abre Configuração da peça.
 // ESPAÇOS/DIVISÕES: 1 clique seleciona; segurar abre o menu flutuante.
-// O antigo duplo clique do espaço foi removido na 1.200.03.
+// O antigo duplo clique do espaço foi removido na 1.200.04.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
@@ -1719,7 +1719,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.200.03 · menu do espaço igual ao menu da peça:
+// 1.200.04 · menu do espaço igual ao menu da peça:
 // 1 toque = somente seleciona; tocar/clicar e SEGURAR = abre o menu flutuante.
 let spaceLongPressTimer=null;
 let spaceLongPress={id:null,rootId:null,cellId:null,x:0,y:0,triggered:false};
@@ -1797,7 +1797,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.200.03 · segurar a peça abre a configuração (mouse e touch).
+// 1.200.04 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -1838,7 +1838,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.200.03: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.200.04: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -1853,7 +1853,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       resetSpaceDoubleTap();
-      // 1.200.03: um toque apenas seleciona e fecha o menu. Segurar o mesmo
+      // 1.200.04: um toque apenas seleciona e fecha o menu. Segurar o mesmo
       // espaço/divisão abre a janela, exatamente como a configuração da peça.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       startSpaceLongPress(rootId,cellId,activePointerId,downClientX,downClientY);
