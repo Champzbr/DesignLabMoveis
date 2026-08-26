@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.98",
+  "version": "1.100.99",
   "required": false,
-  "message": "Mingli ZAW refeito com árvore Step/Cut/produto e IDs internos conforme o Result.zaw real fotografado na máquina.",
+  "message": "Mingli ZAW alinhado ao esquema nativo fotografado: EdgeExCluedWidth, UseNums, ProductsNum, Ratio e árvore/Scheme corrigidos.",
   "released_at": "2026-08-26T08:03:00-03:00"
 }

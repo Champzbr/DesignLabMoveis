@@ -1,20 +1,23 @@
-DESIGNLABMOVEIS 1.100.97 - MINGLIPANELSAW / ZAW DE TESTE
+DESIGNLABMOVEIS 1.100.99 - MINGLIPANELSAW / ZAW
 
-Nesta versão o XML foi corrigido conforme a foto nítida do Result.zaw original gerado pelo MingliPanelSaw.
+O gerador foi alinhado literalmente ao Result.zaw fotografado no controlador Prepare V2024.03.27.22.
 
-Nomes/capitalização copiados do arquivo real:
-- ZhongDeModelResult
-- EdgeExcludeWidth
-- knifewidth
-- ProductUseed
-- stepformProductID
+CORREÇÕES DE ESQUEMA:
+- EdgeExCluedWidth: grafia exata observada no arquivo da máquina.
+- UseNums com U maiúsculo.
+- CutScheme0 usa ProductNums.
+- Scheme0 usa ProductsNum.
+- Ratio usa ponto decimal (ex.: 98.18).
+- O bloco <result> mantém vírgula decimal (ex.: 98,55 / 1,63).
+- ProductArea e ProductUseed consideram os registros finais do Scheme (peças + sobras finais), como no exemplo da máquina.
+- widthDirection e stepformproductID mantêm caixa exata.
+- Todos os Cut usam ID="Z0" e RemainID="Trash".
+- Cortes iguais consecutivos usam Num.
+- Faixa que já é peça final sai diretamente do Step000, sem Step filho artificial.
+- Scheme0 é escrito na ordem física da árvore, intercalando Product e Spare.
+- Um Result.zaw por chapa física.
+- UTF-8 sem BOM, CRLF.
 
-A exportação continua gerando 1 arquivo .ZAW por chapa física.
+A pasta TESTE-MINGLI contém um Result.zaw gerado pelo mesmo motor reproduzindo o exemplo 3000 x 550 com 2 peças 3000 x 270.
 
-Antes de testar um projeto real, abra TESTE-MINGLI/Result-referencia-foto-2x3000x270.zaw.
-Se carregar sem erro, confira desenho, dimensões e sequência antes de qualquer corte automático.
-
-
-1.100.97: ZAW sem BOM; cada chapa em CHAPA_xx_.../Result.zaw para reproduzir o nome nativo do Mingli.
-
-1.100.97: grafias literais da foto: ZhongdeoptimizationResults, useNums e stepformproductID.
+IMPORTANTE: confira visualmente o plano no controlador antes de executar a serra.
