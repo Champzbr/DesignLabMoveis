@@ -1,23 +1,36 @@
-DESIGNLABMOVEIS 1.200.01 · MINGLIPANELSAW / SECCIONADORA DE PINÇA
+DESIGNLABMOVEIS 1.200.04 · MINGLIPANELSAW / SECCIONADORA DE PINÇA
 
 PLANO MESTRE
 - O plano de corte visual é a fonte oficial da sequência da seccionadora.
 - As faixas são formadas globalmente com TODAS as peças do mesmo material/espessura antes de serem distribuídas entre as chapas.
-- Peças compatíveis são mantidas juntas na mesma faixa quando isso melhora o aproveitamento (ex.: J + C de 1290 x 355).
-- Impressão, CSV e Mingli Result.zaw usam exatamente as mesmas faixas, peças, posições e chapas do plano exibido.
+- Peças compatíveis são mantidas juntas na mesma faixa quando isso melhora o aproveitamento.
+- Impressão, CSV e Mingli Result.zaw usam as mesmas faixas, peças, posições e chapas do plano exibido.
 - O exportador NÃO recalcula um segundo plano escondido.
 
-OTIMIZAÇÃO 1.200.01
+SEQUÊNCIA FÍSICA DO CONTROLADOR
+1. Aplicar limpeza/refilo da chapa.
+2. Fazer TODOS os cortes primários/horizontais de Step000.
+3. Voltar para a primeira tira produzida.
+4. Girar/processar essa tira até concluir o ramo inteiro. Se o restante precisar cortar na outra direção, cria-se um Step filho e ocorre novo giro antes de seguir.
+5. Só depois passar para a tira seguinte, repetindo até terminar a chapa.
+
+MINGLI ZAW — 1.200.04
+- 1 Result.zaw por chapa física.
+- UseNums com U e N maiúsculos, literalmente igual às fotos nativas ampliadas.
+- EdgeExcluedWidth, knifewidth, ProductNums, ProductsNum, widthDirection e stepformproductID mantêm a grafia/capitalização nativa.
+- 0Z2 quando existe sobra final física; 0Z1 quando a sobra final é exatamente 0 mm.
+- Validação do XML e das referências antes do download.
+- UTF-8 sem BOM e CRLF.
+
+OTIMIZAÇÃO
 1. Testa direção inicial no comprimento e/ou largura conforme a configuração.
 2. Testa múltiplas ordens de peças.
 3. Forma faixas globalmente, completando primeiro faixas existentes da mesma medida.
-4. Depois usa uma seleção tipo knapsack por área: enche primeiro as chapas com o máximo de área de peças possível e concentra a sobra maior na última chapa.
-5. O primeiro critério continua sendo menor quantidade de chapas; depois reduz faixas/giros e sobras dispersas.
+4. Distribui as faixas para reduzir a quantidade de chapas e concentrar sobras úteis.
+5. O plano visual continua sendo a fonte da exportação.
 
-MINGLI ZAW
-- Continua gerando um Result.zaw por chapa física.
-- A árvore ZAW é montada diretamente das faixas do plano mestre.
-- Antes de executar a serra, abra o Result.zaw no MingliPanelSaw e confira desenho, medidas, quantidade e sequência.
+TESTE
+Antes de executar a serra, apenas abra o Result.zaw no MingliPanelSaw e confira desenho, medidas, quantidade e sequência.
 
 VERSÕES
-A partir daqui: 1.200.01, 1.200.02, 1.200.03, 1.200.04...
+1.200.01 → 1.200.02 → 1.200.03 → 1.200.04 → 1.200.05 ...

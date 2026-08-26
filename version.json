@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.03",
+  "version": "1.200.04",
   "required": false,
-  "message": "Mingli ZAW: UseNums literal nativo e nó terminal 0Z2 com sobra / 0Z1 sem sobra.",
-  "released_at": "2026-08-26T10:48:00-03:00"
+  "message": "Mingli ZAW: atributo EdgeExcluedWidth corrigido literalmente conforme o arquivo nativo da máquina.",
+  "released_at": "2026-08-26T11:57:00-03:00"
 }
