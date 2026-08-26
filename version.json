@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.07",
+  "version": "1.200.08",
   "required": false,
-  "message": "Mingli ZAW: corrigidos stepformProductID (P maiúsculo), materialsNum unit=\"zhang\" e numeração SpecificN vinculada à posição no Scheme0, conforme as novas fotos da máquina.",
-  "released_at": "2026-08-26T13:13:00-03:00"
+  "message": "Mingli ZAW: materialsNum corrigido para unit=\"Zhang\" e sobra terminal do Step000 corrigida para Spare ProductID=\"0Z1\", conforme as fotos ampliadas da máquina.",
+  "released_at": "2026-08-26T13:54:46-03:00"
 }
