@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.97 — MAPA DOS ARQUIVOS JAVASCRIPT
+DESIGNLABMOVEIS 1.100.98 — MAPA DOS ARQUIVOS JAVASCRIPT
 
 OBJETIVO DESTA VERSÃO
 Separar o código para manutenção SEM transformar o motor antigo em módulos independentes ainda.
@@ -25,4 +25,4 @@ REGERAR APP.JS
 Execute: python js/build-app.py
 
 IMPORTANTE
-Não altere a ordem dos arquivos js/src sem testar. Na próxima etapa, depois de validar a 1.100.97, podemos começar a transformar áreas em módulos ES reais com import/export.
+Não altere a ordem dos arquivos js/src sem testar. Na próxima etapa, depois de validar a 1.100.98, podemos começar a transformar áreas em módulos ES reais com import/export.
