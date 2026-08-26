@@ -1,4 +1,4 @@
-DESIGNLABMOVEIS 1.100.99
+DESIGNLABMOVEIS 1.200.01
 
 CORREÇÃO PWA / CELULAR SEM BARRA DE URL
 - Manifesto fixado na raiz: id=/, start_url=/ e scope=/.

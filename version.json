@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.100.99",
+  "version": "1.200.01",
   "required": false,
-  "message": "Mingli ZAW alinhado ao esquema nativo fotografado: EdgeExCluedWidth, UseNums, ProductsNum, Ratio e árvore/Scheme corrigidos.",
-  "released_at": "2026-08-26T08:03:00-03:00"
+  "message": "Plano mestre da seccionadora: otimização global de faixas e mesma geometria no desenho, impressão, CSV e Mingli ZAW.",
+  "released_at": "2026-08-26T09:44:00-03:00"
 }

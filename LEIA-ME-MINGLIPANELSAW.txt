@@ -1,23 +1,23 @@
-DESIGNLABMOVEIS 1.100.99 - MINGLIPANELSAW / ZAW
+DESIGNLABMOVEIS 1.200.01 · MINGLIPANELSAW / SECCIONADORA DE PINÇA
 
-O gerador foi alinhado literalmente ao Result.zaw fotografado no controlador Prepare V2024.03.27.22.
+PLANO MESTRE
+- O plano de corte visual é a fonte oficial da sequência da seccionadora.
+- As faixas são formadas globalmente com TODAS as peças do mesmo material/espessura antes de serem distribuídas entre as chapas.
+- Peças compatíveis são mantidas juntas na mesma faixa quando isso melhora o aproveitamento (ex.: J + C de 1290 x 355).
+- Impressão, CSV e Mingli Result.zaw usam exatamente as mesmas faixas, peças, posições e chapas do plano exibido.
+- O exportador NÃO recalcula um segundo plano escondido.
 
-CORREÇÕES DE ESQUEMA:
-- EdgeExCluedWidth: grafia exata observada no arquivo da máquina.
-- UseNums com U maiúsculo.
-- CutScheme0 usa ProductNums.
-- Scheme0 usa ProductsNum.
-- Ratio usa ponto decimal (ex.: 98.18).
-- O bloco <result> mantém vírgula decimal (ex.: 98,55 / 1,63).
-- ProductArea e ProductUseed consideram os registros finais do Scheme (peças + sobras finais), como no exemplo da máquina.
-- widthDirection e stepformproductID mantêm caixa exata.
-- Todos os Cut usam ID="Z0" e RemainID="Trash".
-- Cortes iguais consecutivos usam Num.
-- Faixa que já é peça final sai diretamente do Step000, sem Step filho artificial.
-- Scheme0 é escrito na ordem física da árvore, intercalando Product e Spare.
-- Um Result.zaw por chapa física.
-- UTF-8 sem BOM, CRLF.
+OTIMIZAÇÃO 1.200.01
+1. Testa direção inicial no comprimento e/ou largura conforme a configuração.
+2. Testa múltiplas ordens de peças.
+3. Forma faixas globalmente, completando primeiro faixas existentes da mesma medida.
+4. Depois usa uma seleção tipo knapsack por área: enche primeiro as chapas com o máximo de área de peças possível e concentra a sobra maior na última chapa.
+5. O primeiro critério continua sendo menor quantidade de chapas; depois reduz faixas/giros e sobras dispersas.
 
-A pasta TESTE-MINGLI contém um Result.zaw gerado pelo mesmo motor reproduzindo o exemplo 3000 x 550 com 2 peças 3000 x 270.
+MINGLI ZAW
+- Continua gerando um Result.zaw por chapa física.
+- A árvore ZAW é montada diretamente das faixas do plano mestre.
+- Antes de executar a serra, abra o Result.zaw no MingliPanelSaw e confira desenho, medidas, quantidade e sequência.
 
-IMPORTANTE: confira visualmente o plano no controlador antes de executar a serra.
+VERSÕES
+A partir daqui: 1.200.01, 1.200.02, 1.200.03, 1.200.04...
