@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.08",
+  "version": "1.200.09",
   "required": false,
-  "message": "Mingli ZAW: materialsNum corrigido para unit=\"Zhang\" e sobra terminal do Step000 corrigida para Spare ProductID=\"0Z1\", conforme as fotos ampliadas da máquina.",
-  "released_at": "2026-08-26T13:54:46-03:00"
+  "message": "Mingli ZAW: DOCTYPE corrigido; SpecificN agora trata arquivo complexo e arquivo simples; IDs Spare 0Z são dinâmicos conforme Num/direção/quantidade, usando as fotos grandes como schema e o Result pequeno como referência de mecânica.",
+  "released_at": "2026-08-26T14:20:00-03:00"
 }
