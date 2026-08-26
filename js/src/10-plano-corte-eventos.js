@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.100.99 · PLANO DE CORTE OTIMIZADO
+// 1.200.01 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -39,7 +39,7 @@ function updateSheetCutModeUi(){
   if(!help)return;
   if(mode==='panel'){
     help.className='sheetModeHelp panel';
-    help.innerHTML='<strong>Seccionadora de pinça:</strong> monta o plano em 2 etapas. Primeiro corta a chapa em faixas; depois o operador gira cada faixa <b>uma única vez em 90°</b> e executa os cortes das peças. Além da sequência CSV, a versão 1.100.99 gera pacote Mingli .ZAW de teste com UM arquivo por chapa física; as etapas ficam dentro do mesmo ZAW.';
+    help.innerHTML='<strong>Seccionadora de pinça · plano mestre:</strong> primeiro otimiza TODAS as peças do material e forma as faixas globalmente; depois distribui as mesmas faixas entre as chapas. O desenho, a impressão, o CSV e o Mingli .ZAW usam <b>exatamente o mesmo posicionamento</b>, sem recalcular outro plano na exportação.';
   }else if(mode==='cnc'){
     help.className='sheetModeHelp cnc';
     help.innerHTML='<strong>CNC / Router:</strong> usa encaixe livre para aproveitar área. Não força sequência guilhotina no plano visual.';
@@ -263,7 +263,7 @@ function renderPartsList(){
       const chips=document.createElement('div');chips.style.padding='8px 10px 10px';
       for(const x of data.sheets){const c=document.createElement('button');c.type='button';c.className='sheetChip';c.innerHTML=`<strong>Chapa ${x.g.sheetNo}</strong> · ${nice(x.g.stats.efficiency)}% · ${nice(x.g.stats.cutLength/1000)} m corte`;c.onclick=()=>openSheetPreviewAt(x.gi);chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
     }
-    $('partsListInfo').textContent=cfg.cutMode==='open'?'Plano otimizado: cortes guilhotina, refilo, espessura de corte, nível de otimização, direção preferida e sobras úteis.':cfg.cutMode==='panel'?'Seccionadora de pinça: 2 etapas, uma virada manual de 90° por faixa e sequência de execução numerada.':'CNC / Router: encaixe livre por área com o exportador Aspire existente.';
+    $('partsListInfo').textContent=cfg.cutMode==='open'?'Plano otimizado: cortes guilhotina, refilo, espessura de corte, nível de otimização, direção preferida e sobras úteis.':cfg.cutMode==='panel'?'Seccionadora de pinça: plano mestre global. As faixas são otimizadas antes de serem distribuídas nas chapas; impressão, CSV e ZAW seguem o mesmo plano.':'CNC / Router: encaixe livre por área com o exportador Aspire existente.';
   }catch(err){cutPlanLastGroups=[];summary.textContent=err.message||'Não foi possível calcular as chapas';$('partsListInfo').textContent='Lista geral de peças de todos os espaços do projeto.';}
 }
 function openPartsListDialog(){
@@ -392,7 +392,7 @@ function cutPlanPanelSequenceHtml(g,{compact=false}={}){
     const pcs=(st.items||[]).map(it=>`${escapeHtml(String(it.code||'?'))} ${nice(it.length)}`).join(' · ');
     return `<div class="panelSawSeqStrip"><b>F${st.number} · ${nice(st.size)} mm</b><span>↻ 90° · ${pcs||'sem peças'}</span></div>`;
   }).join('');
-  return `<div class="panelSawSeq ${compact?'compact':''}"><div class="panelSawSeqTitle">SEQUÊNCIA DA SECCIONADORA</div><div><b>1.</b> Formar ${seq.strips?.length||0} faixa(s) · ${direction}</div><div><b>2.</b> Girar cada faixa 90° uma vez e cortar as peças</div>${strips}</div>`;
+  return `<div class="panelSawSeq ${compact?'compact':''}"><div class="panelSawSeqTitle">SEQUÊNCIA DA SECCIONADORA · PLANO MESTRE</div><div><b>1.</b> Formar ${seq.strips?.length||0} faixa(s) · ${direction}</div><div><b>2.</b> Girar cada faixa 90° uma vez e cortar as peças · mesmas posições do plano</div>${strips}</div>`;
 }
 
 function cutPlanRenderSide(){
@@ -401,7 +401,7 @@ function cutPlanRenderSide(){
   status.className='sheetPreviewStatus ok';
   const mach=sheetPreviewStats(g),machTotal=mach.holesA+mach.holesB+mach.edge+mach.groovesA+mach.groovesB+mach.slots;
   status.innerHTML=`<strong>${escapeHtml(g.displayName)}</strong><br>Chapa ${g.sheetNo}/${g.totalSheets} · ${g.parts.length} peça(s)<br>Aproveitamento <b>${nice(st.efficiency)}%</b> · corte estimado <b>${nice(st.cutLength/1000)} m</b><br>Usinagens: <b>${machTotal}</b> · furos A ${mach.holesA} · B ${mach.holesB}${mach.edge?` · borda ${mach.edge}`:''} · rasgos ${mach.groovesA+mach.groovesB}<br>Chapa ${nice(cfg.width)} × ${nice(cfg.height)} · refilo ${nice(cfg.margin)} · corte ${nice(cfg.gap)} mm${keep?`<br>Sobras úteis: ${escapeHtml(keep)}`:'<br>Sem sobra útil acima do mínimo configurado.'}${g.planMode==='panel'?cutPlanPanelSequenceHtml(g,{compact:true}):''}`;
-  $('sheetPreviewModeText').textContent=g.planMode==='open'?'Otimizado · cortes guilhotina e sobras concentradas.':g.planMode==='panel'?`Seccionadora de pinça · 2 etapas · ${g.panelSequence?.turns||0} giro(s) manual(is).`:'CNC / Router · encaixe livre por área.';
+  $('sheetPreviewModeText').textContent=g.planMode==='open'?'Otimizado · cortes guilhotina e sobras concentradas.':g.planMode==='panel'?`Seccionadora de pinça · plano mestre · ${g.panelSequence?.turns||0} faixa(s)/giro(s).`:'CNC / Router · encaixe livre por área.';
   const p=sheetPreviewSelectedPart,card=$('sheetPreviewPartCard');
   if(!p||!g.parts.includes(p)){
     sheetPreviewSelectedPart=null;sheetPreviewIsolated=false;card.innerHTML='<h4>Nenhuma peça selecionada</h4><div class="meta">Toque numa peça para ver código, medida, material e origem.</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary" disabled>Ampliar peça</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button></div>';
@@ -454,7 +454,7 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
-// ---------- 1.100.99 · impressão técnica do plano de corte em A4 ----------
+// ---------- 1.200.01 · impressão técnica do plano de corte em A4 ----------
 // A impressão é propositalmente independente do indicador de veio da tela.
 // O sentido continua sendo respeitado no cálculo/encaixe, mas não é desenhado
 // nem escrito no relatório impresso.
@@ -517,7 +517,7 @@ function cutPlanPrintPanelSequence(group){
     const pcs=(st.items||[]).map(it=>`<span><b>${escapeHtml(String(it.code||'?'))}</b> ${nice(it.length)}</span>`).join('');
     return `<div class="seqStrip"><div><b>F${st.number}</b><small>${nice(st.size)} mm</small></div><div class="seqTurn">↻ GIRAR 90°</div><div class="seqPieces">${pcs||'<span>—</span>'}</div></div>`;
   }).join('');
-  return `<div class="sequencePanel"><div class="panelTitle">SEQUÊNCIA · SECCIONADORA</div><div class="seqIntro"><b>1. FORMAR FAIXAS</b><span>${seq.strips?.length||0} faixa(s) no ${label} · curso ${nice(long)} mm</span><b>2. GIRAR E CORTAR</b><span>Cada faixa gira somente uma vez.</span></div><div class="seqStrips">${strips}</div></div>`;
+  return `<div class="sequencePanel"><div class="panelTitle">SEQUÊNCIA · SECCIONADORA · PLANO MESTRE</div><div class="seqIntro"><b>1. FORMAR FAIXAS</b><span>${seq.strips?.length||0} faixa(s) no ${label} · curso ${nice(long)} mm</span><b>2. GIRAR E CORTAR</b><span>Mesmas faixas e posições do desenho; cada faixa gira uma vez.</span></div><div class="seqStrips">${strips}</div></div>`;
 }
 
 function cutPlanPrintDocument(groups){
@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.100.99</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.01</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
