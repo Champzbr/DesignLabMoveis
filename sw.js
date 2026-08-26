@@ -1,8 +1,8 @@
-const CACHE = 'designlabmoveis-1.200.01';
+const CACHE = 'designlabmoveis-1.200.02';
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./designlabmoveis-1.200.01.html",
+  "./designlabmoveis-1.200.02.html",
   "./manifest.json",
   "./version.json",
   "./icons/icon-192.png",

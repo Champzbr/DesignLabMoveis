@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.01",
+  "version": "1.200.02",
   "required": false,
-  "message": "Plano mestre da seccionadora: otimização global de faixas e mesma geometria no desenho, impressão, CSV e Mingli ZAW.",
-  "released_at": "2026-08-26T09:44:00-03:00"
+  "message": "Mingli ZAW: useNums literal do arquivo nativo, nó final 0Z1 obrigatório e validação da árvore antes de exportar.",
+  "released_at": "2026-08-26T10:48:00-03:00"
 }
