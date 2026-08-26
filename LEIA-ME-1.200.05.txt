@@ -1,0 +1,13 @@
+DESIGNLABMOVEIS 1.200.05
+
+CORREÇÃO MINGLI .ZAW
+
+Nesta versão foi alterado somente o nome do atributo do cabeçalho ZAW:
+
+  EdgeExcluedWidth  ->  EdgeExCluedWidth
+
+A grafia EdgeExCluedWidth foi confirmada novamente nas fotos ampliadas do Result.zaw gerado pelo controlador Mingli/Prepare.
+
+Não foram alterados o plano mestre, a otimização, a árvore de Steps, IDs, medidas, posições, UseNums, ProductNums/ProductsNum, widthDirection, stepformproductID, regra 0Z1/0Z2, serra ou refilo.
+
+A validação do exportador agora exige EdgeExCluedWidth e rejeita EdgeExcluedWidth.
