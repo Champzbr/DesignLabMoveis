@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.02",
+  "version": "1.200.03",
   "required": false,
-  "message": "Mingli ZAW: useNums literal do arquivo nativo, nó final 0Z1 obrigatório e validação da árvore antes de exportar.",
+  "message": "Mingli ZAW: UseNums literal nativo e nó terminal 0Z2 com sobra / 0Z1 sem sobra.",
   "released_at": "2026-08-26T10:48:00-03:00"
 }
