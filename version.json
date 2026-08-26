@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.11",
+  "version": "1.200.12",
   "required": false,
-  "message": "Plano de corte: a largura e a altura digitadas na tela agora são soberanas. O material não pode mais sobrescrever 2700×1850 por 2750×1850; cálculo, sobras, prévia, impressão, CSV, DXF e Mingli ZAW usam exatamente a chapa informada.",
-  "released_at": "2026-08-26T15:58:00-03:00"
+  "message": "Mingli ZAW: corrigida a validação no navegador de PC. O DOMParser agora valida o XML sem o caractere BOM, enquanto o arquivo final continua sendo salvo com UTF-8 BOM, CRLF e conteúdo idêntico ao Result.zaw da máquina.",
+  "released_at": "2026-08-26T17:10:00-03:00"
 }
