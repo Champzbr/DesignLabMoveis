@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.05",
+  "version": "1.200.07",
   "required": false,
-  "message": "Mingli ZAW: atributo EdgeExCluedWidth restaurado exatamente conforme as fotos nativas da máquina.",
-  "released_at": "2026-08-26T12:00:00-03:00"
+  "message": "Mingli ZAW: corrigidos stepformProductID (P maiúsculo), materialsNum unit=\"zhang\" e numeração SpecificN vinculada à posição no Scheme0, conforme as novas fotos da máquina.",
+  "released_at": "2026-08-26T13:13:00-03:00"
 }
