@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.10 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.200.11 - Forma paramétrica</title>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/editor.css">
 <link rel="stylesheet" href="css/materials.css">
@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/mobile.css">
 
-<!-- 1.200.10: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.11: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -36,7 +36,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.10</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.11</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -130,7 +130,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.10</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.11</span>
         </div>
       </div>
 
@@ -477,7 +477,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.10 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.11 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1214,11 +1214,11 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.10</span>
+      <span class="cutPlanBadge">1.200.11</span>
     </div>
 
     <div class="cutPlanSettings">
-      <div class="cutPlanSectionTitle">Chapa padrão / fallback</div>
+      <div class="cutPlanSectionTitle">Chapa usada no plano</div>
       <div class="spaceFields two">
         <label>Comprimento da chapa (mm)<input id="sheetWidth" type="number" value="2750" min="100" step="1"></label>
         <label>Largura da chapa (mm)<input id="sheetHeight" type="number" value="1850" min="100" step="1"></label>
@@ -1232,7 +1232,7 @@
         </label>
       </div>
 
-      <p class="dialogHelp" style="margin:6px 0 2px">Se o material tiver Comprimento/Largura cadastrados em Materiais, o plano usa essas medidas. Estes valores ficam para materiais antigos ou sem cadastro.</p>
+      <p class="dialogHelp" style="margin:6px 0 2px">As medidas digitadas aqui são usadas diretamente no cálculo, nas sobras, na prévia, na impressão e no Mingli ZAW. O material não substitui mais o tamanho da chapa informado aqui.</p>
 
       <div class="cutPlanSectionTitle" style="margin-top:10px">Otimização</div>
       <div class="spaceFields two">
@@ -1970,6 +1970,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.10"></script>
+<script type="module" src="js/app.js?v=1.200.11"></script>
 </body>
 </html>

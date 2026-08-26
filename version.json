@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.10",
+  "version": "1.200.11",
   "required": false,
-  "message": "Mingli ZAW: schema alinhado ao Result.zaw real da máquina (EdgeExcluedWidth, KnifeWidth, Width/WidthDirection, OriginX/OriginY, UnfinishedProduct, Ratio com vírgula), UTF-8 com BOM e ordem física preservada nos empates.",
-  "released_at": "2026-08-26T15:40:00-03:00"
+  "message": "Plano de corte: a largura e a altura digitadas na tela agora são soberanas. O material não pode mais sobrescrever 2700×1850 por 2750×1850; cálculo, sobras, prévia, impressão, CSV, DXF e Mingli ZAW usam exatamente a chapa informada.",
+  "released_at": "2026-08-26T15:58:00-03:00"
 }
