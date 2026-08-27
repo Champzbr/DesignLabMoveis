@@ -5,15 +5,15 @@
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.22';
+const DL_LAYOUT_VERSION='1.200.23';
 const DL_LAYOUT_VIEWS={
-  front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
-  top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
+  front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
+  top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
 };
 const dlLayoutEdgeCache=new WeakMap();
 const dlLayoutState={
   view:'sheet',mode:'technical',showDimensions:true,showInternal:true,showLabels:true,
-  showHidden:true,showHatch:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
+  showHidden:true,showHatch:true,hideDoors:false,hideFronts:false,visibleDimsOnly:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
   hiddenDims:new Set(),pickSection:null,lastMappings:[],dimHits:[],lastSvg:'',lastWidth:1800,lastHeight:1200,lastContext:null,renderToken:0
 };
 
@@ -34,6 +34,22 @@ function dlLayoutHexColor(o){
 function dlLayoutEligiblePiece(o){
   const u=o?.userData||{};
   return !!o && u.kind!=='hardware-visual' && u.kind!=='cylinder' && !u.isMachiningDraftPreview && !u.isSpacePickMesh;
+}
+function dlLayoutIsDoor(o){
+  const u=o?.userData||{},n=String(u.name||'');
+  return !!o && (!!u.doorConfig || /^Porta(?:\s|$)/i.test(n));
+}
+function dlLayoutIsFront(o){
+  const u=o?.userData||{},n=String(u.name||'');
+  return !!o && (u.drawerRole==='drawer-front' || /^Frente de gaveta(?:\s|$)/i.test(n));
+}
+function dlLayoutPiecesForView(ctx,view){
+  const internal=view==='frontOpen';
+  return ctx.pieces.filter(o=>{
+    if((internal||dlLayoutState.hideDoors)&&dlLayoutIsDoor(o))return false;
+    if((internal||dlLayoutState.hideFronts)&&dlLayoutIsFront(o))return false;
+    return true;
+  });
 }
 function dlLayoutRootFromValue(v){
   const s=String(v||'');
@@ -112,6 +128,7 @@ function dlLayoutProjectPoint(p,view){
     case 'right':return {u:-p.z,v:p.y,d:p.x};
     case 'top':return {u:p.x,v:-p.z,d:p.y};
     case 'bottom':return {u:p.x,v:p.z,d:-p.y};
+    case 'perspective':{const c=.8660254;return {u:c*(p.x-p.z),v:p.y+.32*(p.x+p.z),d:p.x+p.z};}
     default:return {u:p.x,v:p.y,d:p.z};
   }
 }
@@ -129,6 +146,15 @@ function dlLayoutConvexHull(points){
   const uniq=[];for(const p of pts){const q=uniq.at(-1);if(!q||Math.abs(q.u-p.u)>.001||Math.abs(q.v-p.v)>.001)uniq.push(p);}if(uniq.length<3)return uniq;
   const cross=(o,a,b)=>(a.u-o.u)*(b.v-o.v)-(a.v-o.v)*(b.u-o.u),lo=[],up=[];
   for(const p of uniq){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}for(let i=uniq.length-1;i>=0;i--){const p=uniq[i];while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}lo.pop();up.pop();return lo.concat(up);
+}
+function dlLayoutPointInHull(p,h){
+  if(!h||h.length<3)return false;let inside=false;
+  for(let i=0,j=h.length-1;i<h.length;j=i++){const a=h[i],b=h[j];const hit=((a.v>p.v)!==(b.v>p.v))&&(p.u<(b.u-a.u)*(p.v-a.v)/((b.v-a.v)||1e-9)+a.u);if(hit)inside=!inside;}
+  return inside;
+}
+function dlLayoutSegmentCovered(seg,nearer){
+  const samples=[.2,.5,.8];
+  return samples.every(t=>{const p={u:seg.a.u+(seg.b.u-seg.a.u)*t,v:seg.a.v+(seg.b.v-seg.a.v)*t};return nearer.some(n=>{const b=n.box;if(p.u<b.minU-.02||p.u>b.maxU+.02||p.v<b.minV-.02||p.v>b.maxV+.02)return false;return n.hull?.length>=3?dlLayoutPointInHull(p,n.hull):true;});});
 }
 function dlLayoutPieceProjected(o,view,index){
   const seg3=dlLayoutPieceEdges3D(o),segments=[],pts=[];let depth=0,n=0;
@@ -153,30 +179,34 @@ function dlLayoutSectionItem(o,axis,plane,index){
 }
 function dlLayoutModel(view,ctx){
   const bx=ctx.bounds,sectionX=bx.minX+(bx.maxX-bx.minX)*(dlLayoutState.sectionXPct/100),sectionY=bx.minY+(bx.maxY-bx.minY)*(dlLayoutState.sectionYPct/100);
-  let items=[],projection=view;
-  if(view==='sectionX'){projection='left';items=ctx.pieces.map((o,i)=>dlLayoutSectionItem(o,'x',sectionX,i)).filter(Boolean);}
-  else if(view==='sectionY'){projection='top';items=ctx.pieces.map((o,i)=>dlLayoutSectionItem(o,'y',sectionY,i)).filter(Boolean);}
-  else items=ctx.pieces.map((o,i)=>dlLayoutPieceProjected(o,view,i));
+  let items=[],projection=view==='frontOpen'?'front':view;
+  const pieces=dlLayoutPiecesForView(ctx,view);
+  if(view==='sectionX'){projection='left';items=pieces.map((o,i)=>dlLayoutSectionItem(o,'x',sectionX,ctx.pieces.indexOf(o))).filter(Boolean);}
+  else if(view==='sectionY'){projection='top';items=pieces.map((o,i)=>dlLayoutSectionItem(o,'y',sectionY,ctx.pieces.indexOf(o))).filter(Boolean);}
+  else items=pieces.map(o=>dlLayoutPieceProjected(o,projection,ctx.pieces.indexOf(o)));
   if(view!=='sectionX'&&view!=='sectionY'){
     const nearest=[...items].sort((a,b)=>b.depth-a.depth),opaque=[];
-    for(const it of nearest){it.hidden=opaque.some(r=>dlLayoutRectOverlapRatio(it.box,r)>.86);if(!it.hidden)opaque.push(it.box);}
+    for(const it of nearest){
+      for(const seg of it.segments)seg.hidden=dlLayoutSegmentCovered(seg,opaque);
+      it.hidden=it.segments.length?it.segments.every(seg=>seg.hidden):opaque.some(r=>dlLayoutRectOverlapRatio(it.box,r)>.96);
+      if(!it.hidden)opaque.push(it);
+    }
   }
   const pb=dlLayoutProjectWorldBounds(bx,projection);
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
 const DL_LAYOUT_DIM_TOL=.02;
 function dlLayoutInternalBoundaries(model,axis){
-  const root=model.ctx.root,vals=[];
-  if(root?.cells?.length){
-    for(const c of root.cells){
-      const wb={minX:c.minX*1000,maxX:c.maxX*1000,minY:c.minY*1000,maxY:c.maxY*1000,minZ:c.minZ*1000,maxZ:c.maxZ*1000};
-      const pb=dlLayoutProjectWorldBounds(wb,model.projection);
-      vals.push(axis==='u'?pb.minU:pb.minV,axis==='u'?pb.maxU:pb.maxV);
-    }
-  }
+  const vals=[];
+  // 1.200.23: cota interna nasce somente de geometria realmente visível nesta vista.
+  // Não usa mais limites de células nem caixa de peça escondida atrás de porta/frente.
   for(const it of model.items){
-    const box=it.sectionBox||it.box;if(!box)continue;
-    vals.push(axis==='u'?box.minU:box.minV,axis==='u'?box.maxU:box.maxV);
+    if(it.cut&&it.sectionBox){const q=it.sectionBox;vals.push(axis==='u'?q.minU:q.minV,axis==='u'?q.maxU:q.maxV);continue;}
+    if(it.hidden)continue;
+    for(const seg of it.segments||[]){
+      if(seg.hidden)continue;
+      vals.push(axis==='u'?seg.a.u:seg.a.v,axis==='u'?seg.b.u:seg.b.v);
+    }
   }
   const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
   vals.push(min,max);
@@ -186,6 +216,7 @@ function dlLayoutInternalBoundaries(model,axis){
   return out;
 }
 function dlLayoutDimensionModel(model){
+  if(model.view==='perspective')return [];
   const b=model.bounds,dims=[];
   dims.push({id:`${model.view}-overall-u`,axis:'u',a:b.minU,b:b.maxU,text:dlLayoutMmText(b.maxU-b.minU),overall:true});
   dims.push({id:`${model.view}-overall-v`,axis:'v',a:b.minV,b:b.maxV,text:dlLayoutMmText(b.maxV-b.minV),overall:true});
@@ -279,11 +310,11 @@ function dlLayoutRenderPieces(model,map,{sheet=false}={}){
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch){out.push(dlLayoutPolygonSvg(hull,map,`fill="url(#dlHatch)" stroke="none" opacity=".95"`));}
     else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="rgb(255,255,255)" fill-opacity="1" stroke="none"`));}
-    const stroke='#000',sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden" opacity=".55"':' class="dl-piece-line"';
+    const stroke='#000';
     if(it.cut&&it.sectionBox){
       const p=[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}];
-      out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sw}" class="dl-piece-line"`));
-    }else for(const s of it.segments){out.push(`<line${dash} x1="${dlLayoutNum(map.sx(s.a.u),2)}" y1="${dlLayoutNum(map.sy(s.a.v),2)}" x2="${dlLayoutNum(map.sx(s.b.u),2)}" y2="${dlLayoutNum(map.sy(s.b.v),2)}" stroke="${stroke}" stroke-width="${sw}"/>`);}
+      out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sheet?2.8:3.8}" class="dl-piece-line"`));
+    }else for(const seg of it.segments){const hidden=!!seg.hidden;if(hidden&&!dlLayoutState.showHidden)continue;const sw=hidden?line*.72:line,dash=hidden?' class="dl-piece-line dl-hidden" opacity=".55"':' class="dl-piece-line"';out.push(`<line${dash} x1="${dlLayoutNum(map.sx(seg.a.u),2)}" y1="${dlLayoutNum(map.sy(seg.a.v),2)}" x2="${dlLayoutNum(map.sx(seg.b.u),2)}" y2="${dlLayoutNum(map.sy(seg.b.v),2)}" stroke="${stroke}" stroke-width="${sw}"/>`);}
   }
   return out.join('');
 }
@@ -296,9 +327,9 @@ function dlLayoutRenderOne(view,rect,ctx,{sheet=false}={}){
 function dlLayoutProjectTitle(ctx){return currentProjectRecord?.name||ctx.root?.name||'Projeto';}
 function dlLayoutScaleText(){return dlLayoutState.scale==='fit'?'Automática':`1:${dlLayoutState.scale}`;}
 function dlLayoutRenderSheet(ctx){
-  const W=1800,H=1200,titleH=132,g=18,top=18,usableH=H-titleH-top*2,cellW=(W-g*4)/3,cellH=(usableH-g*3)/2;
-  const views=['front','top','left','right','sectionX','sectionY'];let body='';
-  views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
+  const W=1800,H=1200,titleH=132,g=16,top=16,usableH=H-titleH-top*2,cellW=(W-g*5)/4,cellH=(usableH-g*3)/2;
+  const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let body='';
+  views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
   const y=H-titleH,legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`),row1=legend.slice(0,6),row2=legend.slice(6,12),legendText=(arr,yy)=>arr.map((t,i)=>`<text x="${34+i*153}" y="${yy}" font-size="11">${dlLayoutEsc(t)}</text>`).join('');
   body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
   return {W,H,body};
@@ -315,7 +346,7 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
-// 1.200.22: renderização CAD DIRETA em Canvas 2D.
+// 1.200.23: renderização CAD DIRETA em Canvas 2D + cotas somente do que está visível.
 // Não rasteriza mais SVG no Android. O Auto Dark do WebView atuava justamente
 // na etapa SVG -> Image -> Canvas e gravava o cinza dentro do PNG/PDF.
 function dlLayoutCanvasSetFont(g,size,{bold=false}={}){g.font=`${bold?'700 ':'400 '}${size}px Arial,Helvetica,sans-serif`;g.fillStyle='#000';g.textBaseline='alphabetic';}
@@ -331,9 +362,8 @@ function dlLayoutCanvasPieces(g,model,map,{sheet=false,W=1800,H=1200}={}){
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch)dlLayoutCanvasHatch(g,hull,map,W,H);
     else if(!it.hidden){g.save();g.fillStyle='#fff';if(dlLayoutCanvasPolyPath(g,hull,map))g.fill();g.restore();}
-    const sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),alpha=it.hidden&&!it.cut?.55:1,dash=it.hidden&&!it.cut?[8,5]:null;
-    if(it.cut&&it.sectionBox){g.save();g.strokeStyle='#000';g.lineWidth=sw;if(dlLayoutCanvasPolyPath(g,hull,map))g.stroke();g.restore();}
-    else for(const s of it.segments)dlLayoutCanvasLine(g,map.sx(s.a.u),map.sy(s.a.v),map.sx(s.b.u),map.sy(s.b.v),{width:sw,dash,alpha});
+    if(it.cut&&it.sectionBox){g.save();g.strokeStyle='#000';g.lineWidth=sheet?2.8:3.8;if(dlLayoutCanvasPolyPath(g,hull,map))g.stroke();g.restore();}
+    else for(const seg of it.segments){const hidden=!!seg.hidden;if(hidden&&!dlLayoutState.showHidden)continue;dlLayoutCanvasLine(g,map.sx(seg.a.u),map.sy(seg.a.v),map.sx(seg.b.u),map.sy(seg.b.v),{width:hidden?line*.72:line,dash:hidden?[8,5]:null,alpha:hidden?.55:1});}
   }
 }
 function dlLayoutCanvasDimensions(g,model,map,{sheet=false}={}){
@@ -370,8 +400,8 @@ function dlLayoutCanvasView(g,view,rect,ctx,{sheet=false,W=1800,H=1200}={}){
   const titleY=rect.y+(sheet?30:42);g.save();g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=sheet?1:1.25;g.fillRect(rect.x,rect.y,rect.w,rect.h);g.strokeRect(rect.x+.5,rect.y+.5,rect.w-1,rect.h-1);g.restore();dlLayoutCanvasLine(g,rect.x,titleY,rect.x+rect.w,titleY,{width:.75});dlLayoutCanvasText(g,title,rect.x+12,rect.y+(sheet?20:28),sheet?15:20,{bold:true});if(sub)dlLayoutCanvasText(g,sub,rect.x+rect.w-12,rect.y+(sheet?20:28),sheet?11:13,{align:'right'});dlLayoutCanvasPieces(g,model,map,{sheet,W,H});dlLayoutCanvasSectionMarks(g,model,map,{sheet});dlLayoutCanvasDimensions(g,model,map,{sheet});dlLayoutCanvasLabels(g,model,map,{sheet});
 }
 function dlLayoutCanvasSheet(g,ctx,W,H){
-  const titleH=132,gap=18,top=18,usableH=H-titleH-top*2,cellW=(W-gap*4)/3,cellH=(usableH-gap*3)/2,views=['front','top','left','right','sectionX','sectionY'];
-  views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);dlLayoutCanvasView(g,v,{x:gap+(cellW+gap)*col,y:top+(cellH+gap)*row,w:cellW,h:cellH},ctx,{sheet:true,W,H});});
+  const titleH=132,gap=16,top=16,usableH=H-titleH-top*2,cellW=(W-gap*5)/4,cellH=(usableH-gap*3)/2,views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];
+  views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);dlLayoutCanvasView(g,v,{x:gap+(cellW+gap)*col,y:top+(cellH+gap)*row,w:cellW,h:cellH},ctx,{sheet:true,W,H});});
   const y=H-titleH;g.save();g.fillStyle='#fff';g.strokeStyle='#111';g.lineWidth=1.5;g.fillRect(18,y,W-36,titleH-14);g.strokeRect(18,y,W-36,titleH-14);g.restore();dlLayoutCanvasLine(g,W*.55,y,W*.55,H-14);dlLayoutCanvasLine(g,W*.78,y,W*.78,H-14);
   dlLayoutCanvasText(g,dlLayoutProjectTitle(ctx),34,y+26,22,{bold:true});dlLayoutCanvasText(g,`${ctx.label} · ${ctx.pieces.length} peça(s)`,34,y+48,13);
   const legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`);legend.slice(0,6).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+75,11));legend.slice(6,12).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+96,11));if(ctx.pieces.length>12)dlLayoutCanvasText(g,`+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab`,34,y+116,10);
@@ -423,7 +453,7 @@ function dlLayoutPickSection(axis){
   toast(axis==='x'?'Toque na vista frontal onde deseja o corte A-A':'Toque na vista frontal onde deseja o corte B-B');
 }
 function dlLayoutHandleSvgClick(e){
-  const canvas=$('technicalLayoutCanvas');if(!canvas)return;
+  const canvas=$('technicalLayoutPreviewSurface')||$('technicalLayoutCanvas');if(!canvas)return;
   const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
   const x=(e.clientX-r.left)*(dlLayoutState.lastWidth/r.width),y=(e.clientY-r.top)*(dlLayoutState.lastHeight/r.height);
   const dim=dlLayoutState.dimHits.find(h=>x>=h.x1&&x<=h.x2&&y>=h.y1&&y<=h.y2);
@@ -511,8 +541,8 @@ function dlLayoutDxfView(view,ctx,offsetX=0,offsetY=0){
 function dlLayoutExportDxf(){
   const ctx=dlLayoutState.lastContext||dlLayoutContext();let out=dlLayoutDxfHeader();
   if(dlLayoutState.view==='sheet'){
-    const views=['front','top','left','right','sectionX','sectionY'];let x=0,y=0,rowH=0;
-    views.forEach((v,i)=>{const r=dlLayoutDxfView(v,ctx,x,y);out+=r.text;x+=r.w+150;rowH=Math.max(rowH,r.h);if(i===2){x=0;y+=rowH+180;rowH=0;}});
+    const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let x=0,y=0,rowH=0;
+    views.forEach((v,i)=>{const r=dlLayoutDxfView(v,ctx,x,y);out+=r.text;x+=r.w+150;rowH=Math.max(rowH,r.h);if(i===3){x=0;y+=rowH+180;rowH=0;}});
   }else out+=dlLayoutDxfView(dlLayoutState.view,ctx).text;
   out+='0\r\nENDSEC\r\n0\r\nEOF\r\n';downloadText(`${dlLayoutFileBase()}.dxf`,out,'application/dxf;charset=us-ascii');
 }
@@ -531,7 +561,7 @@ $('layoutScopeSelect')?.addEventListener('change',e=>{dlLayoutState.scopeValue=e
 $('layoutMode')?.addEventListener('change',e=>dlLayoutSetMode(e.target.value));
 $('layoutScale')?.addEventListener('change',e=>{dlLayoutState.scale=e.target.value;dlLayoutRender();});
 $('layoutPage')?.addEventListener('change',e=>{dlLayoutState.page=e.target.value;dlLayoutRender();});
-for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
+for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch'],['layoutHideDoors','hideDoors'],['layoutHideFronts','hideFronts']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
 document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.addEventListener('click',()=>{dlLayoutState.view=b.dataset.layoutViewBtn;dlLayoutRender();}));
 $('layoutSectionXPct')?.addEventListener('input',e=>{dlLayoutState.sectionXPct=Number(e.target.value)||0;dlLayoutRender();});
 $('layoutSectionYPct')?.addEventListener('input',e=>{dlLayoutState.sectionYPct=Number(e.target.value)||0;dlLayoutRender();});
