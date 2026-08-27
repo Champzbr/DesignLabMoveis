@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.35",
+  "version": "1.200.36",
   "required": false,
-  "message": "Mini CAD Forma com snap magnético estilo SketchUp: captura ampliada no celular, extremidades, meios, interseções, centro, arestas, alinhamentos horizontal/vertical e 45 graus, guias visuais e fechamento inteligente do contorno.",
-  "released_at": "2026-08-27T18:58:00-03:00",
-  "build": "1.200.35-r1"
+  "message": "Forma inspirada no fluxo Haixun: desenhe só o esboço local; aberto entre bordas cria recorte no contorno, fechado cria recorte interno. Grade quadriculada, cotas, zoom, mover tela, snap e biblioteca reutilizável.",
+  "released_at": "2026-08-27T19:18:00-03:00",
+  "build": "1.200.36-r1"
 }
