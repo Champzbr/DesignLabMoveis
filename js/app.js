@@ -489,8 +489,8 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.20';
-const DESIGNLAB_BUILD_ID='1.200.20-r1';
+const DESIGNLAB_APP_VERSION='1.200.21';
+const DESIGNLAB_BUILD_ID='1.200.21-r1';
 window.__DESIGNLAB_BUILD_ID=DESIGNLAB_BUILD_ID;
 (function verifyDesignLabRuntimeBuild(){
   const htmlBuild=document.querySelector('meta[name="designlab-build"]')?.content||'';
@@ -16371,9 +16371,9 @@ $('adminPaymentsList').addEventListener('click',e=>{
 });
 
 // ============================================================================
-// 1.200.20 · VOLTAR UNIVERSAL (Android / navegador / PWA)
+// 1.200.21 · VOLTAR UNIVERSAL (Android / navegador / PWA)
 // ----------------------------------------------------------------------------
-// 1.200.20 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
+// 1.200.21 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
 // ----------------------------------------------------------------------------
 // O bootstrap instalado no <head> cria uma "almofada" de várias entradas
 // same-document ANTES de o app carregar. Isso é deliberado: em alguns Samsung/
@@ -16626,7 +16626,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.20';
+const DL_LAYOUT_VERSION='1.200.21';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -16909,32 +16909,77 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
+// 1.200.21: renderização CAD DIRETA em Canvas 2D.
+// Não rasteriza mais SVG no Android. O Auto Dark do WebView atuava justamente
+// na etapa SVG -> Image -> Canvas e gravava o cinza dentro do PNG/PDF.
+function dlLayoutCanvasSetFont(g,size,{bold=false}={}){g.font=`${bold?'700 ':'400 '}${size}px Arial,Helvetica,sans-serif`;g.fillStyle='#000';g.textBaseline='alphabetic';}
+function dlLayoutCanvasLine(g,x1,y1,x2,y2,{width=1,dash=null,alpha=1}={}){g.save();g.strokeStyle='#000';g.lineWidth=width;g.globalAlpha=alpha;g.setLineDash(dash||[]);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.restore();}
+function dlLayoutCanvasPolyPath(g,pts,map){if(!pts?.length)return false;g.beginPath();g.moveTo(map.sx(pts[0].u),map.sy(pts[0].v));for(let i=1;i<pts.length;i++)g.lineTo(map.sx(pts[i].u),map.sy(pts[i].v));g.closePath();return true;}
+function dlLayoutCanvasHatch(g,pts,map,W,H){g.save();if(!dlLayoutCanvasPolyPath(g,pts,map)){g.restore();return;}g.clip();g.strokeStyle='#000';g.lineWidth=1;g.globalAlpha=.92;const step=8;for(let x=-H;x<W+H;x+=step){g.beginPath();g.moveTo(x,H);g.lineTo(x+H,0);g.stroke();}g.restore();}
+function dlLayoutCanvasArrow(g,x,y,dir,size=7){g.save();g.strokeStyle='#000';g.lineWidth=1;g.beginPath();if(dir==='right'){g.moveTo(x,y);g.lineTo(x+size,y-size*.45);g.moveTo(x,y);g.lineTo(x+size,y+size*.45);}else if(dir==='left'){g.moveTo(x,y);g.lineTo(x-size,y-size*.45);g.moveTo(x,y);g.lineTo(x-size,y+size*.45);}else if(dir==='down'){g.moveTo(x,y);g.lineTo(x-size*.45,y+size);g.moveTo(x,y);g.lineTo(x+size*.45,y+size);}else{g.moveTo(x,y);g.lineTo(x-size*.45,y-size);g.moveTo(x,y);g.lineTo(x+size*.45,y-size);}g.stroke();g.restore();}
+function dlLayoutCanvasText(g,text,x,y,size,{bold=false,align='left',rotate=0}={}){g.save();dlLayoutCanvasSetFont(g,size,{bold});g.textAlign=align;if(rotate){g.translate(x,y);g.rotate(rotate);g.fillText(String(text??''),0,0);}else g.fillText(String(text??''),x,y);g.restore();}
+function dlLayoutCanvasPieces(g,model,map,{sheet=false,W=1800,H=1200}={}){
+  const items=[...model.items].sort((a,b)=>a.depth-b.depth),line=sheet?1.35:1.9;
+  for(const it of items){
+    if(it.hidden&&!it.cut&&!dlLayoutState.showHidden)continue;
+    const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
+    if(it.cut&&dlLayoutState.showHatch)dlLayoutCanvasHatch(g,hull,map,W,H);
+    else if(!it.hidden){g.save();g.fillStyle='#fff';if(dlLayoutCanvasPolyPath(g,hull,map))g.fill();g.restore();}
+    const sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),alpha=it.hidden&&!it.cut?.55:1,dash=it.hidden&&!it.cut?[8,5]:null;
+    if(it.cut&&it.sectionBox){g.save();g.strokeStyle='#000';g.lineWidth=sw;if(dlLayoutCanvasPolyPath(g,hull,map))g.stroke();g.restore();}
+    else for(const s of it.segments)dlLayoutCanvasLine(g,map.sx(s.a.u),map.sy(s.a.v),map.sx(s.b.u),map.sy(s.b.v),{width:sw,dash,alpha});
+  }
+}
+function dlLayoutCanvasDimensions(g,model,map,{sheet=false}={}){
+  if(dlLayoutState.mode!=='technical'||!dlLayoutState.showDimensions)return;
+  const b=model.bounds,font=sheet?12:15;
+  for(const d of dlLayoutDimensionModel(model)){
+    if(dlLayoutState.hiddenDims.has(d.id))continue;
+    const off=d.overall?(sheet?30:55):(sheet?15:28),tick=sheet?6:8;
+    if(d.axis==='u'){
+      const y=map.sy(b.minV)+off,x1=map.sx(d.a),x2=map.sx(d.b),xm=(x1+x2)/2;
+      dlLayoutCanvasLine(g,x1,y,x2,y);dlLayoutCanvasLine(g,x1,y-tick,x1,y+tick);dlLayoutCanvasLine(g,x2,y-tick,x2,y+tick);
+      dlLayoutCanvasArrow(g,x1,y,'right',sheet?5:7);dlLayoutCanvasArrow(g,x2,y,'left',sheet?5:7);
+      g.save();g.fillStyle='#fff';g.fillRect(xm-23,y-font-1,46,font+6);g.restore();dlLayoutCanvasText(g,d.text,xm,y-3,font,{align:'center'});
+    }else{
+      const x=map.sx(b.minU)-off,y1=map.sy(d.a),y2=map.sy(d.b),ym=(y1+y2)/2;
+      dlLayoutCanvasLine(g,x,y1,x,y2);dlLayoutCanvasLine(g,x-tick,y1,x+tick,y1);dlLayoutCanvasLine(g,x-tick,y2,x+tick,y2);
+      dlLayoutCanvasArrow(g,x,y1,'down',sheet?5:7);dlLayoutCanvasArrow(g,x,y2,'up',sheet?5:7);
+      g.save();g.translate(x-5,ym);g.rotate(-Math.PI/2);g.fillStyle='#fff';g.fillRect(-23,-font,46,font+6);g.restore();dlLayoutCanvasText(g,d.text,x-5,ym-3,font,{align:'center',rotate:-Math.PI/2});
+    }
+  }
+}
+function dlLayoutCanvasSectionMarks(g,model,map,{sheet=false}={}){
+  if(model.view!=='front'||dlLayoutState.mode!=='technical')return;
+  const b=model.bounds,font=sheet?13:17,x=map.sx(model.sectionX),yt=map.sy(b.maxV),yb=map.sy(b.minV),y=map.sy(model.sectionY),xl=map.sx(b.minU),xr=map.sx(b.maxU),dash=[14,5,3,5];
+  dlLayoutCanvasLine(g,x,yt,x,yb,{width:sheet?1.35:1.8,dash});dlLayoutCanvasLine(g,xl,y,xr,y,{width:sheet?1.35:1.8,dash});
+  dlLayoutCanvasText(g,'A',x+6,yt+font,font,{bold:true});dlLayoutCanvasText(g,'A',x+6,yb-5,font,{bold:true});dlLayoutCanvasText(g,'B',xl+5,y-6,font,{bold:true});dlLayoutCanvasText(g,'B',xr-font,y-6,font,{bold:true});
+}
+function dlLayoutCanvasLabels(g,model,map,{sheet=false}={}){
+  if(!dlLayoutState.showLabels)return;const font=sheet?11:14,r=sheet?9:12;
+  model.items.filter(it=>!it.hidden||it.cut).slice(0,60).forEach((it,k)=>{const box=it.sectionBox||it.box,cx=(box.minU+box.maxU)/2,cy=(box.minV+box.maxV)/2,x=map.sx(cx),y=map.sy(cy),dx=(k%2?1:-1)*(sheet?18:26),dy=((k%3)-1)*(sheet?12:18),lx=x+dx,ly=y+dy;dlLayoutCanvasLine(g,x,y,lx,ly);g.save();g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=1.4;g.beginPath();g.arc(lx,ly,r,0,Math.PI*2);g.fill();g.stroke();g.restore();dlLayoutCanvasText(g,it.index+1,lx,ly+font*.32,font,{bold:true,align:'center'});if(!sheet)dlLayoutCanvasText(g,String(it.name||`Peça ${it.index+1}`).slice(0,26),lx+r+5,ly+font*.32,font-1);});
+}
+function dlLayoutCanvasView(g,view,rect,ctx,{sheet=false,W=1800,H=1200}={}){
+  const model=dlLayoutModel(view,ctx),map=dlLayoutViewMap(model,rect,{sheet}),title=DL_LAYOUT_VIEWS[view]||view,sub=view==='sectionX'?`X = ${dlLayoutMmText(model.sectionX-model.worldBounds.minX)} mm`:view==='sectionY'?`Y = ${dlLayoutMmText(model.sectionY-model.worldBounds.minY)} mm`:'';
+  const titleY=rect.y+(sheet?30:42);g.save();g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=sheet?1:1.25;g.fillRect(rect.x,rect.y,rect.w,rect.h);g.strokeRect(rect.x+.5,rect.y+.5,rect.w-1,rect.h-1);g.restore();dlLayoutCanvasLine(g,rect.x,titleY,rect.x+rect.w,titleY,{width:.75});dlLayoutCanvasText(g,title,rect.x+12,rect.y+(sheet?20:28),sheet?15:20,{bold:true});if(sub)dlLayoutCanvasText(g,sub,rect.x+rect.w-12,rect.y+(sheet?20:28),sheet?11:13,{align:'right'});dlLayoutCanvasPieces(g,model,map,{sheet,W,H});dlLayoutCanvasSectionMarks(g,model,map,{sheet});dlLayoutCanvasDimensions(g,model,map,{sheet});dlLayoutCanvasLabels(g,model,map,{sheet});
+}
+function dlLayoutCanvasSheet(g,ctx,W,H){
+  const titleH=132,gap=18,top=18,usableH=H-titleH-top*2,cellW=(W-gap*4)/3,cellH=(usableH-gap*3)/2,views=['front','top','left','right','sectionX','sectionY'];
+  views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);dlLayoutCanvasView(g,v,{x:gap+(cellW+gap)*col,y:top+(cellH+gap)*row,w:cellW,h:cellH},ctx,{sheet:true,W,H});});
+  const y=H-titleH;g.save();g.fillStyle='#fff';g.strokeStyle='#111';g.lineWidth=1.5;g.fillRect(18,y,W-36,titleH-14);g.strokeRect(18,y,W-36,titleH-14);g.restore();dlLayoutCanvasLine(g,W*.55,y,W*.55,H-14);dlLayoutCanvasLine(g,W*.78,y,W*.78,H-14);
+  dlLayoutCanvasText(g,dlLayoutProjectTitle(ctx),34,y+26,22,{bold:true});dlLayoutCanvasText(g,`${ctx.label} · ${ctx.pieces.length} peça(s)`,34,y+48,13);
+  const legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`);legend.slice(0,6).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+75,11));legend.slice(6,12).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+96,11));if(ctx.pieces.length>12)dlLayoutCanvasText(g,`+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab`,34,y+116,10);
+  dlLayoutCanvasText(g,`DesignLabMoveis ${DL_LAYOUT_VERSION}`,W*.55+18,y+30,16,{bold:true});dlLayoutCanvasText(g,`Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}`,W*.55+18,y+57,14);dlLayoutCanvasText(g,'Cortes A-A / B-B · cotas em mm',W*.55+18,y+84,12);dlLayoutCanvasText(g,`Escala ${dlLayoutScaleText()}`,W*.78+18,y+30,16);dlLayoutCanvasText(g,new Date().toLocaleDateString('pt-BR'),W*.78+18,y+57,14);dlLayoutCanvasText(g,`Folha ${dlLayoutState.page} horizontal`,W*.78+18,y+84,12);
+}
+function dlLayoutBuildDirectCanvas(scale=1){
+  const ctx=dlLayoutState.lastContext||dlLayoutContext(),baseW=dlLayoutState.view==='sheet'?1800:1400,baseH=dlLayoutState.view==='sheet'?1200:960,c=document.createElement('canvas');c.width=Math.max(1,Math.round(baseW*scale));c.height=Math.max(1,Math.round(baseH*scale));const g=c.getContext('2d',{alpha:false});g.setTransform(scale,0,0,scale,0,0);g.fillStyle='#fff';g.fillRect(0,0,baseW,baseH);g.lineCap='butt';g.lineJoin='miter';g.imageSmoothingEnabled=true;if(dlLayoutState.view==='sheet')dlLayoutCanvasSheet(g,ctx,baseW,baseH);else dlLayoutCanvasView(g,dlLayoutState.view,{x:22,y:22,w:baseW-44,h:baseH-44},ctx,{sheet:false,W:baseW,H:baseH});return c;
+}
 function dlLayoutPaintPreviewBitmap(wrap,svg,W,H){
   const token=++dlLayoutState.renderToken;
-  // Renderiza fora da tela e exibe como PNG <img>. O Auto Dark do Chrome/Samsung
-  // costuma alterar canvas/SVG em PWA standalone, mas preserva imagens.
-  const off=document.createElement('canvas');off.width=W;off.height=H;
-  const oc=off.getContext('2d',{alpha:false});
-  if(oc){oc.fillStyle='#fff';oc.fillRect(0,0,W,H);}
-  const holder=document.createElement('div');holder.className='layoutPreviewImageHolder';
-  const preview=document.createElement('img');
-  preview.id='technicalLayoutPreviewSurface';preview.className='layoutPreviewImage';
-  preview.alt='Layout técnico em papel branco';preview.width=W;preview.height=H;
-  holder.appendChild(preview);wrap.replaceChildren(holder);
-  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();
-  img.onload=()=>{
-    try{
-      if(token!==dlLayoutState.renderToken)return;
-      const ctx=off.getContext('2d',{alpha:false});if(!ctx)return;
-      ctx.save();ctx.globalCompositeOperation='copy';ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';ctx.drawImage(img,0,0,W,H);ctx.restore();
-      preview.src=off.toDataURL('image/png');
-    }finally{URL.revokeObjectURL(url);}
-  };
-  img.onerror=()=>{
-    URL.revokeObjectURL(url);
-    const ctx=off.getContext('2d',{alpha:false});if(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#000';ctx.font='24px Arial';ctx.fillText('Não foi possível desenhar a prévia. Exporte o SVG/PDF.',28,44);preview.src=off.toDataURL('image/png');}
-  };
-  img.src=url;
+  try{
+    const c=dlLayoutBuildDirectCanvas(1);if(token!==dlLayoutState.renderToken)return;
+    const holder=document.createElement('div');holder.className='layoutPreviewImageHolder';const preview=document.createElement('img');preview.id='technicalLayoutPreviewSurface';preview.className='layoutPreviewImage';preview.alt='Layout técnico CAD em papel branco';preview.width=c.width;preview.height=c.height;preview.src=c.toDataURL('image/png');holder.appendChild(preview);wrap.replaceChildren(holder);
+  }catch(err){console.error('Layout Canvas direto:',err);wrap.innerHTML='<div class="layoutEmpty">Não foi possível desenhar a prévia.</div>';}
 }
 function dlLayoutRender(){
   const wrap=$('layoutSvgWrap');if(!wrap)return;
@@ -16989,11 +17034,9 @@ function dlLayoutFileBase(){const ctx=dlLayoutState.lastContext||dlLayoutContext
 function dlLayoutDownloadBlob(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 function dlLayoutExportSvg(){if(!dlLayoutState.lastSvg)dlLayoutRender();downloadText(`${dlLayoutFileBase()}.svg`,dlLayoutState.lastSvg,'image/svg+xml;charset=utf-8');}
 async function dlLayoutSvgCanvas({jpeg=false}={}){
-  if(!dlLayoutState.lastSvg)dlLayoutRender();
-  const maxPx=jpeg?3000:3400,scale=Math.max(1,Math.min(2,maxPx/Math.max(dlLayoutState.lastWidth,dlLayoutState.lastHeight))),w=Math.round(dlLayoutState.lastWidth*scale),h=Math.round(dlLayoutState.lastHeight*scale);
-  const blob=new Blob([dlLayoutState.lastSvg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();
-  await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url;});
-  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);return c;
+  if(!dlLayoutState.lastContext)dlLayoutRender();
+  const maxPx=jpeg?3000:3400,baseW=dlLayoutState.view==='sheet'?1800:1400,baseH=dlLayoutState.view==='sheet'?1200:960,scale=Math.max(1,Math.min(2,maxPx/Math.max(baseW,baseH)));
+  return dlLayoutBuildDirectCanvas(scale);
 }
 async function dlLayoutExportPng(){
   try{const c=await dlLayoutSvgCanvas();const blob=await new Promise(res=>c.toBlob(res,'image/png'));if(!blob)throw new Error('PNG indisponível');dlLayoutDownloadBlob(`${dlLayoutFileBase()}.png`,blob);}catch(err){toast(err.message||'Não foi possível gerar PNG');}
@@ -17068,8 +17111,10 @@ function dlLayoutExportDxf(){
   out+='0\r\nENDSEC\r\n0\r\nEOF\r\n';downloadText(`${dlLayoutFileBase()}.dxf`,out,'application/dxf;charset=us-ascii');
 }
 function dlLayoutPrint(){
-  if(!dlLayoutState.lastSvg)dlLayoutRender();const w=window.open('','_blank');if(!w){toast('Permita pop-ups para imprimir');return;}
-  w.document.write(`<!doctype html><html><head><title>${dlLayoutEsc(dlLayoutFileBase())}</title><style>@page{size:${dlLayoutState.page} landscape;margin:8mm}html,body{margin:0}svg{width:100%;height:auto;display:block}</style></head><body>${dlLayoutState.lastSvg}<script>onload=()=>setTimeout(()=>print(),250)<\/script></body></html>`);w.document.close();
+  try{
+    const c=dlLayoutBuildDirectCanvas(1.5),data=c.toDataURL('image/png'),w=window.open('','_blank');if(!w){toast('Permita pop-ups para imprimir');return;}
+    w.document.write(`<!doctype html><html><head><title>${dlLayoutEsc(dlLayoutFileBase())}</title><style>@page{size:${dlLayoutState.page} landscape;margin:8mm}html,body{margin:0;background:#fff;color-scheme:only light}img{width:100%;height:auto;display:block;background:#fff}</style></head><body><img src="${data}" onload="setTimeout(()=>print(),250)"></body></html>`);w.document.close();
+  }catch(err){console.error(err);toast('Não foi possível preparar a impressão');}
 }
 
 // ---------- Eventos da ferramenta ----------
