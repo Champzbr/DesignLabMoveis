@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.23",
+  "version": "1.200.24",
   "required": false,
-  "message": "Layout técnico com cotas somente da geometria visível, Frente interna sem portas/frentes e nova Vista perspectiva; atualização automática do servidor mantida.",
-  "released_at": "2026-08-27T13:10:00-03:00",
-  "build": "1.200.23-r1"
+  "message": "Layout técnico com cotas geradas somente por linhas realmente visíveis (sem espessuras internas falsas) e atualização automática da versão do servidor ao abrir/retomar o app.",
+  "released_at": "2026-08-27T13:20:00-03:00",
+  "build": "1.200.24-r1"
 }
