@@ -1,3 +1,21 @@
+
+  /* 1.200.14 · toda visualização 3D é somente leitura. */
+  body.visualization-only #projectMenuBtn,
+  body.visualization-only #topbar,
+  body.visualization-only #miniAxes,
+  body.visualization-only #viewModeBadge,
+  body.visualization-only #measureBadge,
+  body.visualization-only #liveLabel,
+  body.visualization-only #tapeCrosshair,
+  body.visualization-only #tapeSnapDot,
+  body.visualization-only #inspector,
+  body.visualization-only #morePanel,
+  body.visualization-only #spaceActions,
+  body.visualization-only #toolDock,
+  body.visualization-only #toolDockEditDialog { display:none !important; }
+  .updateAvailable{position:relative;border-color:#f0a33b !important}
+  .updateAvailable::after{content:'•';position:absolute;right:7px;top:2px;color:#ff9d27;font-size:18px;line-height:1}
+
 /* DesignLabMoveis 1.100.87 · extraído do monólito 1.100.78 · ordem preservada */
   /* ======================================================================
      v93 · Gerenciador de Projetos / tela inicial / modo apresentação

@@ -1,3 +1,15 @@
+
+  /* 1.200.14 · nomes rápidos na configuração da peça */
+  .pieceNameEditor{margin-bottom:8px;padding:8px;border:1px solid #343b40;border-radius:10px;background:#111415}
+  .pieceNameCurrentLabel,.pieceNamePresetLabel{display:block;color:#9ca7ad;font-size:9px;font-weight:800}
+  .pieceNameCurrentLabel input,.pieceNamePresetLabel select{width:100%;margin-top:4px}
+  .pieceNamePresetLabel{margin-top:7px}
+  .pieceNamePresetLabel select{min-height:42px;padding:8px 10px;border:1px solid #484d50;border-radius:9px;background:#0e1112;color:#fff;font-size:11px}
+  .pieceNameCustomRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:7px}
+  .pieceNameCustomRow input{min-width:0}
+  .pieceNameCustomRow button{min-height:42px;white-space:nowrap}
+  @media(max-width:520px){.pieceNameCustomRow{grid-template-columns:1fr}.pieceNameCustomRow button{width:100%}}
+
 /* DesignLabMoveis 1.100.87 · extraído do monólito 1.100.78 · ordem preservada */
   /* 1.100.78 · segurar para abrir / confirmação de duplicação */
   .pieceDeleteRow{
