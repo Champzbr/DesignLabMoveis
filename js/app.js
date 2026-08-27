@@ -489,24 +489,9 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.22';
-const DESIGNLAB_BUILD_ID='1.200.22-r1';
-window.__DESIGNLAB_BUILD_ID=DESIGNLAB_BUILD_ID;
-(function verifyDesignLabRuntimeBuild(){
-  const htmlBuild=document.querySelector('meta[name="designlab-build"]')?.content||'';
-  if(!htmlBuild||htmlBuild===DESIGNLAB_BUILD_ID)return;
-  console.error('DesignLab: HTML/JS de builds diferentes',htmlBuild,DESIGNLAB_BUILD_ID);
-  try{
-    Promise.all([
-      ('caches' in window?caches.keys().then(keys=>Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)))):Promise.resolve()),
-      ('serviceWorker' in navigator?navigator.serviceWorker.getRegistration().then(r=>r?.update?.()).catch(()=>{}):Promise.resolve())
-    ]).finally(()=>{
-      const u=new URL(location.href);u.searchParams.set('_dlbuild',htmlBuild);u.searchParams.set('_reload',Date.now());location.replace(u.href);
-    });
-  }catch(_){}
-})();
+const DESIGNLAB_APP_VERSION='1.200.23';
 
-// 1.200.19 · modo de visualização realmente somente leitura.
+// 1.200.18 · modo de visualização realmente somente leitura.
 // Usado pela visualização de projeto e por todas as prévias 3D.
 function setDesignLabVisualizationOnly(on){
   document.body.classList.toggle('visualization-only',!!on);
@@ -538,11 +523,6 @@ function markDesignLabUpdateAvailable(info){
     b.classList.toggle('updateAvailable',!!version);
     if(version)b.title=`Atualização ${version} disponível`;else b.removeAttribute('title');
   }
-  const chip=$('updateAvailableChip');
-  if(chip){
-    chip.hidden=!version;
-    chip.textContent=version?`↻ Atualizar para ${version}`:'↻ Atualizar app';
-  }
 }
 function notifyDesignLabUpdateOnce(info){
   const version=String(info?.version||'nova');
@@ -557,7 +537,7 @@ let designLabUpdating=false;
 let designLabSwRegistration=null;
 
 // ============================================================================
-// 1.200.19 · PWA / APP SEM BARRA DE ENDEREÇO
+// 1.200.18 · PWA / APP SEM BARRA DE ENDEREÇO
 // Mesma estratégia usada no Contas Fácil: manifesto e SW na raiz + instalação
 // real como app. Navegadores não permitem que uma página comum esconda a barra
 // por JavaScript; por isso celulares fora do modo standalone recebem a opção de
@@ -720,78 +700,6 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
     return null;
   }
 }
-let designLabAutoServerSyncBusy=false;
-let designLabLastAutoServerSync=0;
-async function designLabAutoRefreshFromServer({reason='open'}={}){
-  // 1.200.22: toda abertura/retomada consulta version.json DIRETO do servidor.
-  // Só força recarga quando o build publicado é diferente, evitando loop e
-  // evitando recarregar o projeto sem necessidade quando já estamos atualizados.
-  if(!navigator.onLine||designLabUpdating||designLabAutoServerSyncBusy)return false;
-  const now=Date.now();
-  if(now-designLabLastAutoServerSync<4000)return false;
-  designLabLastAutoServerSync=now;designLabAutoServerSyncBusy=true;
-  try{
-    const res=await fetch(`${DESIGNLAB_VERSION_URL}?open=${now}&reason=${encodeURIComponent(reason)}`,{cache:'no-store',headers:{'Accept':'application/json'}});
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const info=await res.json();
-    const serverBuild=String(info?.build||info?.version||'').trim();
-    const serverVersion=String(info?.version||'').trim();
-    const needsReload=!!serverBuild && (serverBuild!==DESIGNLAB_BUILD_ID || compareAppVersions(serverVersion,DESIGNLAB_APP_VERSION)>0);
-    if(!needsReload){
-      try{designLabSwRegistration?.update?.();}catch{}
-      return false;
-    }
-    const loopKey=`designLabAutoReload:${serverBuild}`;
-    try{
-      if(sessionStorage.getItem(loopKey)==='1'){
-        console.warn('DesignLab: servidor ainda entregou build diferente após recarga',serverBuild,DESIGNLAB_BUILD_ID);
-        return false;
-      }
-      sessionStorage.setItem(loopKey,'1');
-    }catch{}
-    try{await projectAutosaveNow();}catch{}
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations().catch(()=>[]);
-      for(const reg of regs){try{await reg.update();}catch{}}
-    }
-    if('caches' in window){
-      const keys=await caches.keys().catch(()=>[]);
-      await Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)));
-    }
-    const u=new URL(location.origin+location.pathname);
-    u.searchParams.set('_dlserver',serverBuild);
-    u.searchParams.set('_open',String(now));
-    location.replace(u.toString());
-    return true;
-  }catch(err){
-    console.warn('Atualização automática ao abrir:',err);
-    return false;
-  }finally{designLabAutoServerSyncBusy=false;}
-}
-
-async function forceReloadDesignLabFromServer(){
-  if(designLabUpdating)return;
-  designLabUpdating=true;
-  try{
-    try{await projectAutosaveNow();}catch{}
-    if('serviceWorker' in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations().catch(()=>[]);
-      for(const reg of regs){try{await reg.update();}catch{}}
-    }
-    if('caches' in window){
-      const keys=await caches.keys().catch(()=>[]);
-      await Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)));
-    }
-    const u=new URL(location.origin+location.pathname);
-    u.searchParams.set('_dlforce',String(Date.now()));
-    location.replace(u.toString());
-  }catch(err){
-    console.warn('Recarga forçada:',err);
-    designLabUpdating=false;
-    location.reload();
-  }
-}
-
 async function applyDesignLabUpdate(){
   if(designLabUpdating)return;
   designLabUpdating=true;
@@ -1156,7 +1064,7 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 }
 
 // ============================================================================
-// 1.200.19 · PREFERÊNCIAS DA CONTA — CELULAR / PC
+// 1.200.18 · PREFERÊNCIAS DA CONTA — CELULAR / PC
 // ============================================================================
 // Projetos continuam no fluxo próprio (IndexedDB + R2). Este bloco sincroniza
 // somente preferências/configurações do DesignLabMoveis no D1, por usuário.
@@ -1633,7 +1541,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.200.19 · HOME OPÇÃO 1
+// 1.200.18 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -1854,7 +1762,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.200.19`:'DesignLabMoveis 1.200.19';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.200.18`:'DesignLabMoveis 1.200.18';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -2062,7 +1970,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.200.19'
+    thumbnail:null,appVersion:'1.200.18'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -2085,7 +1993,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.200.19'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.200.18'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -2115,7 +2023,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.200.19'
+    thumbnail:thumb,appVersion:'1.200.18'
   };
   await projectDbPut(next);
   if(original){
@@ -2183,7 +2091,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.200.19',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.200.18',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -2217,7 +2125,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.200.19'
+    thumbnail:p.thumbnail||null,appVersion:'1.200.18'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2278,7 +2186,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.200.19'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.200.18'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -2609,8 +2517,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.200.19 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.200.19 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
+// 1.200.18 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.200.18 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // na conta e restaurada depois de fechar/reabrir o app ou trocar de aparelho.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';
@@ -5355,7 +5263,7 @@ function selectObject(mesh){
   updateMeasureBadge();
 }
 
-// 1.200.19 · nomes rápidos de peças + biblioteca pessoal de nomes.
+// 1.200.18 · nomes rápidos de peças + biblioteca pessoal de nomes.
 const PIECE_NAME_PRESET_KEY='designLabPieceNamePresetsV1';
 const PIECE_NAME_BUILTINS=[
   'Lateral esquerda','Lateral direita','Base','Chapéu','Prateleira','Divisão central','Divisão esquerda','Divisão direita',
@@ -5616,7 +5524,7 @@ function createConstructionGuide(start,end,{infinite=false,axis=null,kind='guide
 }
 
 
-// 1.200.19 · Trena peça a peça.
+// 1.200.18 · Trena peça a peça.
 // O fluxo antigo por pontos/guias foi substituído por: 1ª peça -> 2ª peça -> distância mínima entre as superfícies.
 let tapePieceFirst=null;
 let tapePieceSecond=null;
@@ -6311,7 +6219,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.200.19', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.200.18', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -7016,7 +6924,7 @@ function bestCellNearPoint(root,p){
   return visible.reduce((best,c)=>distanceSqPointToCell(p,c)<distanceSqPointToCell(p,best)?c:best,visible[0]);
 }
 
-// 1.200.19 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
+// 1.200.18 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
 // ao(s) vão(s) vizinho(s). Isso resolve principalmente lateral esquerda/direita,
 // base, chapéu, prateleira, fundo/frente e divisão vertical.
 function isSpaceCuttingPieceForHeal(o){
@@ -7291,7 +7199,7 @@ function axisVector(axis){
 
 // PEÇAS: 1 clique seleciona; segurar abre Configuração da peça.
 // ESPAÇOS/DIVISÕES: 1 clique seleciona; segurar abre o menu flutuante.
-// O antigo duplo clique do espaço foi removido na 1.200.19.
+// O antigo duplo clique do espaço foi removido na 1.200.18.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
@@ -7320,7 +7228,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.200.19 · menu do espaço igual ao menu da peça:
+// 1.200.18 · menu do espaço igual ao menu da peça:
 // 1 toque = somente seleciona; tocar/clicar e SEGURAR = abre o menu flutuante.
 let spaceLongPressTimer=null;
 let spaceLongPress={id:null,rootId:null,cellId:null,x:0,y:0,triggered:false};
@@ -7399,7 +7307,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.200.19 · segurar a peça abre a configuração (mouse e touch).
+// 1.200.18 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -7441,7 +7349,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.200.19: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.200.18: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -7456,7 +7364,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       resetSpaceDoubleTap();
-      // 1.200.19: um toque apenas seleciona e fecha o menu. Segurar o mesmo
+      // 1.200.18: um toque apenas seleciona e fecha o menu. Segurar o mesmo
       // espaço/divisão abre a janela, exatamente como a configuração da peça.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       startSpaceLongPress(rootId,cellId,activePointerId,downClientX,downClientY);
@@ -11916,7 +11824,7 @@ function designLabDxfPayloadComments(record){
   // 999 é comentário padrão do DXF e é ignorado por Aspire/AutoCAD.
   // Guardamos os dados completos do DesignLab para que o mesmo DXF possa
   // voltar à Biblioteca preservando peças, usinagens, portas, materiais e cortes.
-  // 1.200.19: além do bloco antigo, gravamos uma assinatura compacta extra
+  // 1.200.18: além do bloco antigo, gravamos uma assinatura compacta extra
   // para ficar mais resistente quando outro app muda a quebra de linha do DXF.
   const b64=designLabUtf8ToBase64(JSON.stringify(record));
   let out='999\r\nDESIGNLABMOVEIS_PAYLOAD_BEGIN\r\n';
@@ -12164,12 +12072,12 @@ async function importLibraryFile(file){
     return;
   }
   importLibraryTemplate(parsed.record,name,activeLibraryFolderId);
-  if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.19 para preservar curvas, usinagens e configurações');
+  if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.18 para preservar curvas, usinagens e configurações');
   else if(parsed.stl)toast('STL DesignLab importado preservando curvas, peças e configurações');
   else if(!parsed.legacyJson)toast('DXF DesignLab importado com peças, curvas e configurações preservadas');
 }
 
-// ---------- 1.200.19 · STL do modelo 3D completo ----------
+// ---------- 1.200.18 · STL do modelo 3D completo ----------
 // O modelo montado usa STL binário para preservar exatamente a malha 3D (inclusive curvas).
 // Aspire/plano de corte/usinagem permanecem exclusivamente no fluxo DXF existente.
 const DESIGNLAB_STL_PAYLOAD_BEGIN='DESIGNLABMOVEIS_STL_PAYLOAD_BEGIN';
@@ -12221,7 +12129,7 @@ function buildFurnitureModelStl(root){
   }
   if(![min.x,min.y,min.z].every(Number.isFinite))throw new Error('Não foi possível calcular a geometria STL');
   const buffer=new ArrayBuffer(84+triangleCount*50),view=new DataView(buffer),header=new Uint8Array(buffer,0,80);
-  const headerText=new TextEncoder().encode('DesignLabMoveis 1.200.19 STL 3D | metadata after triangles');
+  const headerText=new TextEncoder().encode('DesignLabMoveis 1.200.18 STL 3D | metadata after triangles');
   header.set(headerText.subarray(0,80));
   view.setUint32(80,triangleCount,true);
   let off=84,written=0;
@@ -12887,7 +12795,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   const cfg={...(baseCfg||{}),...normalizedSheetPrefs(baseCfg||{})};
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.200.19: o tamanho digitado no PLANO DE CORTE e soberano.
+  // 1.200.18: o tamanho digitado no PLANO DE CORTE e soberano.
   // Antes, um material cadastrado como 2750x1850 sobrescrevia silenciosamente
   // uma chapa de 2700x1850 informada pelo usuario. Isso fazia o desenho, o
   // calculo das sobras e o ZAW voltarem para 2750. O material continua sendo
@@ -12904,7 +12812,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 function partOrientations(part,cfg){
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.200.19: na peça, VEIO 0° acompanha o eixo vertical da face (faceH) e
+  // 1.200.18: na peça, VEIO 0° acompanha o eixo vertical da face (faceH) e
   // VEIO 90° acompanha o eixo horizontal (faceW). A chapa madeirada usa por
   // padrão o veio no COMPRIMENTO. O plano gira a peça só na chapa para alinhar
   // esses eixos; a geometria 3D nunca é alterada.
@@ -13315,7 +13223,7 @@ function repackCncSheetCenterOut(source,cfg){
   return assignCncCutOrder(finalSheet,cfg);
 }
 
-// ---------- 1.200.19 · CNC por contorno real ----------
+// ---------- 1.200.18 · CNC por contorno real ----------
 // Depois do MaxRects, tenta retirar peças das últimas chapas e encaixá-las nos
 // vazios reais de peças curvas/paramétricas. Retângulos continuam sendo usados
 // como primeira passada (rápida); esta segunda passada só aceita posições onde
@@ -13631,7 +13539,7 @@ function panelSawPackingTieScore(sheets){
   return score;
 }
 
-// 1.200.19 · Seccionadora de pinça sem giro automático · plano mestre
+// 1.200.18 · Seccionadora de pinça sem giro automático · plano mestre
 // Sequência física igual ao controlador:
 // 1) aplica o refilo/limpeza;
 // 2) faz TODOS os cortes primários da chapa (Step000);
@@ -13753,7 +13661,7 @@ function panelSawTwoStageFinalize(sheet,cfg,firstAxis){
   };
   return sheet;
 }
-// 1.200.19 · PLANO MESTRE DA SECCIONADORA
+// 1.200.18 · PLANO MESTRE DA SECCIONADORA
 // ---------------------------------------------------------------------------
 // A versão anterior montava as faixas enquanto já distribuía as peças entre
 // chapas. Isso podia "fechar" uma chapa cedo e impedir combinações melhores
@@ -13948,7 +13856,7 @@ function buildAspireDxfForSheet(placed,cfg,cuts=[]){
 function csvCell(v){const t=String(v??'');return /[;"\n]/.test(t)?`"${t.replace(/"/g,'""')}"`:t;}
 function csvLine(values){return values.map(csvCell).join(';')+'\r\n';}
 
-// 1.200.19 · MingliPanelSaw / Zhongde .ZAW · schema confirmado por Result.zaw nativo
+// 1.200.18 · MingliPanelSaw / Zhongde .ZAW · schema confirmado por Result.zaw nativo
 // Serialização ajustada literalmente a partir de dois Result.zaw reais da máquina,
 // incluindo um teste com as mesmas peças do DesignLab (26/08/2026).
 //
@@ -13986,7 +13894,7 @@ function mingliDateTime(d=new Date()){
 }
 
 function mingliValidateNativeXmlText(xml){
-  // 1.200.19 · compatibilidade PC/mobile:
+  // 1.200.18 · compatibilidade PC/mobile:
   // O arquivo final PRECISA manter o BOM UTF-8 para ficar byte a byte como o
   // Result.zaw da máquina. Porém, quando esse BOM existe como caractere U+FEFF
   // dentro de uma string JavaScript, alguns DOMParser de desktop tratam o
@@ -14368,8 +14276,8 @@ function buildMingliZawFiles(groups,cfg){
     notes.push(`${base}/Result.zaw = chapa física ${g.sheetNo||1} · ${(g.parts||[]).length} peça(s) · estrutura Mingli com referências Step/Cut/produto.`);
   }
   if(!files.length)throw new Error('Não há chapas de seccionadora para gerar ZAW.');
-  const readme=`DESIGNLABMOVEIS 1.200.19 · MINGLIPANELSAW / ZAW · SCHEMA NATIVO CONFIRMADO\r\n\r\n`+
-    `CORREÇÃO 1.200.19\r\n- Schema agora segue o Result.zaw REAL da máquina, comparado com as mesmas peças.\r\n- EdgeExcluedWidth e KnifeWidth exatamente como no original.\r\n- Width, WidthDirection, OriginX, OriginY e UnfinishedProduct com capitalização nativa.\r\n- materialsNum usa unit="Zhang" e stepformProductID mantém P maiúsculo.\r\n- CutScheme0 usa ProductNums; Scheme0 usa ProductsNum.\r\n- Ratio usa vírgula decimal, igual ao arquivo real da máquina.\r\n- Result.zaw é gravado em UTF-8 COM BOM, CRLF e sem quebra de linha extra no final.\r\n- A formatação/indentação do XML foi aproximada à saída nativa do Prepare.\r\n- A ordem de entrada das peças passa a ser o primeiro critério de desempate da seccionadora; faixas de mesma largura preservam a ordem física de criação, reproduzindo o teste 2500 sozinho antes de 1200+1400.\r\n- SpecificN, stepformProductID e IDs 0Z permanecem com a mecânica já confirmada.\r\n- Validação bloqueia nomes antigos em minúsculas ou grafias incompatíveis antes do download.\r\n\r\n`+
+  const readme=`DESIGNLABMOVEIS 1.200.18 · MINGLIPANELSAW / ZAW · SCHEMA NATIVO CONFIRMADO\r\n\r\n`+
+    `CORREÇÃO 1.200.18\r\n- Schema agora segue o Result.zaw REAL da máquina, comparado com as mesmas peças.\r\n- EdgeExcluedWidth e KnifeWidth exatamente como no original.\r\n- Width, WidthDirection, OriginX, OriginY e UnfinishedProduct com capitalização nativa.\r\n- materialsNum usa unit="Zhang" e stepformProductID mantém P maiúsculo.\r\n- CutScheme0 usa ProductNums; Scheme0 usa ProductsNum.\r\n- Ratio usa vírgula decimal, igual ao arquivo real da máquina.\r\n- Result.zaw é gravado em UTF-8 COM BOM, CRLF e sem quebra de linha extra no final.\r\n- A formatação/indentação do XML foi aproximada à saída nativa do Prepare.\r\n- A ordem de entrada das peças passa a ser o primeiro critério de desempate da seccionadora; faixas de mesma largura preservam a ordem física de criação, reproduzindo o teste 2500 sozinho antes de 1200+1400.\r\n- SpecificN, stepformProductID e IDs 0Z permanecem com a mecânica já confirmada.\r\n- Validação bloqueia nomes antigos em minúsculas ou grafias incompatíveis antes do download.\r\n\r\n`+
     `TESTE SEGURO\r\nPrimeiro abra o Result.zaw no MingliPanelSaw e confira o desenho e a sequência. NÃO execute o corte automático até conferir medidas, direção e quantidade na tela.\r\n\r\n`+
     notes.map((x,i)=>`${i+1}. ${x}`).join('\r\n')+'\r\n';
   files.push({name:'mingli-zaw/LEIA-ME-ZAW.txt',data:readme});
@@ -14727,7 +14635,7 @@ function downloadExportFallback(blob,filename){
 async function shareExportFallback(blob,filename){
   if(typeof navigator.share!=='function'||typeof File!=='function')return null;
   const leaf=exportLeafName(filename||'arquivo');
-  // 1.200.19: recria o anexo com bytes concretos. Alguns Android/WhatsApp
+  // 1.200.18: recria o anexo com bytes concretos. Alguns Android/WhatsApp
   // tratavam o Blob application/dxf como documento vazio.
   const buffer=await blob.arrayBuffer();
   if(!buffer.byteLength)throw new Error('O arquivo a compartilhar está vazio.');
@@ -14775,7 +14683,7 @@ async function writeExportTarget(target,blob,filename='arquivo'){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.200.19 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.200.18 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -14790,7 +14698,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.200.19 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.200.18 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -15341,7 +15249,7 @@ $('saveLabelsHtml').onclick=labelsSaveHtml;
 
 
 // ============================================================================
-// 1.200.19 · PLANO DE CORTE OTIMIZADO
+// 1.200.18 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -15796,7 +15704,7 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
-// ---------- 1.200.19 · impressão técnica do plano de corte em A4 ----------
+// ---------- 1.200.18 · impressão técnica do plano de corte em A4 ----------
 // A impressão é propositalmente independente do indicador de veio da tela.
 // O sentido continua sendo respeitado no cálculo/encaixe, mas não é desenhado
 // nem escrito no relatório impresso.
@@ -15870,7 +15778,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.19</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.18</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -16370,8 +16278,6 @@ $('homeLogoutBtn').onclick=logoutOnlineIdentity;
 $('homeCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('menuCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
-$('settingsForceRefresh')?.addEventListener('click',()=>forceReloadDesignLabFromServer());
-$('updateAvailableChip')?.addEventListener('click',()=>designLabAvailableUpdate?openUpdateDialog(designLabAvailableUpdate):checkDesignLabUpdate({manual:true,force:true}));
 $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
@@ -16420,9 +16326,9 @@ $('adminPaymentsList').addEventListener('click',e=>{
 });
 
 // ============================================================================
-// 1.200.22 · VOLTAR UNIVERSAL (Android / navegador / PWA)
+// 1.200.18 · VOLTAR UNIVERSAL (Android / navegador / PWA)
 // ----------------------------------------------------------------------------
-// 1.200.22 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
+// 1.200.18 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
 // ----------------------------------------------------------------------------
 // O bootstrap instalado no <head> cria uma "almofada" de várias entradas
 // same-document ANTES de o app carregar. Isso é deliberado: em alguns Samsung/
@@ -16532,111 +16438,55 @@ async function designLabHandleBackCascade(){
   return 'root';
 }
 
-
-const DESIGNLAB_HISTORY_KEY='__designLabTrustedHistory';
-let designLabHistorySeq=0;
-let designLabHistoryArmed=false;
 let designLabHandlingPopState=false;
-let designLabBouncingRoot=false;
-let designLabPointerSnapshot=null;
-
-function designLabUiSnapshot(){
-  const layers=[];
-  const ids=['technicalLayoutDialog','sheetPreviewDialog','labelsDialog','partsListDialog','hardwareBuilderDialog','shapeDialog','machiningDialog','curvedStructureDialog','drawerSystemDialog','createPiecesDialog','cutSpaceDialog','newSpaceDialog','editSpaceDialog','libraryDialog','newPanelDialog','toolDockEditDialog','productionDialog','spaceMoreDialog','adminDialog','appSettingsDialog','projectMetaDialog','recoveryDialog','updateDialog'];
-  for(const id of ids)if(designLabBackElementVisible(id))layers.push(id);
-  if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar'))layers.push('curvedPreview');
-  if(shapePreviewActive||designLabBackElementVisible('shape3DPreviewBar'))layers.push('shapePreview');
-  if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar'))layers.push('machiningPreview');
-  if($('projectCardMenu')?.classList.contains('show'))layers.push('projectCardMenu');
-  if(elementIsVisible($('inspector')))layers.push('inspector');
-  if(elementIsVisible($('spaceActions')))layers.push('spaceActions');
-  if(designLabBackElementVisible('morePanel'))layers.push('morePanel');
-  if($('projectMenuPanel')?.classList.contains('show'))layers.push('projectMenuPanel');
-  if($('toolDock')?.classList.contains('open'))layers.push('toolDock');
-  if(toolMode&&toolMode!=='select')layers.push('tool:'+toolMode);
-  if(viewMode2D||camera===orthoCamera)layers.push('view2d');
-  if(visualMode&&!document.body.classList.contains('presentation-active'))layers.push('visual');
-  const base=document.body.classList.contains('project-home-active')?'home':(currentProjectId?'editor':'root');
-  const baseDepth=base==='editor'?1:0;
-  return {base,layers,depth:baseDepth+layers.length,signature:base+'|'+layers.join('>')};
-}
-function designLabHistoryState(kind,snap){
-  return {[DESIGNLAB_HISTORY_KEY]:true,kind,seq:++designLabHistorySeq,version:DESIGNLAB_APP_VERSION,signature:snap?.signature||'',depth:snap?.depth||0};
-}
-function designLabEnsureTrustedRoot(beforeSnap){
-  if(designLabHistoryArmed)return;
+function designLabInstallBackFence(){
   try{
+    const boot=window.__DL_BACK_BOOTSTRAP;
+    if(boot?.ensure)return boot.ensure();
+    // Fallback para navegador muito antigo: ainda mantém três entradas internas.
     const st=window.history.state||{};
-    if(!st[DESIGNLAB_HISTORY_KEY])window.history.replaceState(designLabHistoryState('anchor',beforeSnap),'',location.href);
-    // IMPORTANTE: esta chamada acontece síncrona dentro de pointer/click real.
-    // Chrome Android não marca essa entrada como "skippable".
-    window.history.pushState(designLabHistoryState('rootGuard',beforeSnap),'',location.href);
-    designLabHistoryArmed=true;
-  }catch(err){console.warn('Histórico confiável:',err);}
-}
-function designLabTrackTrustedInteractionBefore(e){
-  if(!e.isTrusted)return;
-  const snap=designLabUiSnapshot();
-  designLabPointerSnapshot=snap;
-  designLabEnsureTrustedRoot(snap);
-}
-function designLabTrackTrustedInteractionAfter(e){
-  if(!e.isTrusted)return;
-  const before=designLabPointerSnapshot||designLabUiSnapshot();
-  const after=designLabUiSnapshot();
-  designLabPointerSnapshot=null;
-  if(before.signature===after.signature)return;
-  try{
-    // Abrir uma camada/entrar no editor cria uma etapa REAL de navegação.
-    if(after.depth>before.depth){
-      window.history.pushState(designLabHistoryState('ui',after),'',location.href);
-    }else{
-      // Fechar por botão/trocar modo não deve deixar lixo na pilha.
-      window.history.replaceState(designLabHistoryState('ui',after),'',location.href);
+    if(!st.__designLabInternalHistory){
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.18'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.18'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.18'},'',location.href);
+    }else if(st.kind!=='guard2'){
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.18'},'',location.href);
     }
-  }catch(err){console.warn('Rota interna:',err);}
+    return true;
+  }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
 }
-
-// `pointerdown` arma a cerca dentro de um gesto verdadeiro, inclusive antes de
-// arrastar/orbitar no 3D. `click` registra somente mudanças reais de tela/menu.
-window.addEventListener('pointerdown',designLabTrackTrustedInteractionBefore,{capture:true,passive:true});
-window.addEventListener('click',designLabTrackTrustedInteractionAfter,{capture:false});
-
-async function designLabOnPopState(e){
-  if(designLabBouncingRoot){designLabBouncingRoot=false;return;}
+function designLabPushBackGuard(){return designLabInstallBackFence();}
+function designLabArmBackGuard(){return designLabInstallBackFence();}
+function designLabRunNativeBackCascade(){
   if(designLabHandlingPopState)return;
-  const st=e.state||{};
-  if(st[DESIGNLAB_HISTORY_KEY]&&st.kind==='anchor'){
-    // Nunca sai do PWA na tela de projetos: volta para a entrada rootGuard que
-    // foi criada por um gesto real do usuário (não é ignorada pelo Chrome).
-    designLabBouncingRoot=true;
-    try{window.history.forward();}catch{}
-    return;
-  }
   designLabHandlingPopState=true;
-  try{await designLabHandleBackCascade();}
-  catch(err){console.warn('Voltar DesignLab:',err);}
-  finally{designLabHandlingPopState=false;}
+  Promise.resolve(designLabHandleBackCascade())
+    .catch(err=>console.warn('Voltar DesignLab:',err))
+    .finally(()=>{designLabHandlingPopState=false;designLabPushBackGuard();});
 }
-window.addEventListener('popstate',designLabOnPopState,{capture:true});
-
-// Wrappers Android/Capacitor/Cordova, caso o PWA seja empacotado no futuro.
+// O bootstrap do <head> chama esta função a cada popstate.
+window.__designLabRunBackCascade=designLabRunNativeBackCascade;
+if(!window.__DL_BACK_BOOTSTRAP){
+  window.addEventListener('popstate',()=>{designLabPushBackGuard();designLabRunNativeBackCascade();},{capture:true});
+}else{
+  designLabArmBackGuard();
+  const pending=Math.min(3,Number(window.__designLabPendingBack)||0);
+  window.__designLabPendingBack=0;
+  if(pending)setTimeout(()=>designLabRunNativeBackCascade(),0);
+}
+// Wrappers Android/Capacitor/Cordova. Nesse evento o histórico não precisa ser
+// percorrido: cancelamos o evento nativo e executamos a mesma cascata.
 document.addEventListener('backbutton',e=>{
   e.preventDefault?.();e.stopPropagation?.();
-  designLabHandleBackCascade().catch(()=>{});
+  designLabRunNativeBackCascade();
 },{capture:true});
-
-// Escape no PC usa a mesma cascata.
+// Tecla Esc no PC segue a MESMA cascata e ajuda a testar todos os menus.
 window.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.defaultPrevented)return;
   const t=e.target;if(t&&['INPUT','TEXTAREA','SELECT'].includes(t.tagName))return;
-  e.preventDefault();designLabHandleBackCascade().catch(()=>{});
+  e.preventDefault();designLabPushBackGuard();designLabHandleBackCascade().catch(()=>{}).finally(()=>designLabPushBackGuard());
 },{capture:true});
 
-// Compatibilidade com chamadas antigas: não criam mais estados artificiais.
-function designLabInstallBackFence(){return designLabHistoryArmed;}
-function designLabPushBackGuard(){return designLabHistoryArmed;}
-function designLabArmBackGuard(){return designLabHistoryArmed;}
 installOutsideMenuClose();
 
 window.addEventListener('resize'
@@ -16644,16 +16494,17 @@ window.addEventListener('resize'
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
 initDesignLabInstallExperience();
-initDesignLabServiceWorker().then(()=>designLabAutoRefreshFromServer({reason:'launch'})).catch(()=>designLabAutoRefreshFromServer({reason:'launch'}));
+initDesignLabServiceWorker().catch(()=>{});
 setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
-window.addEventListener('online',()=>{updateCacheStatusUI();designLabAutoRefreshFromServer({reason:'online'}).catch(()=>{});checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
+window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabAutoRefreshFromServer({reason:'resume'}).catch(()=>{});checkDesignLabUpdate().catch(()=>{});}
+  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});}
 });
-window.addEventListener('pageshow',()=>{designLabAutoRefreshFromServer({reason:'pageshow'}).catch(()=>{});checkDesignLabUpdate().catch(()=>{});});
+window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});});
 
-// Início limpo e frontal. A cerca do Voltar será armada no primeiro gesto real do usuário.
+// Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
+designLabArmBackGuard();
 setFrontWorldView();
 history=[stateString()]; historyIndex=0;
 initToolDock();
@@ -16669,21 +16520,21 @@ updateXray3DButton();
 setPieceVisualEdgesVisible(true);
 animate();
 // ============================================================================
-// 1.200.19 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
+// 1.200.18 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
 // ----------------------------------------------------------------------------
 // Extrai desenhos 2D diretamente da geometria 3D do projeto. Não depende da
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.22';
+const DL_LAYOUT_VERSION='1.200.23';
 const DL_LAYOUT_VIEWS={
-  front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
-  top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
+  front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
+  top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
 };
 const dlLayoutEdgeCache=new WeakMap();
 const dlLayoutState={
   view:'sheet',mode:'technical',showDimensions:true,showInternal:true,showLabels:true,
-  showHidden:true,showHatch:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
+  showHidden:true,showHatch:true,hideDoors:false,hideFronts:false,visibleDimsOnly:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
   hiddenDims:new Set(),pickSection:null,lastMappings:[],dimHits:[],lastSvg:'',lastWidth:1800,lastHeight:1200,lastContext:null,renderToken:0
 };
 
@@ -16692,9 +16543,6 @@ function dlLayoutAscii(v){return String(v??'').normalize('NFD').replace(/[\u0300
 function dlLayoutNum(v,d=3){const n=Number(v);return Number.isFinite(n)?Number(n.toFixed(d)):0;}
 function dlLayoutMmText(v){
   const n=Number(v)||0;
-  // Precisão de desenho técnico: conserva décimos/centésimos reais e só
-  // remove casas quando o valor está efetivamente sobre o inteiro. Isso evita
-  // esconder folgas pequenas (ex.: porta 895 mm dentro de vão de 900 mm).
   if(Math.abs(n-Math.round(n))<.005)return String(Math.round(n));
   const d1=Math.round(n*10)/10;
   if(Math.abs(n-d1)<.005)return d1.toFixed(1).replace('.',',');
@@ -16707,6 +16555,22 @@ function dlLayoutHexColor(o){
 function dlLayoutEligiblePiece(o){
   const u=o?.userData||{};
   return !!o && u.kind!=='hardware-visual' && u.kind!=='cylinder' && !u.isMachiningDraftPreview && !u.isSpacePickMesh;
+}
+function dlLayoutIsDoor(o){
+  const u=o?.userData||{},n=String(u.name||'');
+  return !!o && (!!u.doorConfig || /^Porta(?:\s|$)/i.test(n));
+}
+function dlLayoutIsFront(o){
+  const u=o?.userData||{},n=String(u.name||'');
+  return !!o && (u.drawerRole==='drawer-front' || /^Frente de gaveta(?:\s|$)/i.test(n));
+}
+function dlLayoutPiecesForView(ctx,view){
+  const internal=view==='frontOpen';
+  return ctx.pieces.filter(o=>{
+    if((internal||dlLayoutState.hideDoors)&&dlLayoutIsDoor(o))return false;
+    if((internal||dlLayoutState.hideFronts)&&dlLayoutIsFront(o))return false;
+    return true;
+  });
 }
 function dlLayoutRootFromValue(v){
   const s=String(v||'');
@@ -16785,6 +16649,7 @@ function dlLayoutProjectPoint(p,view){
     case 'right':return {u:-p.z,v:p.y,d:p.x};
     case 'top':return {u:p.x,v:-p.z,d:p.y};
     case 'bottom':return {u:p.x,v:p.z,d:-p.y};
+    case 'perspective':{const c=.8660254;return {u:c*(p.x-p.z),v:p.y+.32*(p.x+p.z),d:p.x+p.z};}
     default:return {u:p.x,v:p.y,d:p.z};
   }
 }
@@ -16802,6 +16667,15 @@ function dlLayoutConvexHull(points){
   const uniq=[];for(const p of pts){const q=uniq.at(-1);if(!q||Math.abs(q.u-p.u)>.001||Math.abs(q.v-p.v)>.001)uniq.push(p);}if(uniq.length<3)return uniq;
   const cross=(o,a,b)=>(a.u-o.u)*(b.v-o.v)-(a.v-o.v)*(b.u-o.u),lo=[],up=[];
   for(const p of uniq){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}for(let i=uniq.length-1;i>=0;i--){const p=uniq[i];while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}lo.pop();up.pop();return lo.concat(up);
+}
+function dlLayoutPointInHull(p,h){
+  if(!h||h.length<3)return false;let inside=false;
+  for(let i=0,j=h.length-1;i<h.length;j=i++){const a=h[i],b=h[j];const hit=((a.v>p.v)!==(b.v>p.v))&&(p.u<(b.u-a.u)*(p.v-a.v)/((b.v-a.v)||1e-9)+a.u);if(hit)inside=!inside;}
+  return inside;
+}
+function dlLayoutSegmentCovered(seg,nearer){
+  const samples=[.2,.5,.8];
+  return samples.every(t=>{const p={u:seg.a.u+(seg.b.u-seg.a.u)*t,v:seg.a.v+(seg.b.v-seg.a.v)*t};return nearer.some(n=>{const b=n.box;if(p.u<b.minU-.02||p.u>b.maxU+.02||p.v<b.minV-.02||p.v>b.maxV+.02)return false;return n.hull?.length>=3?dlLayoutPointInHull(p,n.hull):true;});});
 }
 function dlLayoutPieceProjected(o,view,index){
   const seg3=dlLayoutPieceEdges3D(o),segments=[],pts=[];let depth=0,n=0;
@@ -16826,50 +16700,44 @@ function dlLayoutSectionItem(o,axis,plane,index){
 }
 function dlLayoutModel(view,ctx){
   const bx=ctx.bounds,sectionX=bx.minX+(bx.maxX-bx.minX)*(dlLayoutState.sectionXPct/100),sectionY=bx.minY+(bx.maxY-bx.minY)*(dlLayoutState.sectionYPct/100);
-  let items=[],projection=view;
-  if(view==='sectionX'){projection='left';items=ctx.pieces.map((o,i)=>dlLayoutSectionItem(o,'x',sectionX,i)).filter(Boolean);}
-  else if(view==='sectionY'){projection='top';items=ctx.pieces.map((o,i)=>dlLayoutSectionItem(o,'y',sectionY,i)).filter(Boolean);}
-  else items=ctx.pieces.map((o,i)=>dlLayoutPieceProjected(o,view,i));
+  let items=[],projection=view==='frontOpen'?'front':view;
+  const pieces=dlLayoutPiecesForView(ctx,view);
+  if(view==='sectionX'){projection='left';items=pieces.map((o,i)=>dlLayoutSectionItem(o,'x',sectionX,ctx.pieces.indexOf(o))).filter(Boolean);}
+  else if(view==='sectionY'){projection='top';items=pieces.map((o,i)=>dlLayoutSectionItem(o,'y',sectionY,ctx.pieces.indexOf(o))).filter(Boolean);}
+  else items=pieces.map(o=>dlLayoutPieceProjected(o,projection,ctx.pieces.indexOf(o)));
   if(view!=='sectionX'&&view!=='sectionY'){
     const nearest=[...items].sort((a,b)=>b.depth-a.depth),opaque=[];
-    for(const it of nearest){it.hidden=opaque.some(r=>dlLayoutRectOverlapRatio(it.box,r)>.86);if(!it.hidden)opaque.push(it.box);}
+    for(const it of nearest){
+      for(const seg of it.segments)seg.hidden=dlLayoutSegmentCovered(seg,opaque);
+      it.hidden=it.segments.length?it.segments.every(seg=>seg.hidden):opaque.some(r=>dlLayoutRectOverlapRatio(it.box,r)>.96);
+      if(!it.hidden)opaque.push(it);
+    }
   }
   const pb=dlLayoutProjectWorldBounds(bx,projection);
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
-const DL_LAYOUT_DIM_TOL=.02; // 0,02 mm: tolerância só para ruído numérico do THREE
+const DL_LAYOUT_DIM_TOL=.02;
 function dlLayoutInternalBoundaries(model,axis){
-  const root=model.ctx.root,vals=[];
-  // As células continuam úteis para cotar os vãos lógicos do móvel.
-  if(root?.cells?.length){
-    for(const c of root.cells){
-      const wb={minX:c.minX*1000,maxX:c.maxX*1000,minY:c.minY*1000,maxY:c.maxY*1000,minZ:c.minZ*1000,maxZ:c.maxZ*1000};
-      const pb=dlLayoutProjectWorldBounds(wb,model.projection);
-      vals.push(axis==='u'?pb.minU:pb.minV,axis==='u'?pb.maxU:pb.maxV);
-    }
-  }
-  // 1.200.22: SEMPRE acrescenta as arestas REAIS de cada peça projetada.
-  // Antes, quando existiam cells, essas arestas eram ignoradas. Por isso uma
-  // porta 5 mm menor podia aparecer nitidamente no desenho, mas a cota repetia
-  // os 900 mm do espaço. Agora 895 e a folga de 5 mm entram na cadeia de cotas.
+  const vals=[];
+  // 1.200.23: cota interna nasce somente de geometria realmente visível nesta vista.
+  // Não usa mais limites de células nem caixa de peça escondida atrás de porta/frente.
   for(const it of model.items){
-    const box=it.sectionBox||it.box;if(!box)continue;
-    vals.push(axis==='u'?box.minU:box.minV,axis==='u'?box.maxU:box.maxV);
+    if(it.cut&&it.sectionBox){const q=it.sectionBox;vals.push(axis==='u'?q.minU:q.minV,axis==='u'?q.maxU:q.maxV);continue;}
+    if(it.hidden)continue;
+    for(const seg of it.segments||[]){
+      if(seg.hidden)continue;
+      vals.push(axis==='u'?seg.a.u:seg.a.v,axis==='u'?seg.b.u:seg.b.v);
+    }
   }
   const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
   vals.push(min,max);
-  const sorted=vals.filter(Number.isFinite)
-    .map(v=>Math.round(v*100)/100)
-    .filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL)
-    .sort((a,b)=>a-b);
+  const sorted=vals.filter(Number.isFinite).map(v=>Math.round(v*100)/100).filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL).sort((a,b)=>a-b);
   const out=[];
-  for(const v of sorted){
-    if(!out.length||Math.abs(v-out[out.length-1])>DL_LAYOUT_DIM_TOL)out.push(v);
-    else out[out.length-1]=(out[out.length-1]+v)/2;
-  }
+  for(const v of sorted){if(!out.length||Math.abs(v-out[out.length-1])>DL_LAYOUT_DIM_TOL)out.push(v);else out[out.length-1]=(out[out.length-1]+v)/2;}
   return out;
 }
 function dlLayoutDimensionModel(model){
+  if(model.view==='perspective')return [];
   const b=model.bounds,dims=[];
   dims.push({id:`${model.view}-overall-u`,axis:'u',a:b.minU,b:b.maxU,text:dlLayoutMmText(b.maxU-b.minU),overall:true});
   dims.push({id:`${model.view}-overall-v`,axis:'v',a:b.minV,b:b.maxV,text:dlLayoutMmText(b.maxV-b.minV),overall:true});
@@ -16880,12 +16748,9 @@ function dlLayoutDimensionModel(model){
       for(let i=0;i<arr.length-1;i++){
         const a=arr[i],bb=arr[i+1],len=bb-a;
         if(len<=DL_LAYOUT_DIM_TOL)continue;
-        // Não duplica a cota geral em uma segunda linha (o antigo 900 / 900).
         if(Math.abs(a-min)<=DL_LAYOUT_DIM_TOL&&Math.abs(bb-max)<=DL_LAYOUT_DIM_TOL)continue;
         parts.push({a,b:bb,len});
       }
-      // Até 14 segmentos por eixo. Se houver muitos detalhes, prioriza folgas
-      // pequenas e os maiores vãos, mantendo a ordem física no desenho.
       let keep=parts;
       if(parts.length>14){
         keep=[...parts].sort((a,b)=>{
@@ -16894,10 +16759,7 @@ function dlLayoutDimensionModel(model){
           return pb-pa;
         }).slice(0,14).sort((a,b)=>a.a-b.a);
       }
-      for(const p of keep)dims.push({
-        id:`${model.view}-internal-${axis}-${Math.round(p.a*100)}-${Math.round(p.b*100)}`,
-        axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false
-      });
+      for(const p of keep)dims.push({id:`${model.view}-internal-${axis}-${Math.round(p.a*100)}-${Math.round(p.b*100)}`,axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false});
     }
   }
   return dims;
@@ -16969,11 +16831,11 @@ function dlLayoutRenderPieces(model,map,{sheet=false}={}){
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch){out.push(dlLayoutPolygonSvg(hull,map,`fill="url(#dlHatch)" stroke="none" opacity=".95"`));}
     else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="rgb(255,255,255)" fill-opacity="1" stroke="none"`));}
-    const stroke='#000',sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden" opacity=".55"':' class="dl-piece-line"';
+    const stroke='#000';
     if(it.cut&&it.sectionBox){
       const p=[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}];
-      out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sw}" class="dl-piece-line"`));
-    }else for(const s of it.segments){out.push(`<line${dash} x1="${dlLayoutNum(map.sx(s.a.u),2)}" y1="${dlLayoutNum(map.sy(s.a.v),2)}" x2="${dlLayoutNum(map.sx(s.b.u),2)}" y2="${dlLayoutNum(map.sy(s.b.v),2)}" stroke="${stroke}" stroke-width="${sw}"/>`);}
+      out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sheet?2.8:3.8}" class="dl-piece-line"`));
+    }else for(const seg of it.segments){const hidden=!!seg.hidden;if(hidden&&!dlLayoutState.showHidden)continue;const sw=hidden?line*.72:line,dash=hidden?' class="dl-piece-line dl-hidden" opacity=".55"':' class="dl-piece-line"';out.push(`<line${dash} x1="${dlLayoutNum(map.sx(seg.a.u),2)}" y1="${dlLayoutNum(map.sy(seg.a.v),2)}" x2="${dlLayoutNum(map.sx(seg.b.u),2)}" y2="${dlLayoutNum(map.sy(seg.b.v),2)}" stroke="${stroke}" stroke-width="${sw}"/>`);}
   }
   return out.join('');
 }
@@ -16986,9 +16848,9 @@ function dlLayoutRenderOne(view,rect,ctx,{sheet=false}={}){
 function dlLayoutProjectTitle(ctx){return currentProjectRecord?.name||ctx.root?.name||'Projeto';}
 function dlLayoutScaleText(){return dlLayoutState.scale==='fit'?'Automática':`1:${dlLayoutState.scale}`;}
 function dlLayoutRenderSheet(ctx){
-  const W=1800,H=1200,titleH=132,g=18,top=18,usableH=H-titleH-top*2,cellW=(W-g*4)/3,cellH=(usableH-g*3)/2;
-  const views=['front','top','left','right','sectionX','sectionY'];let body='';
-  views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
+  const W=1800,H=1200,titleH=132,g=16,top=16,usableH=H-titleH-top*2,cellW=(W-g*5)/4,cellH=(usableH-g*3)/2;
+  const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let body='';
+  views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
   const y=H-titleH,legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`),row1=legend.slice(0,6),row2=legend.slice(6,12),legendText=(arr,yy)=>arr.map((t,i)=>`<text x="${34+i*153}" y="${yy}" font-size="11">${dlLayoutEsc(t)}</text>`).join('');
   body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
   return {W,H,body};
@@ -17005,7 +16867,7 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
-// 1.200.22: renderização CAD DIRETA em Canvas 2D.
+// 1.200.23: renderização CAD DIRETA em Canvas 2D + cotas somente do que está visível.
 // Não rasteriza mais SVG no Android. O Auto Dark do WebView atuava justamente
 // na etapa SVG -> Image -> Canvas e gravava o cinza dentro do PNG/PDF.
 function dlLayoutCanvasSetFont(g,size,{bold=false}={}){g.font=`${bold?'700 ':'400 '}${size}px Arial,Helvetica,sans-serif`;g.fillStyle='#000';g.textBaseline='alphabetic';}
@@ -17021,9 +16883,8 @@ function dlLayoutCanvasPieces(g,model,map,{sheet=false,W=1800,H=1200}={}){
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch)dlLayoutCanvasHatch(g,hull,map,W,H);
     else if(!it.hidden){g.save();g.fillStyle='#fff';if(dlLayoutCanvasPolyPath(g,hull,map))g.fill();g.restore();}
-    const sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),alpha=it.hidden&&!it.cut?.55:1,dash=it.hidden&&!it.cut?[8,5]:null;
-    if(it.cut&&it.sectionBox){g.save();g.strokeStyle='#000';g.lineWidth=sw;if(dlLayoutCanvasPolyPath(g,hull,map))g.stroke();g.restore();}
-    else for(const s of it.segments)dlLayoutCanvasLine(g,map.sx(s.a.u),map.sy(s.a.v),map.sx(s.b.u),map.sy(s.b.v),{width:sw,dash,alpha});
+    if(it.cut&&it.sectionBox){g.save();g.strokeStyle='#000';g.lineWidth=sheet?2.8:3.8;if(dlLayoutCanvasPolyPath(g,hull,map))g.stroke();g.restore();}
+    else for(const seg of it.segments){const hidden=!!seg.hidden;if(hidden&&!dlLayoutState.showHidden)continue;dlLayoutCanvasLine(g,map.sx(seg.a.u),map.sy(seg.a.v),map.sx(seg.b.u),map.sy(seg.b.v),{width:hidden?line*.72:line,dash:hidden?[8,5]:null,alpha:hidden?.55:1});}
   }
 }
 function dlLayoutCanvasDimensions(g,model,map,{sheet=false}={}){
@@ -17060,8 +16921,8 @@ function dlLayoutCanvasView(g,view,rect,ctx,{sheet=false,W=1800,H=1200}={}){
   const titleY=rect.y+(sheet?30:42);g.save();g.fillStyle='#fff';g.strokeStyle='#000';g.lineWidth=sheet?1:1.25;g.fillRect(rect.x,rect.y,rect.w,rect.h);g.strokeRect(rect.x+.5,rect.y+.5,rect.w-1,rect.h-1);g.restore();dlLayoutCanvasLine(g,rect.x,titleY,rect.x+rect.w,titleY,{width:.75});dlLayoutCanvasText(g,title,rect.x+12,rect.y+(sheet?20:28),sheet?15:20,{bold:true});if(sub)dlLayoutCanvasText(g,sub,rect.x+rect.w-12,rect.y+(sheet?20:28),sheet?11:13,{align:'right'});dlLayoutCanvasPieces(g,model,map,{sheet,W,H});dlLayoutCanvasSectionMarks(g,model,map,{sheet});dlLayoutCanvasDimensions(g,model,map,{sheet});dlLayoutCanvasLabels(g,model,map,{sheet});
 }
 function dlLayoutCanvasSheet(g,ctx,W,H){
-  const titleH=132,gap=18,top=18,usableH=H-titleH-top*2,cellW=(W-gap*4)/3,cellH=(usableH-gap*3)/2,views=['front','top','left','right','sectionX','sectionY'];
-  views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);dlLayoutCanvasView(g,v,{x:gap+(cellW+gap)*col,y:top+(cellH+gap)*row,w:cellW,h:cellH},ctx,{sheet:true,W,H});});
+  const titleH=132,gap=16,top=16,usableH=H-titleH-top*2,cellW=(W-gap*5)/4,cellH=(usableH-gap*3)/2,views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];
+  views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);dlLayoutCanvasView(g,v,{x:gap+(cellW+gap)*col,y:top+(cellH+gap)*row,w:cellW,h:cellH},ctx,{sheet:true,W,H});});
   const y=H-titleH;g.save();g.fillStyle='#fff';g.strokeStyle='#111';g.lineWidth=1.5;g.fillRect(18,y,W-36,titleH-14);g.strokeRect(18,y,W-36,titleH-14);g.restore();dlLayoutCanvasLine(g,W*.55,y,W*.55,H-14);dlLayoutCanvasLine(g,W*.78,y,W*.78,H-14);
   dlLayoutCanvasText(g,dlLayoutProjectTitle(ctx),34,y+26,22,{bold:true});dlLayoutCanvasText(g,`${ctx.label} · ${ctx.pieces.length} peça(s)`,34,y+48,13);
   const legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`);legend.slice(0,6).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+75,11));legend.slice(6,12).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+96,11));if(ctx.pieces.length>12)dlLayoutCanvasText(g,`+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab`,34,y+116,10);
@@ -17085,7 +16946,7 @@ function dlLayoutRender(){
   const pack=dlLayoutState.view==='sheet'?dlLayoutRenderSheet(ctx):dlLayoutRenderSingle(ctx,dlLayoutState.view);
   const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico"><rect width="100%" height="100%" fill="#fff"/>${dlLayoutSvgDefs()}${pack.body}</svg>`;
   dlLayoutState.lastSvg=svg;dlLayoutState.lastWidth=pack.W;dlLayoutState.lastHeight=pack.H;
-  // 1.200.19: a prévia é rasterizada em CANVAS. O Chrome/Samsung com
+  // 1.200.18: a prévia é rasterizada em CANVAS. O Chrome/Samsung com
   // "modo escuro para sites" alterava as cores do SVG DOM e transformava o
   // papel branco em cinza. Pixels do canvas não recebem essa transformação.
   dlLayoutPaintPreviewBitmap(wrap,svg,pack.W,pack.H);
@@ -17201,8 +17062,8 @@ function dlLayoutDxfView(view,ctx,offsetX=0,offsetY=0){
 function dlLayoutExportDxf(){
   const ctx=dlLayoutState.lastContext||dlLayoutContext();let out=dlLayoutDxfHeader();
   if(dlLayoutState.view==='sheet'){
-    const views=['front','top','left','right','sectionX','sectionY'];let x=0,y=0,rowH=0;
-    views.forEach((v,i)=>{const r=dlLayoutDxfView(v,ctx,x,y);out+=r.text;x+=r.w+150;rowH=Math.max(rowH,r.h);if(i===2){x=0;y+=rowH+180;rowH=0;}});
+    const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let x=0,y=0,rowH=0;
+    views.forEach((v,i)=>{const r=dlLayoutDxfView(v,ctx,x,y);out+=r.text;x+=r.w+150;rowH=Math.max(rowH,r.h);if(i===3){x=0;y+=rowH+180;rowH=0;}});
   }else out+=dlLayoutDxfView(dlLayoutState.view,ctx).text;
   out+='0\r\nENDSEC\r\n0\r\nEOF\r\n';downloadText(`${dlLayoutFileBase()}.dxf`,out,'application/dxf;charset=us-ascii');
 }
@@ -17221,7 +17082,7 @@ $('layoutScopeSelect')?.addEventListener('change',e=>{dlLayoutState.scopeValue=e
 $('layoutMode')?.addEventListener('change',e=>dlLayoutSetMode(e.target.value));
 $('layoutScale')?.addEventListener('change',e=>{dlLayoutState.scale=e.target.value;dlLayoutRender();});
 $('layoutPage')?.addEventListener('change',e=>{dlLayoutState.page=e.target.value;dlLayoutRender();});
-for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
+for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch'],['layoutHideDoors','hideDoors'],['layoutHideFronts','hideFronts']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
 document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.addEventListener('click',()=>{dlLayoutState.view=b.dataset.layoutViewBtn;dlLayoutRender();}));
 $('layoutSectionXPct')?.addEventListener('input',e=>{dlLayoutState.sectionXPct=Number(e.target.value)||0;dlLayoutRender();});
 $('layoutSectionYPct')?.addEventListener('input',e=>{dlLayoutState.sectionYPct=Number(e.target.value)||0;dlLayoutRender();});
