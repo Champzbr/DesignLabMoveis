@@ -5,14 +5,14 @@
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.27';
+const DL_LAYOUT_VERSION='1.200.28';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
 };
 const dlLayoutEdgeCache=new WeakMap();
 const dlLayoutState={
-  view:'sheet',mode:'technical',showDimensions:true,showInternal:true,showLabels:true,
+  view:'sheet',mode:'technical',profile:'marcenaria',showDimensions:true,showInternal:true,showLabels:true,
   showHidden:true,showHatch:true,hideDoors:false,hideFronts:false,visibleDimsOnly:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
   hiddenDims:new Set(),pickSection:null,lastMappings:[],dimHits:[],lastSvg:'',lastWidth:1800,lastHeight:1200,lastContext:null,renderToken:0
 };
@@ -30,6 +30,20 @@ function dlLayoutMmText(v){
 function dlLayoutModeHasDimensions(){return dlLayoutState.showDimensions&&dlLayoutState.mode!=='presentation';}
 function dlLayoutModeShowsSections(){return dlLayoutState.mode==='technical';}
 function dlLayoutModeLabel(){return dlLayoutState.mode==='cleanprint'?'limpo para impressão':(dlLayoutState.mode==='presentation'?'apresentação':'técnico');}
+function dlLayoutProfileLabel(){return dlLayoutState.profile==='production'?'Produção':'Marcenaria';}
+function dlLayoutSheetNote(){return dlLayoutState.mode==='cleanprint'?'Cotas úteis · desenho limpo':(dlLayoutState.mode==='presentation'?'Apresentação sem cotas':'Cortes A-A / B-B · cotas em mm');}
+function dlLayoutSetProfile(profile,{render=true}={}){
+  dlLayoutState.profile=profile==='production'?'production':'marcenaria';
+  dlLayoutState.visibleDimsOnly=true;
+  if($('layoutUsefulOnly'))$('layoutUsefulOnly').checked=true;
+  if($('layoutProfile'))$('layoutProfile').value=dlLayoutState.profile;
+  try{localStorage.setItem('designlabLayoutProfile',dlLayoutState.profile);}catch{}
+  const hint=$('layoutProfileHint');
+  if(hint)hint.textContent=dlLayoutState.profile==='production'
+    ? 'Produção: ao exportar a Folha técnica em PDF, gera 2 páginas: técnica + limpa.'
+    : 'Marcenaria: prioriza somente as cotas realmente úteis e visíveis.';
+  if(render)dlLayoutRender();
+}
 function dlLayoutHexColor(o){
   const v=Number(o?.userData?.baseColor);
   return Number.isFinite(v)?`#${Math.max(0,Math.min(0xffffff,v)).toString(16).padStart(6,'0')}`:'#d9d9d9';
@@ -403,7 +417,7 @@ function dlLayoutRenderSheet(ctx){
   const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let body='';
   views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
   const y=H-titleH,legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`),row1=legend.slice(0,6),row2=legend.slice(6,12),legendText=(arr,yy)=>arr.map((t,i)=>`<text x="${34+i*153}" y="${yy}" font-size="11">${dlLayoutEsc(t)}</text>`).join('');
-  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutModeLabel()}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
+  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutModeLabel()}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">${dlLayoutEsc(dlLayoutSheetNote())}</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
   return {W,H,body};
 }
 function dlLayoutRenderSingle(ctx,view){const W=1400,H=960;return {W,H,body:dlLayoutRenderOne(view,{x:22,y:22,w:W-44,h:H-44},ctx,{sheet:false})};}
@@ -477,7 +491,7 @@ function dlLayoutCanvasSheet(g,ctx,W,H){
   const y=H-titleH;g.save();g.fillStyle='#fff';g.strokeStyle='#111';g.lineWidth=1.5;g.fillRect(18,y,W-36,titleH-14);g.strokeRect(18,y,W-36,titleH-14);g.restore();dlLayoutCanvasLine(g,W*.55,y,W*.55,H-14);dlLayoutCanvasLine(g,W*.78,y,W*.78,H-14);
   dlLayoutCanvasText(g,dlLayoutProjectTitle(ctx),34,y+26,22,{bold:true});dlLayoutCanvasText(g,`${ctx.label} · ${ctx.pieces.length} peça(s)`,34,y+48,13);
   const legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`);legend.slice(0,6).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+75,11));legend.slice(6,12).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+96,11));if(ctx.pieces.length>12)dlLayoutCanvasText(g,`+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab`,34,y+116,10);
-  dlLayoutCanvasText(g,`DesignLabMoveis ${DL_LAYOUT_VERSION}`,W*.55+18,y+30,16,{bold:true});dlLayoutCanvasText(g,`Layout ${dlLayoutModeLabel()}`,W*.55+18,y+57,14);dlLayoutCanvasText(g,'Cortes A-A / B-B · cotas em mm',W*.55+18,y+84,12);dlLayoutCanvasText(g,`Escala ${dlLayoutScaleText()}`,W*.78+18,y+30,16);dlLayoutCanvasText(g,new Date().toLocaleDateString('pt-BR'),W*.78+18,y+57,14);dlLayoutCanvasText(g,`Folha ${dlLayoutState.page} horizontal`,W*.78+18,y+84,12);
+  dlLayoutCanvasText(g,`DesignLabMoveis ${DL_LAYOUT_VERSION}`,W*.55+18,y+30,16,{bold:true});dlLayoutCanvasText(g,`Layout ${dlLayoutModeLabel()}`,W*.55+18,y+57,14);dlLayoutCanvasText(g,dlLayoutSheetNote(),W*.55+18,y+84,12);dlLayoutCanvasText(g,`Escala ${dlLayoutScaleText()}`,W*.78+18,y+30,16);dlLayoutCanvasText(g,new Date().toLocaleDateString('pt-BR'),W*.78+18,y+57,14);dlLayoutCanvasText(g,`Folha ${dlLayoutState.page} horizontal`,W*.78+18,y+84,12);
 }
 function dlLayoutBuildDirectCanvas(scale=1){
   const ctx=dlLayoutState.lastContext||dlLayoutContext(),baseW=dlLayoutState.view==='sheet'?1800:1400,baseH=dlLayoutState.view==='sheet'?1200:960,c=document.createElement('canvas');c.width=Math.max(1,Math.round(baseW*scale));c.height=Math.max(1,Math.round(baseH*scale));const g=c.getContext('2d',{alpha:false});g.setTransform(scale,0,0,scale,0,0);g.fillStyle='#fff';g.fillRect(0,0,baseW,baseH);g.lineCap='butt';g.lineJoin='miter';g.imageSmoothingEnabled=true;if(dlLayoutState.view==='sheet')dlLayoutCanvasSheet(g,ctx,baseW,baseH);else dlLayoutCanvasView(g,dlLayoutState.view,{x:22,y:22,w:baseW-44,h:baseH-44},ctx,{sheet:false,W:baseW,H:baseH});return c;
@@ -506,6 +520,8 @@ function dlLayoutRender(){
 }
 function openTechnicalLayoutDialog(){
   dlLayoutPopulateScope(true);dlLayoutState.hiddenDims.clear();dlLayoutState.pickSection=null;
+  let savedProfile='marcenaria';try{savedProfile=localStorage.getItem('designlabLayoutProfile')||'marcenaria';}catch{}
+  dlLayoutSetProfile(savedProfile,{render:false});
   const dlg=$('technicalLayoutDialog');if(!dlg)return;
   dlg.classList.add('show');dlg.style.display='flex';
   setToolDockOpen?.(false);if($('morePanel'))$('morePanel').style.display='none';if($('spaceMoreDialog'))$('spaceMoreDialog').style.display='none';
@@ -555,6 +571,38 @@ async function dlLayoutExportPng(){
   try{const c=await dlLayoutSvgCanvas();const blob=await new Promise(res=>c.toBlob(res,'image/png'));if(!blob)throw new Error('PNG indisponível');dlLayoutDownloadBlob(`${dlLayoutFileBase()}.png`,blob);}catch(err){toast(err.message||'Não foi possível gerar PNG');}
 }
 function dlLayoutConcatBytes(parts){let len=0;for(const p of parts)len+=typeof p==='string'?new TextEncoder().encode(p).length:p.length;const out=new Uint8Array(len);let off=0;for(const p0 of parts){const p=typeof p0==='string'?new TextEncoder().encode(p0):p0;out.set(p,off);off+=p.length;}return out;}
+function dlLayoutCanvasJpegData(c,quality=.96){
+  const data=c.toDataURL('image/jpeg',quality),bin=atob(data.split(',')[1]),bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return {bytes,width:c.width,height:c.height};
+}
+function dlLayoutPdfWithJpegs(images,page='A4'){
+  const pagePt=page==='A3'?{w:1190.55,h:841.89}:{w:841.89,h:595.28},margin=22,n=Math.max(1,images.length),objects=[];
+  const pageRefs=[];
+  objects[1]='<< /Type /Catalog /Pages 2 0 R >>';
+  for(let i=0;i<n;i++)pageRefs.push(`${3+i*3} 0 R`);
+  objects[2]=`<< /Type /Pages /Kids [${pageRefs.join(' ')}] /Count ${n} >>`;
+  for(let i=0;i<n;i++){
+    const img=images[i],pageObj=3+i*3,imgObj=pageObj+1,contentObj=pageObj+2;
+    const fit=Math.min((pagePt.w-margin*2)/img.width,(pagePt.h-margin*2)/img.height),dw=img.width*fit,dh=img.height*fit,dx=(pagePt.w-dw)/2,dy=(pagePt.h-dh)/2;
+    objects[pageObj]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pagePt.w.toFixed(2)} ${pagePt.h.toFixed(2)}] /Resources << /XObject << /Im0 ${imgObj} 0 R >> >> /Contents ${contentObj} 0 R >>`;
+    objects[imgObj]={head:`<< /Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.bytes.length} >>\nstream\n`,bin:img.bytes,tail:'\nendstream'};
+    const stream=`q\n${dw.toFixed(3)} 0 0 ${dh.toFixed(3)} ${dx.toFixed(3)} ${dy.toFixed(3)} cm\n/Im0 Do\nQ\n`;
+    objects[contentObj]=`<< /Length ${new TextEncoder().encode(stream).length} >>\nstream\n${stream}endstream`;
+  }
+  const maxObj=2+n*3,chunks=['%PDF-1.4\n%âãÏÓ\n'],offsets=[0];let total=new TextEncoder().encode(chunks[0]).length;
+  for(let i=1;i<=maxObj;i++){
+    offsets[i]=total;const pre=`${i} 0 obj\n`,post='\nendobj\n';chunks.push(pre);total+=new TextEncoder().encode(pre).length;
+    const obj=objects[i];if(typeof obj==='string'){chunks.push(obj);total+=new TextEncoder().encode(obj).length;}else{chunks.push(obj.head,obj.bin,obj.tail);total+=new TextEncoder().encode(obj.head).length+obj.bin.length+new TextEncoder().encode(obj.tail).length;}
+    chunks.push(post);total+=new TextEncoder().encode(post).length;
+  }
+  const xref=total;let xs=`xref\n0 ${maxObj+1}\n0000000000 65535 f \n`;for(let i=1;i<=maxObj;i++)xs+=`${String(offsets[i]).padStart(10,'0')} 00000 n \n`;xs+=`trailer\n<< /Size ${maxObj+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  chunks.push(xs);return new Blob([dlLayoutConcatBytes(chunks)],{type:'application/pdf'});
+}
+function dlLayoutWithTemporaryState(patch,fn){
+  const keys=Object.keys(patch),saved={};for(const k of keys)saved[k]=dlLayoutState[k];
+  try{Object.assign(dlLayoutState,patch);return fn();}finally{Object.assign(dlLayoutState,saved);}
+}
 function dlLayoutPdfWithJpeg(jpegBytes,imgW,imgH,page='A4'){
   const pagePt=page==='A3'?{w:1190.55,h:841.89}:{w:841.89,h:595.28},margin=22,fit=Math.min((pagePt.w-margin*2)/imgW,(pagePt.h-margin*2)/imgH),dw=imgW*fit,dh=imgH*fit,dx=(pagePt.w-dw)/2,dy=(pagePt.h-dh)/2;
   const objects=[];
@@ -575,8 +623,16 @@ function dlLayoutPdfWithJpeg(jpegBytes,imgW,imgH,page='A4'){
 }
 async function dlLayoutExportPdf(){
   try{
-    const c=await dlLayoutSvgCanvas({jpeg:true}),data=c.toDataURL('image/jpeg',.96),bin=atob(data.split(',')[1]),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    const pdf=dlLayoutPdfWithJpeg(bytes,c.width,c.height,dlLayoutState.page);dlLayoutDownloadBlob(`${dlLayoutFileBase()}.pdf`,pdf);
+    if(dlLayoutState.profile==='production'&&dlLayoutState.view==='sheet'){
+      const technical=dlLayoutWithTemporaryState({mode:'technical',showHidden:true,showHatch:true,showDimensions:true,showLabels:true,visibleDimsOnly:true},()=>dlLayoutCanvasJpegData(dlLayoutBuildDirectCanvas(1.65)));
+      const clean=dlLayoutWithTemporaryState({mode:'cleanprint',showHidden:false,showHatch:false,showDimensions:true,showLabels:false,visibleDimsOnly:true},()=>dlLayoutCanvasJpegData(dlLayoutBuildDirectCanvas(1.65)));
+      const pdf=dlLayoutPdfWithJpegs([technical,clean],dlLayoutState.page);
+      dlLayoutDownloadBlob(`${dlLayoutFileBase()}-producao-2-folhas.pdf`,pdf);
+      toast('PDF de produção gerado com 2 páginas: técnica + limpa');
+      return;
+    }
+    const c=await dlLayoutSvgCanvas({jpeg:true}),img=dlLayoutCanvasJpegData(c),pdf=dlLayoutPdfWithJpegs([img],dlLayoutState.page);
+    dlLayoutDownloadBlob(`${dlLayoutFileBase()}.pdf`,pdf);
   }catch(err){console.error(err);toast(err.message||'Não foi possível gerar PDF');}
 }
 function dlLayoutDxfHeader(){return '0\r\nSECTION\r\n2\r\nHEADER\r\n0\r\nENDSEC\r\n0\r\nSECTION\r\n2\r\nENTITIES\r\n';}
@@ -668,6 +724,7 @@ $('layoutToolBtn')?.addEventListener('click',()=>{openTechnicalLayoutDialog();})
 $('spaceLayoutBtn')?.addEventListener('click',()=>{openTechnicalLayoutDialog();});
 $('layoutScopeSelect')?.addEventListener('change',e=>{dlLayoutState.scopeValue=e.target.value;dlLayoutState.hiddenDims.clear();dlLayoutState.sectionXPct=50;dlLayoutState.sectionYPct=50;dlLayoutRender();});
 $('layoutMode')?.addEventListener('change',e=>dlLayoutSetMode(e.target.value));
+$('layoutProfile')?.addEventListener('change',e=>dlLayoutSetProfile(e.target.value));
 $('layoutScale')?.addEventListener('change',e=>{dlLayoutState.scale=e.target.value;dlLayoutRender();});
 $('layoutPage')?.addEventListener('change',e=>{dlLayoutState.page=e.target.value;dlLayoutRender();});
 for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutUsefulOnly','visibleDimsOnly'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch'],['layoutHideDoors','hideDoors'],['layoutHideFronts','hideFronts']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});

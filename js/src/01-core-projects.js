@@ -489,7 +489,15 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.25';
+function designLabRuntimeVersion(){
+  const build=String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();
+  const m=build.match(/^(\d+\.\d+\.\d+)/);
+  if(m?.[1])return m[1];
+  const title=String(document.title||'');
+  const tm=title.match(/(\d+\.\d+\.\d+)/);
+  return tm?.[1]||'1.200.28';
+}
+const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
 
 // 1.200.18 · modo de visualização realmente somente leitura.
 // Usado pela visualização de projeto e por todas as prévias 3D.
@@ -731,7 +739,10 @@ async function applyDesignLabUpdate(){
     }
 
     // Cache-buster garante que nem o navegador nem um SW antigo entreguem o HTML antigo.
-    const target=new URL(location.href);
+    // Sempre volta para a raiz do app. Se uma instalação antiga estiver aberta
+    // por um HTML versionado (ex.: designlabmoveis-1.200.25.html), recarregar a
+    // mesma URL manteria aquela versão para sempre mesmo com o SW novo.
+    const target=new URL('/',location.origin);
     target.searchParams.set('_dlv',designLabAvailableUpdate?.version||String(Date.now()));
     target.searchParams.set('_refresh',String(Date.now()));
     setUpdateDialogStatus('Atualização pronta. Reiniciando o DesignLabMoveis…','good');
@@ -763,7 +774,7 @@ async function forceDesignLabServerRefresh(){
       const keys=await caches.keys();
       await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
     }
-    const target=new URL(location.href);
+    const target=new URL('/',location.origin);
     target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
     target.searchParams.set('_refresh',String(Date.now()));
     location.replace(target.toString());
