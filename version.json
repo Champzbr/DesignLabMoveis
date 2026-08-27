@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.24",
+  "version": "1.200.27",
   "required": false,
-  "message": "Layout técnico com cotas geradas somente por linhas realmente visíveis (sem espessuras internas falsas) e atualização automática da versão do servidor ao abrir/retomar o app.",
-  "released_at": "2026-08-27T13:20:00-03:00",
-  "build": "1.200.24-r1"
+  "message": "Layout técnico com filtro de cotas úteis e novo modo limpo para impressão, reduzindo excesso de medidas e melhorando a leitura antes de imprimir.",
+  "released_at": "2026-08-27T14:35:00-03:00",
+  "build": "1.200.27-r1"
 }

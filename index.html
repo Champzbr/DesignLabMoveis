@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.24-r1">
+<meta name="designlab-build" content="1.200.27-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.24-r1';
+  const BUILD='1.200.27-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -28,14 +28,14 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.24: Chrome/Android pode ignorar pushState criado sem gesto do usuário.
+  // 1.200.27: Chrome/Android pode ignorar pushState criado sem gesto do usuário.
   // Aqui apenas marcamos a entrada inicial. A cerca real é criada DURANTE
   // pointer/click do usuário no bundle principal, tornando o histórico elegível
   // para o botão Voltar do Android.
   const KEY='__designLabTrustedHistory';
   try{
     const st=window.history.state||{};
-    if(!st[KEY]) window.history.replaceState({[KEY]:true,kind:'anchor',version:'1.200.24'},'',location.href);
+    if(!st[KEY]) window.history.replaceState({[KEY]:true,kind:'anchor',version:'1.200.27'},'',location.href);
   }catch(_){}
 })();
 </script>
@@ -45,19 +45,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.24 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.24-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.24-r1">
+<title>DesignLabMoveis 1.200.27 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.27-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.27-r1">
 
-<!-- 1.200.24: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.27: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -67,7 +67,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.24</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.27</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -161,7 +161,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.24</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.27</span>
         </div>
       </div>
 
@@ -438,7 +438,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.24</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.27</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -464,7 +464,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.24</strong>
+        <strong id="updateCurrentVersion">1.200.27</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -507,7 +507,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.24 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.27 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1261,7 +1261,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.24</span>
+      <span class="cutPlanBadge">1.200.27</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -1999,6 +1999,7 @@
       <label>Modo
         <select id="layoutMode">
           <option value="technical">Layout técnico</option>
+          <option value="cleanprint">Layout limpo p/ impressão</option>
           <option value="presentation">Apresentação limpa</option>
         </select>
       </label>
@@ -2037,6 +2038,7 @@
           <strong>Elementos técnicos</strong>
           <label class="layoutCheck"><input id="layoutShowDimensions" type="checkbox" checked> Cotas automáticas</label>
           <label class="layoutCheck"><input id="layoutShowInternal" type="checkbox" checked> Cotas internas / vãos</label>
+          <label class="layoutCheck"><input id="layoutUsefulOnly" type="checkbox" checked> Somente cotas úteis</label>
           <label class="layoutCheck"><input id="layoutShowLabels" type="checkbox" checked> Identificação das peças</label>
           <label class="layoutCheck"><input id="layoutShowHidden" type="checkbox" checked> Linhas ocultas tracejadas</label>
           <label class="layoutCheck"><input id="layoutShowHatch" type="checkbox" checked> Hachura nas peças cortadas</label>
@@ -2076,7 +2078,34 @@
       <button id="layoutExportDxf" class="secondary" type="button">⇩ DXF</button>
       <button id="layoutExportSvg" class="secondary" type="button">⇩ SVG</button>
       <button id="layoutExportPng" class="secondary" type="button">⇩ PNG</button>
+      <button id="layoutPrintPreview" class="secondary" type="button">👁 Prévia</button>
       <button id="layoutPrint" class="secondary" type="button">🖨 Imprimir</button>
+    </footer>
+  </div>
+</div>
+
+<div id="layoutPrintPreviewDialog" aria-label="Prévia da folha antes de imprimir" role="dialog" aria-modal="true">
+  <div class="layoutPrintPreviewShell">
+    <header class="layoutPrintPreviewHead">
+      <div>
+        <strong>👁 Prévia da folha</strong>
+        <span id="layoutPrintPreviewInfo">Confira exatamente como a folha será impressa.</span>
+      </div>
+      <button id="closeLayoutPrintPreview" class="secondary" type="button">Fechar</button>
+    </header>
+    <div class="layoutPrintPreviewTools">
+      <button id="layoutPrintPreviewMinus" class="secondary" type="button" aria-label="Diminuir zoom">−</button>
+      <strong id="layoutPrintPreviewZoomLabel">100%</strong>
+      <button id="layoutPrintPreviewPlus" class="secondary" type="button" aria-label="Aumentar zoom">+</button>
+      <button id="layoutPrintPreviewFit" class="secondary" type="button">Ajustar</button>
+    </div>
+    <main id="layoutPrintPreviewViewport" class="layoutPrintPreviewViewport">
+      <img id="layoutPrintPreviewImage" class="layoutPrintPreviewImage" alt="Prévia exata da folha técnica antes da impressão">
+    </main>
+    <footer class="layoutPrintPreviewActions">
+      <button id="layoutPrintPreviewBack" class="secondary" type="button">← Voltar e editar</button>
+      <button id="layoutPrintPreviewPdf" class="secondary" type="button">⇩ PDF</button>
+      <button id="layoutPrintPreviewConfirm" type="button">🖨 Imprimir agora</button>
     </footer>
   </div>
 </div>
@@ -2117,6 +2146,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.24-r1"></script>
+<script type="module" src="js/app.js?v=1.200.27-r1"></script>
 </body>
 </html>
