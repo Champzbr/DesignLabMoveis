@@ -5,7 +5,7 @@
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.21';
+const DL_LAYOUT_VERSION='1.200.22';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -20,7 +20,13 @@ const dlLayoutState={
 function dlLayoutEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
 function dlLayoutAscii(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?');}
 function dlLayoutNum(v,d=3){const n=Number(v);return Number.isFinite(n)?Number(n.toFixed(d)):0;}
-function dlLayoutMmText(v){const n=Number(v)||0;return Math.abs(n-Math.round(n))<.05?String(Math.round(n)):String(Number(n.toFixed(1))).replace('.',',');}
+function dlLayoutMmText(v){
+  const n=Number(v)||0;
+  if(Math.abs(n-Math.round(n))<.005)return String(Math.round(n));
+  const d1=Math.round(n*10)/10;
+  if(Math.abs(n-d1)<.005)return d1.toFixed(1).replace('.',',');
+  return (Math.round(n*100)/100).toFixed(2).replace('.',',').replace(/0+$/,'').replace(/,$/,'');
+}
 function dlLayoutHexColor(o){
   const v=Number(o?.userData?.baseColor);
   return Number.isFinite(v)?`#${Math.max(0,Math.min(0xffffff,v)).toString(16).padStart(6,'0')}`:'#d9d9d9';
@@ -158,6 +164,7 @@ function dlLayoutModel(view,ctx){
   const pb=dlLayoutProjectWorldBounds(bx,projection);
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
+const DL_LAYOUT_DIM_TOL=.02;
 function dlLayoutInternalBoundaries(model,axis){
   const root=model.ctx.root,vals=[];
   if(root?.cells?.length){
@@ -167,9 +174,16 @@ function dlLayoutInternalBoundaries(model,axis){
       vals.push(axis==='u'?pb.minU:pb.minV,axis==='u'?pb.maxU:pb.maxV);
     }
   }
-  if(!vals.length){for(const it of model.items){vals.push(axis==='u'?it.box.minU:it.box.minV,axis==='u'?it.box.maxU:it.box.maxV);}}
-  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;vals.push(min,max);
-  return [...new Set(vals.filter(Number.isFinite).map(v=>Math.round(v*10)/10))].sort((a,b)=>a-b);
+  for(const it of model.items){
+    const box=it.sectionBox||it.box;if(!box)continue;
+    vals.push(axis==='u'?box.minU:box.minV,axis==='u'?box.maxU:box.maxV);
+  }
+  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
+  vals.push(min,max);
+  const sorted=vals.filter(Number.isFinite).map(v=>Math.round(v*100)/100).filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL).sort((a,b)=>a-b);
+  const out=[];
+  for(const v of sorted){if(!out.length||Math.abs(v-out[out.length-1])>DL_LAYOUT_DIM_TOL)out.push(v);else out[out.length-1]=(out[out.length-1]+v)/2;}
+  return out;
 }
 function dlLayoutDimensionModel(model){
   const b=model.bounds,dims=[];
@@ -178,9 +192,22 @@ function dlLayoutDimensionModel(model){
   if(dlLayoutState.showInternal){
     for(const axis of ['u','v']){
       const arr=dlLayoutInternalBoundaries(model,axis),parts=[];
-      for(let i=0;i<arr.length-1;i++){const len=arr[i+1]-arr[i];if(len>1)parts.push({a:arr[i],b:arr[i+1],len});}
-      const keep=parts.length<=12?parts:[...parts].sort((a,b)=>b.len-a.len).slice(0,12).sort((a,b)=>a.a-b.a);
-      for(const p of keep)dims.push({id:`${model.view}-internal-${axis}-${Math.round(p.a*10)}-${Math.round(p.b*10)}`,axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false});
+      const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV,overall=max-min;
+      for(let i=0;i<arr.length-1;i++){
+        const a=arr[i],bb=arr[i+1],len=bb-a;
+        if(len<=DL_LAYOUT_DIM_TOL)continue;
+        if(Math.abs(a-min)<=DL_LAYOUT_DIM_TOL&&Math.abs(bb-max)<=DL_LAYOUT_DIM_TOL)continue;
+        parts.push({a,b:bb,len});
+      }
+      let keep=parts;
+      if(parts.length>14){
+        keep=[...parts].sort((a,b)=>{
+          const pa=(a.len<=50?100000:0)+(a.len>=overall*.18?50000:0)+a.len;
+          const pb=(b.len<=50?100000:0)+(b.len>=overall*.18?50000:0)+b.len;
+          return pb-pa;
+        }).slice(0,14).sort((a,b)=>a.a-b.a);
+      }
+      for(const p of keep)dims.push({id:`${model.view}-internal-${axis}-${Math.round(p.a*100)}-${Math.round(p.b*100)}`,axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false});
     }
   }
   return dims;
@@ -288,7 +315,7 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
-// 1.200.21: renderização CAD DIRETA em Canvas 2D.
+// 1.200.22: renderização CAD DIRETA em Canvas 2D.
 // Não rasteriza mais SVG no Android. O Auto Dark do WebView atuava justamente
 // na etapa SVG -> Image -> Canvas e gravava o cinza dentro do PNG/PDF.
 function dlLayoutCanvasSetFont(g,size,{bold=false}={}){g.font=`${bold?'700 ':'400 '}${size}px Arial,Helvetica,sans-serif`;g.fillStyle='#000';g.textBaseline='alphabetic';}
