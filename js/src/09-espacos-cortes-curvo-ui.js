@@ -9,11 +9,13 @@ function setTool(mode){
     tapeCrosshair.style.top=(innerHeight/2)+'px';
     tapeCrosshair.style.display='block';
     tapeSnapDot.style.display='none';
-    tapeCrosshairLabel.textContent='Trena';
+    resetTapeMeasure();
+    tapeCrosshairLabel.textContent='1ª peça';
+    toast('Trena: toque na 1ª peça');
   }
   $('hintText').textContent = mode==='select' ? 'Selecionar · toque exatamente onde o dedo encostar'
     : mode==='move-free' ? 'Mover · reconhece quina, guia, aresta e face' 
-    : 'Trena · 1 toque fixa P1 · 2º toque cria guia · duplo toque em eixo/aresta cria guia infinita';
+    : 'Trena · toque na 1ª peça e depois na 2ª peça para medir a distância entre elas';
   if(typeof syncToolDockButtons==='function')syncToolDockButtons();
 }
 

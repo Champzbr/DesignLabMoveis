@@ -1221,10 +1221,10 @@ function openShapeDialog(){
 }
 function restoreShapePreview(){
   if(shapePreviewActive&&shapePreviewOwner&&objects.includes(shapePreviewOwner)){shapePreviewOwner.userData.forms=cloneForms(shapePreviewOriginalForms||[]);rebuildFormGeometry(shapePreviewOwner);}
-  shapePreviewActive=false;shapePreviewOriginalForms=null;$('shape3DPreviewBar').style.display='none';renderMachiningVisuals();
+  shapePreviewActive=false;shapePreviewOriginalForms=null;$('shape3DPreviewBar').style.display='none';setDesignLabVisualizationOnly(false);renderMachiningVisuals();
 }
 function previewShape3D(){
-  const owner=shapePreviewOwner||selected;if(!owner)return;try{restoreShapePreview();shapePreviewOwner=owner;shapePreviewOriginalForms=cloneForms(owner.userData.forms||[]);const forms=cloneForms(shapePreviewOriginalForms);forms.push(shapeDraftOperation());owner.userData.forms=forms;rebuildFormGeometry(owner);shapePreviewActive=true;$('shapeDialog').style.display='none';$('shape3DPreviewBar').style.display='flex';$('shape3DPreviewInfo').textContent=`${owner.userData.name||'Peça'} · prévia temporária; volte para aplicar ou ajustar.`;selectObject(owner);toast('Prévia 3D da Forma');}catch(err){restoreShapePreview();toast(err.message||'Não foi possível visualizar');}
+  const owner=shapePreviewOwner||selected;if(!owner)return;try{restoreShapePreview();shapePreviewOwner=owner;shapePreviewOriginalForms=cloneForms(owner.userData.forms||[]);const forms=cloneForms(shapePreviewOriginalForms);forms.push(shapeDraftOperation());owner.userData.forms=forms;rebuildFormGeometry(owner);shapePreviewActive=true;$('shapeDialog').style.display='none';$('shape3DPreviewBar').style.display='flex';setDesignLabVisualizationOnly(true);$('shape3DPreviewInfo').textContent=`${owner.userData.name||'Peça'} · prévia temporária; volte para aplicar ou ajustar.`;selectObject(owner);toast('Prévia 3D da Forma');}catch(err){restoreShapePreview();toast(err.message||'Não foi possível visualizar');}
 }
 function returnShapePreview(){restoreShapePreview();if(shapePreviewOwner&&objects.includes(shapePreviewOwner))selectObject(shapePreviewOwner);$('shapeDialog').style.display='flex';updateShapePreview();}
 function applyShapeToPiece(){
@@ -1607,7 +1607,7 @@ function renderHardwarePreviewOps(plan){
 function focusHardwarePlan(plan){
   const set=[...new Set(plan.operations.map(x=>x.owner))];if(!set.length)return;returnTo3D({restore:false,notify:false});const box=new THREE.Box3();for(const o of set){o.updateMatrixWorld(true);box.expandByObject(o);}const center=new THREE.Vector3(),size=new THREE.Vector3();box.getCenter(center);box.getSize(size);const span=Math.max(size.x,size.y,size.z,.3),dist=span*2.2;perspectiveCamera.position.set(center.x+dist*.7,center.y+dist*.55,center.z+dist*.85);controls.target.copy(center);perspectiveCamera.lookAt(center);controls.update();
 }
-function previewHardware3D(){try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p,{instanceId:'preview'});renderHardwarePreviewOps(plan);machiningPreviewOwner=selected;machiningPreviewActive=true;machiningVisualGroup.visible=false;$('machiningDialog').style.display='none';$('machining3DPreviewBar').style.display='flex';$('machining3DPreviewInfo').textContent=`${p.name} · ${plan.contacts.length} contato(s) · ${plan.operations.length} furação(ões) · ainda não salvo`;focusHardwarePlan(plan);toast('Prévia 3D · amarelo = furos da ferragem');}catch(err){clearMachiningDraftPreview();machiningVisualGroup.visible=true;toast(err.message||'Não foi possível visualizar a ferragem');}}
+function previewHardware3D(){try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p,{instanceId:'preview'});renderHardwarePreviewOps(plan);machiningPreviewOwner=selected;machiningPreviewActive=true;machiningVisualGroup.visible=false;$('machiningDialog').style.display='none';$('machining3DPreviewBar').style.display='flex';setDesignLabVisualizationOnly(true);$('machining3DPreviewInfo').textContent=`${p.name} · ${plan.contacts.length} contato(s) · ${plan.operations.length} furação(ões) · ainda não salvo`;focusHardwarePlan(plan);toast('Prévia 3D · amarelo = furos da ferragem');}catch(err){clearMachiningDraftPreview();machiningPreviewActive=false;machiningVisualGroup.visible=true;setDesignLabVisualizationOnly(false);toast(err.message||'Não foi possível visualizar a ferragem');}}
 function applySelectedHardware(){
   clearMachiningDraftPreview();machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
   try{
@@ -1899,6 +1899,7 @@ function showMachining3DPreview(){
     machiningVisualGroup.visible=false;
     $('machiningDialog').style.display='none';
     $('machining3DPreviewBar').style.display='flex';
+    setDesignLabVisualizationOnly(true);
     const qty=op.type==='hole'?holeSeriesInstances(owner,op).length:1;
     $('machining3DPreviewInfo').textContent=op.type==='hole'
       ?`${qty>1?qty+' furos':'Furo'} Ø ${nice(op.diameter)} mm · prof. ${nice(operationDepthMm(owner,op))} mm · ainda não salvo`
@@ -1907,12 +1908,14 @@ function showMachining3DPreview(){
     toast('Prévia 3D · verde = volume da usinagem');
   }catch(err){
     clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=true;
+    setDesignLabVisualizationOnly(false);
     toast(err.message||'Não foi possível visualizar a usinagem');
   }
 }
 function closeMachining3DPreview({reopen=true}={}){
   clearMachiningDraftPreview(); hardwarePreviewOps=[];
   machiningPreviewActive=false; machiningVisualGroup.visible=true;
+  setDesignLabVisualizationOnly(false);
   $('machining3DPreviewBar').style.display='none';
   if(machiningPreviewOwner&&objects.includes(machiningPreviewOwner))selectObject(machiningPreviewOwner);
   machiningPreviewOwner=null; hardwarePreviewOps=[];

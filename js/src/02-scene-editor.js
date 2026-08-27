@@ -372,6 +372,7 @@ function frameFurnitureVisual(){
 }
 function setVisualMode(on,{notify=true,frame=true}={}){
   on=!!on;
+  setDesignLabVisualizationOnly(on);
   if(on===visualMode){ if(on&&frame)frameFurnitureVisual(); return; }
   if(on){
     if(viewMode2D||camera===orthoCamera)returnTo3D({restore:true,notify:false});

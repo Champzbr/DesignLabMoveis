@@ -489,17 +489,55 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.12';
+const DESIGNLAB_APP_VERSION='1.200.15';
+
+// 1.200.15 · modo de visualização realmente somente leitura.
+// Usado pela visualização de projeto e por todas as prévias 3D.
+function setDesignLabVisualizationOnly(on){
+  document.body.classList.toggle('visualization-only',!!on);
+  if(!on)return;
+  try{if(typeof setTool==='function')setTool('select');}catch{}
+  try{dragMode=null;controls.enabled=true;}catch{}
+  $('projectMenuPanel')?.classList.remove('show');
+  $('projectCardMenu')?.classList.remove('show');
+  if($('morePanel'))$('morePanel').style.display='none';
+  if($('spaceActions'))$('spaceActions').style.display='none';
+  if($('inspector')){ $('inspector').classList.add('compact'); $('inspector').style.display='none'; }
+  if($('toolDockEditDialog'))$('toolDockEditDialog').style.display='none';
+}
+function designLabVisualizationOnlyActive(){
+  return document.body.classList.contains('visualization-only') || document.body.classList.contains('presentation-active');
+}
+
 const DESIGNLAB_VERSION_URL='./version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
 let designLabLastUpdateCheck=0;
 let designLabAvailableUpdate=null;
+let designLabAutoUpdateNoticeVersion=(()=>{try{return sessionStorage.getItem('designLabUpdateNoticeVersion')||'';}catch{return '';}})();
+let designLabUpdateCheckPromise=null;
+function markDesignLabUpdateAvailable(info){
+  const version=String(info?.version||'').trim();
+  for(const id of ['homeCheckUpdate','menuCheckUpdate','settingsCheckUpdate']){
+    const b=$(id);if(!b)continue;
+    b.classList.toggle('updateAvailable',!!version);
+    if(version)b.title=`Atualização ${version} disponível`;else b.removeAttribute('title');
+  }
+}
+function notifyDesignLabUpdateOnce(info){
+  const version=String(info?.version||'nova');
+  markDesignLabUpdateAvailable(info);
+  if(designLabAutoUpdateNoticeVersion===version)return;
+  designLabAutoUpdateNoticeVersion=version;
+  try{sessionStorage.setItem('designLabUpdateNoticeVersion',version);}catch{}
+  toast(`Atualização ${version} disponível · use Projeto > Verificar atualização`);
+}
+
 let designLabUpdating=false;
 let designLabSwRegistration=null;
 
 // ============================================================================
-// 1.200.12 · PWA / APP SEM BARRA DE ENDEREÇO
+// 1.200.15 · PWA / APP SEM BARRA DE ENDEREÇO
 // Mesma estratégia usada no Contas Fácil: manifesto e SW na raiz + instalação
 // real como app. Navegadores não permitem que uma página comum esconda a barra
 // por JavaScript; por isso celulares fora do modo standalone recebem a opção de
@@ -605,6 +643,7 @@ function updateCacheStatusUI(message=null){
 function openUpdateDialog(info){
   designLabAvailableUpdate=info||designLabAvailableUpdate;
   if(!designLabAvailableUpdate)return;
+  markDesignLabUpdateAvailable(designLabAvailableUpdate);
   $('updateCurrentVersion').textContent=DESIGNLAB_APP_VERSION;
   $('updateAvailableVersion').textContent=designLabAvailableUpdate.version||'nova';
   $('updateDialogMessage').textContent=designLabAvailableUpdate.message||
@@ -643,11 +682,14 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
     if(!info?.version)throw new Error('version.json inválido');
 
     if(compareAppVersions(info.version,DESIGNLAB_APP_VERSION)>0){
-      openUpdateDialog(info);
+      designLabAvailableUpdate=info;
+      if(manual)openUpdateDialog(info);
+      else notifyDesignLabUpdateOnce(info);
       return info;
     }
 
     designLabAvailableUpdate=null;
+    markDesignLabUpdateAvailable(null);
     if(manual)toast(`DesignLabMoveis ${DESIGNLAB_APP_VERSION} já está atualizado`);
     updateCacheStatusUI();
     return info;
@@ -1022,7 +1064,7 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 }
 
 // ============================================================================
-// 1.200.12 · PREFERÊNCIAS DA CONTA — CELULAR / PC
+// 1.200.15 · PREFERÊNCIAS DA CONTA — CELULAR / PC
 // ============================================================================
 // Projetos continuam no fluxo próprio (IndexedDB + R2). Este bloco sincroniza
 // somente preferências/configurações do DesignLabMoveis no D1, por usuário.
@@ -1499,7 +1541,7 @@ function fallbackProjectWrite(list){try{localStorage.setItem(PROJECT_FALLBACK_KE
 
 
 // ============================================================================
-// 1.200.12 · HOME OPÇÃO 1
+// 1.200.15 · HOME OPÇÃO 1
 // ============================================================================
 function updateProjectHomeWelcome(){
   const title=$('projectWelcomeTitle');
@@ -1720,7 +1762,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.200.12`:'DesignLabMoveis 1.200.12';
+  document.title=currentProjectId?`${name} · DesignLabMoveis 1.200.15`:'DesignLabMoveis 1.200.15';
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -1757,6 +1799,7 @@ async function clearProjectDraft(record){
   }catch{}
 }
 function applyProjectPresentationScene(on,{frame=false}={}){
+  setDesignLabVisualizationOnly(!!on);
   if(on){
     if(viewMode2D||camera===orthoCamera)returnTo3D({restore:true,notify:false});
     if(!visualMode)setVisualMode(true,{notify:false,frame:false});
@@ -1805,6 +1848,7 @@ async function loadProjectRecord(record,{useDraft=false,presentation=true}={}){
     if(!restored&&objects.length)frameFurnitureVisual();
     $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   }
+  setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 function enterProjectEditor(){
   document.body.classList.remove('presentation-active','project-home-active');
@@ -1812,6 +1856,7 @@ function enterProjectEditor(){
   applyProjectPresentationScene(false);
   $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   updateProjectChrome();
+  setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 async function renderProjectHome(){
   const cards=$('projectCards');if(!cards)return;
@@ -1925,7 +1970,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.200.12'
+    thumbnail:null,appVersion:'1.200.15'
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -1948,7 +1993,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.200.12'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.200.15'
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -1978,7 +2023,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.200.12'
+    thumbnail:thumb,appVersion:'1.200.15'
   };
   await projectDbPut(next);
   if(original){
@@ -2046,7 +2091,7 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.200.12',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.200.15',exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
@@ -2080,7 +2125,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.200.12'
+    thumbnail:p.thumbnail||null,appVersion:'1.200.15'
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2141,7 +2186,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.200.12'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.200.15'});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }
@@ -2176,16 +2221,17 @@ async function initProjectHub(){
 const TOOL_DOCK_PREFS_KEY='miniCadToolDockPrefsV62';
 const TOOL_DOCK_LEGACY_PREFS_KEY='miniCadToolDockPrefsV61';
 const TOOL_DOCK_POS_KEY='miniCadToolDockPosV61';
-const TOOL_DOCK_DEFAULT=['space','select','move','tape','parts','materials','labels','machining','visual','more'];
+const TOOL_DOCK_DEFAULT=['space','select','move','tape','parts','materials','labels','layout','machining','visual','more'];
 const TOOL_DOCK_CATALOG=[
   // Projeto / navegação
   {group:'Projeto',key:'space',label:'＋ Espaço',desc:'Criar outro espaço'},
   {group:'Projeto',key:'select',label:'Selecionar',desc:'Selecionar peças e espaços'},
   {group:'Projeto',key:'move',label:'✥ Mover',desc:'Mover com snap e inferências'},
-  {group:'Projeto',key:'tape',label:'📏 Trena',desc:'Medir e criar guias'},
+  {group:'Projeto',key:'tape',label:'📏 Trena',desc:'Medir distância entre duas peças'},
   {group:'Projeto',key:'parts',label:'📋 Peças gerais',desc:'Lista geral e cálculo de chapas'},
   {group:'Projeto',key:'materials',label:'🎨 Materiais / fitas',desc:'Materiais do projeto e fita de borda'},
   {group:'Projeto',key:'labels',label:'🏷 Etiquetas',desc:'Visualizar e imprimir etiquetas das peças'},
+  {group:'Projeto',key:'layout',label:'📐 Gerar layout',desc:'Frente, planta, laterais, cortes, cotas e exportação PDF/DXF'},
   {group:'Projeto',key:'visual',label:'👁 Visual',desc:'Alternar Projeto / Visual'},
   {group:'Projeto',key:'xray',label:'◈ Raio-X 3D',desc:'Mostrar contornos internos através das chapas'},
   {group:'Projeto',key:'view3d',label:'◇ Vista 3D',desc:'Voltar à perspectiva 3D'},
@@ -2249,6 +2295,7 @@ function loadToolDockPrefs(){
       // v62: inclui Usinagens na migração caso o usuário ainda esteja com o conjunto padrão antigo.
       if(valid.length){
         if(!valid.includes('machining') && valid.includes('more')) valid.splice(Math.max(0,valid.indexOf('more')),0,'machining');
+        if(!valid.includes('layout')) valid.splice(Math.max(0,valid.indexOf('machining')>=0?valid.indexOf('machining'):valid.indexOf('more')),0,'layout');
         if(!valid.includes('curvedStructure')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('space')+1)),0,'curvedStructure');
         if(!valid.includes('drawers')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('curvedStructure'))),0,'drawers');
         return valid;
@@ -2370,6 +2417,7 @@ function runDockTool(key){
   else if(key==='parts'){closeToolDockBeforeMenu();openPartsListDialog();}
   else if(key==='materials'){closeToolDockBeforeMenu();openProductionDialog();}
   else if(key==='labels'){closeToolDockBeforeMenu();openLabelsDialog();}
+  else if(key==='layout'){closeToolDockBeforeMenu();openTechnicalLayoutDialog();}
   else if(key==='visual')setVisualMode(!visualMode,{frame:true});
   else if(key==='xray')toggleDockXray();
   else if(key==='view3d'){returnTo3D({restore:true,notify:false});setFrontWorldView();toast('Vista 3D');}
@@ -2469,8 +2517,8 @@ function initToolDockDrag(){
   head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end);
 }
 
-// 1.200.12 · painel Espaço/Divisão flutuante com posição persistente.
-// 1.200.12 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
+// 1.200.15 · painel Espaço/Divisão flutuante com posição persistente.
+// 1.200.15 · Exportar/Importar móvel: STL 3D. Aspire e usinagem continuam em DXF.
 // O usuário arrasta pelo cabeçalho (nome + medidas) e a posição é lembrada
 // na conta e restaurada depois de fechar/reabrir o app ou trocar de aparelho.
 const SPACE_ACTIONS_POS_KEY='designLabSpaceActionsPosV1';

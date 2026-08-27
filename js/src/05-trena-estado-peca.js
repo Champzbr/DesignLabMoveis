@@ -63,6 +63,91 @@ function createConstructionGuide(start,end,{infinite=false,axis=null,kind='guide
   return line;
 }
 
+
+// 1.200.15 · Trena peça a peça.
+// O fluxo antigo por pontos/guias foi substituído por: 1ª peça -> 2ª peça -> distância mínima entre as superfícies.
+let tapePieceFirst=null;
+let tapePieceSecond=null;
+let tapePieceHover=null;
+let tapeMeasurementCommitted=false;
+
+const tapeFirstPieceBox=new THREE.Box3Helper(new THREE.Box3(),0x00e5ff);
+tapeFirstPieceBox.visible=false; tapeFirstPieceBox.renderOrder=108; tapeFirstPieceBox.material.depthTest=false; scene.add(tapeFirstPieceBox);
+const tapeHoverPieceBox=new THREE.Box3Helper(new THREE.Box3(),0xffd23f);
+tapeHoverPieceBox.visible=false; tapeHoverPieceBox.renderOrder=109; tapeHoverPieceBox.material.depthTest=false; scene.add(tapeHoverPieceBox);
+const tapeSecondPieceBox=new THREE.Box3Helper(new THREE.Box3(),0x34d058);
+tapeSecondPieceBox.visible=false; tapeSecondPieceBox.renderOrder=108; tapeSecondPieceBox.material.depthTest=false; scene.add(tapeSecondPieceBox);
+
+function tapePieceName(mesh){
+  return String(mesh?.userData?.name||'Peça');
+}
+function tapeSetBoxHelper(helper,mesh){
+  if(!helper)return;
+  if(!mesh){helper.visible=false;return;}
+  mesh.updateMatrixWorld(true);
+  helper.box.copy(new THREE.Box3().setFromObject(mesh));
+  helper.visible=true;
+}
+function tapeMeasurablePieces(){
+  return objects.filter(o=>o&&o.visible!==false&&o.isObject3D&&!o.userData?.isConstructionGuide);
+}
+function getTapePieceAtEvent(event){
+  if(!event||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return null;
+  getPointerNDC(event);
+  raycaster.setFromCamera(pointer,camera);
+  const hits=raycaster.intersectObjects(tapeMeasurablePieces(),false);
+  if(!hits.length)return null;
+  const hit=hits[0];
+  return {mesh:hit.object,point:hit.point.clone(),hit};
+}
+function tapeClosestIntervalPoints(aMin,aMax,bMin,bMax){
+  if(aMax<bMin)return [aMax,bMin];
+  if(bMax<aMin)return [aMin,bMax];
+  const lo=Math.max(aMin,bMin),hi=Math.min(aMax,bMax),v=(lo+hi)/2;
+  return [v,v];
+}
+function tapeDistanceBetweenPieces(a,b){
+  if(!a||!b)return null;
+  a.updateMatrixWorld(true); b.updateMatrixWorld(true);
+  const ba=new THREE.Box3().setFromObject(a),bb=new THREE.Box3().setFromObject(b);
+  const [ax,bx]=tapeClosestIntervalPoints(ba.min.x,ba.max.x,bb.min.x,bb.max.x);
+  const [ay,by]=tapeClosestIntervalPoints(ba.min.y,ba.max.y,bb.min.y,bb.max.y);
+  const [az,bz]=tapeClosestIntervalPoints(ba.min.z,ba.max.z,bb.min.z,bb.max.z);
+  const p1=new THREE.Vector3(ax,ay,az),p2=new THREE.Vector3(bx,by,bz);
+  const delta=p2.clone().sub(p1);
+  return {p1,p2,delta,distance:p1.distanceTo(p2)};
+}
+function tapeShowPieceDistance(a,b,{committed=false}={}){
+  const result=tapeDistanceBetweenPieces(a,b);
+  if(!result)return null;
+  setLinePoints(tapePreviewLine,result.p1,result.p2);
+  tapePreviewLine.material.color.set(0x00e5ff);
+  tapePreviewLine.visible=true;
+  tapePointMarker.position.copy(result.p2);
+  tapePointMarker.visible=true;
+  const mid=result.p1.clone().lerp(result.p2,.5),sp=worldToClient(mid);
+  const distMm=nice(mm(result.distance));
+  liveLabel.style.left=sp.x+'px'; liveLabel.style.top=sp.y+'px';
+  liveLabel.textContent=`${distMm} mm · ${tapePieceName(a)} ↔ ${tapePieceName(b)}`;
+  liveLabel.style.display='block';
+  if(committed){
+    const dx=Math.abs(mm(result.delta.x)),dy=Math.abs(mm(result.delta.y)),dz=Math.abs(mm(result.delta.z));
+    const parts=[]; if(dx>.001)parts.push(`X ${nice(dx)}`); if(dy>.001)parts.push(`Y ${nice(dy)}`); if(dz>.001)parts.push(`Z ${nice(dz)}`);
+    const detail=parts.length>1?` · ${parts.join(' · ')} mm`:'';
+    toast(`Distância: ${distMm} mm${detail}`);
+  }
+  return result;
+}
+function tapeUpdatePiecePrompt(){
+  if(toolMode!=='tape')return;
+  if(tapeMeasurementCommitted){
+    $('hintText').textContent=`Trena · ${tapePieceName(tapePieceFirst)} ↔ ${tapePieceName(tapePieceSecond)} · toque em outra peça para medir novamente`;
+  }else if(tapePieceFirst){
+    $('hintText').textContent=`Trena · 1ª peça: ${tapePieceName(tapePieceFirst)} · toque na 2ª peça`;
+  }else{
+    $('hintText').textContent='Trena · toque na 1ª peça';
+  }
+}
 function resetTapeMeasure(){
   tapeStart=null;
   tapeStartClient=null;
@@ -70,11 +155,19 @@ function resetTapeMeasure(){
   tapeEdgeSource=null;
   tapePendingEdge=null;
   tapeDragEdgeActive=false;
+  tapePieceFirst=null;
+  tapePieceSecond=null;
+  tapePieceHover=null;
+  tapeMeasurementCommitted=false;
   tapePreviewLine.visible=false;
   tapeSourceEdgeLine.visible=false;
   tapeOffsetLine.visible=false;
   tapePointMarker.visible=false;
+  tapeFirstPieceBox.visible=false;
+  tapeSecondPieceBox.visible=false;
+  tapeHoverPieceBox.visible=false;
   liveLabel.style.display='none';
+  tapeUpdatePiecePrompt();
 }
 
 function hideTapeCrosshair(){
@@ -414,75 +507,48 @@ function commitTapeParallelAtEvent(event){
 }
 
 function updateTapePreview(event){
-  if(toolMode!=='tape') return;
-  const pick=getTapePick(event);
-  if(!pick) return;
-  tapeHover=pick;
+  if(toolMode!=='tape')return;
+  const client=new THREE.Vector2(event.clientX,event.clientY);
+  const pick=getTapePieceAtEvent(event);
+  tapePieceHover=pick?.mesh||null;
 
-  if(!tapeStart){
-    tapePointMarker.position.copy(pick.point);
-    tapePointMarker.visible=true;
+  // Na nova Trena a mira identifica peças, não pontos/arestas/guias.
+  tapeCrosshair.style.left=client.x+'px';
+  tapeCrosshair.style.top=client.y+'px';
+  tapeCrosshair.style.display='block';
+  tapeCrosshair.className=pick?'snap-edge':'';
+  tapeSnapDot.style.display='none';
+  tapeCrosshairLabel.textContent=pick ? tapePieceName(pick.mesh) : (tapePieceFirst?'2ª peça':'1ª peça');
+
+  tapeSetBoxHelper(tapeHoverPieceBox,pick?.mesh&&pick.mesh!==tapePieceFirst&&pick.mesh!==tapePieceSecond?pick.mesh:null);
+
+  if(tapeMeasurementCommitted){
+    // O resultado fica visível até o próximo toque ou até sair da Trena.
+    tapeSetBoxHelper(tapeFirstPieceBox,tapePieceFirst);
+    tapeSetBoxHelper(tapeSecondPieceBox,tapePieceSecond);
+    return;
+  }
+
+  if(!tapePieceFirst){
+    tapePreviewLine.visible=false;
+    tapePointMarker.visible=false;
     liveLabel.style.display='none';
-    tapeOffsetLine.visible=false;
-    // Antes do primeiro toque, a mira já mostra exatamente o eixo/aresta/guia reconhecido.
-    if(pick.edge){
-      setLinePoints(tapeSourceEdgeLine,pick.edge.a,pick.edge.b);
-      tapeSourceEdgeLine.visible=true;
-      tapePreviewLine.visible=false;
-    }else if(pick.snapKind==='axis' && pick.snapAxis){
-      const dir=axisVector(pick.snapAxis);
-      setLinePoints(tapePreviewLine,pick.point.clone().addScaledVector(dir,-GUIDE_EXTENT),pick.point.clone().addScaledVector(dir,GUIDE_EXTENT));
-      tapePreviewLine.material.color.set(guideAxisColor(pick.snapAxis));
-      tapePreviewLine.visible=true;
-      tapeSourceEdgeLine.visible=false;
-    }else if(pick.snapKind==='guide' && pick.guide){
-      setLinePoints(tapePreviewLine,pick.guide.line.userData.start,pick.guide.line.userData.end);
-      tapePreviewLine.material.color.set(guideAxisColor(pick.snapAxis));
-      tapePreviewLine.visible=true;
-      tapeSourceEdgeLine.visible=false;
-    }else{
-      tapeSourceEdgeLine.visible=false;
-      tapePreviewLine.visible=false;
-    }
+    tapeFirstPieceBox.visible=false;
+    tapeSecondPieceBox.visible=false;
     return;
   }
 
-  if(tapeEdgeSource){
-    const g=parallelGuideGeometryFromPick(pick);
-    if(!g) return;
-    setLinePoints(tapePreviewLine,g.start,g.end);
-    tapePreviewLine.material.color.set(guideAxisColor(tapeEdgeSource.axis));
-    tapePreviewLine.visible=true;
-    setLinePoints(tapeSourceEdgeLine,tapeEdgeSource.a,tapeEdgeSource.b);
-    tapeSourceEdgeLine.visible=true;
-    setLinePoints(tapeOffsetLine,tapeStart,g.targetAnchor);
-    tapeOffsetLine.visible=true;
-    tapePointMarker.position.copy(g.targetAnchor); tapePointMarker.visible=true;
-    const mid=tapeStart.clone().lerp(g.targetAnchor,.5), sp=worldToClient(mid);
-    liveLabel.style.left=sp.x+'px'; liveLabel.style.top=sp.y+'px';
-    liveLabel.textContent=`${mm(g.offset)} mm · paralela à aresta`;
-    liveLabel.style.display='block';
-    return;
+  tapeSetBoxHelper(tapeFirstPieceBox,tapePieceFirst);
+  tapeSecondPieceBox.visible=false;
+  if(pick?.mesh&&pick.mesh!==tapePieceFirst){
+    tapeShowPieceDistance(tapePieceFirst,pick.mesh,{committed:false});
+  }else{
+    tapePreviewLine.visible=false;
+    tapePointMarker.visible=false;
+    liveLabel.style.display='none';
   }
-
-  tapeSourceEdgeLine.visible=false;
-  tapeOffsetLine.visible=false;
-  const axis=inferTapeAxis(tapeStart,event);
-  const end=projectPointToAxis(tapeStart,pick.point,axis);
-  tapePointMarker.position.copy(end);
-  tapePointMarker.visible=true;
-  setLinePoints(tapePreviewLine,tapeStart,end);
-  tapePreviewLine.material.color.set(guideAxisColor(axis));
-  tapePreviewLine.visible=true;
-
-  const dist=tapeStart.distanceTo(end);
-  const mid=tapeStart.clone().lerp(end,.5);
-  const sp=worldToClient(mid);
-  liveLabel.style.left=sp.x+'px';
-  liveLabel.style.top=sp.y+'px';
-  liveLabel.textContent=`${mm(dist)} mm${axis ? ` · eixo ${axis.toUpperCase()}` : ''}`;
-  liveLabel.style.display='block';
 }
+
 function createInfiniteAxisGuide(point,axis){
   const dir=axisVector(axis);
   const start=point.clone().addScaledVector(dir,-GUIDE_EXTENT);
@@ -505,73 +571,56 @@ function tapePickKey(pick){
 }
 
 function handleTapeTap(event){
-  if(toolMode!=='tape') return false;
-  if(!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return false;
+  if(toolMode!=='tape')return false;
+  if(!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return false;
 
   const now=performance.now();
-  const client=new THREE.Vector2(event.clientX,event.clientY);
-
-  // Android pode disparar pointerdown + touchstart para o mesmo contato.
-  // Se os dois chegarem quase juntos e no mesmo lugar, só confirmamos uma vez.
   const gateDist=Math.hypot(event.clientX-tapeConfirmGate.x,event.clientY-tapeConfirmGate.y);
-  if((now-tapeConfirmGate.time)<110 && gateDist<14) return false;
+  if((now-tapeConfirmGate.time)<110&&gateDist<14)return false;
   tapeConfirmGate={time:now,x:event.clientX,y:event.clientY};
 
-  const pick=getTapePick(event);
-  if(!pick){ toast('Trena: não consegui localizar o ponto'); return false; }
-  const key=tapePickKey(pick);
+  const pick=getTapePieceAtEvent(event);
+  if(!pick?.mesh){
+    toast(tapePieceFirst?'Trena: toque na 2ª peça':'Trena: toque diretamente na 1ª peça');
+    return false;
+  }
+  const mesh=pick.mesh;
 
-  const lastDist=Math.hypot(event.clientX-tapeLastConfirmedTap.x,event.clientY-tapeLastConfirmedTap.y);
-  const sameReference=key===tapeLastConfirmedTap.key;
-  const isDouble=(now-tapeLastConfirmedTap.time)<=DOUBLE_TAP_MS && lastDist<=DOUBLE_TAP_PX && sameReference;
-
-  // Duplo toque só vira guia infinita quando a mira está realmente sobre
-  // eixo, aresta ou guia. Um duplo toque em espaço livre não destrói P1/P2.
-  if(isDouble && ['axis','edge','guide'].includes(pick.snapKind)){
-    let axis=pick.snapAxis || pick.edge?.axis || pick.guide?.axis || null;
-    if(axis){
-      createInfiniteAxisGuide(pick.point,axis);
-      tapeLastConfirmedTap={time:0,x:-9999,y:-9999,key:''};
-      toast(`Guia infinita · eixo ${axis.toUpperCase()}`);
-      return true;
-    }
+  // Depois de mostrar um resultado, qualquer novo toque inicia uma nova medição
+  // usando a peça tocada como a primeira peça.
+  if(tapeMeasurementCommitted){
+    resetTapeMeasure();
   }
 
-  tapeLastConfirmedTap={time:now,x:event.clientX,y:event.clientY,key};
-
-  if(!tapeStart){
-    tapeStart=pick.point.clone();
-    tapeStartClient={x:event.clientX,y:event.clientY};
-    tapePointMarker.position.copy(tapeStart);
-    tapePointMarker.visible=true;
+  if(!tapePieceFirst){
+    tapePieceFirst=mesh;
+    tapePieceSecond=null;
+    tapeMeasurementCommitted=false;
+    tapeSetBoxHelper(tapeFirstPieceBox,mesh);
+    tapeHoverPieceBox.visible=false;
     tapePreviewLine.visible=false;
-    toast(`P1 fixado${pick.snapKind!=='free' ? ` · ${tapeCrosshairLabel.textContent}` : ''}`);
+    liveLabel.style.display='none';
+    tapeUpdatePiecePrompt();
+    toast(`1ª peça: ${tapePieceName(mesh)} · agora toque na 2ª peça`);
     return true;
   }
 
-  // Segundo toque SEMPRE conclui uma guia. Se houver eixo/aresta/guia sob a
-  // mira, respeitamos sua direção; caso contrário usamos os dois pontos livres.
-  let axis=pick.snapAxis || pick.edge?.axis || pick.guide?.axis || null;
-  if(!axis) axis=inferTapeAxis(tapeStart,event);
-  let end=axis ? projectPointToAxis(tapeStart,pick.point,axis) : pick.point.clone();
-
-  // Se a projeção de eixo colapsar os pontos, não apagamos P1: usamos o ponto
-  // livre em vez de simplesmente cancelar a medição.
-  if(tapeStart.distanceTo(end)<MIN_SIZE*2){
-    end=pick.point.clone();
-  }
-  if(tapeStart.distanceTo(end)<MIN_SIZE*2){
-    toast('P2 muito próximo do P1');
+  if(mesh===tapePieceFirst){
+    toast('Trena: escolha uma 2ª peça diferente');
     return false;
   }
 
-  const dist=tapeStart.distanceTo(end);
-  createConstructionGuide(tapeStart,end,{infinite:false,axis});
-  toast(`Guia criada · ${mm(dist)} mm${axis ? ` · ${axis.toUpperCase()}` : ''}`);
-  resetTapeMeasure();
+  tapePieceSecond=mesh;
+  tapeMeasurementCommitted=true;
+  tapeSetBoxHelper(tapeFirstPieceBox,tapePieceFirst);
+  tapeSetBoxHelper(tapeSecondPieceBox,tapePieceSecond);
+  tapeHoverPieceBox.visible=false;
+  tapeShowPieceDistance(tapePieceFirst,tapePieceSecond,{committed:true});
+  tapeUpdatePiecePrompt();
   tapeLastConfirmedTap={time:0,x:-9999,y:-9999,key:''};
   return true;
 }
+
 function getBoxCorners(mesh){
   if(!mesh || mesh.userData.kind==='cylinder') return [];
   const b=getBounds(mesh), pts=[];
@@ -710,7 +759,7 @@ function captureGuides(){
   }));
 }
 function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
-function captureState(){ return { version:'1.200.12', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
+function captureState(){ return { version:'1.200.15', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
   if(historyMuted) return;
@@ -1415,7 +1464,7 @@ function bestCellNearPoint(root,p){
   return visible.reduce((best,c)=>distanceSqPointToCell(p,c)<distanceSqPointToCell(p,best)?c:best,visible[0]);
 }
 
-// 1.200.12 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
+// 1.200.15 · ao apagar uma peça estrutural, devolve exatamente a faixa que ela ocupava
 // ao(s) vão(s) vizinho(s). Isso resolve principalmente lateral esquerda/direita,
 // base, chapéu, prateleira, fundo/frente e divisão vertical.
 function isSpaceCuttingPieceForHeal(o){
@@ -1690,7 +1739,7 @@ function axisVector(axis){
 
 // PEÇAS: 1 clique seleciona; segurar abre Configuração da peça.
 // ESPAÇOS/DIVISÕES: 1 clique seleciona; segurar abre o menu flutuante.
-// O antigo duplo clique do espaço foi removido na 1.200.12.
+// O antigo duplo clique do espaço foi removido na 1.200.15.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
@@ -1719,7 +1768,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.200.12 · menu do espaço igual ao menu da peça:
+// 1.200.15 · menu do espaço igual ao menu da peça:
 // 1 toque = somente seleciona; tocar/clicar e SEGURAR = abre o menu flutuante.
 let spaceLongPressTimer=null;
 let spaceLongPress={id:null,rootId:null,cellId:null,x:0,y:0,triggered:false};
@@ -1732,6 +1781,7 @@ function cancelSpaceLongPress(){
 function startSpaceLongPress(rootId,cellId,pointerId,x,y){
   cancelSpaceLongPress();
   if(toolMode!=='select'||!rootId||!cellId)return;
+  if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive())return;
   spaceLongPress={id:pointerId,rootId,cellId,x,y,triggered:false};
   spaceLongPressTimer=setTimeout(()=>{
     spaceLongPressTimer=null;
@@ -1797,7 +1847,7 @@ function registerLinkedDoubleTap(obj){
   return false;
 }
 
-// 1.200.12 · segurar a peça abre a configuração (mouse e touch).
+// 1.200.15 · segurar a peça abre a configuração (mouse e touch).
 let pieceLongPressTimer=null;
 let pieceLongPress={id:null,obj:null,x:0,y:0,triggered:false};
 const PIECE_LONG_PRESS_MS=520;
@@ -1809,6 +1859,7 @@ function cancelPieceLongPress(){
 function startPieceLongPress(obj,pointerId,x,y){
   cancelPieceLongPress();
   if(!obj||toolMode!=='select')return;
+  if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive())return;
   pieceLongPress={id:pointerId,obj,x,y,triggered:false};
   pieceLongPressTimer=setTimeout(()=>{
     pieceLongPressTimer=null;
@@ -1838,7 +1889,7 @@ function beginPick(){
   }
   let hit=hits[0], obj=hit.object;
 
-  // 1.200.12: quando já estamos trabalhando em um espaço e uma porta está
+  // 1.200.15: quando já estamos trabalhando em um espaço e uma porta está
   // na frente, a porta não bloqueia a seleção dos cortes atrás dela. Procuramos
   // no mesmo raio a divisão do espaço principal ativo. Peças comuns continuam
   // selecionáveis normalmente; a prioridade especial vale para portas.
@@ -1853,7 +1904,7 @@ function beginPick(){
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       resetSpaceDoubleTap();
-      // 1.200.12: um toque apenas seleciona e fecha o menu. Segurar o mesmo
+      // 1.200.15: um toque apenas seleciona e fecha o menu. Segurar o mesmo
       // espaço/divisão abre a janela, exatamente como a configuração da peça.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       startSpaceLongPress(rootId,cellId,activePointerId,downClientX,downClientY);
@@ -2088,6 +2139,11 @@ function pullSelected(axis){
 }
 
 renderer.domElement.addEventListener('pointerdown',e=>{
+  if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive()){
+    // Visualização é somente leitura: o evento continua livre para o
+    // OrbitControls (girar/pan/zoom), mas não inicia seleção nem edição.
+    dragMode=null;controls.enabled=true;return;
+  }
   // Navegação CAD no PC é tratada pelo OrbitControls.
   // O fluxo de edição abaixo continua exclusivo do botão esquerdo.
   if(e.button!==undefined && e.button!==0) return;

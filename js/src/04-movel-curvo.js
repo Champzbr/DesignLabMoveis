@@ -753,6 +753,7 @@ function previewCurvedStructure3D(){
     curved3DPreviewActive=true;
     $('curvedStructureDialog').style.display='none';
     $('curved3DPreviewBar').style.display='flex';
+    setDesignLabVisualizationOnly(true);
     if($('curved3DPreviewInfo'))$('curved3DPreviewInfo').textContent=`Raio ${nice(c.radius)} mm · ${c.ribs} nervura(s) · ${curvedPostSamplesMm(c).length} montante(s) · prévia temporária, ainda não salva.`;
     selectObject(null);frameFurnitureVisual();
     toast('Prévia 3D · gire/zoom e toque em Voltar e editar');
@@ -762,6 +763,7 @@ function previewCurvedStructure3D(){
     try{applyState(JSON.parse(original));}catch(_){ }
     curvedTargetRootId=meta.rootId;curvedTargetCellId=meta.cellId;curvedEditingExisting=meta.editing;curvedOrientation=meta.orientation;
     curved3DPreviewActive=false;curved3DPreviewOriginalState=null;curved3DPreviewMeta=null;
+    setDesignLabVisualizationOnly(false);
     if($('curved3DPreviewBar'))$('curved3DPreviewBar').style.display='none';
     toast(err.message||'Não foi possível visualizar o móvel curvo');
     return false;
@@ -771,6 +773,7 @@ function returnCurvedStructurePreview({reopen=true}={}){
   if(!curved3DPreviewActive){if(reopen)$('curvedStructureDialog').style.display='flex';return;}
   const snapshot=curved3DPreviewOriginalState,meta=curved3DPreviewMeta||{};
   curved3DPreviewActive=false;curved3DPreviewOriginalState=null;curved3DPreviewMeta=null;
+  setDesignLabVisualizationOnly(false);
   if($('curved3DPreviewBar'))$('curved3DPreviewBar').style.display='none';
   if(snapshot){
     try{applyState(JSON.parse(snapshot));}catch(err){toast('Não foi possível restaurar a prévia');}
@@ -787,7 +790,7 @@ function createCurvedStructure(){
   if(existing.length&&!curvedEditingExisting&&!confirm(`Este espaço já possui ${existing.length} peça(s) de estrutura curva/capa. Substituir pela nova estrutura?`))return false;
   const wasEditing=curvedEditingExisting;
   historyMuted=true;buildCurvedStructureObjects(c,target);historyMuted=false;commitHistory();
-  $('curvedStructureDialog').style.display='none';if($('curved3DPreviewBar'))$('curved3DPreviewBar').style.display='none';selectSpaceRootOnly(root);frameFurnitureVisual();
+  $('curvedStructureDialog').style.display='none';if($('curved3DPreviewBar'))$('curved3DPreviewBar').style.display='none';setDesignLabVisualizationOnly(false);selectSpaceRootOnly(root);frameFurnitureVisual();
   curved3DPreviewActive=false;curved3DPreviewOriginalState=null;curved3DPreviewMeta=null;
   curvedEditingExisting=false;curvedTargetRootId=null;curvedTargetCellId=null;
   toast(`${wasEditing?'Móvel curvo atualizado':'Móvel curvo criado'} · ${c.splitStructure?'2 partes':'inteiro'} · ${c.createCover?'com capa externa':'sem capa'}`);return true;
@@ -831,8 +834,47 @@ function selectObject(mesh){
   updateMeasureBadge();
 }
 
+// 1.200.15 · nomes rápidos de peças + biblioteca pessoal de nomes.
+const PIECE_NAME_PRESET_KEY='designLabPieceNamePresetsV1';
+const PIECE_NAME_BUILTINS=[
+  'Lateral esquerda','Lateral direita','Base','Chapéu','Prateleira','Divisão central','Divisão esquerda','Divisão direita',
+  'Fundo','Tampo','Rodapé','Travessa','Régua','Montante','Painel','Painel lateral','Painel frontal',
+  'Porta esquerda','Porta direita','Porta central','Frente de gaveta','Lateral de gaveta esquerda','Lateral de gaveta direita',
+  'Contra frente','Contra fundo','Fundo de gaveta','Nicho','Capa','Testeira'
+];
+function pieceNameCustomPresets(){
+  try{const a=JSON.parse(localStorage.getItem(PIECE_NAME_PRESET_KEY)||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()):[];}catch{return [];}
+}
+function savePieceNameCustomPresets(list){
+  const clean=[...new Set((list||[]).map(x=>String(x||'').trim()).filter(Boolean))].slice(0,120);
+  localStorage.setItem(PIECE_NAME_PRESET_KEY,JSON.stringify(clean));return clean;
+}
+function refreshPieceNamePresetSelect(current=''){
+  const sel=$('pieceNamePresetSelect');if(!sel)return;
+  const keep=String(current||'').trim();sel.innerHTML='';
+  const first=document.createElement('option');first.value='';first.textContent='Escolher um nome…';sel.appendChild(first);
+  const addGroup=(label,items)=>{if(!items.length)return;const g=document.createElement('optgroup');g.label=label;for(const name of items){const o=document.createElement('option');o.value=name;o.textContent=name;g.appendChild(o);}sel.appendChild(g);};
+  addGroup('Nomes padrão',PIECE_NAME_BUILTINS);addGroup('Meus nomes',pieceNameCustomPresets());
+  sel.value=[...sel.options].some(o=>o.value===keep)?keep:'';
+}
+function applyPieceNamePreset(name){
+  if(!selected)return;name=String(name||'').trim();if(!name)return;
+  selected.userData.name=name;
+  if($('partNameInput'))$('partNameInput').value=name;
+  $('objectName').textContent=name;
+  refreshPieceNamePresetSelect(name);
+  updateMeasureBadge();commitHistory();toast(`Nome alterado para “${name}”`);
+}
+function createPieceNamePreset(){
+  const input=$('pieceNameCustomInput');const name=String(input?.value||'').trim();
+  if(!name){toast('Digite o nome que deseja criar');input?.focus();return;}
+  const list=pieceNameCustomPresets();if(!list.some(x=>x.toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))list.push(name);
+  savePieceNameCustomPresets(list);if(input)input.value='';refreshPieceNamePresetSelect(name);applyPieceNamePreset(name);
+}
+
 function openPieceInspector(mesh=selected){
   if(!mesh)return;
+  if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive())return;
   if(mesh!==selected)selectObject(mesh);
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
   cancelDuplicateConfirmation?.();
@@ -855,6 +897,7 @@ function updateInspector(){
     ? `MDF · ${ti?.thickness||mm(u.height)} mm${matTxt}${bandCount?` · ${bandCount} fita(s)`:''}${machineCount?` · ${machineCount} usinagem(ns)`:''}`
     : (u.kind==='cylinder' ? 'Cilindro' : `Cubo${matTxt}${bandCount?` · ${bandCount} fita(s)`:''}${machineCount?` · ${machineCount} usinagem(ns)`:''}`);
   $('partNameInput').value=u.name || '';
+  refreshPieceNamePresetSelect(u.name||'');
   $('dimW').value=mm(u.width); $('dimD').value=mm(u.depth); $('dimH').value=mm(u.height);
   $('posX').value=mm(selected.position.x);
   $('posY').value=mm(selected.position.y-u.height/2);
