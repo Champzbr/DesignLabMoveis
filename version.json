@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.32",
+  "version": "1.200.33",
   "required": false,
-  "message": "Mini CAD 2D embutido na ferramenta Forma (linha, retângulo, círculo, arco, curva, raio, chanfro, aparar, snap e edição de pontos) e correção reforçada da abertura pelo servidor/botão Voltar no Android.",
-  "released_at": "2026-08-27T16:35:00-03:00",
-  "build": "1.200.32-r1"
+  "message": "Correção estrutural do botão Voltar no Android/TWA: a cerca de histórico agora é reconstruída por sessão/documento e após retomadas, sem depender de Recarregar versão do servidor.",
+  "released_at": "2026-08-27T17:20:00-03:00",
+  "build": "1.200.33-r1"
 }
