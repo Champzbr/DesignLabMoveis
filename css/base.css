@@ -1,3 +1,5 @@
+:root{color-scheme:only light;}
+html{color-scheme:only light;}
 /* DesignLabMoveis 1.100.87 · extraído do monólito 1.100.78 · ordem preservada */
 
   :root {
@@ -118,3 +120,6 @@
   }
 
 
+
+#updateAvailableChip{position:fixed;right:12px;top:max(12px,env(safe-area-inset-top));z-index:1800;border:1px solid #28a745;background:#0d5f26;color:#fff;border-radius:999px;padding:10px 14px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#updateAvailableChip[hidden]{display:none!important}.updateSettingActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}

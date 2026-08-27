@@ -1,4 +1,4 @@
-/* 1.200.18 · Gerador de layout técnico · papel CAD branco real / canvas anti-dark-mode */
+/* 1.200.20 · Gerador de layout técnico · papel CAD branco real / PNG anti-dark-mode */
 #technicalLayoutDialog{position:fixed;inset:0;z-index:1300;display:none;align-items:stretch;justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
 #technicalLayoutDialog.show{display:flex}
 .technicalLayoutShell{width:min(1540px,100%);height:100%;min-height:0;background:#111;border:1px solid #343434;border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;color:#f4f4f4}
@@ -25,3 +25,7 @@
 
 /* 1.200.18 · o papel do desenho permanece branco mesmo com tema escuro forçado no Android */
 #technicalLayoutDialog .technicalLayoutPreview,#technicalLayoutDialog .layoutSvgWrap,#technicalLayoutDialog .layoutPreviewCanvas{background-color:#fff!important;background-image:none!important;filter:none!important;opacity:1!important;mix-blend-mode:normal!important}
+
+/* 1.200.20: no PWA Android o desenho é exibido como PNG, evitando Auto Dark em canvas/SVG. */
+.layoutPreviewImageHolder{display:grid;place-items:center;width:100%;min-width:100%;background:#fff!important;color-scheme:only light!important;forced-color-adjust:none!important}
+.layoutPreviewImage{display:block;width:min(100%,1500px);height:auto;max-height:none;background:#fff!important;border:1px solid #000;border-radius:0;filter:none!important;opacity:1!important;mix-blend-mode:normal!important;forced-color-adjust:none!important;color-scheme:only light!important}
