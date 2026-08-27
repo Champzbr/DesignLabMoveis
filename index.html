@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.22-r1">
+<meta name="designlab-build" content="1.200.23-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.22-r1';
+  const BUILD='1.200.23-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -28,14 +28,14 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.22: Chrome/Android pode ignorar pushState criado sem gesto do usuário.
+  // 1.200.23: Chrome/Android pode ignorar pushState criado sem gesto do usuário.
   // Aqui apenas marcamos a entrada inicial. A cerca real é criada DURANTE
   // pointer/click do usuário no bundle principal, tornando o histórico elegível
   // para o botão Voltar do Android.
   const KEY='__designLabTrustedHistory';
   try{
     const st=window.history.state||{};
-    if(!st[KEY]) window.history.replaceState({[KEY]:true,kind:'anchor',version:'1.200.22'},'',location.href);
+    if(!st[KEY]) window.history.replaceState({[KEY]:true,kind:'anchor',version:'1.200.23'},'',location.href);
   }catch(_){}
 })();
 </script>
@@ -45,19 +45,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.22 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.22-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.22-r1">
+<title>DesignLabMoveis 1.200.23 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.23-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.23-r1">
 
-<!-- 1.200.22: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.23: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -67,7 +67,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.22</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.23</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -161,7 +161,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.22</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.23</span>
         </div>
       </div>
 
@@ -438,7 +438,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.22</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.23</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -465,7 +465,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.22</strong>
+        <strong id="updateCurrentVersion">1.200.23</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -508,7 +508,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.22 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.23 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1262,7 +1262,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.22</span>
+      <span class="cutPlanBadge">1.200.23</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2021,11 +2021,13 @@
     <div class="technicalLayoutViewTabs" aria-label="Vistas do layout">
       <button id="layoutViewSheet" data-layout-view-btn="sheet" class="active" type="button">Folha técnica</button>
       <button id="layoutViewFront" data-layout-view-btn="front" class="secondary" type="button">Frente</button>
+      <button data-layout-view-btn="frontOpen" class="secondary" type="button">Frente interna</button>
       <button data-layout-view-btn="top" class="secondary" type="button">Planta</button>
       <button data-layout-view-btn="left" class="secondary" type="button">Lateral E</button>
       <button data-layout-view-btn="right" class="secondary" type="button">Lateral D</button>
       <button data-layout-view-btn="back" class="secondary" type="button">Traseira</button>
       <button data-layout-view-btn="bottom" class="secondary" type="button">Inferior</button>
+      <button data-layout-view-btn="perspective" class="secondary" type="button">Perspectiva</button>
       <button data-layout-view-btn="sectionX" class="secondary" type="button">Corte A-A</button>
       <button data-layout-view-btn="sectionY" class="secondary" type="button">Corte B-B</button>
     </div>
@@ -2039,6 +2041,8 @@
           <label class="layoutCheck"><input id="layoutShowLabels" type="checkbox" checked> Identificação das peças</label>
           <label class="layoutCheck"><input id="layoutShowHidden" type="checkbox" checked> Linhas ocultas tracejadas</label>
           <label class="layoutCheck"><input id="layoutShowHatch" type="checkbox" checked> Hachura nas peças cortadas</label>
+          <label class="layoutCheck"><input id="layoutHideDoors" type="checkbox"> Ocultar portas</label>
+          <label class="layoutCheck"><input id="layoutHideFronts" type="checkbox"> Ocultar frentes de gaveta</label>
           <button id="layoutRestoreDims" class="secondary" type="button">Restaurar cotas ocultadas</button>
           <small id="layoutPickInfo">Clique em uma cota para ocultá-la. Use “Restaurar cotas” para trazer de volta.</small>
         </section>
@@ -2114,6 +2118,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.22-r1"></script>
+<script type="module" src="js/app.js?v=1.200.23-r1"></script>
 </body>
 </html>
