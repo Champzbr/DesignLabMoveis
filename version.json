@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.31",
+  "version": "1.200.32",
   "required": false,
-  "message": "Segurança e produção: autosave comprometido com histórico de 10 versões, verificador Projeto Pronto, pacote de produção em 1 clique e vista explodida/manual automático de montagem.",
-  "released_at": "2026-08-27T15:55:00-03:00",
-  "build": "1.200.31-r1"
+  "message": "Mini CAD 2D embutido na ferramenta Forma (linha, retângulo, círculo, arco, curva, raio, chanfro, aparar, snap e edição de pontos) e correção reforçada da abertura pelo servidor/botão Voltar no Android.",
+  "released_at": "2026-08-27T16:35:00-03:00",
+  "build": "1.200.32-r1"
 }
