@@ -9,25 +9,70 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script id="designLabEarlyBackBootstrap">
+(function(){
+  'use strict';
+  const KEY='__designLabEarlyBack';
+  const DEPTH=12;
+  const SESSION='dlb-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
+  let sequence=0;
+  function cleanBase(){
+    const u=new URL(location.href);u.searchParams.delete('__dlback');return u;
+  }
+  const BASE=cleanBase();
+  function state(kind,slot){return {[KEY]:true,session:SESSION,kind,slot,version:'1.200.18'};}
+  function guardUrl(slot){const u=new URL(BASE.href);u.searchParams.set('__dlback',String(slot));return u.href;}
+  function topUrl(){return BASE.href;}
+  function pushTop(){
+    try{window.history.pushState(state('top',++sequence),'',topUrl());return true;}catch(e){return false;}
+  }
+  function seed(){
+    try{
+      window.history.replaceState(state('anchor',0),'',topUrl());
+      for(let i=1;i<=DEPTH;i++)window.history.pushState(state('cushion',i),'',guardUrl(i));
+      pushTop();
+      return true;
+    }catch(e){return false;}
+  }
+  function ensure(){
+    try{
+      const st=window.history.state||{};
+      if(!st[KEY]||st.session!==SESSION){return seed();}
+      if(st.kind!=='top')return pushTop();
+      return true;
+    }catch(e){return false;}
+  }
+  // Popstate precisa existir antes do bundle principal. Recoloca o topo de forma
+  // síncrona; os 12 estados de reserva impedem que dois/mais Voltar rápidos
+  // alcancem a entrada anterior ao PWA.
+  window.addEventListener('popstate',function(){
+    pushTop();
+    if(typeof window.__designLabRunBackCascade==='function')window.__designLabRunBackCascade();
+    else window.__designLabPendingBack=(Number(window.__designLabPendingBack)||0)+1;
+  },true);
+  window.__DL_BACK_BOOTSTRAP={session:SESSION,depth:DEPTH,ensure:ensure,pushTop:pushTop,base:BASE.href};
+  seed();
+})();
+</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.17 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.200.18 - Forma paramétrica</title>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/editor.css">
 <link rel="stylesheet" href="css/materials.css">
 <link rel="stylesheet" href="css/labels.css">
 <link rel="stylesheet" href="css/cut-plan.css">
-<link rel="stylesheet" href="css/layout.css?v=1.200.17">
+<link rel="stylesheet" href="css/layout.css?v=1.200.18">
 <link rel="stylesheet" href="css/projects.css">
 <link rel="stylesheet" href="css/settings.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/mobile.css">
 
-<!-- 1.200.17: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.18: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -37,7 +82,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.17</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.18</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -131,7 +176,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.17</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.18</span>
         </div>
       </div>
 
@@ -408,7 +453,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.17</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.18</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button>
@@ -435,7 +480,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.17</strong>
+        <strong id="updateCurrentVersion">1.200.18</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -478,7 +523,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.17 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.18 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1231,7 +1276,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.17</span>
+      <span class="cutPlanBadge">1.200.18</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2083,6 +2128,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.17"></script>
+<script type="module" src="js/app.js?v=1.200.18"></script>
 </body>
 </html>

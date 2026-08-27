@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.17",
+  "version": "1.200.18",
   "required": false,
-  "message": "Layouts CAD em fundo branco e contorno preto. Botão Voltar universal revisado para menus, configurações, vistas, editor e seleção de projetos sem sair do app.",
-  "released_at": "2026-08-27T09:50:00-03:00"
+  "message": "Prévia de Layout em canvas branco real (não escurece no Android) e botão Voltar reforçado com 12 estados internos para nunca sair do app.",
+  "released_at": "2026-08-27T10:55:00-03:00"
 }
