@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.30';
+  return tm?.[1]||'1.200.31';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.30-r1';
+const DESIGNLAB_JS_BUILD='1.200.31-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1827,7 +1827,7 @@ function updateProjectChrome(){
   for(const id of ['homeSaveProject','homeSaveAsProject','menuSaveProject','menuSaveAsProject','menuRenameProject','menuDuplicateProject','menuExportProjectFile']){
     const b=$(id);if(b)b.disabled=!currentProjectId;
   }
-  document.title=currentProjectId?`${name} · DesignLabMoveis 1.200.18`:'DesignLabMoveis 1.200.18';
+  document.title=currentProjectId?`${name} · DesignLabMoveis ${DESIGNLAB_APP_VERSION}`:`DesignLabMoveis ${DESIGNLAB_APP_VERSION}`;
 }
 function markCurrentProjectDirty(){
   if(suppressProjectDirty||!currentProjectId)return;
@@ -2035,7 +2035,7 @@ async function createNewProject(meta){
     id:newProjectId(),ownerUserId:owner,
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:null,appVersion:'1.200.18'
+    thumbnail:null,appVersion:DESIGNLAB_APP_VERSION
   };
   await projectDbPut(rec);
   currentProjectId=rec.id;currentProjectRecord={...rec};currentProjectDirty=false;
@@ -2058,7 +2058,7 @@ async function saveCurrentProject({silent=false}={}){
     ...rec,...currentProjectRecord,
     id:currentProjectId,ownerUserId:projectCurrentOwnerId(),
     state:captureState(),camera:captureProjectCamera(),thumbnail,
-    createdAt:rec.createdAt||now,updatedAt:now,appVersion:'1.200.18'
+    createdAt:rec.createdAt||now,updatedAt:now,appVersion:DESIGNLAB_APP_VERSION
   };
   delete next.draftState;delete next.draftCamera;delete next.draftAt;
   delete next.deletedAt;
@@ -2088,7 +2088,7 @@ async function saveAsCurrentProject(meta){
     id:newProjectId(),ownerUserId:projectCurrentOwnerId(),
     name:meta.name,client:meta.client||'',environment:meta.environment||'',
     createdAt:now,updatedAt:now,state:captureState(),camera:captureProjectCamera(),
-    thumbnail:thumb,appVersion:'1.200.18'
+    thumbnail:thumb,appVersion:DESIGNLAB_APP_VERSION
   };
   await projectDbPut(next);
   if(original){
@@ -2156,12 +2156,13 @@ function projectDownload(data,filename){
 async function exportProjectRecordFile(record){
   if(!record)return;
   const payload={
-    format:'mini-cad-pro-project',formatVersion:1,appVersion:'1.200.18',exportedAt:projectNow(),
+    format:'mini-cad-pro-project',formatVersion:1,appVersion:DESIGNLAB_APP_VERSION,exportedAt:projectNow(),
     project:{
       name:record.name||'Projeto',client:record.client||'',environment:record.environment||'',
       createdAt:record.createdAt||projectNow(),updatedAt:record.updatedAt||projectNow(),
       state:record.state||{version:93,objects:[],guides:[],spaces:[]},
-      camera:record.camera||null,thumbnail:record.thumbnail||null
+      camera:record.camera||null,thumbnail:record.thumbnail||null,
+      versions:Array.isArray(record.versions)?record.versions.slice(-10):[]
     }
   };
   projectDownload(payload,projectSlug(record.name)+'.mcad');
@@ -2190,7 +2191,7 @@ async function importProjectFile(file){
     name:String(p.name||file.name.replace(/\.[^.]+$/,'')||'Projeto importado'),
     client:String(p.client||''),environment:String(p.environment||''),
     createdAt:now,updatedAt:now,state:p.state,camera:p.camera||null,
-    thumbnail:p.thumbnail||null,appVersion:'1.200.18'
+    thumbnail:p.thumbnail||null,versions:Array.isArray(p.versions)?p.versions.slice(-10):[],appVersion:DESIGNLAB_APP_VERSION
   };
   await projectDbPut(rec);
   await loadProjectRecord(rec,{presentation:projectStateHasContent(rec.state)});
@@ -2251,7 +2252,7 @@ async function migrateLegacySingleProject(){
   }
   if(state){
     const now=projectNow();
-    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:'1.200.18'});
+    await projectDbPut({id:newProjectId(),name:'Projeto anterior',client:'',environment:'',createdAt:now,updatedAt:now,state,camera:null,thumbnail:null,appVersion:DESIGNLAB_APP_VERSION});
   }
   localStorage.setItem(PROJECT_MIGRATION_KEY,'1');
 }

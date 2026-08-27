@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.18</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.31</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -1142,6 +1142,10 @@ async function designLabHandleBackCascade(){
   if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar')){closeMachining3DPreview({reopen:true});return 'closed';}
 
   const closers=[
+    ['assemblyExplodePanel','closeAssemblyExplode'],
+    ['assemblyManualDialog','closeAssemblyManualDialog'],
+    ['projectVersionsDialog','closeProjectVersionsDialog'],
+    ['productionSuiteDialog','closeProductionSuiteDialog'],
     ['layoutPrintPreviewDialog','closeLayoutPrintPreview'],
     ['technicalLayoutDialog','closeTechnicalLayout'],
     ['sheetPreviewDialog','sheetPreviewClose'],
@@ -1198,11 +1202,11 @@ function designLabInstallBackFence(){
     // Fallback para navegador muito antigo: ainda mantém três entradas internas.
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.30'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.30'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.30'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.31'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.31'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.31'},'',location.href);
     }else if(st.kind!=='guard2'){
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.30'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.31'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1245,7 +1249,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.30: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.31: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
