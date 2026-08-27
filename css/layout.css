@@ -44,3 +44,7 @@
 .layoutPrintPreviewImage{display:block;background:#fff;box-shadow:0 3px 24px rgba(0,0,0,.35);border:1px solid #888;max-width:none;height:auto;transform-origin:top center;filter:none!important;forced-color-adjust:none!important;color-scheme:only light!important}
 .layoutPrintPreviewActions{display:flex;justify-content:flex-end;gap:8px;padding:10px 12px;background:#151515;border-top:1px solid #333}.layoutPrintPreviewActions button{min-width:118px}
 @media(max-width:700px){#layoutPrintPreviewDialog{padding:0}.layoutPrintPreviewShell{border-radius:0;border:0}.layoutPrintPreviewHead{padding:9px 10px}.layoutPrintPreviewViewport{padding:10px}.layoutPrintPreviewActions{overflow-x:auto;justify-content:flex-start;padding:8px}.layoutPrintPreviewActions button{min-width:130px;white-space:nowrap}}
+
+/* 1.200.28 · Perfis de saída do Layout */
+.layoutProfileHint{padding:8px 16px 10px;color:#8f9aa6;font-size:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+@media (max-width:720px){.layoutProfileHint{padding:7px 14px 9px;font-size:11px}}
