@@ -489,8 +489,8 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.21';
-const DESIGNLAB_BUILD_ID='1.200.21-r1';
+const DESIGNLAB_APP_VERSION='1.200.22';
+const DESIGNLAB_BUILD_ID='1.200.22-r1';
 window.__DESIGNLAB_BUILD_ID=DESIGNLAB_BUILD_ID;
 (function verifyDesignLabRuntimeBuild(){
   const htmlBuild=document.querySelector('meta[name="designlab-build"]')?.content||'';
@@ -720,6 +720,55 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
     return null;
   }
 }
+let designLabAutoServerSyncBusy=false;
+let designLabLastAutoServerSync=0;
+async function designLabAutoRefreshFromServer({reason='open'}={}){
+  // 1.200.22: toda abertura/retomada consulta version.json DIRETO do servidor.
+  // Só força recarga quando o build publicado é diferente, evitando loop e
+  // evitando recarregar o projeto sem necessidade quando já estamos atualizados.
+  if(!navigator.onLine||designLabUpdating||designLabAutoServerSyncBusy)return false;
+  const now=Date.now();
+  if(now-designLabLastAutoServerSync<4000)return false;
+  designLabLastAutoServerSync=now;designLabAutoServerSyncBusy=true;
+  try{
+    const res=await fetch(`${DESIGNLAB_VERSION_URL}?open=${now}&reason=${encodeURIComponent(reason)}`,{cache:'no-store',headers:{'Accept':'application/json'}});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const info=await res.json();
+    const serverBuild=String(info?.build||info?.version||'').trim();
+    const serverVersion=String(info?.version||'').trim();
+    const needsReload=!!serverBuild && (serverBuild!==DESIGNLAB_BUILD_ID || compareAppVersions(serverVersion,DESIGNLAB_APP_VERSION)>0);
+    if(!needsReload){
+      try{designLabSwRegistration?.update?.();}catch{}
+      return false;
+    }
+    const loopKey=`designLabAutoReload:${serverBuild}`;
+    try{
+      if(sessionStorage.getItem(loopKey)==='1'){
+        console.warn('DesignLab: servidor ainda entregou build diferente após recarga',serverBuild,DESIGNLAB_BUILD_ID);
+        return false;
+      }
+      sessionStorage.setItem(loopKey,'1');
+    }catch{}
+    try{await projectAutosaveNow();}catch{}
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations().catch(()=>[]);
+      for(const reg of regs){try{await reg.update();}catch{}}
+    }
+    if('caches' in window){
+      const keys=await caches.keys().catch(()=>[]);
+      await Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)));
+    }
+    const u=new URL(location.origin+location.pathname);
+    u.searchParams.set('_dlserver',serverBuild);
+    u.searchParams.set('_open',String(now));
+    location.replace(u.toString());
+    return true;
+  }catch(err){
+    console.warn('Atualização automática ao abrir:',err);
+    return false;
+  }finally{designLabAutoServerSyncBusy=false;}
+}
+
 async function forceReloadDesignLabFromServer(){
   if(designLabUpdating)return;
   designLabUpdating=true;
@@ -16371,9 +16420,9 @@ $('adminPaymentsList').addEventListener('click',e=>{
 });
 
 // ============================================================================
-// 1.200.21 · VOLTAR UNIVERSAL (Android / navegador / PWA)
+// 1.200.22 · VOLTAR UNIVERSAL (Android / navegador / PWA)
 // ----------------------------------------------------------------------------
-// 1.200.21 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
+// 1.200.22 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
 // ----------------------------------------------------------------------------
 // O bootstrap instalado no <head> cria uma "almofada" de várias entradas
 // same-document ANTES de o app carregar. Isso é deliberado: em alguns Samsung/
@@ -16595,14 +16644,14 @@ window.addEventListener('resize'
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
 initDesignLabInstallExperience();
-initDesignLabServiceWorker().catch(()=>{});
+initDesignLabServiceWorker().then(()=>designLabAutoRefreshFromServer({reason:'launch'})).catch(()=>designLabAutoRefreshFromServer({reason:'launch'}));
 setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
-window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
+window.addEventListener('online',()=>{updateCacheStatusUI();designLabAutoRefreshFromServer({reason:'online'}).catch(()=>{});checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){checkDesignLabUpdate().catch(()=>{});}
+  if(document.visibilityState==='visible'){designLabAutoRefreshFromServer({reason:'resume'}).catch(()=>{});checkDesignLabUpdate().catch(()=>{});}
 });
-window.addEventListener('pageshow',()=>{checkDesignLabUpdate().catch(()=>{});});
+window.addEventListener('pageshow',()=>{designLabAutoRefreshFromServer({reason:'pageshow'}).catch(()=>{});checkDesignLabUpdate().catch(()=>{});});
 
 // Início limpo e frontal. A cerca do Voltar será armada no primeiro gesto real do usuário.
 setFrontWorldView();
@@ -16626,7 +16675,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.21';
+const DL_LAYOUT_VERSION='1.200.22';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -16641,7 +16690,16 @@ const dlLayoutState={
 function dlLayoutEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
 function dlLayoutAscii(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?');}
 function dlLayoutNum(v,d=3){const n=Number(v);return Number.isFinite(n)?Number(n.toFixed(d)):0;}
-function dlLayoutMmText(v){const n=Number(v)||0;return Math.abs(n-Math.round(n))<.05?String(Math.round(n)):String(Number(n.toFixed(1))).replace('.',',');}
+function dlLayoutMmText(v){
+  const n=Number(v)||0;
+  // Precisão de desenho técnico: conserva décimos/centésimos reais e só
+  // remove casas quando o valor está efetivamente sobre o inteiro. Isso evita
+  // esconder folgas pequenas (ex.: porta 895 mm dentro de vão de 900 mm).
+  if(Math.abs(n-Math.round(n))<.005)return String(Math.round(n));
+  const d1=Math.round(n*10)/10;
+  if(Math.abs(n-d1)<.005)return d1.toFixed(1).replace('.',',');
+  return (Math.round(n*100)/100).toFixed(2).replace('.',',').replace(/0+$/,'').replace(/,$/,'');
+}
 function dlLayoutHexColor(o){
   const v=Number(o?.userData?.baseColor);
   return Number.isFinite(v)?`#${Math.max(0,Math.min(0xffffff,v)).toString(16).padStart(6,'0')}`:'#d9d9d9';
@@ -16779,8 +16837,10 @@ function dlLayoutModel(view,ctx){
   const pb=dlLayoutProjectWorldBounds(bx,projection);
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
+const DL_LAYOUT_DIM_TOL=.02; // 0,02 mm: tolerância só para ruído numérico do THREE
 function dlLayoutInternalBoundaries(model,axis){
   const root=model.ctx.root,vals=[];
+  // As células continuam úteis para cotar os vãos lógicos do móvel.
   if(root?.cells?.length){
     for(const c of root.cells){
       const wb={minX:c.minX*1000,maxX:c.maxX*1000,minY:c.minY*1000,maxY:c.maxY*1000,minZ:c.minZ*1000,maxZ:c.maxZ*1000};
@@ -16788,9 +16848,26 @@ function dlLayoutInternalBoundaries(model,axis){
       vals.push(axis==='u'?pb.minU:pb.minV,axis==='u'?pb.maxU:pb.maxV);
     }
   }
-  if(!vals.length){for(const it of model.items){vals.push(axis==='u'?it.box.minU:it.box.minV,axis==='u'?it.box.maxU:it.box.maxV);}}
-  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;vals.push(min,max);
-  return [...new Set(vals.filter(Number.isFinite).map(v=>Math.round(v*10)/10))].sort((a,b)=>a-b);
+  // 1.200.22: SEMPRE acrescenta as arestas REAIS de cada peça projetada.
+  // Antes, quando existiam cells, essas arestas eram ignoradas. Por isso uma
+  // porta 5 mm menor podia aparecer nitidamente no desenho, mas a cota repetia
+  // os 900 mm do espaço. Agora 895 e a folga de 5 mm entram na cadeia de cotas.
+  for(const it of model.items){
+    const box=it.sectionBox||it.box;if(!box)continue;
+    vals.push(axis==='u'?box.minU:box.minV,axis==='u'?box.maxU:box.maxV);
+  }
+  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
+  vals.push(min,max);
+  const sorted=vals.filter(Number.isFinite)
+    .map(v=>Math.round(v*100)/100)
+    .filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL)
+    .sort((a,b)=>a-b);
+  const out=[];
+  for(const v of sorted){
+    if(!out.length||Math.abs(v-out[out.length-1])>DL_LAYOUT_DIM_TOL)out.push(v);
+    else out[out.length-1]=(out[out.length-1]+v)/2;
+  }
+  return out;
 }
 function dlLayoutDimensionModel(model){
   const b=model.bounds,dims=[];
@@ -16799,9 +16876,28 @@ function dlLayoutDimensionModel(model){
   if(dlLayoutState.showInternal){
     for(const axis of ['u','v']){
       const arr=dlLayoutInternalBoundaries(model,axis),parts=[];
-      for(let i=0;i<arr.length-1;i++){const len=arr[i+1]-arr[i];if(len>1)parts.push({a:arr[i],b:arr[i+1],len});}
-      const keep=parts.length<=12?parts:[...parts].sort((a,b)=>b.len-a.len).slice(0,12).sort((a,b)=>a.a-b.a);
-      for(const p of keep)dims.push({id:`${model.view}-internal-${axis}-${Math.round(p.a*10)}-${Math.round(p.b*10)}`,axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false});
+      const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV,overall=max-min;
+      for(let i=0;i<arr.length-1;i++){
+        const a=arr[i],bb=arr[i+1],len=bb-a;
+        if(len<=DL_LAYOUT_DIM_TOL)continue;
+        // Não duplica a cota geral em uma segunda linha (o antigo 900 / 900).
+        if(Math.abs(a-min)<=DL_LAYOUT_DIM_TOL&&Math.abs(bb-max)<=DL_LAYOUT_DIM_TOL)continue;
+        parts.push({a,b:bb,len});
+      }
+      // Até 14 segmentos por eixo. Se houver muitos detalhes, prioriza folgas
+      // pequenas e os maiores vãos, mantendo a ordem física no desenho.
+      let keep=parts;
+      if(parts.length>14){
+        keep=[...parts].sort((a,b)=>{
+          const pa=(a.len<=50?100000:0)+(a.len>=overall*.18?50000:0)+a.len;
+          const pb=(b.len<=50?100000:0)+(b.len>=overall*.18?50000:0)+b.len;
+          return pb-pa;
+        }).slice(0,14).sort((a,b)=>a.a-b.a);
+      }
+      for(const p of keep)dims.push({
+        id:`${model.view}-internal-${axis}-${Math.round(p.a*100)}-${Math.round(p.b*100)}`,
+        axis,a:p.a,b:p.b,text:dlLayoutMmText(p.len),overall:false
+      });
     }
   }
   return dims;
@@ -16909,7 +17005,7 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
-// 1.200.21: renderização CAD DIRETA em Canvas 2D.
+// 1.200.22: renderização CAD DIRETA em Canvas 2D.
 // Não rasteriza mais SVG no Android. O Auto Dark do WebView atuava justamente
 // na etapa SVG -> Image -> Canvas e gravava o cinza dentro do PNG/PDF.
 function dlLayoutCanvasSetFont(g,size,{bold=false}={}){g.font=`${bold?'700 ':'400 '}${size}px Arial,Helvetica,sans-serif`;g.fillStyle='#000';g.textBaseline='alphabetic';}
