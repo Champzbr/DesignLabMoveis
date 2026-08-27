@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.20",
+  "version": "1.200.21",
   "required": false,
-  "message": "Correção do PWA Android: layout exibido como PNG com esquema de cor claro real; botão Voltar passa a usar histórico criado durante gesto do usuário; aviso de atualização visível e recarga forçada do servidor.",
+  "message": "Layout CAD renderizado diretamente em Canvas 2D: branco/preto real no PWA Android; Voltar mantido.",
   "released_at": "2026-08-27T11:55:00-03:00",
-  "build": "1.200.20-r1"
+  "build": "1.200.21-r1"
 }
