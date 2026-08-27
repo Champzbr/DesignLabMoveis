@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.30",
+  "version": "1.200.31",
   "required": false,
-  "message": "Validação Android TWA/PWABuilder: Digital Asset Links ligado ao APK oficial para remover a barra do navegador quando o domínio e a assinatura forem validados.",
-  "released_at": "2026-08-27T15:10:00-03:00",
-  "build": "1.200.30-r1"
+  "message": "Segurança e produção: autosave comprometido com histórico de 10 versões, verificador Projeto Pronto, pacote de produção em 1 clique e vista explodida/manual automático de montagem.",
+  "released_at": "2026-08-27T15:55:00-03:00",
+  "build": "1.200.31-r1"
 }

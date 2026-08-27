@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.30-r1">
+<meta name="designlab-build" content="1.200.31-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.30-r1';
+  const BUILD='1.200.31-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,7 +20,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.30: em modo APP/PWA, cada abertura fria faz uma passagem obrigatória
+  // 1.200.31: em modo APP/PWA, cada abertura fria faz uma passagem obrigatória
   // pelo servidor antes de iniciar o editor. A URL _bootFresh evita loop e fica
   // apenas durante esta sessão aberta do aplicativo.
   const standalone=window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;
@@ -71,13 +71,13 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.30: a proteção do Voltar é armada durante um gesto real do usuário.
+  // 1.200.31: a proteção do Voltar é armada durante um gesto real do usuário.
   // Isso evita que o Chrome Android trate os pushState iniciais como descartáveis
   // e feche o PWA no primeiro Voltar. Depois do primeiro toque, a cerca é reposta
   // automaticamente a cada popstate e a cascata do app decide qual tela fechar.
   const KEY='__designLabTrustedHistoryV29';
   let trustedArmed=false;
-  function anchorState(kind){return Object.assign({},window.history.state||{},{[KEY]:true,kind,version:'1.200.30'});}
+  function anchorState(kind){return Object.assign({},window.history.state||{},{[KEY]:true,kind,version:'1.200.31'});}
   function ensure(forceTrusted=false){
     try{
       if(forceTrusted)trustedArmed=true;
@@ -117,19 +117,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.30 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.30-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.30-r1">
+<title>DesignLabMoveis 1.200.31 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.31-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.31-r1">
 
-<!-- 1.200.30: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.31: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -139,7 +139,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.30</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.31</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -233,7 +233,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.30</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.31</span>
         </div>
       </div>
 
@@ -284,6 +284,12 @@
       <button id="heroOpenFile" class="homeQuickAction secondary" type="button">
         <span class="homeQuickIcon">⇧</span>
         <span class="homeQuickText"><strong>Importar</strong><span>.MCAD ou JSON</span></span>
+        <span class="homeQuickChevron">›</span>
+      </button>
+
+      <button id="homeProductionSuite" class="homeQuickAction secondary" type="button">
+        <span class="homeQuickIcon">✓</span>
+        <span class="homeQuickText"><strong>Produção</strong><span>Verificar, pacote, histórico e montagem</span></span>
         <span class="homeQuickChevron">›</span>
       </button>
 
@@ -404,6 +410,8 @@
     <button id="menuDuplicateProject" class="secondary">Duplicar</button>
     <button id="menuExportProjectFile" class="secondary wide">⇩ Exportar arquivo .mcad</button>
     <button id="menuOpenProjectFile" class="secondary wide">⇧ Abrir arquivo .mcad / JSON</button>
+    <button id="menuProjectVersions" class="secondary wide">🕘 Histórico de versões</button>
+    <button id="menuProductionSuite" class="wide">✅ Projeto / Produção</button>
     <button id="menuAppSettings" class="secondary wide">⚙ Configurações</button>
     <button id="menuCheckUpdate" class="secondary wide">↻ Verificar atualização</button>
     <button id="menuAdminPanel" class="secondary wide">🛡 Painel Administrativo</button>
@@ -510,7 +518,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.30</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.31</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -536,7 +544,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.30</strong>
+        <strong id="updateCurrentVersion">1.200.31</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -579,7 +587,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.30 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.31 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -994,6 +1002,7 @@
       <div class="productionActions">
         <button id="openLabelsFromProduction" type="button">🏷 Abrir etiquetas</button>
         <button id="printLabelsFromProduction" class="secondary" type="button">🖨 Imprimir projeto</button>
+        <button id="openProductionSuiteFromMaterials" class="secondary" type="button">✅ Verificar projeto / Produção</button>
       </div>
     </div>
 
@@ -1333,7 +1342,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.30</span>
+      <span class="cutPlanBadge">1.200.31</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2189,6 +2198,53 @@
   </div>
 </div>
 
+
+
+<!-- 1.200.31 · Segurança, produção e montagem -->
+<div id="projectVersionsDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Histórico de versões">
+  <div class="projectModalCard dlSuiteCard">
+    <header class="dlSuiteHead"><div><h3>🕘 Histórico de versões</h3><p>Autosave real + até 10 pontos restauráveis, sincronizados com o projeto.</p></div><button id="closeProjectVersionsDialog" class="secondary" type="button">Fechar</button></header>
+    <div id="projectVersionsSummary" class="dlSuiteInfo">Carregando histórico…</div>
+    <div id="projectVersionsList" class="dlVersionList"></div>
+  </div>
+</div>
+
+<div id="productionSuiteDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Projeto pronto para produção">
+  <div class="projectModalCard dlSuiteCard dlProductionSuiteCard">
+    <header class="dlSuiteHead"><div><h3>✅ Projeto pronto para produção</h3><p>Auditoria de peças, materiais, chapas, veio, fitas, plano de corte e ZAW.</p></div><button id="closeProductionSuiteDialog" class="secondary" type="button">Fechar</button></header>
+    <div class="dlSuiteQuickGrid">
+      <button id="productionSuiteRecheck" type="button">↻ Verificar novamente</button>
+      <button id="productionSuiteHistory" class="secondary" type="button">🕘 Histórico</button>
+      <button id="productionSuiteMaterials" class="secondary" type="button">🎨 Materiais / fitas</button>
+      <button id="productionSuiteLayout" class="secondary" type="button">📐 Layout técnico</button>
+      <button id="productionSuiteAssembly" class="secondary" type="button">📘 Manual montagem</button>
+      <button id="productionSuiteExplode" class="secondary" type="button">🧩 Vista explodida</button>
+    </div>
+    <div id="productionSuiteSummary" class="dlSuiteStatus"><strong>Analisando projeto…</strong><span>Aguarde a conferência.</span></div>
+    <div id="productionSuiteIssues" class="dlCheckList"></div>
+    <div class="dlSuitePackageBox"><div><strong>Pacote de produção completo</strong><span>.mcad + PDFs + etiquetas + listas + DXF + plano de corte + ZAW + imagens 3D + manual de montagem.</span></div><button id="productionSuitePackage" type="button">📦 Gerar pacote de produção</button></div>
+  </div>
+</div>
+
+<div id="assemblyManualDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Manual de montagem">
+  <div class="projectModalCard dlSuiteCard dlManualCard">
+    <header class="dlSuiteHead"><div><h3 id="assemblyManualTitle">📘 Manual de montagem</h3><p>Sequência automática baseada nas peças reais do móvel.</p></div><button id="closeAssemblyManualDialog" class="secondary" type="button">Fechar</button></header>
+    <div class="dlSuiteQuickGrid dlManualActions">
+      <button id="assemblyManualExplode" type="button">🧩 Abrir vista explodida</button>
+      <button id="assemblyManualPrint" class="secondary" type="button">🖨 Imprimir manual</button>
+      <button id="assemblyManualDownload" class="secondary" type="button">⇩ Salvar HTML</button>
+    </div>
+    <div id="assemblyManualSteps" class="dlManualSteps"></div>
+  </div>
+</div>
+
+<div id="assemblyExplodePanel" role="dialog" aria-label="Controles da vista explodida">
+  <div class="assemblyExplodeInfo"><strong>🧩 Vista explodida</strong><span>Peças numeradas conforme o manual</span></div>
+  <label>Separação <input id="assemblyExplodeRange" type="range" min="0" max="600" step="10" value="180"><b id="assemblyExplodeValue">180 mm</b></label>
+  <button id="assemblyExplodeManual" class="secondary" type="button">📘 Manual</button>
+  <button id="closeAssemblyExplode" type="button">Voltar ao projeto</button>
+</div>
+
 <div id="toolDock" aria-label="Painel flutuante de ferramentas">
   <div id="toolDockHeader">
     <div id="toolDockTitle">🧰 Ferramentas<small>arraste esta barra para mover</small></div>
@@ -2225,6 +2281,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.30-r1"></script>
+<script type="module" src="js/app.js?v=1.200.31-r1"></script>
 </body>
 </html>
