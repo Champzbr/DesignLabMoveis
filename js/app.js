@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.34';
+  return tm?.[1]||'1.200.35';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.34-r1';
+const DESIGNLAB_JS_BUILD='1.200.35-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -852,7 +852,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
     // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
     // por scripts antes de qualquer ativação humana (History Manipulation
     // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.34 reutiliza o primeiro toque normal no próprio CAD.
+    // ativação. A 1.200.35 reutiliza o primeiro toque normal no próprio CAD.
     const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
     if(ok)designLabGestureRecoveryReady=true;
     return ok;
@@ -10920,38 +10920,81 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.34 · Mini CAD 2D embutido na ferramenta Forma ----------
+// ---------- 1.200.35 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
-  current:null,baseW:0,baseH:0,loadedPresetId:null
+  current:null,rawCurrent:null,baseW:0,baseH:0,loadedPresetId:null,hoverSnap:null,guides:[],
+  lastPointerType:'mouse'
 };
 function shapeCadOwnerInfo(){const o=shapePreviewOwner||selected,ti=pieceThicknessInfo(o);return {o,ti,W:ti?.faceW||1,H:ti?.faceH||1};}
 function shapeCadSnapshot(){return {points:shapeCadState.points.map(p=>[Number(p[0]),Number(p[1])]),closed:!!shapeCadState.closed};}
-function shapeCadRestoreSnapshot(s){if(!s)return;shapeCadState.points=(s.points||[]).map(p=>[Number(p[0]),Number(p[1])]);shapeCadState.closed=!!s.closed;shapeCadState.draft=[];shapeCadRender();updateShapePreview();}
+function shapeCadRestoreSnapshot(s){if(!s)return;shapeCadState.points=(s.points||[]).map(p=>[Number(p[0]),Number(p[1])]);shapeCadState.closed=!!s.closed;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();updateShapePreview();}
 function shapeCadPushUndo(){shapeCadState.undo.push(shapeCadSnapshot());if(shapeCadState.undo.length>80)shapeCadState.undo.shift();shapeCadState.redo.length=0;}
 function shapeCadUndo(){if(!shapeCadState.undo.length)return;shapeCadState.redo.push(shapeCadSnapshot());shapeCadRestoreSnapshot(shapeCadState.undo.pop());}
 function shapeCadRedo(){if(!shapeCadState.redo.length)return;shapeCadState.undo.push(shapeCadSnapshot());shapeCadRestoreSnapshot(shapeCadState.redo.pop());}
 function shapeCadClampPoint(p){const {W,H}=shapeCadOwnerInfo();return [Math.max(0,Math.min(W,Number(p[0])||0)),Math.max(0,Math.min(H,Number(p[1])||0))];}
 function shapeCadMap(){const {W,H}=shapeCadOwnerInfo(),pad=28,sw=640,sh=390,s=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H)),dw=W*s,dh=H*s,ox=(sw-dw)/2,oy=(sh-dh)/2;return {W,H,sw,sh,pad,s,ox,oy,sx:x=>ox+x*s,sy:y=>sh-(oy+y*s),ux:x=>(x-ox)/s,uy:y=>(sh-y-oy)/s};}
-function shapeCadNearestIndex(p,maxPx=16){const m=shapeCadMap();let best=-1,bd=Infinity;shapeCadState.points.forEach((q,i)=>{const d=Math.hypot(m.sx(q[0])-m.sx(p[0]),m.sy(q[1])-m.sy(p[1]));if(d<bd){bd=d;best=i;}});return bd<=maxPx?best:-1;}
-function shapeCadSnapPoint(p,{endpoints=true}={}){let q=shapeCadClampPoint(p);const snap=$('shapeCadSnap')?.checked!==false,grid=Math.max(.01,Number($('shapeCadGrid')?.value)||10);if(snap){q=[Math.round(q[0]/grid)*grid,Math.round(q[1]/grid)*grid];q=shapeCadClampPoint(q);if(endpoints&&shapeCadState.points.length){const m=shapeCadMap(),tol=Math.max(grid*.55,14/m.s);let best=null,bd=Infinity;for(const e of shapeCadState.points){const d=Math.hypot(e[0]-q[0],e[1]-q[1]);if(d<bd){bd=d;best=e;}}if(best&&bd<=tol)q=[best[0],best[1]];}}return q;}
-function shapeCadPointerPoint(e,{endpoints=true}={}){const svg=$('shapeCadSvg'),r=svg.getBoundingClientRect(),m=shapeCadMap(),sx=(e.clientX-r.left)*(640/Math.max(1,r.width)),sy=(e.clientY-r.top)*(390/Math.max(1,r.height));return shapeCadSnapPoint([m.ux(sx),m.uy(sy)],{endpoints});}
+function shapeCadTouchLike(e=null){return e?.pointerType==='touch'||e?.pointerType==='pen'||(navigator.maxTouchPoints||0)>0||!!window.matchMedia?.('(pointer: coarse)')?.matches;}
+function shapeCadSnapRadiusPx(e=null){return shapeCadTouchLike(e)?38:18;}
+function shapeCadEdgeRadiusPx(e=null){return shapeCadTouchLike(e)?27:12;}
+function shapeCadPxDistance(a,b,m=shapeCadMap()){return Math.hypot(m.sx(a[0])-m.sx(b[0]),m.sy(a[1])-m.sy(b[1]));}
+function shapeCadNearestIndex(p,maxPx=null,{excludeIndex=-1}={}){const m=shapeCadMap(),limit=maxPx??shapeCadSnapRadiusPx();let best=-1,bd=Infinity;shapeCadState.points.forEach((q,i)=>{if(i===excludeIndex)return;const d=shapeCadPxDistance(q,p,m);if(d<bd){bd=d;best=i;}});return bd<=limit?best:-1;}
+function shapeCadSegments(){const pts=shapeCadState.points,out=[];for(let i=0;i+1<pts.length;i++)out.push({a:pts[i],b:pts[i+1],i,j:i+1});if(shapeCadState.closed&&pts.length>2)out.push({a:pts.at(-1),b:pts[0],i:pts.length-1,j:0,closing:true});return out;}
+function shapeCadClosestOnSegment(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],d2=dx*dx+dy*dy;if(d2<1e-12)return {point:[a[0],a[1]],t:0};const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/d2));return {point:[a[0]+dx*t,a[1]+dy*t],t};}
+function shapeCadSegmentIntersection(s1,s2){const [x1,y1]=s1.a,[x2,y2]=s1.b,[x3,y3]=s2.a,[x4,y4]=s2.b,dx1=x2-x1,dy1=y2-y1,dx2=x4-x3,dy2=y4-y3,den=dx1*dy2-dy1*dx2;if(Math.abs(den)<1e-9)return null;const qx=x3-x1,qy=y3-y1,t=(qx*dy2-qy*dx2)/den,u=(qx*dy1-qy*dx1)/den;if(t<=1e-6||t>=1-1e-6||u<=1e-6||u>=1-1e-6)return null;return [x1+t*dx1,y1+t*dy1];}
+function shapeCadActiveAnchor(){const t=shapeCadState.tool;if(t==='line'&&shapeCadState.points.length&&!shapeCadState.closed)return shapeCadState.points.at(-1);if(['rect','circle'].includes(t)&&shapeCadState.draft.length)return shapeCadState.draft[0];if(['arc','curve'].includes(t)&&shapeCadState.draft.length)return shapeCadState.draft.at(-1);return null;}
+function shapeCadInferenceCandidates(raw,{endpoints=true,excludeIndex=-1,event=null}={}){
+  const m=shapeCadMap(),snapPx=shapeCadSnapRadiusPx(event),edgePx=shapeCadEdgeRadiusPx(event),axisPx=shapeCadTouchLike(event)?23:12,c=[];
+  const add=(point,kind,label,priority,limit=snapPx,extra={})=>{point=shapeCadClampPoint(point);const dist=shapeCadPxDistance(raw,point,m);if(dist<=limit)c.push({point,kind,label,priority,dist,...extra});};
+  if(endpoints){shapeCadState.points.forEach((q,i)=>{if(i===excludeIndex)return;const last=shapeCadState.points.length-1;if(shapeCadState.tool==='line'&&!shapeCadState.closed&&i===last)return;const closing=shapeCadState.tool==='line'&&!shapeCadState.closed&&shapeCadState.points.length>=3&&i===0;add(q,'endpoint',closing?'Fechar contorno':'Extremidade',closing?-2:0,snapPx,{index:i});});}
+  const segs=shapeCadSegments();
+  for(const seg of segs){const mid=[(seg.a[0]+seg.b[0])/2,(seg.a[1]+seg.b[1])/2];add(mid,'midpoint','Meio',2,snapPx*.86,{segment:seg});}
+  if(segs.length<=120){for(let i=0;i<segs.length;i++)for(let j=i+1;j<segs.length;j++){const a=segs[i],b=segs[j];if(a.i===b.i||a.i===b.j||a.j===b.i||a.j===b.j)continue;const x=shapeCadSegmentIntersection(a,b);if(x)add(x,'intersection','Interseção',1,snapPx*.92,{segments:[a,b]});}}
+  if(shapeCadState.closed&&shapeCadState.points.length>=3){const xs=shapeCadState.points.map(p=>p[0]),ys=shapeCadState.points.map(p=>p[1]),center=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];add(center,'center','Centro',4,snapPx*.82);}
+  for(const seg of segs){const pr=shapeCadClosestOnSegment(raw,seg.a,seg.b);if(pr.t>.015&&pr.t<.985)add(pr.point,'edge','Sobre aresta',5,edgePx,{segment:seg});}
+  const anchor=shapeCadActiveAnchor();
+  if(anchor&&shapeCadState.tool!=='edit'){
+    const dx=raw[0]-anchor[0],dy=raw[1]-anchor[1];
+    add([raw[0],anchor[1]],'horizontal','Horizontal',7,axisPx,{guide:{type:'line',a:[0,anchor[1]],b:[m.W,anchor[1]]}});
+    add([anchor[0],raw[1]],'vertical','Vertical',7,axisPx,{guide:{type:'line',a:[anchor[0],0],b:[anchor[0],m.H]}});
+    if(Math.abs(dx)+Math.abs(dy)>.001){const sx=Math.sign(dx)||1,sy=Math.sign(dy)||1,t=(Math.abs(dx)+Math.abs(dy))/2,q=[anchor[0]+sx*t,anchor[1]+sy*t];add(q,'angle45','45°',8,axisPx,{guide:{type:'line',a:anchor,b:q}});}
+  }
+  const alignPx=shapeCadTouchLike(event)?20:9;
+  if(shapeCadState.points.length&&shapeCadState.tool!=='edit'){
+    let bestX=null,bestY=null,bdx=Infinity,bdy=Infinity;
+    shapeCadState.points.forEach((q,i)=>{if(i===excludeIndex)return;const dx=Math.abs(m.sx(q[0])-m.sx(raw[0])),dy=Math.abs(m.sy(q[1])-m.sy(raw[1]));if(dx<bdx){bdx=dx;bestX=q;}if(dy<bdy){bdy=dy;bestY=q;}});
+    if(bestX&&bdx<=alignPx)add([bestX[0],raw[1]],'alignX','Alinhado',10,alignPx,{guide:{type:'line',a:[bestX[0],0],b:[bestX[0],m.H]}});
+    if(bestY&&bdy<=alignPx)add([raw[0],bestY[1]],'alignY','Alinhado',10,alignPx,{guide:{type:'line',a:[0,bestY[1]],b:[m.W,bestY[1]]}});
+  }
+  return c;
+}
+function shapeCadResolveSnap(raw,{endpoints=true,excludeIndex=-1,event=null}={}){
+  raw=shapeCadClampPoint(raw);if($('shapeCadSnap')?.checked===false)return {point:raw,snap:null,guides:[]};
+  const candidates=shapeCadInferenceCandidates(raw,{endpoints,excludeIndex,event});
+  candidates.sort((a,b)=>(a.dist+a.priority*3)-(b.dist+b.priority*3)||a.priority-b.priority||a.dist-b.dist);
+  if(candidates.length){const best=candidates[0];return {point:best.point,snap:best,guides:best.guide?[best.guide]:[]};}
+  const grid=Math.max(.01,Number($('shapeCadGrid')?.value)||10),q=shapeCadClampPoint([Math.round(raw[0]/grid)*grid,Math.round(raw[1]/grid)*grid]);
+  return {point:q,snap:{point:q,kind:'grid',label:'Grade',priority:99,dist:shapeCadPxDistance(raw,q)},guides:[]};
+}
+function shapeCadEventRawPoint(e){const svg=$('shapeCadSvg'),r=svg.getBoundingClientRect(),m=shapeCadMap(),sx=(e.clientX-r.left)*(640/Math.max(1,r.width)),sy=(e.clientY-r.top)*(390/Math.max(1,r.height));return shapeCadClampPoint([m.ux(sx),m.uy(sy)]);}
+function shapeCadSnapPoint(p,{endpoints=true,excludeIndex=-1,event=null}={}){const r=shapeCadResolveSnap(p,{endpoints,excludeIndex,event});shapeCadState.hoverSnap=r.snap;shapeCadState.guides=r.guides;return r.point;}
+function shapeCadPointerPoint(e,{endpoints=true,excludeIndex=-1}={}){shapeCadState.lastPointerType=e.pointerType||shapeCadState.lastPointerType||'mouse';const raw=shapeCadEventRawPoint(e),r=shapeCadResolveSnap(raw,{endpoints,excludeIndex,event:e});shapeCadState.rawCurrent=raw;shapeCadState.hoverSnap=r.snap;shapeCadState.guides=r.guides;return r.point;}
 function shapeCadSetStatus(t){if($('shapeCadStatus'))$('shapeCadStatus').textContent=t;}
-function shapeCadSetTool(tool){shapeCadState.tool=tool;shapeCadState.draft=[];shapeCadState.dragIndex=-1;document.querySelectorAll('[data-shape-cad-tool]').forEach(b=>b.classList.toggle('active',b.dataset.shapeCadTool===tool));const msgs={edit:'Arraste qualquer ponto para ajustar o contorno.',line:'Toque em sequência para criar linhas. Feche tocando no primeiro ponto ou em “Fechar contorno”.',rect:'Toque em dois cantos opostos para criar o retângulo.',circle:'Toque no centro e depois na borda do círculo.',arc:'Defina início, ponto intermediário e final do arco.',curve:'Defina início, controle e final da curva.',fillet:'Toque num vértice para aplicar o raio informado.',chamfer:'Toque num vértice para criar o chanfro informado.',trim:'Toque em um ponto para apará-lo/removê-lo.'};shapeCadSetStatus(msgs[tool]||'Mini CAD');shapeCadRender();}
-function shapeCadResetToPieceRect({record=true}={}){const {W,H}=shapeCadOwnerInfo();if(record)shapeCadPushUndo();shapeCadState.points=[[0,0],[W,0],[W,H],[0,H]];shapeCadState.closed=true;shapeCadState.draft=[];shapeCadRender();updateShapePreview();}
-function shapeCadClear(){shapeCadPushUndo();shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.draft=[];shapeCadRender();updateShapePreview();}
-function shapeCadCloseContour(){if(shapeCadState.points.length<3){toast('Crie pelo menos 3 pontos para fechar a forma');return;}shapeCadPushUndo();shapeCadState.closed=true;shapeCadState.draft=[];shapeCadRender();updateShapePreview();toast('Contorno fechado');}
+function shapeCadSetTool(tool){shapeCadState.tool=tool;shapeCadState.draft=[];shapeCadState.dragIndex=-1;shapeCadState.hoverSnap=null;shapeCadState.guides=[];document.querySelectorAll('[data-shape-cad-tool]').forEach(b=>b.classList.toggle('active',b.dataset.shapeCadTool===tool));const msgs={edit:'Arraste qualquer ponto. No celular a área de captura é maior e o ponto encaixa sozinho.',line:'Toque em sequência. O cursor encontra extremidades, meios, interseções, arestas e eixos automaticamente.',rect:'Toque em dois cantos opostos. Snap e alinhamentos permanecem ativos.',circle:'Toque no centro e depois na borda do círculo.',arc:'Defina início, ponto intermediário e final do arco.',curve:'Defina início, controle e final da curva.',fillet:'Toque num vértice para aplicar o raio informado.',chamfer:'Toque num vértice para criar o chanfro informado.',trim:'Toque em um ponto para apará-lo/removê-lo.'};shapeCadSetStatus(msgs[tool]||'Mini CAD');shapeCadRender();}
+function shapeCadResetToPieceRect({record=true}={}){const {W,H}=shapeCadOwnerInfo();if(record)shapeCadPushUndo();shapeCadState.points=[[0,0],[W,0],[W,H],[0,H]];shapeCadState.closed=true;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();updateShapePreview();}
+function shapeCadClear(){shapeCadPushUndo();shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();updateShapePreview();}
+function shapeCadCloseContour(){if(shapeCadState.points.length<3){toast('Crie pelo menos 3 pontos para fechar a forma');return;}shapeCadPushUndo();shapeCadState.closed=true;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();updateShapePreview();toast('Contorno fechado');}
 function shapeCadPolygonArea(pts){let a=0;for(let i=0,j=pts.length-1;i<pts.length;j=i++)a+=pts[j][0]*pts[i][1]-pts[i][0]*pts[j][1];return a/2;}
 function shapeCadNormalizePoints(pts,W,H){return pts.map(p=>[Math.max(0,Math.min(1,p[0]/Math.max(.001,W))),Math.max(0,Math.min(1,p[1]/Math.max(.001,H)))]);}
-function shapeCadLoadNormalized(norm,{closed=true}={}){const {W,H}=shapeCadOwnerInfo();shapeCadState.points=(norm||[]).map(p=>[Number(p[0])*W,Number(p[1])*H]);shapeCadState.closed=!!closed;shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];shapeCadRender();updateShapePreview();}
+function shapeCadLoadNormalized(norm,{closed=true}={}){const {W,H}=shapeCadOwnerInfo();shapeCadState.points=(norm||[]).map(p=>[Number(p[0])*W,Number(p[1])*H]);shapeCadState.closed=!!closed;shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();updateShapePreview();}
 function shapeCadProfilePoints(){if(shapeCadState.points.length<3)throw new Error('Desenhe pelo menos 3 pontos no Mini CAD');if(!shapeCadState.closed)throw new Error('Feche o contorno no Mini CAD antes de aplicar');const pts=shapeCadState.points.map(shapeCadClampPoint);if(Math.abs(shapeCadPolygonArea(pts))<.5)throw new Error('O contorno desenhado não possui área válida');return pts;}
 function shapeCadArcThrough(a,m,b,count=30){const x1=a[0],y1=a[1],x2=m[0],y2=m[1],x3=b[0],y3=b[1],d=2*(x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2));if(Math.abs(d)<1e-7)return [a,m,b];const ux=((x1*x1+y1*y1)*(y2-y3)+(x2*x2+y2*y2)*(y3-y1)+(x3*x3+y3*y3)*(y1-y2))/d,uy=((x1*x1+y1*y1)*(x3-x2)+(x2*x2+y2*y2)*(x1-x3)+(x3*x3+y3*y3)*(x2-x1))/d,r=Math.hypot(x1-ux,y1-uy),a0=Math.atan2(y1-uy,x1-ux),am=Math.atan2(y2-uy,x2-ux),a1=Math.atan2(y3-uy,x3-ux),tau=Math.PI*2,ccw=(x,y)=>(y-x+tau)%tau;let sweep=ccw(a0,a1);if(ccw(a0,am)>sweep)sweep=-ccw(a1,a0);const out=[];for(let i=0;i<=count;i++){const aa=a0+sweep*(i/count);out.push([ux+r*Math.cos(aa),uy+r*Math.sin(aa)]);}return out.map(shapeCadClampPoint);}
 function shapeCadQuad(a,c,b,count=28){const out=[];for(let i=0;i<=count;i++){const t=i/count,s=1-t;out.push(shapeCadClampPoint([s*s*a[0]+2*s*t*c[0]+t*t*b[0],s*s*a[1]+2*s*t*c[1]+t*t*b[1]]));}return out;}
 function shapeCadFilletAt(i,r){const pts=shapeCadState.points,n=pts.length;if(n<3||(!shapeCadState.closed&&(i===0||i===n-1)))return false;const prev=pts[(i-1+n)%n],cur=pts[i],next=pts[(i+1)%n],v1=[prev[0]-cur[0],prev[1]-cur[1]],v2=[next[0]-cur[0],next[1]-cur[1]],l1=Math.hypot(...v1),l2=Math.hypot(...v2);if(l1<.01||l2<.01)return false;const u1=[v1[0]/l1,v1[1]/l1],u2=[v2[0]/l2,v2[1]/l2],dot=Math.max(-.999999,Math.min(.999999,u1[0]*u2[0]+u1[1]*u2[1])),theta=Math.acos(dot);if(theta<.02||Math.PI-theta<.02)return false;let rr=Math.max(.1,Number(r)||1),t=rr/Math.tan(theta/2);const maxT=Math.min(l1,l2)*.45;if(t>maxT){t=maxT;rr=t*Math.tan(theta/2);}const a=[cur[0]+u1[0]*t,cur[1]+u1[1]*t],b=[cur[0]+u2[0]*t,cur[1]+u2[1]*t],bis=[u1[0]+u2[0],u1[1]+u2[1]],bl=Math.hypot(...bis);if(bl<.001)return false;bis[0]/=bl;bis[1]/=bl;const dc=rr/Math.sin(theta/2),cen=[cur[0]+bis[0]*dc,cur[1]+bis[1]*dc],aa=Math.atan2(a[1]-cen[1],a[0]-cen[0]),bb=Math.atan2(b[1]-cen[1],b[0]-cen[0]),tau=Math.PI*2;let sweep=(bb-aa+tau)%tau;if(sweep>Math.PI)sweep-=tau;const arc=[];const steps=16;for(let k=0;k<=steps;k++){const an=aa+sweep*(k/steps);arc.push(shapeCadClampPoint([cen[0]+rr*Math.cos(an),cen[1]+rr*Math.sin(an)]));}pts.splice(i,1,...arc);return true;}
 function shapeCadChamferAt(i,d){const pts=shapeCadState.points,n=pts.length;if(n<3||(!shapeCadState.closed&&(i===0||i===n-1)))return false;const prev=pts[(i-1+n)%n],cur=pts[i],next=pts[(i+1)%n],l1=Math.hypot(prev[0]-cur[0],prev[1]-cur[1]),l2=Math.hypot(next[0]-cur[0],next[1]-cur[1]),dd=Math.min(Math.max(.1,Number(d)||1),l1*.45,l2*.45),a=[cur[0]+(prev[0]-cur[0])*(dd/l1),cur[1]+(prev[1]-cur[1])*(dd/l1)],b=[cur[0]+(next[0]-cur[0])*(dd/l2),cur[1]+(next[1]-cur[1])*(dd/l2)];pts.splice(i,1,a,b);return true;}
 function shapeCadApplyToolPoint(p){const tool=shapeCadState.tool;if(tool==='line'){
-    if(shapeCadState.closed){shapeCadPushUndo();shapeCadState.points=[];shapeCadState.closed=false;}
-    if(!shapeCadState.points.length){shapeCadPushUndo();shapeCadState.points.push(p);}else{const first=shapeCadState.points[0],m=shapeCadMap();if(shapeCadState.points.length>=3&&Math.hypot(m.sx(p[0])-m.sx(first[0]),m.sy(p[1])-m.sy(first[1]))<16){shapeCadPushUndo();shapeCadState.closed=true;}else{shapeCadPushUndo();shapeCadState.points.push(p);}}
+    if(shapeCadState.closed){shapeCadPushUndo();shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.hoverSnap=null;}
+    if(!shapeCadState.points.length){shapeCadPushUndo();shapeCadState.points.push(p);}else{const snap=shapeCadState.hoverSnap,first=shapeCadState.points[0],m=shapeCadMap(),nearFirst=shapeCadState.points.length>=3&&((snap?.kind==='endpoint'&&snap.index===0)||shapeCadPxDistance(p,first,m)<=shapeCadSnapRadiusPx());if(nearFirst){shapeCadPushUndo();shapeCadState.closed=true;shapeCadState.current=first;shapeCadSetStatus('Contorno fechado automaticamente na extremidade inicial.');}else{shapeCadPushUndo();shapeCadState.points.push(p);}}
   }else if(tool==='rect'){
     if(!shapeCadState.draft.length){shapeCadState.draft=[p];shapeCadSetStatus('Agora toque no canto oposto do retângulo.');}
     else{shapeCadPushUndo();const a=shapeCadState.draft[0],x1=Math.min(a[0],p[0]),x2=Math.max(a[0],p[0]),y1=Math.min(a[1],p[1]),y2=Math.max(a[1],p[1]);shapeCadState.points=[[x1,y1],[x2,y1],[x2,y2],[x1,y2]];shapeCadState.closed=true;shapeCadState.draft=[];}
@@ -10963,18 +11006,24 @@ function shapeCadApplyToolPoint(p){const tool=shapeCadState.tool;if(tool==='line
     else if(shapeCadState.draft.length===1){shapeCadState.draft.push(p);shapeCadSetStatus(tool==='arc'?'Toque no ponto final do arco.':'Toque no ponto final da curva.');}
     else{const a=shapeCadState.draft[0],m=shapeCadState.draft[1],seg=tool==='arc'?shapeCadArcThrough(a,m,p):shapeCadQuad(a,m,p);shapeCadPushUndo();if(!shapeCadState.points.length||shapeCadState.closed){shapeCadState.points=[...seg];shapeCadState.closed=false;}else shapeCadState.points.push(...seg.slice(1));shapeCadState.draft=[];}
   }else if(['fillet','chamfer','trim'].includes(tool)){
-    const i=shapeCadNearestIndex(p,20);if(i<0){toast('Toque mais perto de um ponto do contorno');return;}shapeCadPushUndo();if(tool==='trim'){if(shapeCadState.points.length<=3){shapeCadState.undo.pop();toast('A forma precisa manter pelo menos 3 pontos');return;}shapeCadState.points.splice(i,1);}else if(tool==='fillet'){if(!shapeCadFilletAt(i,Number($('shapeCadRadius')?.value)||50)){shapeCadState.undo.pop();toast('Não foi possível aplicar raio neste ponto');return;}}else if(!shapeCadChamferAt(i,Number($('shapeCadRadius')?.value)||50)){shapeCadState.undo.pop();toast('Não foi possível criar chanfro neste ponto');return;}
+    const i=shapeCadNearestIndex(p,shapeCadTouchLike()?42:23);if(i<0){toast('Toque mais perto de um ponto do contorno');return;}shapeCadPushUndo();if(tool==='trim'){if(shapeCadState.points.length<=3){shapeCadState.undo.pop();toast('A forma precisa manter pelo menos 3 pontos');return;}shapeCadState.points.splice(i,1);}else if(tool==='fillet'){if(!shapeCadFilletAt(i,Number($('shapeCadRadius')?.value)||50)){shapeCadState.undo.pop();toast('Não foi possível aplicar raio neste ponto');return;}}else if(!shapeCadChamferAt(i,Number($('shapeCadRadius')?.value)||50)){shapeCadState.undo.pop();toast('Não foi possível criar chanfro neste ponto');return;}
   }
   shapeCadRender();updateShapePreview();
 }
+function shapeCadGuideSvg(g,m){if(!g)return '';if(g.type==='line'&&g.a&&g.b)return `<line x1="${m.sx(g.a[0]).toFixed(2)}" y1="${m.sy(g.a[1]).toFixed(2)}" x2="${m.sx(g.b[0]).toFixed(2)}" y2="${m.sy(g.b[1]).toFixed(2)}" stroke="#ff6f91" stroke-width="1.25" stroke-dasharray="7 5" opacity=".9"/>`;return '';}
+function shapeCadSnapMarkerSvg(s,m){if(!s||s.kind==='grid')return '';const x=m.sx(s.point[0]),y=m.sy(s.point[1]),label=s.label||'',touch=shapeCadTouchLike(),halo=touch?`<circle cx="${x}" cy="${y}" r="17" fill="rgba(127,229,148,.10)" stroke="rgba(127,229,148,.42)" stroke-width="1"/>`:'';let mark='';if(s.kind==='midpoint')mark=`<rect x="${x-5}" y="${y-5}" width="10" height="10" fill="#ffd36a" stroke="#071116" stroke-width="1.2"/>`;else if(s.kind==='intersection')mark=`<path d="M ${x-6} ${y-6} L ${x+6} ${y+6} M ${x+6} ${y-6} L ${x-6} ${y+6}" stroke="#ff6f91" stroke-width="2.4"/>`;else if(s.kind==='center')mark=`<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#8fb7ff" stroke-width="2"/><circle cx="${x}" cy="${y}" r="1.8" fill="#8fb7ff"/>`;else if(s.kind==='edge')mark=`<path d="M ${x} ${y-6} L ${x+6} ${y} L ${x} ${y+6} L ${x-6} ${y} Z" fill="#53d6e8" stroke="#071116" stroke-width="1"/>`;else mark=`<circle cx="${x}" cy="${y}" r="6" fill="${s.kind==='endpoint'?'#7fe594':'#ff6f91'}" stroke="#071116" stroke-width="1.4"/>`;const w=Math.max(54,label.length*6.1+14),lx=Math.min(640-w-4,Math.max(4,x+11)),ly=Math.max(18,y-11);return `${halo}${mark}<g pointer-events="none"><rect x="${lx}" y="${ly-15}" rx="5" ry="5" width="${w}" height="18" fill="rgba(5,10,13,.92)" stroke="${s.kind==='endpoint'?'#7fe594':'#ff6f91'}" stroke-width=".8"/><text x="${lx+7}" y="${ly-3}" fill="#f7fbfd" font-size="10" font-weight="800">${label}</text></g>`;}
 function shapeCadRender(){const svg=$('shapeCadSvg');if(!svg)return;const m=shapeCadMap(),grid=Math.max(.1,Number($('shapeCadGrid')?.value)||10),parts=[];parts.push('<rect width="640" height="390" fill="#0b1116"/>');const px=grid*m.s;if(px>=7){for(let x=0;x<=m.W+.001;x+=grid){const sx=m.sx(x);parts.push(`<line x1="${sx.toFixed(2)}" y1="${m.sy(0).toFixed(2)}" x2="${sx.toFixed(2)}" y2="${m.sy(m.H).toFixed(2)}" stroke="#21303a" stroke-width="0.7"/>`);}for(let y=0;y<=m.H+.001;y+=grid){const sy=m.sy(y);parts.push(`<line x1="${m.sx(0).toFixed(2)}" y1="${sy.toFixed(2)}" x2="${m.sx(m.W).toFixed(2)}" y2="${sy.toFixed(2)}" stroke="#21303a" stroke-width="0.7"/>`);}}
   parts.push(`<rect x="${m.sx(0)}" y="${m.sy(m.H)}" width="${m.W*m.s}" height="${m.H*m.s}" fill="none" stroke="#7b8b95" stroke-width="1.2" stroke-dasharray="7 5"/>`);
-  if(shapeCadState.points.length){const d=shapeCadState.points.map((p,i)=>`${i?'L':'M'} ${m.sx(p[0]).toFixed(2)} ${m.sy(p[1]).toFixed(2)}`).join(' ')+(shapeCadState.closed?' Z':'');parts.push(`<path d="${d}" fill="${shapeCadState.closed?'rgba(83,214,232,.12)':'none'}" stroke="#53d6e8" stroke-width="2.6" stroke-linejoin="round"/>`);shapeCadState.points.forEach((p,i)=>parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="${i===shapeCadState.dragIndex?6:4}" fill="${i===0?'#7fe594':'#f8f8f8'}" stroke="#071116" stroke-width="1.2"/>`));}
+  for(const g of shapeCadState.guides||[])parts.push(shapeCadGuideSvg(g,m));
+  const anchor=shapeCadActiveAnchor();if(anchor&&shapeCadState.current&&shapeCadState.tool!=='edit'&&!shapeCadState.closed){parts.push(`<line x1="${m.sx(anchor[0]).toFixed(2)}" y1="${m.sy(anchor[1]).toFixed(2)}" x2="${m.sx(shapeCadState.current[0]).toFixed(2)}" y2="${m.sy(shapeCadState.current[1]).toFixed(2)}" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"/>`);}
+  if(shapeCadState.points.length){const d=shapeCadState.points.map((p,i)=>`${i?'L':'M'} ${m.sx(p[0]).toFixed(2)} ${m.sy(p[1]).toFixed(2)}`).join(' ')+(shapeCadState.closed?' Z':'');parts.push(`<path d="${d}" fill="${shapeCadState.closed?'rgba(83,214,232,.12)':'none'}" stroke="#53d6e8" stroke-width="2.6" stroke-linejoin="round"/>`);shapeCadState.points.forEach((p,i)=>{const r=shapeCadTouchLike()?5.2:4.2;parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="${i===shapeCadState.dragIndex?r+2:r}" fill="${i===0?'#7fe594':'#f8f8f8'}" stroke="#071116" stroke-width="1.2"/>`);});}
   if(shapeCadState.draft.length){for(const p of shapeCadState.draft)parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="5" fill="#ffd36a"/>`);}
+  parts.push(shapeCadSnapMarkerSvg(shapeCadState.hoverSnap,m));
   parts.push(`<text x="${m.sx(0)+5}" y="${m.sy(0)-7}" fill="#8fa0aa" font-size="11">0,0</text><text x="${m.sx(m.W)-5}" y="${m.sy(m.H)+15}" text-anchor="end" fill="#8fa0aa" font-size="11">${nice(m.W)} × ${nice(m.H)} mm</text>`);svg.innerHTML=parts.join('');const pts=shapeCadState.points;if($('shapeCadMeasure'))$('shapeCadMeasure').textContent=pts.length?`${pts.length} pontos · ${shapeCadState.closed?'contorno fechado':'contorno aberto'}${shapeCadState.closed?` · área ${nice(Math.abs(shapeCadPolygonArea(pts)))} mm²`:''}`:'Nenhum contorno';}
-function shapeCadPointerDown(e){if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();const p=shapeCadPointerPoint(e);shapeCadState.current=p;if(shapeCadState.tool==='edit'){const i=shapeCadNearestIndex(p,20);if(i>=0){shapeCadPushUndo();shapeCadState.dragIndex=i;shapeCadState.pointer=e.pointerId;try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}shapeCadRender();}}else shapeCadApplyToolPoint(p);}
-function shapeCadPointerMove(e){if($('shapeType')?.value!=='custom-profile')return;const p=shapeCadPointerPoint(e,{endpoints:shapeCadState.dragIndex<0});shapeCadState.current=p;if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm`;if(shapeCadState.dragIndex>=0&&shapeCadState.pointer===e.pointerId){e.preventDefault();shapeCadState.points[shapeCadState.dragIndex]=p;shapeCadRender();updateShapePreview();}}
+function shapeCadPointerDown(e){if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();shapeCadState.lastPointerType=e.pointerType||shapeCadState.lastPointerType;const raw=shapeCadEventRawPoint(e);if(shapeCadState.tool==='edit'){const i=shapeCadNearestIndex(raw,shapeCadSnapRadiusPx(e)+5);if(i>=0){shapeCadPushUndo();shapeCadState.dragIndex=i;shapeCadState.pointer=e.pointerId;shapeCadState.hoverSnap={point:shapeCadState.points[i],kind:'endpoint',label:'Mover ponto',index:i};shapeCadState.current=shapeCadState.points[i];try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}shapeCadRender();}else{shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();}}else{const p=shapeCadPointerPoint(e);shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;shapeCadApplyToolPoint(p);}}
+function shapeCadPointerMove(e){if($('shapeType')?.value!=='custom-profile')return;const p=shapeCadPointerPoint(e,{endpoints:true,excludeIndex:shapeCadState.dragIndex});shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;if(shapeCadState.dragIndex>=0&&shapeCadState.pointer===e.pointerId){e.preventDefault();shapeCadState.points[shapeCadState.dragIndex]=p;shapeCadRender();updateShapePreview();}else shapeCadRender();}
 function shapeCadPointerUp(e){if(shapeCadState.pointer===e.pointerId){shapeCadState.pointer=null;shapeCadState.dragIndex=-1;shapeCadRender();updateShapePreview();}}
+function shapeCadPointerLeave(e){if(shapeCadState.pointer!=null)return;if((e?.pointerType||'mouse')==='mouse'){shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadState.current=null;shapeCadRender();}}
 function shapeCadInitForOwner({forceRect=false}={}){const {W,H}=shapeCadOwnerInfo();const changed=Math.abs(W-shapeCadState.baseW)>.01||Math.abs(H-shapeCadState.baseH)>.01;shapeCadState.baseW=W;shapeCadState.baseH=H;if(forceRect||changed||shapeCadState.points.length<3)shapeCadResetToPieceRect({record:false});else shapeCadRender();}
 function shapeCadSyncUi(){const custom=$('shapeType')?.value==='custom-profile';if($('shapeMiniCad'))$('shapeMiniCad').style.display=custom?'grid':'none';if($('shapeCornerGrid'))$('shapeCornerGrid').style.display=custom?'none':'grid';const cornerHelp=$('shapeCornerGrid')?.nextElementSibling;if(cornerHelp?.classList.contains('dialogHelp'))cornerHelp.style.display=custom?'none':'';if($('shapeRadiusLabel'))$('shapeRadiusLabel').style.display=custom?'none':'';if(custom)shapeCadInitForOwner();shapeCadRender();}
 function shapeCadLoadPreset(p){if(p?.type!=='custom-profile')return;const norm=p.profileNormalized||p.pointsNormalized||null;if(Array.isArray(norm)&&norm.length>=3)shapeCadLoadNormalized(norm,{closed:p.closed!==false});else shapeCadResetToPieceRect({record:false});shapeCadState.loadedPresetId=p.id||null;}
@@ -15981,7 +16030,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.34</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.35</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -16314,11 +16363,12 @@ $('shapeCadRedo')?.addEventListener('click',shapeCadRedo);
 $('shapeCadClose')?.addEventListener('click',shapeCadCloseContour);
 $('shapeCadClear')?.addEventListener('click',shapeCadClear);
 $('shapeCadGrid')?.addEventListener('input',shapeCadRender);
-$('shapeCadSnap')?.addEventListener('change',shapeCadRender);
+$('shapeCadSnap')?.addEventListener('change',()=>{shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();});
 $('shapeCadSvg')?.addEventListener('pointerdown',shapeCadPointerDown);
 $('shapeCadSvg')?.addEventListener('pointermove',shapeCadPointerMove);
 $('shapeCadSvg')?.addEventListener('pointerup',shapeCadPointerUp);
 $('shapeCadSvg')?.addEventListener('pointercancel',shapeCadPointerUp);
+$('shapeCadSvg')?.addEventListener('pointerleave',shapeCadPointerLeave);
 document.querySelectorAll('[data-shape-corner]').forEach(b=>b.addEventListener('click',()=>{const c=b.dataset.shapeCorner;if(shapeSelectedCorners.has(c))shapeSelectedCorners.delete(c);else shapeSelectedCorners.add(c);refreshShapeCornerLabels();updateShapePreview();}));
 $('previewShape3D').onclick=previewShape3D;
 $('returnShapePreview').onclick=returnShapePreview;
@@ -16670,10 +16720,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.34'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.34'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.34'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.34'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.35'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.35'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.35'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.35'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -16722,7 +16772,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.34: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.35: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
@@ -16738,7 +16788,7 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
-// 1.200.34: não tentamos mais fingir que uma recuperação automática é igual a
+// 1.200.35: não tentamos mais fingir que uma recuperação automática é igual a
 // um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
 // atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
 // para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
@@ -16796,7 +16846,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.34';
+const DL_LAYOUT_VERSION='1.200.35';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -17543,7 +17593,7 @@ $('layoutPrintPreviewDialog')?.addEventListener('pointerdown',e=>{if(e.target===
 $('technicalLayoutDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('technicalLayoutDialog'))closeTechnicalLayoutDialog();});
 window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.contains('show'))requestAnimationFrame(dlLayoutRender);});
 // ============================================================================
-// 1.200.34 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
+// 1.200.35 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
 // ----------------------------------------------------------------------------
 // 1) Autosave comprometido + histórico das últimas 10 versões.
 // 2) Verificador "Projeto pronto para produção".
@@ -17551,7 +17601,7 @@ window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.c
 // 4) Vista explodida numerada + manual automático de montagem.
 // ============================================================================
 
-const DL_PRODUCTION_SUITE_VERSION='1.200.34';
+const DL_PRODUCTION_SUITE_VERSION='1.200.35';
 const DL_PROJECT_VERSION_LIMIT=10;
 const DL_COMMIT_AUTOSAVE_MS=25000;
 let dlCommitAutosaveTimer=null;
@@ -17609,7 +17659,7 @@ async function dlCommitProjectAutosave({reason='Salvamento automático',force=fa
     updateProjectChrome();
     if(navigator.onLine&&currentIdentityUser&&cloudAccountState.ok){queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));}
     return next;
-  }catch(err){console.warn('Autosave comprometido 1.200.34:',err);return null;}
+  }catch(err){console.warn('Autosave comprometido 1.200.35:',err);return null;}
   finally{dlCommitAutosaveRunning=false;}
 }
 function dlScheduleCommitAutosave(){
