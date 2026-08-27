@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.33-r1">
+<meta name="designlab-build" content="1.200.34-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.33-r1';
+  const BUILD='1.200.34-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,47 +20,12 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.33: em modo APP/PWA, cada abertura fria faz uma passagem obrigatória
-  // pelo servidor antes de iniciar o editor. A URL _bootFresh evita loop e fica
-  // apenas durante esta sessão aberta do aplicativo.
-  // 1.200.33: não depende mais de display-mode. PWABuilder/TWA pode não expor
-  // standalone no primeiro documento, e isso fazia a abertura fria pular a
-  // atualização que deixava o botão Voltar funcionando. Sempre faz a passagem
-  // pelo servidor quando houver internet, uma única vez por abertura.
-  if(!navigator.onLine)return;
-  const qs=new URLSearchParams(location.search);
-  if(qs.has('_bootFresh'))return;
-  (async()=>{
-    try{
-      const res=await fetch('/version.json?boot='+Date.now(),{cache:'no-store',headers:{'Accept':'application/json'}});
-      const info=res.ok?await res.json():null;
-      if(!info?.version)return;
-      if('caches' in window){
-        const keys=await caches.keys();
-        await Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)));
-      }
-      if('serviceWorker' in navigator){
-        const regs=await navigator.serviceWorker.getRegistrations().catch(()=>[]);
-        for(const reg of regs){
-          try{
-            await reg.update();
-            reg.waiting?.postMessage?.({type:'SKIP_WAITING'});
-            reg.active?.postMessage?.({type:'PURGE_APP_CACHE'});
-          }catch(_){}
-        }
-        if(regs.some(r=>r.waiting)){
-          await Promise.race([
-            new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true})),
-            new Promise(resolve=>setTimeout(resolve,900))
-          ]);
-        }
-      }
-      const target=new URL('/',location.origin);
-      target.searchParams.set('_bootFresh',String(info.build||info.version));
-      target.searchParams.set('_refresh',String(Date.now()));
-      location.replace(target.toString());
-    }catch(_){/* offline/servidor indisponível: abre a cópia local normalmente */}
-  })();
+  // 1.200.34: não redireciona mais automaticamente antes de o Service Worker
+  // estar pronto. No Chrome/TWA, uma navegação criada só por script pode ser
+  // classificada como histórico manipulável e não equivale ao clique humano que
+  // o usuário confirmou funcionar. A recuperação confiável ocorre após o app
+  // iniciar e usa o primeiro toque normal no próprio DesignLab.
+  window.__designLabStartupOnline=!!navigator.onLine;
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -74,7 +39,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.33: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
+  // 1.200.34: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
   // history.state. O Chrome/TWA pode restaurar um state antigo sem restaurar
   // a pilha criada na sessão anterior; isso fazia o DesignLab acreditar que a
   // proteção existia e o primeiro Back encerrava o APK. Agora cada documento
@@ -82,15 +47,15 @@
   // Depois de cada Back usamos history.forward() para reutilizar a MESMA
   // entrada confiável criada pelo gesto, sem depender de novo pushState fora
   // de uma interação do usuário.
-  const KEY='__designLabBackFenceV33';
-  const DOC=`dl33-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  const KEY='__designLabBackFenceV34';
+  const DOC=`dl34-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
   const MAX_LEVEL=3;
   let trustedArmed=false;
   let restoring=false;
   let rebuilding=false;
   let needsTrustedRebuild=true;
   function state(kind,level){
-    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.33'});
+    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.34'});
   }
   function owns(st=window.history.state||{}){return !!(st[KEY]&&st.doc===DOC);}
   function rebuildTrustedFence(){
@@ -208,7 +173,7 @@
     // A passagem automática pelo servidor NÃO é necessariamente uma ativação
     // humana. Portanto esta cerca inicial é apenas best-effort; o primeiro toque
     // sempre a refaz dentro de um gesto real. Esse é o ponto que diferencia a
-    // 1.200.33 da correção anterior e elimina a dependência do botão manual.
+    // 1.200.34 da correção anterior e elimina a dependência do botão manual.
     needsTrustedRebuild=true;
   }
   window.__DL_BACK_BOOTSTRAP={
@@ -227,19 +192,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.33 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.33-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.33-r1">
+<title>DesignLabMoveis 1.200.34 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.34-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.34-r1">
 
-<!-- 1.200.33: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.34: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -249,7 +214,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.33</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.34</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -343,7 +308,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.33</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.34</span>
         </div>
       </div>
 
@@ -628,7 +593,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.33</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.34</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -654,7 +619,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.33</strong>
+        <strong id="updateCurrentVersion">1.200.34</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -697,7 +662,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.33 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.34 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1486,7 +1451,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.33</span>
+      <span class="cutPlanBadge">1.200.34</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2344,7 +2309,7 @@
 
 
 
-<!-- 1.200.33 · Segurança, produção e montagem -->
+<!-- 1.200.34 · Segurança, produção e montagem -->
 <div id="projectVersionsDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Histórico de versões">
   <div class="projectModalCard dlSuiteCard">
     <header class="dlSuiteHead"><div><h3>🕘 Histórico de versões</h3><p>Autosave real + até 10 pontos restauráveis, sincronizados com o projeto.</p></div><button id="closeProjectVersionsDialog" class="secondary" type="button">Fechar</button></header>
@@ -2425,6 +2390,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.33-r1"></script>
+<script type="module" src="js/app.js?v=1.200.34-r1"></script>
 </body>
 </html>

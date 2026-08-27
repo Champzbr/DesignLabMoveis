@@ -14,7 +14,7 @@
   "orientation": "any",
   "prefer_related_applications": false,
   "launch_handler": {
-    "client_mode": "navigate-existing"
+    "client_mode": "focus-existing"
   },
   "icons": [
     {
@@ -30,5 +30,5 @@
       "purpose": "any maskable"
     }
   ],
-  "version": "1.200.33"
+  "version": "1.200.34"
 }

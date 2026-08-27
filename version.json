@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.33",
+  "version": "1.200.34",
   "required": false,
-  "message": "Correção estrutural do botão Voltar no Android/TWA: a cerca de histórico agora é reconstruída por sessão/documento e após retomadas, sem depender de Recarregar versão do servidor.",
-  "released_at": "2026-08-27T17:20:00-03:00",
-  "build": "1.200.33-r1"
+  "message": "Voltar Android/TWA: o primeiro toque normal no DesignLab executa automaticamente a mesma recuperação confiável do botão Recarregar versão do servidor, após o Service Worker estar pronto.",
+  "released_at": "2026-08-27T17:18:00-03:00",
+  "build": "1.200.34-r1"
 }
