@@ -834,7 +834,7 @@ function selectObject(mesh){
   updateMeasureBadge();
 }
 
-// 1.200.17 · nomes rápidos de peças + biblioteca pessoal de nomes.
+// 1.200.18 · nomes rápidos de peças + biblioteca pessoal de nomes.
 const PIECE_NAME_PRESET_KEY='designLabPieceNamePresetsV1';
 const PIECE_NAME_BUILTINS=[
   'Lateral esquerda','Lateral direita','Base','Chapéu','Prateleira','Divisão central','Divisão esquerda','Divisão direita',

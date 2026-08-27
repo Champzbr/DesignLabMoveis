@@ -1,11 +1,11 @@
 // ============================================================================
-// 1.200.17 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
+// 1.200.18 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
 // ----------------------------------------------------------------------------
 // Extrai desenhos 2D diretamente da geometria 3D do projeto. Não depende da
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.17';
+const DL_LAYOUT_VERSION='1.200.18';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -14,7 +14,7 @@ const dlLayoutEdgeCache=new WeakMap();
 const dlLayoutState={
   view:'sheet',mode:'technical',showDimensions:true,showInternal:true,showLabels:true,
   showHidden:true,showHatch:true,scale:'20',page:'A4',scopeValue:'',sectionXPct:50,sectionYPct:50,
-  hiddenDims:new Set(),pickSection:null,lastMappings:[],lastSvg:'',lastWidth:1800,lastHeight:1200,lastContext:null
+  hiddenDims:new Set(),pickSection:null,lastMappings:[],dimHits:[],lastSvg:'',lastWidth:1800,lastHeight:1200,lastContext:null,renderToken:0
 };
 
 function dlLayoutEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
@@ -216,10 +216,12 @@ function dlLayoutRenderDimensions(model,map,{sheet=false}={}){
     const off=d.overall?(sheet?30:55):(sheet?15:28),tick=sheet?6:8;
     if(d.axis==='u'){
       const y=map.sy(b.minV)+off,x1=map.sx(d.a),x2=map.sx(d.b);
-      parts.push(`<g class="dl-dim" data-dim-id="${dlLayoutEsc(d.id)}"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#202020" stroke-width="1" marker-start="url(#dlArrow)" marker-end="url(#dlArrow)"/><line x1="${x1}" y1="${y-tick}" x2="${x1}" y2="${y+tick}" stroke="#202020"/><line x1="${x2}" y1="${y-tick}" x2="${x2}" y2="${y+tick}" stroke="#202020"/><rect x="${(x1+x2)/2-22}" y="${y-font+1}" width="44" height="${font+4}" fill="white"/><text x="${(x1+x2)/2}" y="${y-3}" text-anchor="middle" font-size="${font}" fill="#111">${dlLayoutEsc(d.text)}</text></g>`);
+      dlLayoutState.dimHits.push({id:d.id,x1:Math.min(x1,x2)-10,x2:Math.max(x1,x2)+10,y1:y-18,y2:y+18});
+      parts.push(`<g class="dl-dim" data-dim-id="${dlLayoutEsc(d.id)}"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#000" stroke-width="1" marker-start="url(#dlArrow)" marker-end="url(#dlArrow)"/><line x1="${x1}" y1="${y-tick}" x2="${x1}" y2="${y+tick}" stroke="#000"/><line x1="${x2}" y1="${y-tick}" x2="${x2}" y2="${y+tick}" stroke="#000"/><rect x="${(x1+x2)/2-22}" y="${y-font+1}" width="44" height="${font+4}" fill="#fff"/><text x="${(x1+x2)/2}" y="${y-3}" text-anchor="middle" font-size="${font}" fill="#000">${dlLayoutEsc(d.text)}</text></g>`);
     }else{
       const x=map.sx(b.minU)-off,y1=map.sy(d.a),y2=map.sy(d.b),ym=(y1+y2)/2;
-      parts.push(`<g class="dl-dim" data-dim-id="${dlLayoutEsc(d.id)}"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#202020" stroke-width="1" marker-start="url(#dlArrow)" marker-end="url(#dlArrow)"/><line x1="${x-tick}" y1="${y1}" x2="${x+tick}" y2="${y1}" stroke="#202020"/><line x1="${x-tick}" y1="${y2}" x2="${x+tick}" y2="${y2}" stroke="#202020"/><g transform="translate(${x-5},${ym}) rotate(-90)"><rect x="-22" y="-${font-1}" width="44" height="${font+4}" fill="white"/><text x="0" y="-3" text-anchor="middle" font-size="${font}" fill="#111">${dlLayoutEsc(d.text)}</text></g></g>`);
+      dlLayoutState.dimHits.push({id:d.id,x1:x-22,x2:x+22,y1:Math.min(y1,y2)-10,y2:Math.max(y1,y2)+10});
+      parts.push(`<g class="dl-dim" data-dim-id="${dlLayoutEsc(d.id)}"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#000" stroke-width="1" marker-start="url(#dlArrow)" marker-end="url(#dlArrow)"/><line x1="${x-tick}" y1="${y1}" x2="${x+tick}" y2="${y1}" stroke="#000"/><line x1="${x-tick}" y1="${y2}" x2="${x+tick}" y2="${y2}" stroke="#000"/><g transform="translate(${x-5},${ym}) rotate(-90)"><rect x="-22" y="-${font-1}" width="44" height="${font+4}" fill="#fff"/><text x="0" y="-3" text-anchor="middle" font-size="${font}" fill="#000">${dlLayoutEsc(d.text)}</text></g></g>`);
     }
   }
   return parts.join('');
@@ -286,14 +288,37 @@ function dlLayoutUpdateSectionUi(ctx){
   if($('layoutSectionXInfo'))$('layoutSectionXInfo').textContent=`A-A · ${dlLayoutMmText(x-b.minX)} mm da esquerda`;
   if($('layoutSectionYInfo'))$('layoutSectionYInfo').textContent=`B-B · ${dlLayoutMmText(y-b.minY)} mm do piso`;
 }
+function dlLayoutPaintPreviewBitmap(wrap,svg,W,H){
+  const token=++dlLayoutState.renderToken;
+  const canvas=document.createElement('canvas');
+  canvas.id='technicalLayoutCanvas';canvas.className='layoutPreviewCanvas';canvas.width=W;canvas.height=H;
+  canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Layout técnico em papel branco');
+  wrap.replaceChildren(canvas);
+  const c=canvas.getContext('2d',{alpha:false});
+  if(c){c.fillStyle='#fff';c.fillRect(0,0,W,H);}
+  const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();
+  img.onload=()=>{
+    try{
+      if(token!==dlLayoutState.renderToken)return;
+      const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)return;
+      ctx.save();ctx.globalCompositeOperation='copy';ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';ctx.drawImage(img,0,0,W,H);ctx.restore();
+    }finally{URL.revokeObjectURL(url);}
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);const ctx=canvas.getContext('2d',{alpha:false});if(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#000';ctx.font='24px Arial';ctx.fillText('Não foi possível desenhar a prévia. Exporte o SVG/PDF.',28,44);}};
+  img.src=url;
+}
 function dlLayoutRender(){
   const wrap=$('layoutSvgWrap');if(!wrap)return;
-  const ctx=dlLayoutContext();dlLayoutState.lastContext=ctx;dlLayoutState.lastMappings=[];
+  const ctx=dlLayoutContext();dlLayoutState.lastContext=ctx;dlLayoutState.lastMappings=[];dlLayoutState.dimHits=[];
   if(!ctx.pieces.length){wrap.innerHTML='<div class="layoutEmpty">Não há peças para gerar o layout.</div>';return;}
   dlLayoutUpdateSectionUi(ctx);dlLayoutUpdateLegend(ctx);
   const pack=dlLayoutState.view==='sheet'?dlLayoutRenderSheet(ctx):dlLayoutRenderSingle(ctx,dlLayoutState.view);
-  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico" style="background:rgb(255,255,255);color-scheme:only light;forced-color-adjust:none"><rect width="100%" height="100%" fill="rgb(255,255,255)"/>${dlLayoutSvgDefs()}${pack.body}</svg>`;
-  dlLayoutState.lastSvg=svg;dlLayoutState.lastWidth=pack.W;dlLayoutState.lastHeight=pack.H;wrap.innerHTML=svg;
+  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico"><rect width="100%" height="100%" fill="#fff"/>${dlLayoutSvgDefs()}${pack.body}</svg>`;
+  dlLayoutState.lastSvg=svg;dlLayoutState.lastWidth=pack.W;dlLayoutState.lastHeight=pack.H;
+  // 1.200.18: a prévia é rasterizada em CANVAS. O Chrome/Samsung com
+  // "modo escuro para sites" alterava as cores do SVG DOM e transformava o
+  // papel branco em cinza. Pixels do canvas não recebem essa transformação.
+  dlLayoutPaintPreviewBitmap(wrap,svg,pack.W,pack.H);
   const status=$('layoutStatus');if(status)status.textContent=`${ctx.label} · ${ctx.pieces.length} peça(s) · ${DL_LAYOUT_VIEWS[dlLayoutState.view]} · escala ${dlLayoutScaleText()}`;
   document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.classList.toggle('active',b.dataset.layoutViewBtn===dlLayoutState.view));
 }
@@ -318,10 +343,12 @@ function dlLayoutPickSection(axis){
   toast(axis==='x'?'Toque na vista frontal onde deseja o corte A-A':'Toque na vista frontal onde deseja o corte B-B');
 }
 function dlLayoutHandleSvgClick(e){
-  const dim=e.target.closest?.('[data-dim-id]');if(dim){dlLayoutState.hiddenDims.add(dim.dataset.dimId);dlLayoutRender();return;}
+  const canvas=$('technicalLayoutCanvas');if(!canvas)return;
+  const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
+  const x=(e.clientX-r.left)*(dlLayoutState.lastWidth/r.width),y=(e.clientY-r.top)*(dlLayoutState.lastHeight/r.height);
+  const dim=dlLayoutState.dimHits.find(h=>x>=h.x1&&x<=h.x2&&y>=h.y1&&y<=h.y2);
+  if(dim&&!dlLayoutState.pickSection){dlLayoutState.hiddenDims.add(dim.id);dlLayoutRender();return;}
   if(!dlLayoutState.pickSection)return;
-  const svg=$('technicalLayoutSvg');if(!svg)return;
-  const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)*(dlLayoutState.lastWidth/r.width),y=(e.clientY-r.top)*(dlLayoutState.lastHeight/r.height);
   const map=dlLayoutState.lastMappings.find(m=>m.view==='front'&&x>=m.rect.x&&x<=m.rect.x+m.rect.w&&y>=m.rect.y&&y<=m.rect.y+m.rect.h);
   if(!map){toast('Toque dentro da vista frontal');return;}
   const ctx=dlLayoutState.lastContext,b=ctx.bounds;
