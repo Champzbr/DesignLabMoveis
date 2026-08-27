@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.netlify.designlabmoveis.twa",
+      "sha256_cert_fingerprints": [
+        "C5:35:08:C0:20:06:35:8C:5D:46:3E:C6:EA:7B:F4:47:16:36:05:FF:9B:41:49:28:58:14:36:E4:1E:CC:BC:F5"
+      ]
+    }
+  }
+]
