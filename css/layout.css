@@ -26,9 +26,9 @@
 /* 1.200.18 · o papel do desenho permanece branco mesmo com tema escuro forçado no Android */
 #technicalLayoutDialog .technicalLayoutPreview,#technicalLayoutDialog .layoutSvgWrap,#technicalLayoutDialog .layoutPreviewCanvas{background-color:#fff!important;background-image:none!important;filter:none!important;opacity:1!important;mix-blend-mode:normal!important}
 
-/* 1.200.22: no PWA Android o desenho é exibido como PNG, evitando Auto Dark em canvas/SVG. */
+/* 1.200.23: no PWA Android o desenho é exibido como PNG, evitando Auto Dark em canvas/SVG. */
 .layoutPreviewImageHolder{display:grid;place-items:center;width:100%;min-width:100%;background:#fff!important;color-scheme:only light!important;forced-color-adjust:none!important}
 .layoutPreviewImage{display:block;width:min(100%,1500px);height:auto;max-height:none;background:#fff!important;border:1px solid #000;border-radius:0;filter:none!important;opacity:1!important;mix-blend-mode:normal!important;forced-color-adjust:none!important;color-scheme:only light!important}
 
-/* 1.200.22: preview recebe PNG vindo do renderer Canvas 2D direto, sem SVG intermediário. */
+/* 1.200.23: preview recebe PNG vindo do renderer Canvas 2D direto, sem SVG intermediário. */
 .layoutPreviewImage{background:#fff!important;isolation:isolate!important;}
