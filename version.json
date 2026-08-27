@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.21",
+  "version": "1.200.22",
   "required": false,
-  "message": "Layout CAD renderizado diretamente em Canvas 2D: branco/preto real no PWA Android; Voltar mantido.",
-  "released_at": "2026-08-27T11:55:00-03:00",
-  "build": "1.200.21-r1"
+  "message": "Cotas técnicas com arestas reais das peças e precisão de 0,01 mm; atualização do servidor conferida automaticamente ao abrir/retomar o app.",
+  "released_at": "2026-08-27T12:50:00-03:00",
+  "build": "1.200.22-r1"
 }

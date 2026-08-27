@@ -1,9 +1,14 @@
-# DesignLabMoveis 1.200.20 — site estático
+# DesignLabMoveis 1.200.22 — site estático
 [build]
   publish = "."
 
 [[headers]]
   for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/designlabmoveis-1.200.22.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
