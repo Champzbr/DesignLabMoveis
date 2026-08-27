@@ -175,7 +175,7 @@
 
 
 /* ========================================================================== */
-/* 1.200.31 · Segurança / Produção / Montagem                                */
+/* 1.200.32 · Segurança / Produção / Montagem                                */
 /* ========================================================================== */
 .dlSuiteDialog{display:none;position:fixed;inset:0;z-index:18500;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(8px)}
 .dlSuiteDialog.show{display:flex}
