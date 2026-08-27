@@ -1,11 +1,11 @@
 // ============================================================================
-// 1.200.16 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
+// 1.200.17 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
 // ----------------------------------------------------------------------------
 // Extrai desenhos 2D diretamente da geometria 3D do projeto. Não depende da
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.16';
+const DL_LAYOUT_VERSION='1.200.17';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -196,7 +196,7 @@ function dlLayoutSvgDefs(){return `<defs>
   <marker id="dlArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse"><path d="M8,0 L0,4 L8,8" fill="none" stroke="#000" stroke-width="1.15"/></marker>
   <pattern id="dlHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#000" stroke-width="1"/></pattern>
   <style>
-    svg{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#000}
+    svg{font-family:Arial,Helvetica,sans-serif;background:rgb(255,255,255);color:#000;color-scheme:only light;forced-color-adjust:none}
     .dl-dim{cursor:pointer}.dl-dim:hover text{font-weight:800}
     .dl-piece-line{vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
     .dl-hidden{stroke-dasharray:8 5}
@@ -249,8 +249,8 @@ function dlLayoutRenderPieces(model,map,{sheet=false}={}){
     if(it.hidden&&!it.cut&&!dlLayoutState.showHidden)continue;
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch){out.push(dlLayoutPolygonSvg(hull,map,`fill="url(#dlHatch)" stroke="none" opacity=".95"`));}
-    else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="#fff" fill-opacity="1" stroke="none"`));}
-    const stroke=it.hidden?'#555':'#000',sw=it.cut?(sheet?2.8:3.8):line,dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden"':' class="dl-piece-line"';
+    else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="rgb(255,255,255)" fill-opacity="1" stroke="none"`));}
+    const stroke='#000',sw=it.cut?(sheet?2.8:3.8):(it.hidden?line*.72:line),dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden" opacity=".55"':' class="dl-piece-line"';
     if(it.cut&&it.sectionBox){
       const p=[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}];
       out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sw}" class="dl-piece-line"`));
@@ -262,7 +262,7 @@ function dlLayoutRenderOne(view,rect,ctx,{sheet=false}={}){
   const model=dlLayoutModel(view,ctx),map=dlLayoutViewMap(model,rect,{sheet});dlLayoutState.lastMappings.push(map);
   const title=DL_LAYOUT_VIEWS[view]||view,sub=(view==='sectionX'?`X = ${dlLayoutMmText(model.sectionX-model.worldBounds.minX)} mm`:(view==='sectionY'?`Y = ${dlLayoutMmText(model.sectionY-model.worldBounds.minY)} mm`:''));
   const titleY=rect.y+(sheet?30:42);
-  return `<g data-layout-view="${view}"><rect x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" fill="#fff" stroke="#000" stroke-width="${sheet?1:1.25}"/><line x1="${rect.x}" y1="${titleY}" x2="${rect.x+rect.w}" y2="${titleY}" stroke="#000" stroke-width=".75"/><text x="${rect.x+12}" y="${rect.y+(sheet?20:28)}" font-size="${sheet?15:20}" font-weight="700" fill="#000">${dlLayoutEsc(title)}</text>${sub?`<text x="${rect.x+rect.w-12}" y="${rect.y+(sheet?20:28)}" text-anchor="end" font-size="${sheet?11:13}" fill="#000">${dlLayoutEsc(sub)}</text>`:''}${dlLayoutRenderPieces(model,map,{sheet})}${dlLayoutRenderSectionMarks(model,map,{sheet})}${dlLayoutRenderDimensions(model,map,{sheet})}${dlLayoutRenderLabels(model,map,{sheet})}</g>`;
+  return `<g data-layout-view="${view}"><rect x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" fill="rgb(255,255,255)" stroke="#000" stroke-width="${sheet?1:1.25}"/><line x1="${rect.x}" y1="${titleY}" x2="${rect.x+rect.w}" y2="${titleY}" stroke="#000" stroke-width=".75"/><text x="${rect.x+12}" y="${rect.y+(sheet?20:28)}" font-size="${sheet?15:20}" font-weight="700" fill="#000">${dlLayoutEsc(title)}</text>${sub?`<text x="${rect.x+rect.w-12}" y="${rect.y+(sheet?20:28)}" text-anchor="end" font-size="${sheet?11:13}" fill="#000">${dlLayoutEsc(sub)}</text>`:''}${dlLayoutRenderPieces(model,map,{sheet})}${dlLayoutRenderSectionMarks(model,map,{sheet})}${dlLayoutRenderDimensions(model,map,{sheet})}${dlLayoutRenderLabels(model,map,{sheet})}</g>`;
 }
 function dlLayoutProjectTitle(ctx){return currentProjectRecord?.name||ctx.root?.name||'Projeto';}
 function dlLayoutScaleText(){return dlLayoutState.scale==='fit'?'Automática':`1:${dlLayoutState.scale}`;}
@@ -271,7 +271,7 @@ function dlLayoutRenderSheet(ctx){
   const views=['front','top','left','right','sectionX','sectionY'];let body='';
   views.forEach((v,i)=>{const col=i%3,row=Math.floor(i/3);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
   const y=H-titleH,legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`),row1=legend.slice(0,6),row2=legend.slice(6,12),legendText=(arr,yy)=>arr.map((t,i)=>`<text x="${34+i*153}" y="${yy}" font-size="11">${dlLayoutEsc(t)}</text>`).join('');
-  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="#fff" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
+  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
   return {W,H,body};
 }
 function dlLayoutRenderSingle(ctx,view){const W=1400,H=960;return {W,H,body:dlLayoutRenderOne(view,{x:22,y:22,w:W-44,h:H-44},ctx,{sheet:false})};}
@@ -292,7 +292,7 @@ function dlLayoutRender(){
   if(!ctx.pieces.length){wrap.innerHTML='<div class="layoutEmpty">Não há peças para gerar o layout.</div>';return;}
   dlLayoutUpdateSectionUi(ctx);dlLayoutUpdateLegend(ctx);
   const pack=dlLayoutState.view==='sheet'?dlLayoutRenderSheet(ctx):dlLayoutRenderSingle(ctx,dlLayoutState.view);
-  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico">${dlLayoutSvgDefs()}<rect width="100%" height="100%" fill="#fff"/>${pack.body}</svg>`;
+  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico" style="background:rgb(255,255,255);color-scheme:only light;forced-color-adjust:none"><rect width="100%" height="100%" fill="rgb(255,255,255)"/>${dlLayoutSvgDefs()}${pack.body}</svg>`;
   dlLayoutState.lastSvg=svg;dlLayoutState.lastWidth=pack.W;dlLayoutState.lastHeight=pack.H;wrap.innerHTML=svg;
   const status=$('layoutStatus');if(status)status.textContent=`${ctx.label} · ${ctx.pieces.length} peça(s) · ${DL_LAYOUT_VIEWS[dlLayoutState.view]} · escala ${dlLayoutScaleText()}`;
   document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.classList.toggle('active',b.dataset.layoutViewBtn===dlLayoutState.view));
