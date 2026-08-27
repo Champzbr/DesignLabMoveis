@@ -1,11 +1,11 @@
 // ============================================================================
-// 1.200.15 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
+// 1.200.16 · GERAR LAYOUT TÉCNICO / APRESENTAÇÃO
 // ----------------------------------------------------------------------------
 // Extrai desenhos 2D diretamente da geometria 3D do projeto. Não depende da
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.15';
+const DL_LAYOUT_VERSION='1.200.16';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -193,9 +193,16 @@ function dlLayoutViewMap(model,rect,{sheet=false}={}){
   return {view:model.view,projection:model.projection,rect,inner,minU:b.minU,maxU:b.maxU,minV:b.minV,maxV:b.maxV,scale:s,ox,oy,sx:u=>ox+(u-b.minU)*s,sy:v=>oy+(b.maxV-v)*s,invU:x=>b.minU+(x-ox)/s,invV:y=>b.maxV-(y-oy)/s};
 }
 function dlLayoutSvgDefs(){return `<defs>
-  <marker id="dlArrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse"><path d="M7,0 L0,3.5 L7,7" fill="none" stroke="#1b1b1b" stroke-width="1"/></marker>
-  <pattern id="dlHatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#575757" stroke-width="1.4"/></pattern>
-  <style>.dl-dim{cursor:pointer}.dl-dim:hover text{font-weight:800}.dl-piece-line{vector-effect:non-scaling-stroke}.dl-hidden{stroke-dasharray:7 5}.dl-section-line{stroke-dasharray:13 6}</style>
+  <marker id="dlArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse"><path d="M8,0 L0,4 L8,8" fill="none" stroke="#000" stroke-width="1.15"/></marker>
+  <pattern id="dlHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#000" stroke-width="1"/></pattern>
+  <style>
+    svg{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#000}
+    .dl-dim{cursor:pointer}.dl-dim:hover text{font-weight:800}
+    .dl-piece-line{vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
+    .dl-hidden{stroke-dasharray:8 5}
+    .dl-section-line{stroke-dasharray:14 5 3 5}
+    text{fill:#000}
+  </style>
 </defs>`;}
 function dlLayoutPolygonSvg(points,map,attrs=''){
   if(!points?.length)return '';
@@ -221,7 +228,7 @@ function dlLayoutRenderSectionMarks(model,map,{sheet=false}={}){
   if(model.view!=='front'||dlLayoutState.mode!=='technical')return '';
   const b=model.bounds,font=sheet?13:17,out=[];
   const x=map.sx(model.sectionX),yt=map.sy(b.maxV),yb=map.sy(b.minV),y=map.sy(model.sectionY),xl=map.sx(b.minU),xr=map.sx(b.maxU);
-  out.push(`<g class="dl-section-line" stroke="#c62828" stroke-width="${sheet?1.6:2.2}" fill="#c62828"><line x1="${x}" y1="${yt}" x2="${x}" y2="${yb}"/><text x="${x+6}" y="${yt+font}" font-size="${font}">A</text><text x="${x+6}" y="${yb-5}" font-size="${font}">A</text><line x1="${xl}" y1="${y}" x2="${xr}" y2="${y}"/><text x="${xl+5}" y="${y-6}" font-size="${font}">B</text><text x="${xr-font}" y="${y-6}" font-size="${font}">B</text></g>`);
+  out.push(`<g class="dl-section-line" stroke="#000" stroke-width="${sheet?1.35:1.8}" fill="#000"><line x1="${x}" y1="${yt}" x2="${x}" y2="${yb}"/><text x="${x+6}" y="${yt+font}" font-size="${font}">A</text><text x="${x+6}" y="${yb-5}" font-size="${font}">A</text><line x1="${xl}" y1="${y}" x2="${xr}" y2="${y}"/><text x="${xl+5}" y="${y-6}" font-size="${font}">B</text><text x="${xr-font}" y="${y-6}" font-size="${font}">B</text></g>`);
   return out.join('');
 }
 function dlLayoutRenderLabels(model,map,{sheet=false}={}){
@@ -232,18 +239,18 @@ function dlLayoutRenderLabels(model,map,{sheet=false}={}){
     const box=it.sectionBox||it.box,cx=(box.minU+box.maxU)/2,cy=(box.minV+box.maxV)/2;
     const x=map.sx(cx),y=map.sy(cy),dx=(k%2?1:-1)*(sheet?18:26),dy=((k%3)-1)*(sheet?12:18),lx=x+dx,ly=y+dy;
     const shortName=String(it.name||`Peça ${it.index+1}`).slice(0,sheet?0:26);
-    out.push(`<g class="dl-part-label"><line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="#1565c0" stroke-width="1"/><circle cx="${lx}" cy="${ly}" r="${r}" fill="#fff" stroke="#1565c0" stroke-width="1.5"/><text x="${lx}" y="${ly+font*.32}" text-anchor="middle" font-size="${font}" font-weight="700" fill="#0d47a1">${it.index+1}</text>${!sheet?`<text x="${lx+r+5}" y="${ly+font*.32}" font-size="${font-1}" fill="#0d47a1">${dlLayoutEsc(shortName)}</text>`:''}</g>`);
+    out.push(`<g class="dl-part-label"><line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="#000" stroke-width="1"/><circle cx="${lx}" cy="${ly}" r="${r}" fill="#fff" stroke="#000" stroke-width="1.4"/><text x="${lx}" y="${ly+font*.32}" text-anchor="middle" font-size="${font}" font-weight="700" fill="#000">${it.index+1}</text>${!sheet?`<text x="${lx+r+5}" y="${ly+font*.32}" font-size="${font-1}" fill="#000">${dlLayoutEsc(shortName)}</text>`:''}</g>`);
   });
   return out.join('');
 }
 function dlLayoutRenderPieces(model,map,{sheet=false}={}){
-  const out=[],technical=dlLayoutState.mode==='technical',items=[...model.items].sort((a,b)=>a.depth-b.depth),line=sheet?1.15:1.55;
+  const out=[],items=[...model.items].sort((a,b)=>a.depth-b.depth),line=sheet?1.35:1.9;
   for(const it of items){
     if(it.hidden&&!it.cut&&!dlLayoutState.showHidden)continue;
     const box=it.sectionBox||it.box,hull=it.cut&&it.sectionBox?[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}]:it.hull;
     if(it.cut&&dlLayoutState.showHatch){out.push(dlLayoutPolygonSvg(hull,map,`fill="url(#dlHatch)" stroke="none" opacity=".95"`));}
-    else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="${technical?'#fff':it.color}" fill-opacity="${technical?1:.72}" stroke="none"`));}
-    const stroke=it.cut?'#111':(it.hidden?'#777':'#111'),sw=it.cut?(sheet?2.5:3.3):line,dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden"':' class="dl-piece-line"';
+    else if(!it.hidden){out.push(dlLayoutPolygonSvg(hull,map,`fill="#fff" fill-opacity="1" stroke="none"`));}
+    const stroke=it.hidden?'#555':'#000',sw=it.cut?(sheet?2.8:3.8):line,dash=it.hidden&&!it.cut?' class="dl-piece-line dl-hidden"':' class="dl-piece-line"';
     if(it.cut&&it.sectionBox){
       const p=[{u:box.minU,v:box.minV},{u:box.maxU,v:box.minV},{u:box.maxU,v:box.maxV},{u:box.minU,v:box.maxV}];
       out.push(dlLayoutPolygonSvg(p,map,`fill="none" stroke="${stroke}" stroke-width="${sw}" class="dl-piece-line"`));
@@ -254,7 +261,8 @@ function dlLayoutRenderPieces(model,map,{sheet=false}={}){
 function dlLayoutRenderOne(view,rect,ctx,{sheet=false}={}){
   const model=dlLayoutModel(view,ctx),map=dlLayoutViewMap(model,rect,{sheet});dlLayoutState.lastMappings.push(map);
   const title=DL_LAYOUT_VIEWS[view]||view,sub=(view==='sectionX'?`X = ${dlLayoutMmText(model.sectionX-model.worldBounds.minX)} mm`:(view==='sectionY'?`Y = ${dlLayoutMmText(model.sectionY-model.worldBounds.minY)} mm`:''));
-  return `<g data-layout-view="${view}"><rect x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" rx="${sheet?8:14}" fill="#fff" stroke="#c7c7c7"/><text x="${rect.x+14}" y="${rect.y+(sheet?21:29)}" font-size="${sheet?16:22}" font-weight="700" fill="#111">${dlLayoutEsc(title)}</text>${sub?`<text x="${rect.x+rect.w-12}" y="${rect.y+(sheet?21:29)}" text-anchor="end" font-size="${sheet?11:14}" fill="#666">${dlLayoutEsc(sub)}</text>`:''}${dlLayoutRenderPieces(model,map,{sheet})}${dlLayoutRenderSectionMarks(model,map,{sheet})}${dlLayoutRenderDimensions(model,map,{sheet})}${dlLayoutRenderLabels(model,map,{sheet})}</g>`;
+  const titleY=rect.y+(sheet?30:42);
+  return `<g data-layout-view="${view}"><rect x="${rect.x}" y="${rect.y}" width="${rect.w}" height="${rect.h}" fill="#fff" stroke="#000" stroke-width="${sheet?1:1.25}"/><line x1="${rect.x}" y1="${titleY}" x2="${rect.x+rect.w}" y2="${titleY}" stroke="#000" stroke-width=".75"/><text x="${rect.x+12}" y="${rect.y+(sheet?20:28)}" font-size="${sheet?15:20}" font-weight="700" fill="#000">${dlLayoutEsc(title)}</text>${sub?`<text x="${rect.x+rect.w-12}" y="${rect.y+(sheet?20:28)}" text-anchor="end" font-size="${sheet?11:13}" fill="#000">${dlLayoutEsc(sub)}</text>`:''}${dlLayoutRenderPieces(model,map,{sheet})}${dlLayoutRenderSectionMarks(model,map,{sheet})}${dlLayoutRenderDimensions(model,map,{sheet})}${dlLayoutRenderLabels(model,map,{sheet})}</g>`;
 }
 function dlLayoutProjectTitle(ctx){return currentProjectRecord?.name||ctx.root?.name||'Projeto';}
 function dlLayoutScaleText(){return dlLayoutState.scale==='fit'?'Automática':`1:${dlLayoutState.scale}`;}
@@ -284,7 +292,7 @@ function dlLayoutRender(){
   if(!ctx.pieces.length){wrap.innerHTML='<div class="layoutEmpty">Não há peças para gerar o layout.</div>';return;}
   dlLayoutUpdateSectionUi(ctx);dlLayoutUpdateLegend(ctx);
   const pack=dlLayoutState.view==='sheet'?dlLayoutRenderSheet(ctx):dlLayoutRenderSingle(ctx,dlLayoutState.view);
-  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico">${dlLayoutSvgDefs()}<rect width="100%" height="100%" fill="#f7f7f7"/>${pack.body}</svg>`;
+  const svg=`<svg id="technicalLayoutSvg" xmlns="http://www.w3.org/2000/svg" width="${pack.W}" height="${pack.H}" viewBox="0 0 ${pack.W} ${pack.H}" role="img" aria-label="Layout técnico">${dlLayoutSvgDefs()}<rect width="100%" height="100%" fill="#fff"/>${pack.body}</svg>`;
   dlLayoutState.lastSvg=svg;dlLayoutState.lastWidth=pack.W;dlLayoutState.lastHeight=pack.H;wrap.innerHTML=svg;
   const status=$('layoutStatus');if(status)status.textContent=`${ctx.label} · ${ctx.pieces.length} peça(s) · ${DL_LAYOUT_VIEWS[dlLayoutState.view]} · escala ${dlLayoutScaleText()}`;
   document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.classList.toggle('active',b.dataset.layoutViewBtn===dlLayoutState.view));

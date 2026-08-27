@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.200.15 · PLANO DE CORTE OTIMIZADO
+// 1.200.16 · PLANO DE CORTE OTIMIZADO
 // Mantém a exportação Aspire existente separada. Este bloco cuida somente
 // do cálculo e da visualização do plano de corte na interface.
 // ============================================================================
@@ -454,7 +454,7 @@ function sheetPreviewDraw(){
   cutPlanRenderSide();
 }
 
-// ---------- 1.200.15 · impressão técnica do plano de corte em A4 ----------
+// ---------- 1.200.16 · impressão técnica do plano de corte em A4 ----------
 // A impressão é propositalmente independente do indicador de veio da tela.
 // O sentido continua sendo respeitado no cálculo/encaixe, mas não é desenhado
 // nem escrito no relatório impresso.
@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.15</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.16</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -1076,37 +1076,68 @@ $('adminPaymentsList').addEventListener('click',e=>{
 });
 
 // ============================================================================
-// 1.200.15 · VOLTAR EM CASCATA (Android / navegador / PWA)
+// 1.200.16 · VOLTAR UNIVERSAL (Android / navegador / PWA)
 // ----------------------------------------------------------------------------
-// Um único estado sentinela mantém o botão Voltar dentro do DesignLab enquanto
-// existe algo a fechar. A ordem é: prévia -> diálogo/menu -> editor -> projetos.
-// Na tela de projetos, Voltar volta a ter o comportamento normal do aparelho.
+// O botão físico/gesto Voltar NUNCA deve derrubar o usuário para fora do app.
+// Ele desfaz a camada de interface mais recente: prévia -> diálogo -> menu ->
+// vista 2D/visual -> editor -> seleção de projetos. Na seleção, permanece no app.
 // ============================================================================
 function designLabBackElementVisible(id){
   const el=$(id);if(!el)return false;
   const cs=getComputedStyle(el);
-  return cs.display!=='none'&&cs.visibility!=='hidden'&&(el.classList.contains('show')||cs.display==='flex'||cs.display==='block'||cs.display==='grid');
+  if(cs.display==='none'||cs.visibility==='hidden'||Number(cs.opacity)===0)return false;
+  const r=el.getBoundingClientRect?.();
+  return !!(el.classList.contains('show')||el.classList.contains('open')||cs.display==='flex'||cs.display==='block'||cs.display==='grid'||(r&&r.width>0&&r.height>0));
 }
 function designLabClickBackCloser(containerId,buttonId){
   if(!designLabBackElementVisible(containerId))return false;
-  const b=$(buttonId);if(b){b.click();return true;}
-  const el=$(containerId);if(el){el.classList.remove('show');el.style.display='none';return true;}
+  const b=$(buttonId);
+  if(b&&!b.disabled){b.click();return true;}
+  const el=$(containerId);
+  if(el){el.classList.remove('show','open');el.style.display='none';return true;}
   return false;
 }
+function designLabAuthBack(){
+  const gate=$('authGate');if(!gate||!designLabBackElementVisible('authGate'))return false;
+  const openForm=gate.querySelector('.authInlineForm.show');
+  if(openForm){showAuthInlineForm('main');return true;}
+  return false;
+}
+function designLabCloseInstallCard(){
+  const card=document.getElementById('designLabInstallCard');
+  if(!card)return false;
+  card.querySelector('.designLabInstallClose')?.click?.();
+  if(document.body.contains(card))card.remove();
+  return true;
+}
+function designLabGenericBackLayer(){
+  // Rede de segurança para qualquer novo diálogo incluído no futuro. Procura
+  // somente camadas de interface conhecidas; nunca toca no canvas/modelo.
+  const candidates=[...document.querySelectorAll('[id$="Dialog"],.projectModal')].filter(el=>{
+    if(!el.id)return false;
+    return designLabBackElementVisible(el.id);
+  });
+  candidates.sort((a,b)=>{
+    const za=Number.parseInt(getComputedStyle(a).zIndex)||0,zb=Number.parseInt(getComputedStyle(b).zIndex)||0;
+    return zb-za;
+  });
+  const el=candidates[0];if(!el)return false;
+  const btn=el.querySelector('button[id^="close" i],button[id^="cancel" i],[data-close],[data-back]');
+  if(btn&&!btn.disabled){btn.click();return true;}
+  el.classList.remove('show','open');el.style.display='none';return true;
+}
 async function designLabHandleBackCascade(){
-  // Prévia 3D: primeiro volta para a tela que criou a prévia.
+  // 1) Prévia temporária: volta para a configuração que a originou.
   if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar')){returnCurvedStructurePreview({reopen:true});return 'closed';}
   if(shapePreviewActive||designLabBackElementVisible('shape3DPreviewBar')){returnShapePreview();return 'closed';}
   if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar')){closeMachining3DPreview({reopen:true});return 'closed';}
 
-  // Diálogos em ordem de profundidade. Usamos os próprios botões para manter
-  // rotinas de limpeza, restauração de prévia e estado paramétrico.
+  // 2) Diálogos/configurações. Ordem = mais profundo primeiro.
   const closers=[
     ['technicalLayoutDialog','closeTechnicalLayout'],
     ['sheetPreviewDialog','sheetPreviewClose'],
     ['labelsDialog','closeLabelsDialogTop'],
     ['partsListDialog','closePartsList'],
-    ['productionDialog','closeProductionDialog'],
     ['hardwareBuilderDialog','cancelHardwareBuilder'],
     ['shapeDialog','cancelShape'],
     ['machiningDialog','cancelMachining'],
@@ -1116,10 +1147,11 @@ async function designLabHandleBackCascade(){
     ['cutSpaceDialog','cancelCut'],
     ['newSpaceDialog','cancelSpace'],
     ['editSpaceDialog','cancelEditSpace'],
-    ['spaceMoreDialog','closeSpaceMore'],
     ['libraryDialog','closeLibrary'],
     ['newPanelDialog','cancelPanel'],
     ['toolDockEditDialog','toolDockEditCancel'],
+    ['productionDialog','closeProductionDialog'],
+    ['spaceMoreDialog','closeSpaceMore'],
     ['adminDialog','closeAdminDialog'],
     ['appSettingsDialog','appSettingsClose'],
     ['projectMetaDialog','projectMetaCancel'],
@@ -1127,50 +1159,61 @@ async function designLabHandleBackCascade(){
     ['updateDialog','updateLaterBtn']
   ];
   for(const [container,button] of closers){if(designLabClickBackCloser(container,button))return 'closed';}
+  if(designLabGenericBackLayer())return 'closed';
 
+  // 3) Menus/painéis flutuantes.
+  if(designLabCloseInstallCard())return 'closed';
   if($('projectCardMenu')?.classList.contains('show')){closeProjectCardMenu();return 'closed';}
   if($('projectMenuPanel')?.classList.contains('show')){$('projectMenuPanel').classList.remove('show');return 'closed';}
   if($('toolDock')?.classList.contains('open')){setToolDockOpen(false);return 'closed';}
-  if($('morePanel')?.style.display==='block'){$('morePanel').style.display='none';return 'closed';}
+  if(designLabBackElementVisible('morePanel')){$('morePanel').style.display='none';return 'closed';}
   if(elementIsVisible($('inspector'))){closeInspectorOutside();return 'closed';}
   if(elementIsVisible($('spaceActions'))){closeSpaceActionsOutside();return 'closed';}
+
+  // 4) Uma vista é uma camada sobre a modelagem: volta primeiro ao 3D/editável.
+  if(viewMode2D||camera===orthoCamera){returnTo3D({restore:true,notify:false});return 'closed';}
   if(visualMode&&!document.body.classList.contains('presentation-active')){setVisualMode(false,{notify:false,frame:false});return 'closed';}
 
-  // Se já está projetando/visualizando um projeto, volta para a seleção.
+  // 5) Formulários de autenticação voltam para a tela principal de login.
+  if(designLabAuthBack())return 'closed';
+
+  // 6) Editor ou apresentação -> seleção de projetos.
   if(!document.body.classList.contains('project-home-active')&&currentProjectId){
     await showProjectHome();
     return 'home';
   }
-  return false;
+
+  // 7) Tela inicial/seleção: não abandona o PWA/site.
+  return 'root';
+}
+function designLabPushBackGuard(){
+  try{window.history.pushState({...window.history.state,__designLabBackGuard:true,__designLabVersion:'1.200.16'},'',location.href);}catch{}
 }
 function designLabArmBackGuard(){
   if(window.history.state?.__designLabBackGuard)return;
-  try{window.history.pushState({...window.history.state,__designLabBackGuard:true},'',location.href);}catch{}
+  designLabPushBackGuard();
 }
 let designLabHandlingPopState=false;
 window.addEventListener('popstate',async()=>{
+  // Rearma ANTES de qualquer await: até dois gestos rápidos de voltar ficam
+  // presos dentro do DesignLab, em vez de alcançarem a página anterior/site.
+  designLabPushBackGuard();
   if(designLabHandlingPopState)return;
   designLabHandlingPopState=true;
-  try{
-    const action=await designLabHandleBackCascade();
-    if(action==='closed'){
-      try{window.history.pushState({...window.history.state,__designLabBackGuard:true},'',location.href);}catch{}
-    }else if(action==='home'){
-      // Mantém um sentinela também na Home para que diálogos da seleção de
-      // projetos obedeçam à mesma cascata. Sem diálogo, um toque em Voltar sai.
-      try{window.history.pushState({...window.history.state,__designLabBackGuard:true},'',location.href);}catch{}
-    }else if(document.body.classList.contains('project-home-active')){
-      // Se o usuário chegou à Home clicando num botão enquanto o guard ainda
-      // estava ativo, concluímos a navegação para trás no mesmo toque.
-      setTimeout(()=>{try{window.history.back();}catch{}},0);
-    }
-  }finally{designLabHandlingPopState=false;}
+  try{await designLabHandleBackCascade();}
+  finally{designLabHandlingPopState=false;}
 });
-// Compatibilidade com wrappers Android que expõem um evento nativo backbutton.
+// Wrappers Android/Capacitor/Cordova que expõem backbutton nativo.
 document.addEventListener('backbutton',e=>{
   e.preventDefault?.();
-  designLabHandleBackCascade().then(action=>{if(!action&&document.body.classList.contains('project-home-active')){try{window.history.back();}catch{}}});
+  designLabHandleBackCascade().catch(err=>console.warn('Voltar DesignLab:',err));
 });
+// Tecla Esc no PC segue a MESMA cascata e ajuda a testar todos os menus.
+window.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||e.defaultPrevented)return;
+  const t=e.target;if(t&&['INPUT','TEXTAREA','SELECT'].includes(t.tagName))return;
+  e.preventDefault();designLabHandleBackCascade().catch(()=>{});
+},{capture:true});
 
 installOutsideMenuClose();
 
