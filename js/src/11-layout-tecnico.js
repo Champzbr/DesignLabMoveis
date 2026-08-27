@@ -5,7 +5,7 @@
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.24';
+const DL_LAYOUT_VERSION='1.200.27';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -27,6 +27,9 @@ function dlLayoutMmText(v){
   if(Math.abs(n-d1)<.005)return d1.toFixed(1).replace('.',',');
   return (Math.round(n*100)/100).toFixed(2).replace('.',',').replace(/0+$/,'').replace(/,$/,'');
 }
+function dlLayoutModeHasDimensions(){return dlLayoutState.showDimensions&&dlLayoutState.mode!=='presentation';}
+function dlLayoutModeShowsSections(){return dlLayoutState.mode==='technical';}
+function dlLayoutModeLabel(){return dlLayoutState.mode==='cleanprint'?'limpo para impressão':(dlLayoutState.mode==='presentation'?'apresentação':'técnico');}
 function dlLayoutHexColor(o){
   const v=Number(o?.userData?.baseColor);
   return Number.isFinite(v)?`#${Math.max(0,Math.min(0xffffff,v)).toString(16).padStart(6,'0')}`:'#d9d9d9';
@@ -216,9 +219,33 @@ function dlLayoutVisibleDimensionBounds(model){
   if(!pts.length)return model.bounds;
   return {minU:Math.min(...pts.map(p=>p.u)),maxU:Math.max(...pts.map(p=>p.u)),minV:Math.min(...pts.map(p=>p.v)),maxV:Math.max(...pts.map(p=>p.v))};
 }
+function dlLayoutFaceItems(model){
+  if(['frontOpen','sectionX','sectionY','perspective'].includes(model.view))return [];
+  return model.items.filter(it=>!it.cut&&!it.hidden&&(dlLayoutIsDoor(it.o)||dlLayoutIsFront(it.o)));
+}
+function dlLayoutItemBounds(items){
+  const pts=[];
+  for(const it of items||[]){
+    if(it.cut&&it.sectionBox){const q=it.sectionBox;pts.push({u:q.minU,v:q.minV},{u:q.maxU,v:q.maxV});continue;}
+    for(const seg of it.segments||[]){if(seg.hidden)continue;pts.push(seg.a,seg.b);}
+  }
+  if(!pts.length)return null;
+  return {minU:Math.min(...pts.map(p=>p.u)),maxU:Math.max(...pts.map(p=>p.u)),minV:Math.min(...pts.map(p=>p.v)),maxV:Math.max(...pts.map(p=>p.v))};
+}
+function dlLayoutFaceDimensionInfo(model){
+  const items=dlLayoutFaceItems(model),bounds=dlLayoutItemBounds(items);
+  return items.length&&bounds?{items,bounds}:null;
+}
+function dlLayoutDimensionSourceItems(model){
+  const visible=model.items.filter(it=>!it.hidden||it.cut);
+  if(!visible.length)return [];
+  const faceItems=dlLayoutFaceItems(model);
+  if(faceItems.length)return faceItems;
+  return visible;
+}
 function dlLayoutInternalBoundaries(model,axis,dimBounds=null){
-  const vals=[],b=dimBounds||model.bounds;
-  for(const it of model.items){
+  const vals=[],b=dimBounds||model.bounds,sourceItems=dlLayoutDimensionSourceItems(model);
+  for(const it of sourceItems){
     if(it.cut&&it.sectionBox){const q=it.sectionBox;vals.push(axis==='u'?q.minU:q.minV,axis==='u'?q.maxU:q.maxV);continue;}
     if(it.hidden)continue;
     for(const seg of it.segments||[]){
@@ -235,6 +262,30 @@ function dlLayoutInternalBoundaries(model,axis,dimBounds=null){
   for(const v of sorted){if(!out.length||Math.abs(v-out[out.length-1])>DL_LAYOUT_DIM_TOL)out.push(v);else out[out.length-1]=(out[out.length-1]+v)/2;}
   return out;
 }
+function dlLayoutFilterUsefulDimensionParts(model,axis,parts,b){
+  let keep=parts.filter(p=>p.len>DL_LAYOUT_DIM_TOL);
+  const info=dlLayoutFaceDimensionInfo(model);
+  if(info){
+    const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV;
+    const smin=axis==='u'?info.bounds.minU:info.bounds.minV,smax=axis==='u'?info.bounds.maxU:info.bounds.maxV;
+    keep=keep.filter(p=>{
+      const startsAtMin=Math.abs(p.a-min)<=DL_LAYOUT_DIM_TOL,endsAtMax=Math.abs(p.b-max)<=DL_LAYOUT_DIM_TOL;
+      const beforeFace=p.b<=smin+DL_LAYOUT_DIM_TOL,afterFace=p.a>=smax-DL_LAYOUT_DIM_TOL;
+      if((startsAtMin&&beforeFace)||(endsAtMax&&afterFace))return false;
+      if(p.b<smin-DL_LAYOUT_DIM_TOL||p.a>smax+DL_LAYOUT_DIM_TOL)return false;
+      return true;
+    });
+    if(!keep.length)keep=parts.filter(p=>p.len>DL_LAYOUT_DIM_TOL&&p.a>=smin-DL_LAYOUT_DIM_TOL&&p.b<=smax+DL_LAYOUT_DIM_TOL);
+  }
+  if(dlLayoutState.visibleDimsOnly&&keep.length){
+    const overall=(axis==='u'?b.maxU-b.minU:b.maxV-b.minV),maxCount=info?6:8;
+    if(keep.length>maxCount){
+      const score=p=>(p.len>=overall*.45?200000:0)+(p.len>=overall*.18?80000:0)+p.len;
+      keep=[...keep].sort((a,b)=>score(b)-score(a)).slice(0,maxCount).sort((a,b)=>a.a-b.a);
+    }
+  }
+  return keep;
+}
 function dlLayoutDimensionModel(model){
   if(model.view==='perspective')return [];
   const b=dlLayoutVisibleDimensionBounds(model),dims=[];
@@ -250,11 +301,12 @@ function dlLayoutDimensionModel(model){
         if(Math.abs(a-min)<=DL_LAYOUT_DIM_TOL&&Math.abs(bb-max)<=DL_LAYOUT_DIM_TOL)continue;
         parts.push({a,b:bb,len});
       }
-      let keep=parts;
-      if(parts.length>14){
-        keep=[...parts].sort((a,b)=>{
-          const pa=(a.len<=50?100000:0)+(a.len>=overall*.18?50000:0)+a.len;
-          const pb=(b.len<=50?100000:0)+(b.len>=overall*.18?50000:0)+b.len;
+      let keep=dlLayoutFilterUsefulDimensionParts(model,axis,parts,b);
+      if(!keep.length)keep=parts;
+      if(keep.length>14){
+        keep=[...keep].sort((a,b)=>{
+          const pa=(a.len>=overall*.18?50000:0)+a.len;
+          const pb=(b.len>=overall*.18?50000:0)+b.len;
           return pb-pa;
         }).slice(0,14).sort((a,b)=>a.a-b.a);
       }
@@ -264,7 +316,7 @@ function dlLayoutDimensionModel(model){
   return dims;
 }
 function dlLayoutViewMap(model,rect,{sheet=false}={}){
-  const titleH=sheet?30:42,dimPad=dlLayoutState.mode==='technical'&&dlLayoutState.showDimensions?(sheet?42:76):(sheet?18:35);
+  const titleH=sheet?30:42,dimPad=dlLayoutModeHasDimensions()?(sheet?42:76):(sheet?18:35);
   const inner={x:rect.x+dimPad,y:rect.y+titleH+12,w:Math.max(40,rect.w-dimPad*1.45),h:Math.max(40,rect.h-titleH-dimPad*1.35)};
   const b=model.bounds,wu=Math.max(1,b.maxU-b.minU),hv=Math.max(1,b.maxV-b.minV),s=Math.min(inner.w/wu,inner.h/hv);
   const drawW=wu*s,drawH=hv*s,ox=inner.x+(inner.w-drawW)/2,oy=inner.y+(inner.h-drawH)/2;
@@ -287,7 +339,7 @@ function dlLayoutPolygonSvg(points,map,attrs=''){
   return `<polygon points="${points.map(p=>`${dlLayoutNum(map.sx(p.u),2)},${dlLayoutNum(map.sy(p.v),2)}`).join(' ')}" ${attrs}/>`;
 }
 function dlLayoutRenderDimensions(model,map,{sheet=false}={}){
-  if(dlLayoutState.mode!=='technical'||!dlLayoutState.showDimensions)return '';
+  if(!dlLayoutModeHasDimensions())return '';
   const b=model.bounds,parts=[],font=sheet?12:15;
   for(const d of dlLayoutDimensionModel(model)){
     if(dlLayoutState.hiddenDims.has(d.id))continue;
@@ -305,7 +357,7 @@ function dlLayoutRenderDimensions(model,map,{sheet=false}={}){
   return parts.join('');
 }
 function dlLayoutRenderSectionMarks(model,map,{sheet=false}={}){
-  if(model.view!=='front'||dlLayoutState.mode!=='technical')return '';
+  if(model.view!=='front'||!dlLayoutModeShowsSections())return '';
   const b=model.bounds,font=sheet?13:17,out=[];
   const x=map.sx(model.sectionX),yt=map.sy(b.maxV),yb=map.sy(b.minV),y=map.sy(model.sectionY),xl=map.sx(b.minU),xr=map.sx(b.maxU);
   out.push(`<g class="dl-section-line" stroke="#000" stroke-width="${sheet?1.35:1.8}" fill="#000"><line x1="${x}" y1="${yt}" x2="${x}" y2="${yb}"/><text x="${x+6}" y="${yt+font}" font-size="${font}">A</text><text x="${x+6}" y="${yb-5}" font-size="${font}">A</text><line x1="${xl}" y1="${y}" x2="${xr}" y2="${y}"/><text x="${xl+5}" y="${y-6}" font-size="${font}">B</text><text x="${xr-font}" y="${y-6}" font-size="${font}">B</text></g>`);
@@ -351,7 +403,7 @@ function dlLayoutRenderSheet(ctx){
   const views=['front','frontOpen','top','right','left','perspective','sectionX','sectionY'];let body='';
   views.forEach((v,i)=>{const col=i%4,row=Math.floor(i/4);body+=dlLayoutRenderOne(v,{x:g+(cellW+g)*col,y:top+(cellH+g)*row,w:cellW,h:cellH},ctx,{sheet:true});});
   const y=H-titleH,legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`),row1=legend.slice(0,6),row2=legend.slice(6,12),legendText=(arr,yy)=>arr.map((t,i)=>`<text x="${34+i*153}" y="${yy}" font-size="11">${dlLayoutEsc(t)}</text>`).join('');
-  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
+  body+=`<g class="dl-title-block"><rect x="18" y="${y}" width="${W-36}" height="${titleH-14}" fill="rgb(255,255,255)" stroke="#111" stroke-width="1.5"/><line x1="${W*0.55}" y1="${y}" x2="${W*0.55}" y2="${H-14}" stroke="#111"/><line x1="${W*0.78}" y1="${y}" x2="${W*0.78}" y2="${H-14}" stroke="#111"/><text x="34" y="${y+26}" font-size="22" font-weight="700">${dlLayoutEsc(dlLayoutProjectTitle(ctx))}</text><text x="34" y="${y+48}" font-size="13">${dlLayoutEsc(ctx.label)} · ${ctx.pieces.length} peça(s)</text>${legendText(row1,y+75)}${legendText(row2,y+96)}${ctx.pieces.length>12?`<text x="34" y="${y+116}" font-size="10" fill="#555">+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab</text>`:''}<text x="${W*0.55+18}" y="${y+30}" font-size="16" font-weight="700">DesignLabMoveis ${DL_LAYOUT_VERSION}</text><text x="${W*0.55+18}" y="${y+57}" font-size="14">Layout ${dlLayoutModeLabel()}</text><text x="${W*0.55+18}" y="${y+84}" font-size="12">Cortes A-A / B-B · cotas em mm</text><text x="${W*0.78+18}" y="${y+30}" font-size="16">Escala ${dlLayoutEsc(dlLayoutScaleText())}</text><text x="${W*0.78+18}" y="${y+57}" font-size="14">${new Date().toLocaleDateString('pt-BR')}</text><text x="${W*0.78+18}" y="${y+84}" font-size="12">Folha ${dlLayoutEsc(dlLayoutState.page)} horizontal</text></g>`;
   return {W,H,body};
 }
 function dlLayoutRenderSingle(ctx,view){const W=1400,H=960;return {W,H,body:dlLayoutRenderOne(view,{x:22,y:22,w:W-44,h:H-44},ctx,{sheet:false})};}
@@ -387,7 +439,7 @@ function dlLayoutCanvasPieces(g,model,map,{sheet=false,W=1800,H=1200}={}){
   }
 }
 function dlLayoutCanvasDimensions(g,model,map,{sheet=false}={}){
-  if(dlLayoutState.mode!=='technical'||!dlLayoutState.showDimensions)return;
+  if(!dlLayoutModeHasDimensions())return;
   const b=model.bounds,font=sheet?12:15;
   for(const d of dlLayoutDimensionModel(model)){
     if(dlLayoutState.hiddenDims.has(d.id))continue;
@@ -406,7 +458,7 @@ function dlLayoutCanvasDimensions(g,model,map,{sheet=false}={}){
   }
 }
 function dlLayoutCanvasSectionMarks(g,model,map,{sheet=false}={}){
-  if(model.view!=='front'||dlLayoutState.mode!=='technical')return;
+  if(model.view!=='front'||!dlLayoutModeShowsSections())return;
   const b=model.bounds,font=sheet?13:17,x=map.sx(model.sectionX),yt=map.sy(b.maxV),yb=map.sy(b.minV),y=map.sy(model.sectionY),xl=map.sx(b.minU),xr=map.sx(b.maxU),dash=[14,5,3,5];
   dlLayoutCanvasLine(g,x,yt,x,yb,{width:sheet?1.35:1.8,dash});dlLayoutCanvasLine(g,xl,y,xr,y,{width:sheet?1.35:1.8,dash});
   dlLayoutCanvasText(g,'A',x+6,yt+font,font,{bold:true});dlLayoutCanvasText(g,'A',x+6,yb-5,font,{bold:true});dlLayoutCanvasText(g,'B',xl+5,y-6,font,{bold:true});dlLayoutCanvasText(g,'B',xr-font,y-6,font,{bold:true});
@@ -425,7 +477,7 @@ function dlLayoutCanvasSheet(g,ctx,W,H){
   const y=H-titleH;g.save();g.fillStyle='#fff';g.strokeStyle='#111';g.lineWidth=1.5;g.fillRect(18,y,W-36,titleH-14);g.strokeRect(18,y,W-36,titleH-14);g.restore();dlLayoutCanvasLine(g,W*.55,y,W*.55,H-14);dlLayoutCanvasLine(g,W*.78,y,W*.78,H-14);
   dlLayoutCanvasText(g,dlLayoutProjectTitle(ctx),34,y+26,22,{bold:true});dlLayoutCanvasText(g,`${ctx.label} · ${ctx.pieces.length} peça(s)`,34,y+48,13);
   const legend=ctx.pieces.slice(0,12).map((o,i)=>`${i+1} · ${String(o.userData?.name||`Peça ${i+1}`).slice(0,18)}`);legend.slice(0,6).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+75,11));legend.slice(6,12).forEach((t,i)=>dlLayoutCanvasText(g,t,34+i*153,y+96,11));if(ctx.pieces.length>12)dlLayoutCanvasText(g,`+ ${ctx.pieces.length-12} peça(s) na legenda completa do DesignLab`,34,y+116,10);
-  dlLayoutCanvasText(g,`DesignLabMoveis ${DL_LAYOUT_VERSION}`,W*.55+18,y+30,16,{bold:true});dlLayoutCanvasText(g,`Layout ${dlLayoutState.mode==='technical'?'técnico':'apresentação'}`,W*.55+18,y+57,14);dlLayoutCanvasText(g,'Cortes A-A / B-B · cotas em mm',W*.55+18,y+84,12);dlLayoutCanvasText(g,`Escala ${dlLayoutScaleText()}`,W*.78+18,y+30,16);dlLayoutCanvasText(g,new Date().toLocaleDateString('pt-BR'),W*.78+18,y+57,14);dlLayoutCanvasText(g,`Folha ${dlLayoutState.page} horizontal`,W*.78+18,y+84,12);
+  dlLayoutCanvasText(g,`DesignLabMoveis ${DL_LAYOUT_VERSION}`,W*.55+18,y+30,16,{bold:true});dlLayoutCanvasText(g,`Layout ${dlLayoutModeLabel()}`,W*.55+18,y+57,14);dlLayoutCanvasText(g,'Cortes A-A / B-B · cotas em mm',W*.55+18,y+84,12);dlLayoutCanvasText(g,`Escala ${dlLayoutScaleText()}`,W*.78+18,y+30,16);dlLayoutCanvasText(g,new Date().toLocaleDateString('pt-BR'),W*.78+18,y+57,14);dlLayoutCanvasText(g,`Folha ${dlLayoutState.page} horizontal`,W*.78+18,y+84,12);
 }
 function dlLayoutBuildDirectCanvas(scale=1){
   const ctx=dlLayoutState.lastContext||dlLayoutContext(),baseW=dlLayoutState.view==='sheet'?1800:1400,baseH=dlLayoutState.view==='sheet'?1200:960,c=document.createElement('canvas');c.width=Math.max(1,Math.round(baseW*scale));c.height=Math.max(1,Math.round(baseH*scale));const g=c.getContext('2d',{alpha:false});g.setTransform(scale,0,0,scale,0,0);g.fillStyle='#fff';g.fillRect(0,0,baseW,baseH);g.lineCap='butt';g.lineJoin='miter';g.imageSmoothingEnabled=true;if(dlLayoutState.view==='sheet')dlLayoutCanvasSheet(g,ctx,baseW,baseH);else dlLayoutCanvasView(g,dlLayoutState.view,{x:22,y:22,w:baseW-44,h:baseH-44},ctx,{sheet:false,W:baseW,H:baseH});return c;
@@ -461,10 +513,15 @@ function openTechnicalLayoutDialog(){
 }
 function closeTechnicalLayoutDialog(){const dlg=$('technicalLayoutDialog');if(dlg){dlg.classList.remove('show');dlg.style.display='none';}dlLayoutState.pickSection=null;}
 function dlLayoutSetMode(mode){
-  dlLayoutState.mode=mode==='presentation'?'presentation':'technical';
-  if(dlLayoutState.mode==='presentation'){dlLayoutState.showHidden=false;dlLayoutState.showHatch=false;dlLayoutState.showDimensions=false;}
-  else {dlLayoutState.showHidden=true;dlLayoutState.showHatch=true;dlLayoutState.showDimensions=true;}
-  $('layoutShowHidden').checked=dlLayoutState.showHidden;$('layoutShowHatch').checked=dlLayoutState.showHatch;$('layoutShowDimensions').checked=dlLayoutState.showDimensions;
+  dlLayoutState.mode=mode==='presentation'?'presentation':(mode==='cleanprint'?'cleanprint':'technical');
+  if(dlLayoutState.mode==='presentation'){
+    dlLayoutState.showHidden=false;dlLayoutState.showHatch=false;dlLayoutState.showDimensions=false;dlLayoutState.showLabels=false;
+  }else if(dlLayoutState.mode==='cleanprint'){
+    dlLayoutState.showHidden=false;dlLayoutState.showHatch=false;dlLayoutState.showDimensions=true;dlLayoutState.showLabels=false;
+  }else{
+    dlLayoutState.showHidden=true;dlLayoutState.showHatch=true;dlLayoutState.showDimensions=true;dlLayoutState.showLabels=true;
+  }
+  $('layoutShowHidden').checked=dlLayoutState.showHidden;$('layoutShowHatch').checked=dlLayoutState.showHatch;$('layoutShowDimensions').checked=dlLayoutState.showDimensions;$('layoutShowLabels').checked=dlLayoutState.showLabels;
   dlLayoutRender();
 }
 function dlLayoutPickSection(axis){
@@ -538,7 +595,7 @@ function dlLayoutDxfView(view,ctx,offsetX=0,offsetY=0){
     const q=it.sectionBox||it.box,tx=(q.minU+q.maxU)/2-b.minU+offsetX,ty=(q.minV+q.maxV)/2-b.minV+offsetY;
     out.push(dlLayoutDxfText('TEXTO',tx,ty,`${it.index+1} - ${it.name}`,10));
   }
-  if(dlLayoutState.mode==='technical'&&dlLayoutState.showDimensions){
+  if(dlLayoutModeHasDimensions()){
     for(const d of dlLayoutDimensionModel(model)){
       if(dlLayoutState.hiddenDims.has(d.id))continue;
       const off=d.overall?55:28;
@@ -551,7 +608,7 @@ function dlLayoutDxfView(view,ctx,offsetX=0,offsetY=0){
       }
     }
   }
-  if(view==='front'&&dlLayoutState.mode==='technical'){
+  if(view==='front'&&dlLayoutModeShowsSections()){
     const sx=model.sectionX-b.minU+offsetX,sy=model.sectionY-b.minV+offsetY,w=b.maxU-b.minU,h=b.maxV-b.minV;
     out.push(dlLayoutDxfLine('LINHA_CORTE',sx,offsetY,sx,offsetY+h),dlLayoutDxfText('LINHA_CORTE',sx+5,offsetY+h-10,'A',10),dlLayoutDxfText('LINHA_CORTE',sx+5,offsetY+5,'A',10));
     out.push(dlLayoutDxfLine('LINHA_CORTE',offsetX,sy,offsetX+w,sy),dlLayoutDxfText('LINHA_CORTE',offsetX+5,sy+5,'B',10),dlLayoutDxfText('LINHA_CORTE',offsetX+w-10,sy+5,'B',10));
@@ -566,12 +623,44 @@ function dlLayoutExportDxf(){
   }else out+=dlLayoutDxfView(dlLayoutState.view,ctx).text;
   out+='0\r\nENDSEC\r\n0\r\nEOF\r\n';downloadText(`${dlLayoutFileBase()}.dxf`,out,'application/dxf;charset=us-ascii');
 }
-function dlLayoutPrint(){
+let dlLayoutPrintPreviewZoom=1;
+function dlLayoutApplyPrintPreviewZoom(){
+  const img=$('layoutPrintPreviewImage'),label=$('layoutPrintPreviewZoomLabel');if(!img)return;
+  dlLayoutPrintPreviewZoom=Math.max(.35,Math.min(3,Number(dlLayoutPrintPreviewZoom)||1));
+  img.style.width=`${Math.round(dlLayoutPrintPreviewZoom*100)}%`;
+  if(label)label.textContent=`${Math.round(dlLayoutPrintPreviewZoom*100)}%`;
+}
+function dlLayoutFitPrintPreview(){
+  const img=$('layoutPrintPreviewImage'),vp=$('layoutPrintPreviewViewport');if(!img||!vp)return;
+  const natural=Number(img.naturalWidth)||Number(img.width)||1;
+  const available=Math.max(120,vp.clientWidth-24);
+  dlLayoutPrintPreviewZoom=Math.min(1,available/natural);
+  dlLayoutApplyPrintPreviewZoom();
+  vp.scrollTo({left:0,top:0,behavior:'auto'});
+}
+function openLayoutPrintPreview(){
   try{
-    const c=dlLayoutBuildDirectCanvas(1.5),data=c.toDataURL('image/png'),w=window.open('','_blank');if(!w){toast('Permita pop-ups para imprimir');return;}
+    const dlg=$('layoutPrintPreviewDialog'),img=$('layoutPrintPreviewImage');if(!dlg||!img)return;
+    const c=dlLayoutBuildDirectCanvas(1.75);
+    img.onload=()=>requestAnimationFrame(dlLayoutFitPrintPreview);
+    img.src=c.toDataURL('image/png');
+    const viewName=({sheet:'Folha técnica',front:'Vista frontal',frontOpen:'Frente interna',top:'Planta baixa',left:'Lateral esquerda',right:'Lateral direita',back:'Vista traseira',bottom:'Vista inferior',perspective:'Perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B'})[dlLayoutState.view]||'Folha técnica';
+    const scale=dlLayoutState.scale==='fit'?'escala automática':`escala 1:${dlLayoutState.scale}`;
+    const info=$('layoutPrintPreviewInfo');if(info)info.textContent=`${viewName} · ${dlLayoutState.page} horizontal · ${scale}. Confira antes de imprimir.`;
+    dlg.classList.add('show');dlg.style.display='flex';
+    dlLayoutPrintPreviewZoom=1;
+  }catch(err){console.error(err);toast('Não foi possível gerar a prévia de impressão');}
+}
+function closeLayoutPrintPreview(){
+  const dlg=$('layoutPrintPreviewDialog');if(dlg){dlg.classList.remove('show');dlg.style.display='none';}
+}
+function dlLayoutPrintNow(){
+  try{
+    const c=dlLayoutBuildDirectCanvas(1.75),data=c.toDataURL('image/png'),w=window.open('','_blank');if(!w){toast('Permita pop-ups para imprimir');return;}
     w.document.write(`<!doctype html><html><head><title>${dlLayoutEsc(dlLayoutFileBase())}</title><style>@page{size:${dlLayoutState.page} landscape;margin:8mm}html,body{margin:0;background:#fff;color-scheme:only light}img{width:100%;height:auto;display:block;background:#fff}</style></head><body><img src="${data}" onload="setTimeout(()=>print(),250)"></body></html>`);w.document.close();
   }catch(err){console.error(err);toast('Não foi possível preparar a impressão');}
 }
+function dlLayoutPrint(){openLayoutPrintPreview();}
 
 // ---------- Eventos da ferramenta ----------
 $('closeTechnicalLayout')?.addEventListener('click',closeTechnicalLayoutDialog);
@@ -581,7 +670,7 @@ $('layoutScopeSelect')?.addEventListener('change',e=>{dlLayoutState.scopeValue=e
 $('layoutMode')?.addEventListener('change',e=>dlLayoutSetMode(e.target.value));
 $('layoutScale')?.addEventListener('change',e=>{dlLayoutState.scale=e.target.value;dlLayoutRender();});
 $('layoutPage')?.addEventListener('change',e=>{dlLayoutState.page=e.target.value;dlLayoutRender();});
-for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch'],['layoutHideDoors','hideDoors'],['layoutHideFronts','hideFronts']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
+for(const [id,key] of [['layoutShowDimensions','showDimensions'],['layoutShowInternal','showInternal'],['layoutUsefulOnly','visibleDimsOnly'],['layoutShowLabels','showLabels'],['layoutShowHidden','showHidden'],['layoutShowHatch','showHatch'],['layoutHideDoors','hideDoors'],['layoutHideFronts','hideFronts']])$(id)?.addEventListener('change',e=>{dlLayoutState[key]=!!e.target.checked;dlLayoutRender();});
 document.querySelectorAll('[data-layout-view-btn]').forEach(b=>b.addEventListener('click',()=>{dlLayoutState.view=b.dataset.layoutViewBtn;dlLayoutRender();}));
 $('layoutSectionXPct')?.addEventListener('input',e=>{dlLayoutState.sectionXPct=Number(e.target.value)||0;dlLayoutRender();});
 $('layoutSectionYPct')?.addEventListener('input',e=>{dlLayoutState.sectionYPct=Number(e.target.value)||0;dlLayoutRender();});
@@ -593,6 +682,15 @@ $('layoutExportSvg')?.addEventListener('click',dlLayoutExportSvg);
 $('layoutExportPng')?.addEventListener('click',dlLayoutExportPng);
 $('layoutExportPdf')?.addEventListener('click',dlLayoutExportPdf);
 $('layoutExportDxf')?.addEventListener('click',dlLayoutExportDxf);
+$('layoutPrintPreview')?.addEventListener('click',openLayoutPrintPreview);
 $('layoutPrint')?.addEventListener('click',dlLayoutPrint);
+$('closeLayoutPrintPreview')?.addEventListener('click',closeLayoutPrintPreview);
+$('layoutPrintPreviewBack')?.addEventListener('click',closeLayoutPrintPreview);
+$('layoutPrintPreviewPdf')?.addEventListener('click',dlLayoutExportPdf);
+$('layoutPrintPreviewConfirm')?.addEventListener('click',dlLayoutPrintNow);
+$('layoutPrintPreviewMinus')?.addEventListener('click',()=>{dlLayoutPrintPreviewZoom-=.15;dlLayoutApplyPrintPreviewZoom();});
+$('layoutPrintPreviewPlus')?.addEventListener('click',()=>{dlLayoutPrintPreviewZoom+=.15;dlLayoutApplyPrintPreviewZoom();});
+$('layoutPrintPreviewFit')?.addEventListener('click',dlLayoutFitPrintPreview);
+$('layoutPrintPreviewDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('layoutPrintPreviewDialog'))closeLayoutPrintPreview();});
 $('technicalLayoutDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('technicalLayoutDialog'))closeTechnicalLayoutDialog();});
 window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.contains('show'))requestAnimationFrame(dlLayoutRender);});

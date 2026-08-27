@@ -1142,6 +1142,7 @@ async function designLabHandleBackCascade(){
   if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar')){closeMachining3DPreview({reopen:true});return 'closed';}
 
   const closers=[
+    ['layoutPrintPreviewDialog','closeLayoutPrintPreview'],
     ['technicalLayoutDialog','closeTechnicalLayout'],
     ['sheetPreviewDialog','sheetPreviewClose'],
     ['labelsDialog','closeLabelsDialogTop'],
