@@ -1105,7 +1105,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.35 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
+// ---------- 1.200.36 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,rawCurrent:null,baseW:0,baseH:0,loadedPresetId:null,hoverSnap:null,guides:[],
@@ -2195,3 +2195,251 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
 }
 
 
+
+
+// ---------- 1.200.36 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
+// O Mini CAD deixa de nascer como o retângulo inteiro da peça. O usuário cria apenas
+// um esboço local fechado e ele é aplicado como recorte interno real na peça. Presets
+// antigos de contorno completo continuam compatíveis.
+shapeCadState.zoom=1;
+shapeCadState.viewCx=0;
+shapeCadState.viewCy=0;
+shapeCadState.panPointer=null;
+shapeCadState.panStart=null;
+
+function shapeCadSketchBounds(pts=shapeCadState.points){
+  if(!pts?.length)return {minX:0,minY:0,maxX:0,maxY:0,w:0,h:0};
+  const xs=pts.map(p=>Number(p[0])||0),ys=pts.map(p=>Number(p[1])||0);
+  const minX=Math.min(...xs),minY=Math.min(...ys),maxX=Math.max(...xs),maxY=Math.max(...ys);
+  return {minX,minY,maxX,maxY,w:maxX-minX,h:maxY-minY};
+}
+function shapeCadFitView(){
+  const {W,H}=shapeCadOwnerInfo(),b=shapeCadSketchBounds();
+  shapeCadState.zoom=1;
+  if(b.w>.5&&b.h>.5){
+    shapeCadState.viewCx=(b.minX+b.maxX)/2;shapeCadState.viewCy=(b.minY+b.maxY)/2;
+    const sw=640,sh=390,pad=54,fit=Math.min((sw-pad*2)/Math.max(1,b.w),(sh-pad*2)/Math.max(1,b.h));
+    const base=Math.min((sw-56)/Math.max(1,W),(sh-56)/Math.max(1,H));
+    shapeCadState.zoom=Math.max(.45,Math.min(12,fit/Math.max(.00001,base)));
+  }else{shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;}
+  shapeCadRender();shapeCadUpdateZoomLabel();
+}
+function shapeCadUpdateZoomLabel(){const el=$('shapeCadZoomValue');if(el)el.textContent=`${Math.round((shapeCadState.zoom||1)*100)}%`;}
+shapeCadMap=function(){
+  const {W,H}=shapeCadOwnerInfo(),sw=640,sh=390,pad=28;
+  const base=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H));
+  const z=Math.max(.25,Math.min(16,Number(shapeCadState.zoom)||1)),s=base*z;
+  if(!Number.isFinite(shapeCadState.viewCx))shapeCadState.viewCx=W/2;if(!Number.isFinite(shapeCadState.viewCy))shapeCadState.viewCy=H/2;
+  const cx=shapeCadState.viewCx,cy=shapeCadState.viewCy;
+  return {W,H,sw,sh,pad,s,cx,cy,sx:x=>sw/2+(x-cx)*s,sy:y=>sh/2-(y-cy)*s,ux:x=>cx+(x-sw/2)/s,uy:y=>cy-(y-sh/2)/s};
+};
+function shapeCadZoomBy(factor,screenPoint=null){
+  const old=shapeCadMap(),sp=screenPoint||[old.sw/2,old.sh/2],world=[old.ux(sp[0]),old.uy(sp[1])];
+  shapeCadState.zoom=Math.max(.25,Math.min(16,(shapeCadState.zoom||1)*factor));
+  const next=shapeCadMap();shapeCadState.viewCx=world[0]-(sp[0]-next.sw/2)/next.s;shapeCadState.viewCy=world[1]+(sp[1]-next.sh/2)/next.s;
+  shapeCadRender();shapeCadUpdateZoomLabel();
+}
+function shapeCadZoomWheel(e){
+  if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();
+  const svg=$('shapeCadSvg'),r=svg.getBoundingClientRect(),sx=(e.clientX-r.left)*(640/Math.max(1,r.width)),sy=(e.clientY-r.top)*(390/Math.max(1,r.height));
+  shapeCadZoomBy(e.deltaY<0?1.18:1/1.18,[sx,sy]);
+}
+shapeCadResetToPieceRect=function({record=true}={}){
+  if(record)shapeCadPushUndo();const {W,H}=shapeCadOwnerInfo();
+  shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];
+  shapeCadState.zoom=1;shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;shapeCadRender();shapeCadUpdateZoomLabel();updateShapePreview();
+};
+shapeCadInitForOwner=function({forceRect=false}={}){
+  const {W,H}=shapeCadOwnerInfo(),changed=Math.abs(W-shapeCadState.baseW)>.01||Math.abs(H-shapeCadState.baseH)>.01;
+  shapeCadState.baseW=W;shapeCadState.baseH=H;
+  if(changed||!Number.isFinite(shapeCadState.viewCx)){shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;shapeCadState.zoom=1;}
+  if(forceRect){shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];}
+  shapeCadRender();shapeCadUpdateZoomLabel();
+};
+shapeCadSetTool=function(tool){
+  shapeCadState.tool=tool;shapeCadState.draft=[];shapeCadState.dragIndex=-1;shapeCadState.hoverSnap=null;shapeCadState.guides=[];
+  document.querySelectorAll('[data-shape-cad-tool]').forEach(b=>b.classList.toggle('active',b.dataset.shapeCadTool===tool));
+  const msgs={pan:'Arraste o fundo para mover a área de trabalho.',edit:'Arraste qualquer ponto. No celular a área de captura é maior e o ponto encaixa sozinho.',line:'Toque em sequência para desenhar apenas o esboço da forma.',rect:'Toque em dois cantos opostos do esboço.',circle:'Toque no centro e depois na borda do círculo.',arc:'Defina início, ponto intermediário e final do arco.',curve:'Defina início, controle e final da curva.',fillet:'Toque num vértice para aplicar o raio informado.',chamfer:'Toque num vértice para criar o chanfro informado.',trim:'Toque em um ponto para apará-lo/removê-lo.'};
+  shapeCadSetStatus(msgs[tool]||'Mini CAD');shapeCadRender();
+};
+shapeCadLoadPreset=function(p){
+  if(p?.type!=='custom-profile')return;const {W,H}=shapeCadOwnerInfo();
+  if(Array.isArray(p.sketchPoints)&&p.sketchPoints.length>=3){
+    const sw=Math.max(.001,Number(p.sketchW)||1),sh=Math.max(.001,Number(p.sketchH)||1),x0=Math.max(0,(W-sw)/2),y0=Math.max(0,(H-sh)/2);
+    shapeCadState.points=p.sketchPoints.map(q=>shapeCadClampPoint([x0+(Number(q[0])||0),y0+(Number(q[1])||0)]));shapeCadState.closed=p.closed!==false;
+  }else{
+    const norm=p.profileNormalized||p.pointsNormalized||null;
+    if(Array.isArray(norm)&&norm.length>=3)shapeCadState.points=norm.map(q=>[Number(q[0])*W,Number(q[1])*H]);else shapeCadState.points=[];
+    shapeCadState.closed=Array.isArray(norm)&&norm.length>=3?p.closed!==false:false;
+  }
+  shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadState.loadedPresetId=p.id||null;shapeCadFitView();updateShapePreview();
+};
+newShapePreset=function(){
+  shapePresetEditId=null;$('shapeFolder').value='Formas personalizadas';$('shapeName').value='Minha forma';$('shapeType').value='custom-profile';$('shapeRadius').value=150;$('saveShapePreset').textContent='💾 Salvar na biblioteca';shapeCadResetToPieceRect({record:false});shapeCadSyncUi();updateShapePreview();$('shapeName').focus();
+};
+saveShapePresetLibrary=function(){
+  const name=String($('shapeName').value||'').trim(),folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',radius=Number($('shapeRadius').value),type=$('shapeType').value||'round-corner';
+  if(!name){toast('Dê um nome para a forma');return;}if(type==='round-corner'&&!(radius>0)){toast('Confira o raio');return;}
+  let extra={};
+  if(type==='custom-profile'){
+    let pts;try{pts=shapeCadProfilePoints();}catch(err){toast(err.message||'Confira o esboço do Mini CAD');return;}
+    const b=shapeCadSketchBounds(pts);extra={sketchPoints:pts.map(p=>[roundMmNumber(p[0]-b.minX,3),roundMmNumber(p[1]-b.minY,3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),closed:true,profileVersion:2,operation:'cutout'};
+  }
+  const arr=getUserShapePresets();
+  if(shapePresetEditId){const i=arr.findIndex(x=>x.id===shapePresetEditId);if(i>=0)arr[i]={...arr[i],name,folder,radius,type,...extra};else shapePresetEditId=null;}
+  if(!shapePresetEditId){const item={id:uid('shapePreset'),name,folder,radius,type,...extra};arr.push(item);shapePresetEditId=item.id;}
+  setUserShapePresets(arr);refreshShapePresetSelect(shapePresetEditId);toast('Esboço salvo na biblioteca');
+};
+shapeDraftOperation=function(){
+  const type=$('shapeType')?.value||'round-corner',name=String($('shapeName').value||'Forma').trim()||'Forma',folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',presetId=$('shapePresetSelect')?.value||null;
+  const ti=pieceThicknessInfo(shapePreviewOwner||selected);if(!ti)throw new Error('Selecione uma peça retangular');
+  if(type==='custom-profile'){
+    const points=shapeCadProfilePoints(),b=shapeCadSketchBounds(points);
+    return {id:uid('form'),type:'custom-profile',operation:'cutout',profileVersion:2,name,folder,presetId,points:points.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),baseW:ti.faceW,baseH:ti.faceH};
+  }
+  const radius=Number($('shapeRadius').value);if(!(radius>0))throw new Error('Confira o raio');if(!shapeSelectedCorners.size)throw new Error('Escolha pelo menos um canto');if(radius>Math.min(ti.faceW,ti.faceH)/2+.001)throw new Error(`Raio máximo nesta peça: ${nice(Math.min(ti.faceW,ti.faceH)/2)} mm`);
+  return {id:uid('form'),type:'round-corner',name,radius,folder,presetId,corners:[...shapeSelectedCorners]};
+};
+formOutlinePointsMm=function(o,formsOverride=null,segments=48){
+  const ti=pieceThicknessInfo(o);if(!ti)return [];const forms=(formsOverride??o.userData?.forms??[]);
+  const custom=[...forms].reverse().find(f=>f?.type==='custom-profile'&&f?.operation!=='cutout'&&Array.isArray(f.points)&&f.points.length>=3);
+  if(custom)return custom.points.map(p=>[Math.max(0,Math.min(ti.faceW,Number(p[0])||0)),Math.max(0,Math.min(ti.faceH,Number(p[1])||0))]);
+  const W=ti.faceW,H=ti.faceH,r=formCornerRadii(o,forms);if(!r)return [];
+  const pts=[];const add=(x,y)=>{const last=pts.at(-1);if(!last||Math.hypot(last[0]-x,last[1]-y)>.0001)pts.push([x,y]);};
+  const arc=(cx,cy,rr,a0,a1)=>{if(rr<=.0001){add(cx,cy);return;}for(let i=0;i<=segments;i++){const a=a0+(a1-a0)*(i/segments);add(cx+rr*Math.cos(a),cy+rr*Math.sin(a));}};
+  add(r.bl,0);add(W-r.br,0);if(r.br)arc(W-r.br,r.br,r.br,-Math.PI/2,0);else add(W,0);add(W,H-r.tr);if(r.tr)arc(W-r.tr,H-r.tr,r.tr,0,Math.PI/2);else add(W,H);add(r.tl,H);if(r.tl)arc(r.tl,H-r.tl,r.tl,Math.PI/2,Math.PI);else add(0,H);add(0,r.bl);if(r.bl)arc(r.bl,r.bl,r.bl,Math.PI,Math.PI*1.5);else add(0,0);return pts;
+};
+function formCutoutPointsMm(o,formsOverride=null){
+  const ti=pieceThicknessInfo(o);if(!ti)return [];const forms=(formsOverride??o.userData?.forms??[]),out=[];
+  for(const f of forms){if(f?.type!=='custom-profile'||f?.operation!=='cutout'||!Array.isArray(f.points)||f.points.length<3)continue;const pts=f.points.map(p=>[Math.max(0,Math.min(ti.faceW,Number(p[0])||0)),Math.max(0,Math.min(ti.faceH,Number(p[1])||0))]);if(Math.abs(shapeCadPolygonArea(pts))>.5)out.push(pts);}
+  return out;
+}
+function makeFormVisualEdgesWithCutouts(o,outer,cutouts,ti){
+  const group=makeFormVisualEdges(o,outer,ti),mat=group.material||new THREE.LineBasicMaterial({color:0x080808});const t=ti.thickness/2;
+  for(const hole of cutouts)for(const side of [-t,t]){const arr=hole.map(([u,v])=>formLocalPoint(ti,u,v,side));if(arr.length)arr.push(arr[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);line.userData.isVisualEdge=true;group.add(line);}return group;
+}
+rebuildFormGeometry=function(o){
+  if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
+  const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:0x080808,transparent:true,opacity:xray3DActive()?.86:.96,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  const pts=formOutlinePointsMm(o,forms,48),cutouts=formCutoutPointsMm(o,forms);if(pts.length<4)return;
+  const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?shape.lineTo(x,y):shape.moveTo(x,y);});shape.closePath();
+  const outerSign=Math.sign(shapeCadPolygonArea(pts))||1;
+  for(const src of cutouts){let holePts=src.slice();if((Math.sign(shapeCadPolygonArea(holePts))||1)===outerSign)holePts=holePts.slice().reverse();const path=new THREE.Path();holePts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?path.lineTo(x,y):path.moveTo(x,y);});path.closePath();shape.holes.push(path);}
+  const geom=new THREE.ExtrudeGeometry(shape,{depth:ti.thickness*MM_TO_M,bevelEnabled:false,steps:1,curveSegments:64});geom.translate(0,0,-ti.thickness*MM_TO_M/2);formMapExtrudeGeometry(geom,ti);o.geometry=geom;o.scale.set(1,1,1);
+  o.userData.formProfile={type:'forms',points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:cutouts.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis};
+  const edges=makeFormVisualEdgesWithCutouts(o,pts,cutouts,ti);o.add(edges);o.userData.visualEdges=edges;
+};
+updateShapePreview=function(){
+  const owner=shapePreviewOwner||selected,svg=$('shapePreviewSvg');if(!owner||!svg)return;const ti=pieceThicknessInfo(owner);if(!ti)return;
+  let forms=cloneForms(owner.userData.forms||[]),op=null,msg='';try{op=shapeDraftOperation();forms.push(op);}catch(err){msg=err.message||'Confira a forma';}
+  const outer=formOutlinePointsMm(owner,forms,24),holes=formCutoutPointsMm(owner,forms),W=ti.faceW,H=ti.faceH,pad=22,sw=420,sh=260,scale=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H)),ox=(sw-W*scale)/2,oy=(sh-H*scale)/2;
+  const path=(pts)=>pts.map(([u,v],i)=>`${i?'L':'M'} ${(ox+u*scale).toFixed(2)} ${(sh-(oy+v*scale)).toFixed(2)}`).join(' ')+' Z';let d=path(outer);for(const h of holes)d+=' '+path(h);
+  svg.innerHTML=`<path d="${d}" fill="#c8b591" fill-rule="evenodd" stroke="#080808" stroke-width="2.2"/><text x="${sw/2}" y="18" text-anchor="middle" fill="#53d6e8" font-size="12">${nice(W)} × ${nice(H)} mm</text>`;
+  $('shapePreviewText').textContent=msg||(op?.type==='custom-profile'?`${op?.name||'Forma'} · esboço local · ${op?.points?.length||0} pontos · recorte real na peça.`:`${op?.name||'Forma'} · raio ${nice(op?.radius||0)} mm · ${op?.corners?.length||0} canto(s) selecionado(s).`);
+};
+renderAppliedShapes=function(){
+  const list=$('shapeAppliedList');if(!list)return;list.innerHTML='';const owner=shapePreviewOwner||selected,forms=owner?.userData?.forms||[],labels=shapeCornerLabels(owner);
+  if(!forms.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma Forma aplicada nesta peça.';list.appendChild(d);return;}
+  for(const f of forms){const item=document.createElement('div');item.className='shapeAppliedItem';const text=document.createElement('div');text.innerHTML=`<strong></strong><span></span>`;text.querySelector('strong').textContent=f.name||'Forma';text.querySelector('span').textContent=f.type==='custom-profile'?(f.operation==='cutout'?`Esboço local · recorte interno · ${(f.points||[]).length} pontos`:`Mini CAD legado · ${(f.points||[]).length} pontos · contorno completo`):`R ${nice(f.radius)} mm · ${(f.corners||[]).map(c=>labels[c]||c).join(' + ')}`;const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteAppliedShape(f.id);item.append(text,del);list.appendChild(item);}
+};
+openShapeDialog=function(){
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});if(!selected){toast('Selecione uma peça');return;}if(selected.userData?.kind==='cylinder'||selected.userData?.kind==='curved-panel'||selected.userData?.curvedRole){toast('Forma disponível para peças retangulares');return;}
+  shapePreviewOwner=selected;shapePreviewOriginalForms=null;shapePreviewActive=false;shapePresetEditId=null;shapeSelectedCorners=new Set(['bl']);$('morePanel').style.display='none';$('machiningDialog').style.display='none';
+  const ti=pieceThicknessInfo(selected);$('shapePartInfo').textContent=`${selected.userData.name||'Peça'} · face ${nice(ti.faceW)} × ${nice(ti.faceH)} mm · espessura ${nice(ti.thickness)} mm. No Mini CAD você desenha somente o esboço local; a peça inteira fica apenas como referência.`;
+  refreshShapePresetSelect('builtin-r150');refreshShapeCornerLabels();shapeCadInitForOwner({forceRect:true});shapeCadSyncUi();renderAppliedShapes();updateShapePreview();$('shapeDialog').style.display='flex';
+};
+shapeCadRender=function(){
+  const svg=$('shapeCadSvg');if(!svg)return;const m=shapeCadMap(),grid=Math.max(.1,Number($('shapeCadGrid')?.value)||10),parts=[];parts.push('<rect width="640" height="390" fill="#0b1116"/>');
+  // Grade quadriculada ocupa TODO o fundo visível, inclusive quando há zoom.
+  const minX=m.ux(0),maxX=m.ux(m.sw),minY=m.uy(m.sh),maxY=m.uy(0),startX=Math.floor(minX/grid)*grid,startY=Math.floor(minY/grid)*grid;
+  let count=0;for(let x=startX;x<=maxX+grid&&count<500;x+=grid,count++){const sx=m.sx(x),major=Math.abs(Math.round(x/grid))%5===0;parts.push(`<line x1="${sx.toFixed(2)}" y1="0" x2="${sx.toFixed(2)}" y2="390" stroke="${major?'#2e4451':'#1b2932'}" stroke-width="${major?1:.65}"/>`);}count=0;
+  for(let y=startY;y<=maxY+grid&&count<500;y+=grid,count++){const sy=m.sy(y),major=Math.abs(Math.round(y/grid))%5===0;parts.push(`<line x1="0" y1="${sy.toFixed(2)}" x2="640" y2="${sy.toFixed(2)}" stroke="${major?'#2e4451':'#1b2932'}" stroke-width="${major?1:.65}"/>`);}
+  if(m.sx(0)>=0&&m.sx(0)<=640)parts.push(`<line x1="${m.sx(0)}" y1="0" x2="${m.sx(0)}" y2="390" stroke="#4c6e7e" stroke-width="1.4"/>`);if(m.sy(0)>=0&&m.sy(0)<=390)parts.push(`<line x1="0" y1="${m.sy(0)}" x2="640" y2="${m.sy(0)}" stroke="#4c6e7e" stroke-width="1.4"/>`);
+  // Limite da peça é só referência; ele não vira a forma automaticamente.
+  parts.push(`<rect x="${m.sx(0)}" y="${m.sy(m.H)}" width="${m.W*m.s}" height="${m.H*m.s}" fill="rgba(200,181,145,.025)" stroke="#73838c" stroke-width="1.2" stroke-dasharray="8 6"/>`);
+  for(const g of shapeCadState.guides||[])parts.push(shapeCadGuideSvg(g,m));
+  const anchor=shapeCadActiveAnchor();if(anchor&&shapeCadState.current&&shapeCadState.tool!=='edit'&&shapeCadState.tool!=='pan'&&!shapeCadState.closed)parts.push(`<line x1="${m.sx(anchor[0]).toFixed(2)}" y1="${m.sy(anchor[1]).toFixed(2)}" x2="${m.sx(shapeCadState.current[0]).toFixed(2)}" y2="${m.sy(shapeCadState.current[1]).toFixed(2)}" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"/>`);
+  if(shapeCadState.points.length){const d=shapeCadState.points.map((p,i)=>`${i?'L':'M'} ${m.sx(p[0]).toFixed(2)} ${m.sy(p[1]).toFixed(2)}`).join(' ')+(shapeCadState.closed?' Z':'');parts.push(`<path d="${d}" fill="${shapeCadState.closed?'rgba(83,214,232,.13)':'none'}" stroke="#53d6e8" stroke-width="2.8" stroke-linejoin="round"/>`);shapeCadState.points.forEach((p,i)=>{const r=shapeCadTouchLike()?5.5:4.3;parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="${i===shapeCadState.dragIndex?r+2:r}" fill="${i===0?'#7fe594':'#f8f8f8'}" stroke="#071116" stroke-width="1.2"/>`);});}
+  if(shapeCadState.draft.length)for(const p of shapeCadState.draft)parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="5" fill="#ffd36a"/>`);
+  parts.push(shapeCadSnapMarkerSvg(shapeCadState.hoverSnap,m));parts.push(`<text x="8" y="18" fill="#8fa0aa" font-size="11">grade ${nice(grid)} mm · peça ${nice(m.W)} × ${nice(m.H)} mm</text>`);svg.innerHTML=parts.join('');
+  const pts=shapeCadState.points,b=shapeCadSketchBounds(pts);if($('shapeCadMeasure'))$('shapeCadMeasure').textContent=pts.length?`${pts.length} pontos · ${shapeCadState.closed?'esboço fechado':'esboço aberto'} · ${nice(b.w)} × ${nice(b.h)} mm${shapeCadState.closed?` · área ${nice(Math.abs(shapeCadPolygonArea(pts)))} mm²`:''}`:'Esboço vazio';shapeCadUpdateZoomLabel();
+};
+shapeCadPointerDown=function(e){
+  if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();shapeCadState.lastPointerType=e.pointerType||shapeCadState.lastPointerType;
+  if(shapeCadState.tool==='pan'){shapeCadState.panPointer=e.pointerId;shapeCadState.panStart={x:e.clientX,y:e.clientY,cx:shapeCadState.viewCx,cy:shapeCadState.viewCy,s:shapeCadMap().s};try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}return;}
+  const raw=shapeCadEventRawPoint(e);if(shapeCadState.tool==='edit'){const i=shapeCadNearestIndex(raw,shapeCadSnapRadiusPx(e)+5);if(i>=0){shapeCadPushUndo();shapeCadState.dragIndex=i;shapeCadState.pointer=e.pointerId;shapeCadState.hoverSnap={point:shapeCadState.points[i],kind:'endpoint',label:'Mover ponto',index:i};shapeCadState.current=shapeCadState.points[i];try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}shapeCadRender();}else{shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();}}else{const p=shapeCadPointerPoint(e);shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;shapeCadApplyToolPoint(p);}
+};
+shapeCadPointerMove=function(e){
+  if($('shapeType')?.value!=='custom-profile')return;if(shapeCadState.panPointer===e.pointerId&&shapeCadState.panStart){e.preventDefault();const st=shapeCadState.panStart;shapeCadState.viewCx=st.cx-(e.clientX-st.x)/st.s;shapeCadState.viewCy=st.cy+(e.clientY-st.y)/st.s;shapeCadRender();return;}
+  const p=shapeCadPointerPoint(e,{endpoints:true,excludeIndex:shapeCadState.dragIndex});shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;if(shapeCadState.dragIndex>=0&&shapeCadState.pointer===e.pointerId){e.preventDefault();shapeCadState.points[shapeCadState.dragIndex]=p;shapeCadRender();updateShapePreview();}else shapeCadRender();
+};
+shapeCadPointerUp=function(e){if(shapeCadState.panPointer===e.pointerId){shapeCadState.panPointer=null;shapeCadState.panStart=null;return;}if(shapeCadState.pointer===e.pointerId){shapeCadState.pointer=null;shapeCadState.dragIndex=-1;shapeCadRender();updateShapePreview();}};
+
+// ---------- 1.200.36b · Esboço de borda + cotas automáticas ----------
+// Um esboço ABERTO com as duas pontas na borda da peça substitui somente aquele
+// trecho do contorno. Assim é possível desenhar entalhes, degraus e recortes tipo Haixun
+// sem redesenhar a chapa inteira. Esboço FECHADO continua sendo recorte interno.
+const shapeCadInferenceBase=shapeCadInferenceCandidates;
+shapeCadInferenceCandidates=function(raw,opts={}){
+  const c=shapeCadInferenceBase(raw,opts),m=shapeCadMap(),limit=shapeCadTouchLike(opts.event)?34:16;
+  const add=(point,label)=>{const dist=shapeCadPxDistance(raw,point,m);if(dist<=limit)c.push({point:shapeCadClampPoint(point),kind:'piece-edge',label,priority:3,dist});};
+  add([0,raw[1]],'Borda esquerda');add([m.W,raw[1]],'Borda direita');add([raw[0],0],'Borda inferior');add([raw[0],m.H],'Borda superior');
+  return c;
+};
+function shapeCadBoundaryRef(p,W,H,tol=.08){
+  const x=Number(p[0])||0,y=Number(p[1])||0,c=[];
+  if(Math.abs(y)<=tol)c.push({edge:'bottom',t:Math.max(0,Math.min(W,x)),point:[Math.max(0,Math.min(W,x)),0]});
+  if(Math.abs(x-W)<=tol)c.push({edge:'right',t:W+Math.max(0,Math.min(H,y)),point:[W,Math.max(0,Math.min(H,y))]});
+  if(Math.abs(y-H)<=tol)c.push({edge:'top',t:W+H+(W-Math.max(0,Math.min(W,x))),point:[Math.max(0,Math.min(W,x)),H]});
+  if(Math.abs(x)<=tol)c.push({edge:'left',t:2*W+H+(H-Math.max(0,Math.min(H,y))),point:[0,Math.max(0,Math.min(H,y))]});
+  return c[0]||null;
+}
+function shapeCadBoundaryPointAtT(t,W,H){const P=2*(W+H);t=((t%P)+P)%P;if(t<=W)return [t,0];t-=W;if(t<=H)return [W,t];t-=H;if(t<=W)return [W-t,H];t-=W;return [0,H-t];}
+function shapeCadBoundaryPathCCW(fromT,toT,W,H){
+  const P=2*(W+H),out=[shapeCadBoundaryPointAtT(fromT,W,H)];let a=fromT,b=toT;if(b<=a+1e-7)b+=P;
+  const corners=[W,W+H,2*W+H,P,2*W+H+P,W+P,W+H+P,P+P].sort((x,y)=>x-y);
+  for(const t of corners)if(t>a+1e-6&&t<b-1e-6)out.push(shapeCadBoundaryPointAtT(t,W,H));out.push(shapeCadBoundaryPointAtT(toT,W,H));return out;
+}
+function formEdgeProfileOutlineMm(o,src){
+  const ti=pieceThicknessInfo(o);if(!ti||!Array.isArray(src)||src.length<2)return null;const W=ti.faceW,H=ti.faceH,clamp=p=>[Math.max(0,Math.min(W,Number(p[0])||0)),Math.max(0,Math.min(H,Number(p[1])||0))],pts=src.map(clamp),a=shapeCadBoundaryRef(pts[0],W,H),b=shapeCadBoundaryRef(pts.at(-1),W,H);if(!a||!b)return null;
+  const P=2*(W+H),ccw=(b.t-a.t+P)%P,cw=P-ccw;let profile=pts.slice(),start=a,end=b;
+  // Usa o menor trecho periférico como trecho substituído; se necessário, inverte o esboço.
+  if(ccw>cw){profile=profile.slice().reverse();start=b;end=a;}
+  const boundary=shapeCadBoundaryPathCCW(end.t,start.t,W,H),outer=profile.concat(boundary.slice(1,-1));
+  if(Math.abs(shapeCadPolygonArea(outer))<1)return null;return shapeCadPolygonArea(outer)<0?outer.slice().reverse():outer;
+}
+shapeDraftOperation=function(){
+  const type=$('shapeType')?.value||'round-corner',name=String($('shapeName').value||'Forma').trim()||'Forma',folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',presetId=$('shapePresetSelect')?.value||null;
+  const ti=pieceThicknessInfo(shapePreviewOwner||selected);if(!ti)throw new Error('Selecione uma peça retangular');
+  if(type==='custom-profile'){
+    const pts=shapeCadState.points.map(shapeCadClampPoint);if(pts.length<2)throw new Error('Desenhe o esboço no Mini CAD');
+    if(shapeCadState.closed){if(pts.length<3||Math.abs(shapeCadPolygonArea(pts))<.5)throw new Error('Feche um esboço com área válida');if(pts.some(q=>shapeCadBoundaryRef(q,ti.faceW,ti.faceH)))throw new Error('Para recorte na borda, deixe o esboço aberto e termine nas bordas da peça');const b=shapeCadSketchBounds(pts);return {id:uid('form'),type:'custom-profile',operation:'cutout',profileVersion:2,name,folder,presetId,points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),baseW:ti.faceW,baseH:ti.faceH};}
+    const a=shapeCadBoundaryRef(pts[0],ti.faceW,ti.faceH),b=shapeCadBoundaryRef(pts.at(-1),ti.faceW,ti.faceH);if(!a||!b)throw new Error('Esboço aberto: comece e termine na borda tracejada da peça');
+    const outline=formEdgeProfileOutlineMm(shapePreviewOwner||selected,pts);if(!outline)throw new Error('Não foi possível montar o recorte de borda');
+    return {id:uid('form'),type:'custom-profile',operation:'edge-profile',profileVersion:2,name,folder,presetId,points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),baseW:ti.faceW,baseH:ti.faceH,startEdge:a.edge,endEdge:b.edge};
+  }
+  const radius=Number($('shapeRadius').value);if(!(radius>0))throw new Error('Confira o raio');if(!shapeSelectedCorners.size)throw new Error('Escolha pelo menos um canto');if(radius>Math.min(ti.faceW,ti.faceH)/2+.001)throw new Error(`Raio máximo nesta peça: ${nice(Math.min(ti.faceW,ti.faceH)/2)} mm`);return {id:uid('form'),type:'round-corner',name,radius,folder,presetId,corners:[...shapeSelectedCorners]};
+};
+const formOutlineBeforeEdgeProfile=formOutlinePointsMm;
+formOutlinePointsMm=function(o,formsOverride=null,segments=48){
+  const forms=(formsOverride??o.userData?.forms??[]),edge=[...forms].reverse().find(f=>f?.type==='custom-profile'&&f?.operation==='edge-profile'&&Array.isArray(f.points)&&f.points.length>=2);if(edge){const out=formEdgeProfileOutlineMm(o,edge.points);if(out?.length>=3)return out;}return formOutlineBeforeEdgeProfile(o,formsOverride,segments);
+};
+saveShapePresetLibrary=function(){
+  const name=String($('shapeName').value||'').trim(),folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',radius=Number($('shapeRadius').value),type=$('shapeType').value||'round-corner';if(!name){toast('Dê um nome para a forma');return;}if(type==='round-corner'&&!(radius>0)){toast('Confira o raio');return;}let extra={};
+  if(type==='custom-profile'){
+    const pts=shapeCadState.points.map(shapeCadClampPoint);if(shapeCadState.closed){if(pts.length<3||Math.abs(shapeCadPolygonArea(pts))<.5){toast('Feche um esboço válido');return;}const {W,H}=shapeCadOwnerInfo();if(pts.some(q=>shapeCadBoundaryRef(q,W,H))){toast('Para forma na borda, deixe o esboço aberto');return;}const b=shapeCadSketchBounds(pts);extra={sketchPoints:pts.map(p=>[roundMmNumber(p[0]-b.minX,3),roundMmNumber(p[1]-b.minY,3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),closed:true,profileVersion:2,operation:'cutout'};}
+    else{const {W,H}=shapeCadOwnerInfo();if(pts.length<2||!shapeCadBoundaryRef(pts[0],W,H)||!shapeCadBoundaryRef(pts.at(-1),W,H)){toast('Esboço aberto precisa começar e terminar na borda da peça');return;}extra={profileNormalized:shapeCadNormalizePoints(pts,W,H),closed:false,profileVersion:2,operation:'edge-profile'};}
+  }
+  const arr=getUserShapePresets();if(shapePresetEditId){const i=arr.findIndex(x=>x.id===shapePresetEditId);if(i>=0)arr[i]={...arr[i],name,folder,radius,type,...extra};else shapePresetEditId=null;}if(!shapePresetEditId){const item={id:uid('shapePreset'),name,folder,radius,type,...extra};arr.push(item);shapePresetEditId=item.id;}setUserShapePresets(arr);refreshShapePresetSelect(shapePresetEditId);toast('Esboço salvo na biblioteca');
+};
+renderAppliedShapes=function(){
+  const list=$('shapeAppliedList');if(!list)return;list.innerHTML='';const owner=shapePreviewOwner||selected,forms=owner?.userData?.forms||[],labels=shapeCornerLabels(owner);if(!forms.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma Forma aplicada nesta peça.';list.appendChild(d);return;}
+  for(const f of forms){const item=document.createElement('div');item.className='shapeAppliedItem';const text=document.createElement('div');text.innerHTML=`<strong></strong><span></span>`;text.querySelector('strong').textContent=f.name||'Forma';text.querySelector('span').textContent=f.type==='custom-profile'?(f.operation==='cutout'?`Esboço fechado · recorte interno · ${(f.points||[]).length} pontos`:f.operation==='edge-profile'?`Esboço aberto · recorte de borda · ${(f.points||[]).length} pontos`:`Mini CAD legado · ${(f.points||[]).length} pontos · contorno completo`):`R ${nice(f.radius)} mm · ${(f.corners||[]).map(c=>labels[c]||c).join(' + ')}`;const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteAppliedShape(f.id);item.append(text,del);list.appendChild(item);}
+};
+const shapeCadRenderBase=shapeCadRender;
+shapeCadRender=function(){
+  shapeCadRenderBase();const svg=$('shapeCadSvg');if(!svg||$('shapeCadShowDims')?.checked===false||shapeCadState.points.length<2)return;const m=shapeCadMap(),segs=shapeCadSegments(),labels=[];let shown=0;
+  for(const seg of segs){if(shown>=24)break;const len=Math.hypot(seg.b[0]-seg.a[0],seg.b[1]-seg.a[1]),px=len*m.s;if(len<.5||px<42)continue;const x=(m.sx(seg.a[0])+m.sx(seg.b[0]))/2,y=(m.sy(seg.a[1])+m.sy(seg.b[1]))/2;labels.push(`<g pointer-events="none"><rect x="${(x-21).toFixed(1)}" y="${(y-8).toFixed(1)}" width="42" height="16" rx="4" fill="rgba(5,10,13,.88)" stroke="rgba(127,229,148,.38)"/><text x="${x.toFixed(1)}" y="${(y+3.4).toFixed(1)}" text-anchor="middle" fill="#c9f7d2" font-size="9" font-weight="800">${nice(len)}</text></g>`);shown++;}
+  if(labels.length)svg.insertAdjacentHTML('beforeend',labels.join(''));
+};
