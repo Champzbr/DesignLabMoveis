@@ -15,18 +15,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.12 - Forma paramétrica</title>
+<title>DesignLabMoveis 1.200.15 - Forma paramétrica</title>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/editor.css">
 <link rel="stylesheet" href="css/materials.css">
 <link rel="stylesheet" href="css/labels.css">
 <link rel="stylesheet" href="css/cut-plan.css">
+<link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/projects.css">
 <link rel="stylesheet" href="css/settings.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/mobile.css">
 
-<!-- 1.200.12: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.15: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -36,7 +37,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.12</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.15</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -130,7 +131,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.12</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.15</span>
         </div>
       </div>
 
@@ -407,7 +408,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.100.27</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.15</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button>
@@ -434,7 +435,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.100.27</strong>
+        <strong id="updateCurrentVersion">1.200.15</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -477,7 +478,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.12 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.15 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -511,7 +512,21 @@
     <span class="pieceTripleHint">Clique/toque e segure a peça para abrir</span>
   </div>
 
-  <input id="partNameInput" placeholder="Nome da peça">
+  <div class="pieceNameEditor">
+    <label class="pieceNameCurrentLabel">Nome atual
+      <input id="partNameInput" placeholder="Nome da peça">
+    </label>
+    <label class="pieceNamePresetLabel">Nome rápido
+      <select id="pieceNamePresetSelect" aria-label="Escolher nome pré-definido">
+        <option value="">Escolher um nome…</option>
+      </select>
+    </label>
+    <div class="pieceNameCustomRow">
+      <input id="pieceNameCustomInput" maxlength="60" placeholder="Criar um nome personalizado">
+      <button id="pieceNameCustomAddBtn" type="button" class="secondary">+ Criar nome</button>
+    </div>
+    <div class="pieceConfigHelp">Escolha um nome da lista para substituir imediatamente o nome atual. Os nomes criados por você ficam salvos neste aparelho.</div>
+  </div>
 
   <div id="pieceProductionSection" class="pieceConfigSection">
     <label id="pieceProductionToggle" class="pieceProductionToggle">
@@ -673,6 +688,7 @@
     <button id="manageMachiningBtn" class="secondary">Usinagens</button>
     <button id="materialsToolBtn" class="secondary">🎨 Materiais / fitas</button>
     <button id="labelsToolBtn" class="secondary">🏷 Etiquetas das peças</button>
+    <button id="layoutToolBtn" class="secondary">📐 Gerar layout técnico</button>
     <button id="rotX" class="secondary">Girar X 90°</button>
     <button id="rotY" class="secondary">Girar Y 90°</button>
     <button id="rotZ" class="secondary">Girar Z 90°</button>
@@ -1201,6 +1217,7 @@
       <button id="newAdjacentSpaceBtn" class="secondary">+ Outro espaço</button>
       <button id="exportFurnitureBtn" class="secondary">Exportar móvel</button>
       <button id="exportAspireBtn" class="secondary">Aspire ZIP</button>
+      <button id="spaceLayoutBtn" class="secondary">📐 Gerar layout</button>
       <button id="deleteSpaceBtn" class="danger" style="grid-column:1 / -1">🗑 Apagar espaço / móvel inteiro</button>
     </div>
     <div class="dialogActions"><button id="closeSpaceMore" class="secondary">Fechar</button></div>
@@ -1214,7 +1231,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.12</span>
+      <span class="cutPlanBadge">1.200.15</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -1934,6 +1951,102 @@
 <input id="importFile" type="file" accept="application/json,.json" hidden>
 <input id="furnitureImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,image/vnd.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
+
+<div id="technicalLayoutDialog" aria-label="Gerar layout técnico">
+  <div class="technicalLayoutShell">
+    <header class="technicalLayoutHead">
+      <div>
+        <strong>📐 Gerar Layout</strong>
+        <span>Desenho técnico 2D extraído diretamente das peças do projeto</span>
+      </div>
+      <button id="closeTechnicalLayout" class="secondary" type="button">Fechar</button>
+    </header>
+
+    <div class="technicalLayoutToolbar">
+      <label>Conteúdo
+        <select id="layoutScopeSelect"></select>
+      </label>
+      <label>Modo
+        <select id="layoutMode">
+          <option value="technical">Layout técnico</option>
+          <option value="presentation">Apresentação limpa</option>
+        </select>
+      </label>
+      <label>Escala da folha
+        <select id="layoutScale">
+          <option value="fit">Automática</option>
+          <option value="10">1:10</option>
+          <option value="15">1:15</option>
+          <option value="20" selected>1:20</option>
+          <option value="25">1:25</option>
+          <option value="50">1:50</option>
+        </select>
+      </label>
+      <label>Folha
+        <select id="layoutPage"><option value="A4">A4 horizontal</option><option value="A3">A3 horizontal</option></select>
+      </label>
+    </div>
+
+    <div class="technicalLayoutViewTabs" aria-label="Vistas do layout">
+      <button id="layoutViewSheet" data-layout-view-btn="sheet" class="active" type="button">Folha técnica</button>
+      <button id="layoutViewFront" data-layout-view-btn="front" class="secondary" type="button">Frente</button>
+      <button data-layout-view-btn="top" class="secondary" type="button">Planta</button>
+      <button data-layout-view-btn="left" class="secondary" type="button">Lateral E</button>
+      <button data-layout-view-btn="right" class="secondary" type="button">Lateral D</button>
+      <button data-layout-view-btn="back" class="secondary" type="button">Traseira</button>
+      <button data-layout-view-btn="bottom" class="secondary" type="button">Inferior</button>
+      <button data-layout-view-btn="sectionX" class="secondary" type="button">Corte A-A</button>
+      <button data-layout-view-btn="sectionY" class="secondary" type="button">Corte B-B</button>
+    </div>
+
+    <div class="technicalLayoutMain">
+      <aside class="technicalLayoutSide">
+        <section class="layoutSideCard">
+          <strong>Elementos técnicos</strong>
+          <label class="layoutCheck"><input id="layoutShowDimensions" type="checkbox" checked> Cotas automáticas</label>
+          <label class="layoutCheck"><input id="layoutShowInternal" type="checkbox" checked> Cotas internas / vãos</label>
+          <label class="layoutCheck"><input id="layoutShowLabels" type="checkbox" checked> Identificação das peças</label>
+          <label class="layoutCheck"><input id="layoutShowHidden" type="checkbox" checked> Linhas ocultas tracejadas</label>
+          <label class="layoutCheck"><input id="layoutShowHatch" type="checkbox" checked> Hachura nas peças cortadas</label>
+          <button id="layoutRestoreDims" class="secondary" type="button">Restaurar cotas ocultadas</button>
+          <small id="layoutPickInfo">Clique em uma cota para ocultá-la. Use “Restaurar cotas” para trazer de volta.</small>
+        </section>
+
+        <section class="layoutSideCard">
+          <strong>Cortes / seções</strong>
+          <div class="layoutSectionControl">
+            <div><b id="layoutSectionXInfo">A-A</b><button id="layoutPickSectionA" class="secondary" type="button">Definir na vista</button></div>
+            <input id="layoutSectionXPct" type="range" min="0" max="100" value="50" step="0.5">
+          </div>
+          <div class="layoutSectionControl">
+            <div><b id="layoutSectionYInfo">B-B</b><button id="layoutPickSectionB" class="secondary" type="button">Definir na vista</button></div>
+            <input id="layoutSectionYPct" type="range" min="0" max="100" value="50" step="0.5">
+          </div>
+          <small>O corte A-A é vertical. O B-B é horizontal. Você pode arrastar ou tocar diretamente na vista frontal.</small>
+        </section>
+
+        <section class="layoutSideCard layoutLegendCard">
+          <strong>Peças</strong>
+          <div id="layoutPieceLegend"></div>
+        </section>
+      </aside>
+
+      <main class="technicalLayoutPreview">
+        <div id="layoutSvgWrap" class="layoutSvgWrap"></div>
+        <div id="layoutStatus" class="layoutStatus">Preparando layout…</div>
+      </main>
+    </div>
+
+    <footer class="technicalLayoutActions">
+      <button id="layoutExportPdf" type="button">⇩ PDF</button>
+      <button id="layoutExportDxf" class="secondary" type="button">⇩ DXF</button>
+      <button id="layoutExportSvg" class="secondary" type="button">⇩ SVG</button>
+      <button id="layoutExportPng" class="secondary" type="button">⇩ PNG</button>
+      <button id="layoutPrint" class="secondary" type="button">🖨 Imprimir</button>
+    </footer>
+  </div>
+</div>
+
 <div id="toolDock" aria-label="Painel flutuante de ferramentas">
   <div id="toolDockHeader">
     <div id="toolDockTitle">🧰 Ferramentas<small>arraste esta barra para mover</small></div>
@@ -1970,6 +2083,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.12"></script>
+<script type="module" src="js/app.js?v=1.200.15"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
-const CACHE = 'designlabmoveis-1.200.12';
+const CACHE = 'designlabmoveis-1.200.15';
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./designlabmoveis-1.200.12.html",
+  "./designlabmoveis-1.200.15.html",
   "./manifest.json",
   "./version.json",
   "./icons/icon-192.png",
@@ -12,11 +12,12 @@ const APP_SHELL = [
   "./css/materials.css",
   "./css/labels.css",
   "./css/cut-plan.css",
+  "./css/layout.css",
   "./css/projects.css",
   "./css/settings.css",
   "./css/home.css",
   "./css/mobile.css",
-  "./js/app.js?v=1.200.12"
+  "./js/app.js?v=1.200.15"
 ];
 
 self.addEventListener('install', event => {

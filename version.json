@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.12",
+  "version": "1.200.15",
   "required": false,
-  "message": "Mingli ZAW: corrigida a validação no navegador de PC. O DOMParser agora valida o XML sem o caractere BOM, enquanto o arquivo final continua sendo salvo com UTF-8 BOM, CRLF e conteúdo idêntico ao Result.zaw da máquina.",
-  "released_at": "2026-08-26T17:10:00-03:00"
+  "message": "Novo Gerar Layout: frente, planta, laterais, cortes A-A/B-B, cotas, identificação de peças e exportação PDF, DXF, SVG e PNG.",
+  "released_at": "2026-08-27T08:43:00-03:00"
 }
