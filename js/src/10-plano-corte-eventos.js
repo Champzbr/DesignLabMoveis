@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.33</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.34</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -1217,10 +1217,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.33'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.34'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1269,12 +1269,12 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.33: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.34: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
   try{
-    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server'];let changed=false;
+    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server','_serverRecovered','_gestureRecovered'];let changed=false;
     for(const k of keys)if(u.searchParams.has(k)){u.searchParams.delete(k);changed=true;}
     if(changed)window.history.replaceState(window.history.state||{},'',u.pathname+(u.search||'')+(u.hash||''));
   }catch(_){}
@@ -1285,15 +1285,41 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
+// 1.200.34: não tentamos mais fingir que uma recuperação automática é igual a
+// um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
+// atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
+// para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
 initDesignLabServiceWorker().catch(()=>{});
 setTimeout(()=>checkDesignLabUpdate({force:true,autoApply:true}),450);
 window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
+
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});}
+  if(document.visibilityState==='hidden'){
+    designLabWasHidden=true;
+    designLabForgetGestureRecovery();
+    return;
+  }
+  if(document.visibilityState==='visible'){
+    designLabArmBackGuard();
+    checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+  }
 });
+window.addEventListener('pagehide',()=>{designLabWasHidden=true;designLabForgetGestureRecovery();},{capture:true});
 window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
 
+// A ação normal do usuário acontece primeiro. Em seguida, ainda dentro da janela
+// de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
+// Configurações. Não é necessário abrir Configurações nem procurar o botão.
+function designLabGestureServerRecovery(){
+  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
+  designLabEnsureServerRecovery('first-user-gesture').catch(()=>{});
+}
+document.addEventListener('click',designLabGestureServerRecovery,{capture:false,passive:true});
+document.addEventListener('pointerup',()=>{
+  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
+  setTimeout(designLabGestureServerRecovery,0);
+},{capture:false,passive:true});
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();
 setFrontWorldView();

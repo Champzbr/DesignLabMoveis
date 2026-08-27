@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.33';
+  return tm?.[1]||'1.200.34';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.33-r1';
+const DESIGNLAB_JS_BUILD='1.200.34-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -772,8 +772,18 @@ async function applyDesignLabUpdate(){
   }
 }
 
-async function forceDesignLabServerRefresh(){
-  if(designLabUpdating)return;
+async function forceDesignLabServerRefresh(options={}){
+  const automatic=!!options.automatic;
+  const gesture=!!options.gesture;
+  const reason=String(options.reason||'manual').replace(/[^a-z0-9_-]+/gi,'-').slice(0,32)||'manual';
+  if(designLabUpdating)return false;
+  // A recuperação automática usa EXATAMENTE o mesmo caminho do botão que o
+  // usuário confirmou funcionar. O marcador só impede o reload de chamar a si
+  // mesmo novamente no novo documento.
+  if(automatic){
+    const q=new URLSearchParams(location.search);
+    if(q.has('_serverRecovered'))return false;
+  }
   designLabUpdating=true;
   try{
     try{await projectAutosaveNow();}catch{}
@@ -790,18 +800,71 @@ async function forceDesignLabServerRefresh(){
       const keys=await caches.keys();
       await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
     }
+    // Dá uma pequena janela para o SW concluir PURGE/SKIP_WAITING antes da
+    // navegação. No clique manual isso já ocorria naturalmente pelo tempo de UI;
+    // no automático fazemos explicitamente para reproduzir o mesmo resultado.
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg?.waiting){
+        await Promise.race([
+          new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true})),
+          new Promise(resolve=>setTimeout(resolve,900))
+        ]);
+      }else{
+        await new Promise(resolve=>setTimeout(resolve,120));
+      }
+    }
     const target=new URL('/',location.origin);
-    target.searchParams.set('_bootFresh','manual-'+Date.now());
+    target.searchParams.set('_bootFresh',(automatic?'auto':'manual')+'-'+Date.now());
     target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
     target.searchParams.set('_refresh',String(Date.now()));
+    if(automatic)target.searchParams.set('_serverRecovered',reason+'-'+Date.now());
+    if(gesture){
+      try{sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');}catch(_){ }
+      target.searchParams.set('_gestureRecovered','1');
+      window.__designLabRecoveryNavigating=true;
+    }
     location.replace(target.toString());
+    return true;
   }catch(err){
     console.error('Recarregar servidor:',err);
     designLabUpdating=false;
-    toast('Não foi possível recarregar a versão do servidor agora');
+    if(!automatic)toast('Não foi possível recarregar a versão do servidor agora');
+    return false;
   }
 }
 
+let designLabAutoRecoveryInFlight=false;
+let designLabWasHidden=false;
+let designLabGestureRecoveryReady=false;
+const DESIGNLAB_GESTURE_RECOVERY_KEY='__designLabGestureServerRecoveryV34';
+try{
+  const q=new URLSearchParams(location.search);
+  designLabGestureRecoveryReady=q.has('_gestureRecovered') || sessionStorage.getItem(DESIGNLAB_GESTURE_RECOVERY_KEY)==='1';
+  if(q.has('_gestureRecovered'))sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');
+}catch(_){ }
+
+async function designLabEnsureServerRecovery(reason='gesture'){
+  if(designLabGestureRecoveryReady||designLabAutoRecoveryInFlight||designLabUpdating||!navigator.onLine)return false;
+  designLabAutoRecoveryInFlight=true;
+  try{
+    // O ponto decisivo é esta rotina ser chamada a partir de uma interação REAL
+    // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
+    // por scripts antes de qualquer ativação humana (History Manipulation
+    // Intervention). O botão manual funcionava justamente porque fornecia essa
+    // ativação. A 1.200.34 reutiliza o primeiro toque normal no próprio CAD.
+    const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
+    if(ok)designLabGestureRecoveryReady=true;
+    return ok;
+  }finally{
+    setTimeout(()=>{designLabAutoRecoveryInFlight=false;},1200);
+  }
+}
+function designLabForgetGestureRecovery(){
+  if(window.__designLabRecoveryNavigating)return;
+  designLabGestureRecoveryReady=false;
+  try{sessionStorage.removeItem(DESIGNLAB_GESTURE_RECOVERY_KEY);}catch(_){ }
+}
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
