@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.34-r1">
+<meta name="designlab-build" content="1.200.35-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.34-r1';
+  const BUILD='1.200.35-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,7 +20,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.34: não redireciona mais automaticamente antes de o Service Worker
+  // 1.200.35: não redireciona mais automaticamente antes de o Service Worker
   // estar pronto. No Chrome/TWA, uma navegação criada só por script pode ser
   // classificada como histórico manipulável e não equivale ao clique humano que
   // o usuário confirmou funcionar. A recuperação confiável ocorre após o app
@@ -39,7 +39,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.34: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
+  // 1.200.35: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
   // history.state. O Chrome/TWA pode restaurar um state antigo sem restaurar
   // a pilha criada na sessão anterior; isso fazia o DesignLab acreditar que a
   // proteção existia e o primeiro Back encerrava o APK. Agora cada documento
@@ -55,7 +55,7 @@
   let rebuilding=false;
   let needsTrustedRebuild=true;
   function state(kind,level){
-    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.34'});
+    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.35'});
   }
   function owns(st=window.history.state||{}){return !!(st[KEY]&&st.doc===DOC);}
   function rebuildTrustedFence(){
@@ -173,7 +173,7 @@
     // A passagem automática pelo servidor NÃO é necessariamente uma ativação
     // humana. Portanto esta cerca inicial é apenas best-effort; o primeiro toque
     // sempre a refaz dentro de um gesto real. Esse é o ponto que diferencia a
-    // 1.200.34 da correção anterior e elimina a dependência do botão manual.
+    // 1.200.35 da correção anterior e elimina a dependência do botão manual.
     needsTrustedRebuild=true;
   }
   window.__DL_BACK_BOOTSTRAP={
@@ -192,19 +192,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.34 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.34-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.34-r1">
+<title>DesignLabMoveis 1.200.35 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.35-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.35-r1">
 
-<!-- 1.200.34: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.35: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -214,7 +214,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.34</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.35</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -308,7 +308,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.34</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.35</span>
         </div>
       </div>
 
@@ -593,7 +593,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.34</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.35</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -619,7 +619,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.34</strong>
+        <strong id="updateCurrentVersion">1.200.35</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -662,7 +662,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.34 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.35 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1293,7 +1293,7 @@
         <button type="button" class="secondary" data-shape-cad-tool="trim">✂ Aparar</button>
       </div>
       <div class="shapeCadOptions">
-        <label class="layoutCheck"><input id="shapeCadSnap" type="checkbox" checked> Snap</label>
+        <label class="layoutCheck"><input id="shapeCadSnap" type="checkbox" checked> Snap inteligente</label>
         <label>Grade (mm)<input id="shapeCadGrid" type="number" value="10" min="0.1" step="0.1"></label>
         <label>Raio/chanfro (mm)<input id="shapeCadRadius" type="number" value="50" min="0.1" step="0.1"></label>
         <button id="shapeCadUndo" type="button" class="secondary">↶ Desfazer</button>
@@ -1301,6 +1301,7 @@
         <button id="shapeCadClose" type="button" class="secondary">⬡ Fechar contorno</button>
         <button id="shapeCadClear" type="button" class="danger">Limpar</button>
       </div>
+      <div class="shapeCadInferenceHint">Inferência automática: extremidade · meio · interseção · centro · aresta · horizontal · vertical · 45°</div>
       <div class="shapeCadViewport">
         <svg id="shapeCadSvg" viewBox="0 0 640 390" preserveAspectRatio="xMidYMid meet" aria-label="Editor CAD 2D da forma"></svg>
       </div>
@@ -1451,7 +1452,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.34</span>
+      <span class="cutPlanBadge">1.200.35</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2309,7 +2310,7 @@
 
 
 
-<!-- 1.200.34 · Segurança, produção e montagem -->
+<!-- 1.200.35 · Segurança, produção e montagem -->
 <div id="projectVersionsDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Histórico de versões">
   <div class="projectModalCard dlSuiteCard">
     <header class="dlSuiteHead"><div><h3>🕘 Histórico de versões</h3><p>Autosave real + até 10 pontos restauráveis, sincronizados com o projeto.</p></div><button id="closeProjectVersionsDialog" class="secondary" type="button">Fechar</button></header>
@@ -2390,6 +2391,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.34-r1"></script>
+<script type="module" src="js/app.js?v=1.200.35-r1"></script>
 </body>
 </html>

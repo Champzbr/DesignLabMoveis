@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.34",
+  "version": "1.200.35",
   "required": false,
-  "message": "Voltar Android/TWA: o primeiro toque normal no DesignLab executa automaticamente a mesma recuperação confiável do botão Recarregar versão do servidor, após o Service Worker estar pronto.",
-  "released_at": "2026-08-27T17:18:00-03:00",
-  "build": "1.200.34-r1"
+  "message": "Mini CAD Forma com snap magnético estilo SketchUp: captura ampliada no celular, extremidades, meios, interseções, centro, arestas, alinhamentos horizontal/vertical e 45 graus, guias visuais e fechamento inteligente do contorno.",
+  "released_at": "2026-08-27T18:58:00-03:00",
+  "build": "1.200.35-r1"
 }
