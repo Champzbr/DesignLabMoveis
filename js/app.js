@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.35';
+  return tm?.[1]||'1.200.36';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.35-r1';
+const DESIGNLAB_JS_BUILD='1.200.36-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -852,7 +852,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
     // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
     // por scripts antes de qualquer ativação humana (History Manipulation
     // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.35 reutiliza o primeiro toque normal no próprio CAD.
+    // ativação. A 1.200.36 reutiliza o primeiro toque normal no próprio CAD.
     const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
     if(ok)designLabGestureRecoveryReady=true;
     return ok;
@@ -10920,7 +10920,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.35 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
+// ---------- 1.200.36 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,rawCurrent:null,baseW:0,baseH:0,loadedPresetId:null,hoverSnap:null,guides:[],
@@ -12010,6 +12010,254 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
 }
 
 
+
+
+// ---------- 1.200.36 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
+// O Mini CAD deixa de nascer como o retângulo inteiro da peça. O usuário cria apenas
+// um esboço local fechado e ele é aplicado como recorte interno real na peça. Presets
+// antigos de contorno completo continuam compatíveis.
+shapeCadState.zoom=1;
+shapeCadState.viewCx=0;
+shapeCadState.viewCy=0;
+shapeCadState.panPointer=null;
+shapeCadState.panStart=null;
+
+function shapeCadSketchBounds(pts=shapeCadState.points){
+  if(!pts?.length)return {minX:0,minY:0,maxX:0,maxY:0,w:0,h:0};
+  const xs=pts.map(p=>Number(p[0])||0),ys=pts.map(p=>Number(p[1])||0);
+  const minX=Math.min(...xs),minY=Math.min(...ys),maxX=Math.max(...xs),maxY=Math.max(...ys);
+  return {minX,minY,maxX,maxY,w:maxX-minX,h:maxY-minY};
+}
+function shapeCadFitView(){
+  const {W,H}=shapeCadOwnerInfo(),b=shapeCadSketchBounds();
+  shapeCadState.zoom=1;
+  if(b.w>.5&&b.h>.5){
+    shapeCadState.viewCx=(b.minX+b.maxX)/2;shapeCadState.viewCy=(b.minY+b.maxY)/2;
+    const sw=640,sh=390,pad=54,fit=Math.min((sw-pad*2)/Math.max(1,b.w),(sh-pad*2)/Math.max(1,b.h));
+    const base=Math.min((sw-56)/Math.max(1,W),(sh-56)/Math.max(1,H));
+    shapeCadState.zoom=Math.max(.45,Math.min(12,fit/Math.max(.00001,base)));
+  }else{shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;}
+  shapeCadRender();shapeCadUpdateZoomLabel();
+}
+function shapeCadUpdateZoomLabel(){const el=$('shapeCadZoomValue');if(el)el.textContent=`${Math.round((shapeCadState.zoom||1)*100)}%`;}
+shapeCadMap=function(){
+  const {W,H}=shapeCadOwnerInfo(),sw=640,sh=390,pad=28;
+  const base=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H));
+  const z=Math.max(.25,Math.min(16,Number(shapeCadState.zoom)||1)),s=base*z;
+  if(!Number.isFinite(shapeCadState.viewCx))shapeCadState.viewCx=W/2;if(!Number.isFinite(shapeCadState.viewCy))shapeCadState.viewCy=H/2;
+  const cx=shapeCadState.viewCx,cy=shapeCadState.viewCy;
+  return {W,H,sw,sh,pad,s,cx,cy,sx:x=>sw/2+(x-cx)*s,sy:y=>sh/2-(y-cy)*s,ux:x=>cx+(x-sw/2)/s,uy:y=>cy-(y-sh/2)/s};
+};
+function shapeCadZoomBy(factor,screenPoint=null){
+  const old=shapeCadMap(),sp=screenPoint||[old.sw/2,old.sh/2],world=[old.ux(sp[0]),old.uy(sp[1])];
+  shapeCadState.zoom=Math.max(.25,Math.min(16,(shapeCadState.zoom||1)*factor));
+  const next=shapeCadMap();shapeCadState.viewCx=world[0]-(sp[0]-next.sw/2)/next.s;shapeCadState.viewCy=world[1]+(sp[1]-next.sh/2)/next.s;
+  shapeCadRender();shapeCadUpdateZoomLabel();
+}
+function shapeCadZoomWheel(e){
+  if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();
+  const svg=$('shapeCadSvg'),r=svg.getBoundingClientRect(),sx=(e.clientX-r.left)*(640/Math.max(1,r.width)),sy=(e.clientY-r.top)*(390/Math.max(1,r.height));
+  shapeCadZoomBy(e.deltaY<0?1.18:1/1.18,[sx,sy]);
+}
+shapeCadResetToPieceRect=function({record=true}={}){
+  if(record)shapeCadPushUndo();const {W,H}=shapeCadOwnerInfo();
+  shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];
+  shapeCadState.zoom=1;shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;shapeCadRender();shapeCadUpdateZoomLabel();updateShapePreview();
+};
+shapeCadInitForOwner=function({forceRect=false}={}){
+  const {W,H}=shapeCadOwnerInfo(),changed=Math.abs(W-shapeCadState.baseW)>.01||Math.abs(H-shapeCadState.baseH)>.01;
+  shapeCadState.baseW=W;shapeCadState.baseH=H;
+  if(changed||!Number.isFinite(shapeCadState.viewCx)){shapeCadState.viewCx=W/2;shapeCadState.viewCy=H/2;shapeCadState.zoom=1;}
+  if(forceRect){shapeCadState.points=[];shapeCadState.closed=false;shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];}
+  shapeCadRender();shapeCadUpdateZoomLabel();
+};
+shapeCadSetTool=function(tool){
+  shapeCadState.tool=tool;shapeCadState.draft=[];shapeCadState.dragIndex=-1;shapeCadState.hoverSnap=null;shapeCadState.guides=[];
+  document.querySelectorAll('[data-shape-cad-tool]').forEach(b=>b.classList.toggle('active',b.dataset.shapeCadTool===tool));
+  const msgs={pan:'Arraste o fundo para mover a área de trabalho.',edit:'Arraste qualquer ponto. No celular a área de captura é maior e o ponto encaixa sozinho.',line:'Toque em sequência para desenhar apenas o esboço da forma.',rect:'Toque em dois cantos opostos do esboço.',circle:'Toque no centro e depois na borda do círculo.',arc:'Defina início, ponto intermediário e final do arco.',curve:'Defina início, controle e final da curva.',fillet:'Toque num vértice para aplicar o raio informado.',chamfer:'Toque num vértice para criar o chanfro informado.',trim:'Toque em um ponto para apará-lo/removê-lo.'};
+  shapeCadSetStatus(msgs[tool]||'Mini CAD');shapeCadRender();
+};
+shapeCadLoadPreset=function(p){
+  if(p?.type!=='custom-profile')return;const {W,H}=shapeCadOwnerInfo();
+  if(Array.isArray(p.sketchPoints)&&p.sketchPoints.length>=3){
+    const sw=Math.max(.001,Number(p.sketchW)||1),sh=Math.max(.001,Number(p.sketchH)||1),x0=Math.max(0,(W-sw)/2),y0=Math.max(0,(H-sh)/2);
+    shapeCadState.points=p.sketchPoints.map(q=>shapeCadClampPoint([x0+(Number(q[0])||0),y0+(Number(q[1])||0)]));shapeCadState.closed=p.closed!==false;
+  }else{
+    const norm=p.profileNormalized||p.pointsNormalized||null;
+    if(Array.isArray(norm)&&norm.length>=3)shapeCadState.points=norm.map(q=>[Number(q[0])*W,Number(q[1])*H]);else shapeCadState.points=[];
+    shapeCadState.closed=Array.isArray(norm)&&norm.length>=3?p.closed!==false:false;
+  }
+  shapeCadState.undo=[];shapeCadState.redo=[];shapeCadState.draft=[];shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadState.loadedPresetId=p.id||null;shapeCadFitView();updateShapePreview();
+};
+newShapePreset=function(){
+  shapePresetEditId=null;$('shapeFolder').value='Formas personalizadas';$('shapeName').value='Minha forma';$('shapeType').value='custom-profile';$('shapeRadius').value=150;$('saveShapePreset').textContent='💾 Salvar na biblioteca';shapeCadResetToPieceRect({record:false});shapeCadSyncUi();updateShapePreview();$('shapeName').focus();
+};
+saveShapePresetLibrary=function(){
+  const name=String($('shapeName').value||'').trim(),folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',radius=Number($('shapeRadius').value),type=$('shapeType').value||'round-corner';
+  if(!name){toast('Dê um nome para a forma');return;}if(type==='round-corner'&&!(radius>0)){toast('Confira o raio');return;}
+  let extra={};
+  if(type==='custom-profile'){
+    let pts;try{pts=shapeCadProfilePoints();}catch(err){toast(err.message||'Confira o esboço do Mini CAD');return;}
+    const b=shapeCadSketchBounds(pts);extra={sketchPoints:pts.map(p=>[roundMmNumber(p[0]-b.minX,3),roundMmNumber(p[1]-b.minY,3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),closed:true,profileVersion:2,operation:'cutout'};
+  }
+  const arr=getUserShapePresets();
+  if(shapePresetEditId){const i=arr.findIndex(x=>x.id===shapePresetEditId);if(i>=0)arr[i]={...arr[i],name,folder,radius,type,...extra};else shapePresetEditId=null;}
+  if(!shapePresetEditId){const item={id:uid('shapePreset'),name,folder,radius,type,...extra};arr.push(item);shapePresetEditId=item.id;}
+  setUserShapePresets(arr);refreshShapePresetSelect(shapePresetEditId);toast('Esboço salvo na biblioteca');
+};
+shapeDraftOperation=function(){
+  const type=$('shapeType')?.value||'round-corner',name=String($('shapeName').value||'Forma').trim()||'Forma',folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',presetId=$('shapePresetSelect')?.value||null;
+  const ti=pieceThicknessInfo(shapePreviewOwner||selected);if(!ti)throw new Error('Selecione uma peça retangular');
+  if(type==='custom-profile'){
+    const points=shapeCadProfilePoints(),b=shapeCadSketchBounds(points);
+    return {id:uid('form'),type:'custom-profile',operation:'cutout',profileVersion:2,name,folder,presetId,points:points.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),baseW:ti.faceW,baseH:ti.faceH};
+  }
+  const radius=Number($('shapeRadius').value);if(!(radius>0))throw new Error('Confira o raio');if(!shapeSelectedCorners.size)throw new Error('Escolha pelo menos um canto');if(radius>Math.min(ti.faceW,ti.faceH)/2+.001)throw new Error(`Raio máximo nesta peça: ${nice(Math.min(ti.faceW,ti.faceH)/2)} mm`);
+  return {id:uid('form'),type:'round-corner',name,radius,folder,presetId,corners:[...shapeSelectedCorners]};
+};
+formOutlinePointsMm=function(o,formsOverride=null,segments=48){
+  const ti=pieceThicknessInfo(o);if(!ti)return [];const forms=(formsOverride??o.userData?.forms??[]);
+  const custom=[...forms].reverse().find(f=>f?.type==='custom-profile'&&f?.operation!=='cutout'&&Array.isArray(f.points)&&f.points.length>=3);
+  if(custom)return custom.points.map(p=>[Math.max(0,Math.min(ti.faceW,Number(p[0])||0)),Math.max(0,Math.min(ti.faceH,Number(p[1])||0))]);
+  const W=ti.faceW,H=ti.faceH,r=formCornerRadii(o,forms);if(!r)return [];
+  const pts=[];const add=(x,y)=>{const last=pts.at(-1);if(!last||Math.hypot(last[0]-x,last[1]-y)>.0001)pts.push([x,y]);};
+  const arc=(cx,cy,rr,a0,a1)=>{if(rr<=.0001){add(cx,cy);return;}for(let i=0;i<=segments;i++){const a=a0+(a1-a0)*(i/segments);add(cx+rr*Math.cos(a),cy+rr*Math.sin(a));}};
+  add(r.bl,0);add(W-r.br,0);if(r.br)arc(W-r.br,r.br,r.br,-Math.PI/2,0);else add(W,0);add(W,H-r.tr);if(r.tr)arc(W-r.tr,H-r.tr,r.tr,0,Math.PI/2);else add(W,H);add(r.tl,H);if(r.tl)arc(r.tl,H-r.tl,r.tl,Math.PI/2,Math.PI);else add(0,H);add(0,r.bl);if(r.bl)arc(r.bl,r.bl,r.bl,Math.PI,Math.PI*1.5);else add(0,0);return pts;
+};
+function formCutoutPointsMm(o,formsOverride=null){
+  const ti=pieceThicknessInfo(o);if(!ti)return [];const forms=(formsOverride??o.userData?.forms??[]),out=[];
+  for(const f of forms){if(f?.type!=='custom-profile'||f?.operation!=='cutout'||!Array.isArray(f.points)||f.points.length<3)continue;const pts=f.points.map(p=>[Math.max(0,Math.min(ti.faceW,Number(p[0])||0)),Math.max(0,Math.min(ti.faceH,Number(p[1])||0))]);if(Math.abs(shapeCadPolygonArea(pts))>.5)out.push(pts);}
+  return out;
+}
+function makeFormVisualEdgesWithCutouts(o,outer,cutouts,ti){
+  const group=makeFormVisualEdges(o,outer,ti),mat=group.material||new THREE.LineBasicMaterial({color:0x080808});const t=ti.thickness/2;
+  for(const hole of cutouts)for(const side of [-t,t]){const arr=hole.map(([u,v])=>formLocalPoint(ti,u,v,side));if(arr.length)arr.push(arr[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);line.userData.isVisualEdge=true;group.add(line);}return group;
+}
+rebuildFormGeometry=function(o){
+  if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
+  const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:0x080808,transparent:true,opacity:xray3DActive()?.86:.96,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  const pts=formOutlinePointsMm(o,forms,48),cutouts=formCutoutPointsMm(o,forms);if(pts.length<4)return;
+  const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?shape.lineTo(x,y):shape.moveTo(x,y);});shape.closePath();
+  const outerSign=Math.sign(shapeCadPolygonArea(pts))||1;
+  for(const src of cutouts){let holePts=src.slice();if((Math.sign(shapeCadPolygonArea(holePts))||1)===outerSign)holePts=holePts.slice().reverse();const path=new THREE.Path();holePts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?path.lineTo(x,y):path.moveTo(x,y);});path.closePath();shape.holes.push(path);}
+  const geom=new THREE.ExtrudeGeometry(shape,{depth:ti.thickness*MM_TO_M,bevelEnabled:false,steps:1,curveSegments:64});geom.translate(0,0,-ti.thickness*MM_TO_M/2);formMapExtrudeGeometry(geom,ti);o.geometry=geom;o.scale.set(1,1,1);
+  o.userData.formProfile={type:'forms',points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:cutouts.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis};
+  const edges=makeFormVisualEdgesWithCutouts(o,pts,cutouts,ti);o.add(edges);o.userData.visualEdges=edges;
+};
+updateShapePreview=function(){
+  const owner=shapePreviewOwner||selected,svg=$('shapePreviewSvg');if(!owner||!svg)return;const ti=pieceThicknessInfo(owner);if(!ti)return;
+  let forms=cloneForms(owner.userData.forms||[]),op=null,msg='';try{op=shapeDraftOperation();forms.push(op);}catch(err){msg=err.message||'Confira a forma';}
+  const outer=formOutlinePointsMm(owner,forms,24),holes=formCutoutPointsMm(owner,forms),W=ti.faceW,H=ti.faceH,pad=22,sw=420,sh=260,scale=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H)),ox=(sw-W*scale)/2,oy=(sh-H*scale)/2;
+  const path=(pts)=>pts.map(([u,v],i)=>`${i?'L':'M'} ${(ox+u*scale).toFixed(2)} ${(sh-(oy+v*scale)).toFixed(2)}`).join(' ')+' Z';let d=path(outer);for(const h of holes)d+=' '+path(h);
+  svg.innerHTML=`<path d="${d}" fill="#c8b591" fill-rule="evenodd" stroke="#080808" stroke-width="2.2"/><text x="${sw/2}" y="18" text-anchor="middle" fill="#53d6e8" font-size="12">${nice(W)} × ${nice(H)} mm</text>`;
+  $('shapePreviewText').textContent=msg||(op?.type==='custom-profile'?`${op?.name||'Forma'} · esboço local · ${op?.points?.length||0} pontos · recorte real na peça.`:`${op?.name||'Forma'} · raio ${nice(op?.radius||0)} mm · ${op?.corners?.length||0} canto(s) selecionado(s).`);
+};
+renderAppliedShapes=function(){
+  const list=$('shapeAppliedList');if(!list)return;list.innerHTML='';const owner=shapePreviewOwner||selected,forms=owner?.userData?.forms||[],labels=shapeCornerLabels(owner);
+  if(!forms.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma Forma aplicada nesta peça.';list.appendChild(d);return;}
+  for(const f of forms){const item=document.createElement('div');item.className='shapeAppliedItem';const text=document.createElement('div');text.innerHTML=`<strong></strong><span></span>`;text.querySelector('strong').textContent=f.name||'Forma';text.querySelector('span').textContent=f.type==='custom-profile'?(f.operation==='cutout'?`Esboço local · recorte interno · ${(f.points||[]).length} pontos`:`Mini CAD legado · ${(f.points||[]).length} pontos · contorno completo`):`R ${nice(f.radius)} mm · ${(f.corners||[]).map(c=>labels[c]||c).join(' + ')}`;const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteAppliedShape(f.id);item.append(text,del);list.appendChild(item);}
+};
+openShapeDialog=function(){
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});if(!selected){toast('Selecione uma peça');return;}if(selected.userData?.kind==='cylinder'||selected.userData?.kind==='curved-panel'||selected.userData?.curvedRole){toast('Forma disponível para peças retangulares');return;}
+  shapePreviewOwner=selected;shapePreviewOriginalForms=null;shapePreviewActive=false;shapePresetEditId=null;shapeSelectedCorners=new Set(['bl']);$('morePanel').style.display='none';$('machiningDialog').style.display='none';
+  const ti=pieceThicknessInfo(selected);$('shapePartInfo').textContent=`${selected.userData.name||'Peça'} · face ${nice(ti.faceW)} × ${nice(ti.faceH)} mm · espessura ${nice(ti.thickness)} mm. No Mini CAD você desenha somente o esboço local; a peça inteira fica apenas como referência.`;
+  refreshShapePresetSelect('builtin-r150');refreshShapeCornerLabels();shapeCadInitForOwner({forceRect:true});shapeCadSyncUi();renderAppliedShapes();updateShapePreview();$('shapeDialog').style.display='flex';
+};
+shapeCadRender=function(){
+  const svg=$('shapeCadSvg');if(!svg)return;const m=shapeCadMap(),grid=Math.max(.1,Number($('shapeCadGrid')?.value)||10),parts=[];parts.push('<rect width="640" height="390" fill="#0b1116"/>');
+  // Grade quadriculada ocupa TODO o fundo visível, inclusive quando há zoom.
+  const minX=m.ux(0),maxX=m.ux(m.sw),minY=m.uy(m.sh),maxY=m.uy(0),startX=Math.floor(minX/grid)*grid,startY=Math.floor(minY/grid)*grid;
+  let count=0;for(let x=startX;x<=maxX+grid&&count<500;x+=grid,count++){const sx=m.sx(x),major=Math.abs(Math.round(x/grid))%5===0;parts.push(`<line x1="${sx.toFixed(2)}" y1="0" x2="${sx.toFixed(2)}" y2="390" stroke="${major?'#2e4451':'#1b2932'}" stroke-width="${major?1:.65}"/>`);}count=0;
+  for(let y=startY;y<=maxY+grid&&count<500;y+=grid,count++){const sy=m.sy(y),major=Math.abs(Math.round(y/grid))%5===0;parts.push(`<line x1="0" y1="${sy.toFixed(2)}" x2="640" y2="${sy.toFixed(2)}" stroke="${major?'#2e4451':'#1b2932'}" stroke-width="${major?1:.65}"/>`);}
+  if(m.sx(0)>=0&&m.sx(0)<=640)parts.push(`<line x1="${m.sx(0)}" y1="0" x2="${m.sx(0)}" y2="390" stroke="#4c6e7e" stroke-width="1.4"/>`);if(m.sy(0)>=0&&m.sy(0)<=390)parts.push(`<line x1="0" y1="${m.sy(0)}" x2="640" y2="${m.sy(0)}" stroke="#4c6e7e" stroke-width="1.4"/>`);
+  // Limite da peça é só referência; ele não vira a forma automaticamente.
+  parts.push(`<rect x="${m.sx(0)}" y="${m.sy(m.H)}" width="${m.W*m.s}" height="${m.H*m.s}" fill="rgba(200,181,145,.025)" stroke="#73838c" stroke-width="1.2" stroke-dasharray="8 6"/>`);
+  for(const g of shapeCadState.guides||[])parts.push(shapeCadGuideSvg(g,m));
+  const anchor=shapeCadActiveAnchor();if(anchor&&shapeCadState.current&&shapeCadState.tool!=='edit'&&shapeCadState.tool!=='pan'&&!shapeCadState.closed)parts.push(`<line x1="${m.sx(anchor[0]).toFixed(2)}" y1="${m.sy(anchor[1]).toFixed(2)}" x2="${m.sx(shapeCadState.current[0]).toFixed(2)}" y2="${m.sy(shapeCadState.current[1]).toFixed(2)}" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"/>`);
+  if(shapeCadState.points.length){const d=shapeCadState.points.map((p,i)=>`${i?'L':'M'} ${m.sx(p[0]).toFixed(2)} ${m.sy(p[1]).toFixed(2)}`).join(' ')+(shapeCadState.closed?' Z':'');parts.push(`<path d="${d}" fill="${shapeCadState.closed?'rgba(83,214,232,.13)':'none'}" stroke="#53d6e8" stroke-width="2.8" stroke-linejoin="round"/>`);shapeCadState.points.forEach((p,i)=>{const r=shapeCadTouchLike()?5.5:4.3;parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="${i===shapeCadState.dragIndex?r+2:r}" fill="${i===0?'#7fe594':'#f8f8f8'}" stroke="#071116" stroke-width="1.2"/>`);});}
+  if(shapeCadState.draft.length)for(const p of shapeCadState.draft)parts.push(`<circle cx="${m.sx(p[0]).toFixed(2)}" cy="${m.sy(p[1]).toFixed(2)}" r="5" fill="#ffd36a"/>`);
+  parts.push(shapeCadSnapMarkerSvg(shapeCadState.hoverSnap,m));parts.push(`<text x="8" y="18" fill="#8fa0aa" font-size="11">grade ${nice(grid)} mm · peça ${nice(m.W)} × ${nice(m.H)} mm</text>`);svg.innerHTML=parts.join('');
+  const pts=shapeCadState.points,b=shapeCadSketchBounds(pts);if($('shapeCadMeasure'))$('shapeCadMeasure').textContent=pts.length?`${pts.length} pontos · ${shapeCadState.closed?'esboço fechado':'esboço aberto'} · ${nice(b.w)} × ${nice(b.h)} mm${shapeCadState.closed?` · área ${nice(Math.abs(shapeCadPolygonArea(pts)))} mm²`:''}`:'Esboço vazio';shapeCadUpdateZoomLabel();
+};
+shapeCadPointerDown=function(e){
+  if($('shapeType')?.value!=='custom-profile')return;e.preventDefault();shapeCadState.lastPointerType=e.pointerType||shapeCadState.lastPointerType;
+  if(shapeCadState.tool==='pan'){shapeCadState.panPointer=e.pointerId;shapeCadState.panStart={x:e.clientX,y:e.clientY,cx:shapeCadState.viewCx,cy:shapeCadState.viewCy,s:shapeCadMap().s};try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}return;}
+  const raw=shapeCadEventRawPoint(e);if(shapeCadState.tool==='edit'){const i=shapeCadNearestIndex(raw,shapeCadSnapRadiusPx(e)+5);if(i>=0){shapeCadPushUndo();shapeCadState.dragIndex=i;shapeCadState.pointer=e.pointerId;shapeCadState.hoverSnap={point:shapeCadState.points[i],kind:'endpoint',label:'Mover ponto',index:i};shapeCadState.current=shapeCadState.points[i];try{$('shapeCadSvg').setPointerCapture(e.pointerId);}catch{}shapeCadRender();}else{shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();}}else{const p=shapeCadPointerPoint(e);shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;shapeCadApplyToolPoint(p);}
+};
+shapeCadPointerMove=function(e){
+  if($('shapeType')?.value!=='custom-profile')return;if(shapeCadState.panPointer===e.pointerId&&shapeCadState.panStart){e.preventDefault();const st=shapeCadState.panStart;shapeCadState.viewCx=st.cx-(e.clientX-st.x)/st.s;shapeCadState.viewCy=st.cy+(e.clientY-st.y)/st.s;shapeCadRender();return;}
+  const p=shapeCadPointerPoint(e,{endpoints:true,excludeIndex:shapeCadState.dragIndex});shapeCadState.current=p;const tag=shapeCadState.hoverSnap?.kind&&shapeCadState.hoverSnap.kind!=='grid'?` · ${shapeCadState.hoverSnap.label}`:'';if($('shapeCadCoords'))$('shapeCadCoords').textContent=`X ${nice(p[0])} · Y ${nice(p[1])} mm${tag}`;if(shapeCadState.dragIndex>=0&&shapeCadState.pointer===e.pointerId){e.preventDefault();shapeCadState.points[shapeCadState.dragIndex]=p;shapeCadRender();updateShapePreview();}else shapeCadRender();
+};
+shapeCadPointerUp=function(e){if(shapeCadState.panPointer===e.pointerId){shapeCadState.panPointer=null;shapeCadState.panStart=null;return;}if(shapeCadState.pointer===e.pointerId){shapeCadState.pointer=null;shapeCadState.dragIndex=-1;shapeCadRender();updateShapePreview();}};
+
+// ---------- 1.200.36b · Esboço de borda + cotas automáticas ----------
+// Um esboço ABERTO com as duas pontas na borda da peça substitui somente aquele
+// trecho do contorno. Assim é possível desenhar entalhes, degraus e recortes tipo Haixun
+// sem redesenhar a chapa inteira. Esboço FECHADO continua sendo recorte interno.
+const shapeCadInferenceBase=shapeCadInferenceCandidates;
+shapeCadInferenceCandidates=function(raw,opts={}){
+  const c=shapeCadInferenceBase(raw,opts),m=shapeCadMap(),limit=shapeCadTouchLike(opts.event)?34:16;
+  const add=(point,label)=>{const dist=shapeCadPxDistance(raw,point,m);if(dist<=limit)c.push({point:shapeCadClampPoint(point),kind:'piece-edge',label,priority:3,dist});};
+  add([0,raw[1]],'Borda esquerda');add([m.W,raw[1]],'Borda direita');add([raw[0],0],'Borda inferior');add([raw[0],m.H],'Borda superior');
+  return c;
+};
+function shapeCadBoundaryRef(p,W,H,tol=.08){
+  const x=Number(p[0])||0,y=Number(p[1])||0,c=[];
+  if(Math.abs(y)<=tol)c.push({edge:'bottom',t:Math.max(0,Math.min(W,x)),point:[Math.max(0,Math.min(W,x)),0]});
+  if(Math.abs(x-W)<=tol)c.push({edge:'right',t:W+Math.max(0,Math.min(H,y)),point:[W,Math.max(0,Math.min(H,y))]});
+  if(Math.abs(y-H)<=tol)c.push({edge:'top',t:W+H+(W-Math.max(0,Math.min(W,x))),point:[Math.max(0,Math.min(W,x)),H]});
+  if(Math.abs(x)<=tol)c.push({edge:'left',t:2*W+H+(H-Math.max(0,Math.min(H,y))),point:[0,Math.max(0,Math.min(H,y))]});
+  return c[0]||null;
+}
+function shapeCadBoundaryPointAtT(t,W,H){const P=2*(W+H);t=((t%P)+P)%P;if(t<=W)return [t,0];t-=W;if(t<=H)return [W,t];t-=H;if(t<=W)return [W-t,H];t-=W;return [0,H-t];}
+function shapeCadBoundaryPathCCW(fromT,toT,W,H){
+  const P=2*(W+H),out=[shapeCadBoundaryPointAtT(fromT,W,H)];let a=fromT,b=toT;if(b<=a+1e-7)b+=P;
+  const corners=[W,W+H,2*W+H,P,2*W+H+P,W+P,W+H+P,P+P].sort((x,y)=>x-y);
+  for(const t of corners)if(t>a+1e-6&&t<b-1e-6)out.push(shapeCadBoundaryPointAtT(t,W,H));out.push(shapeCadBoundaryPointAtT(toT,W,H));return out;
+}
+function formEdgeProfileOutlineMm(o,src){
+  const ti=pieceThicknessInfo(o);if(!ti||!Array.isArray(src)||src.length<2)return null;const W=ti.faceW,H=ti.faceH,clamp=p=>[Math.max(0,Math.min(W,Number(p[0])||0)),Math.max(0,Math.min(H,Number(p[1])||0))],pts=src.map(clamp),a=shapeCadBoundaryRef(pts[0],W,H),b=shapeCadBoundaryRef(pts.at(-1),W,H);if(!a||!b)return null;
+  const P=2*(W+H),ccw=(b.t-a.t+P)%P,cw=P-ccw;let profile=pts.slice(),start=a,end=b;
+  // Usa o menor trecho periférico como trecho substituído; se necessário, inverte o esboço.
+  if(ccw>cw){profile=profile.slice().reverse();start=b;end=a;}
+  const boundary=shapeCadBoundaryPathCCW(end.t,start.t,W,H),outer=profile.concat(boundary.slice(1,-1));
+  if(Math.abs(shapeCadPolygonArea(outer))<1)return null;return shapeCadPolygonArea(outer)<0?outer.slice().reverse():outer;
+}
+shapeDraftOperation=function(){
+  const type=$('shapeType')?.value||'round-corner',name=String($('shapeName').value||'Forma').trim()||'Forma',folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',presetId=$('shapePresetSelect')?.value||null;
+  const ti=pieceThicknessInfo(shapePreviewOwner||selected);if(!ti)throw new Error('Selecione uma peça retangular');
+  if(type==='custom-profile'){
+    const pts=shapeCadState.points.map(shapeCadClampPoint);if(pts.length<2)throw new Error('Desenhe o esboço no Mini CAD');
+    if(shapeCadState.closed){if(pts.length<3||Math.abs(shapeCadPolygonArea(pts))<.5)throw new Error('Feche um esboço com área válida');if(pts.some(q=>shapeCadBoundaryRef(q,ti.faceW,ti.faceH)))throw new Error('Para recorte na borda, deixe o esboço aberto e termine nas bordas da peça');const b=shapeCadSketchBounds(pts);return {id:uid('form'),type:'custom-profile',operation:'cutout',profileVersion:2,name,folder,presetId,points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),baseW:ti.faceW,baseH:ti.faceH};}
+    const a=shapeCadBoundaryRef(pts[0],ti.faceW,ti.faceH),b=shapeCadBoundaryRef(pts.at(-1),ti.faceW,ti.faceH);if(!a||!b)throw new Error('Esboço aberto: comece e termine na borda tracejada da peça');
+    const outline=formEdgeProfileOutlineMm(shapePreviewOwner||selected,pts);if(!outline)throw new Error('Não foi possível montar o recorte de borda');
+    return {id:uid('form'),type:'custom-profile',operation:'edge-profile',profileVersion:2,name,folder,presetId,points:pts.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),baseW:ti.faceW,baseH:ti.faceH,startEdge:a.edge,endEdge:b.edge};
+  }
+  const radius=Number($('shapeRadius').value);if(!(radius>0))throw new Error('Confira o raio');if(!shapeSelectedCorners.size)throw new Error('Escolha pelo menos um canto');if(radius>Math.min(ti.faceW,ti.faceH)/2+.001)throw new Error(`Raio máximo nesta peça: ${nice(Math.min(ti.faceW,ti.faceH)/2)} mm`);return {id:uid('form'),type:'round-corner',name,radius,folder,presetId,corners:[...shapeSelectedCorners]};
+};
+const formOutlineBeforeEdgeProfile=formOutlinePointsMm;
+formOutlinePointsMm=function(o,formsOverride=null,segments=48){
+  const forms=(formsOverride??o.userData?.forms??[]),edge=[...forms].reverse().find(f=>f?.type==='custom-profile'&&f?.operation==='edge-profile'&&Array.isArray(f.points)&&f.points.length>=2);if(edge){const out=formEdgeProfileOutlineMm(o,edge.points);if(out?.length>=3)return out;}return formOutlineBeforeEdgeProfile(o,formsOverride,segments);
+};
+saveShapePresetLibrary=function(){
+  const name=String($('shapeName').value||'').trim(),folder=String($('shapeFolder').value||'Cantos').trim()||'Cantos',radius=Number($('shapeRadius').value),type=$('shapeType').value||'round-corner';if(!name){toast('Dê um nome para a forma');return;}if(type==='round-corner'&&!(radius>0)){toast('Confira o raio');return;}let extra={};
+  if(type==='custom-profile'){
+    const pts=shapeCadState.points.map(shapeCadClampPoint);if(shapeCadState.closed){if(pts.length<3||Math.abs(shapeCadPolygonArea(pts))<.5){toast('Feche um esboço válido');return;}const {W,H}=shapeCadOwnerInfo();if(pts.some(q=>shapeCadBoundaryRef(q,W,H))){toast('Para forma na borda, deixe o esboço aberto');return;}const b=shapeCadSketchBounds(pts);extra={sketchPoints:pts.map(p=>[roundMmNumber(p[0]-b.minX,3),roundMmNumber(p[1]-b.minY,3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),closed:true,profileVersion:2,operation:'cutout'};}
+    else{const {W,H}=shapeCadOwnerInfo();if(pts.length<2||!shapeCadBoundaryRef(pts[0],W,H)||!shapeCadBoundaryRef(pts.at(-1),W,H)){toast('Esboço aberto precisa começar e terminar na borda da peça');return;}extra={profileNormalized:shapeCadNormalizePoints(pts,W,H),closed:false,profileVersion:2,operation:'edge-profile'};}
+  }
+  const arr=getUserShapePresets();if(shapePresetEditId){const i=arr.findIndex(x=>x.id===shapePresetEditId);if(i>=0)arr[i]={...arr[i],name,folder,radius,type,...extra};else shapePresetEditId=null;}if(!shapePresetEditId){const item={id:uid('shapePreset'),name,folder,radius,type,...extra};arr.push(item);shapePresetEditId=item.id;}setUserShapePresets(arr);refreshShapePresetSelect(shapePresetEditId);toast('Esboço salvo na biblioteca');
+};
+renderAppliedShapes=function(){
+  const list=$('shapeAppliedList');if(!list)return;list.innerHTML='';const owner=shapePreviewOwner||selected,forms=owner?.userData?.forms||[],labels=shapeCornerLabels(owner);if(!forms.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma Forma aplicada nesta peça.';list.appendChild(d);return;}
+  for(const f of forms){const item=document.createElement('div');item.className='shapeAppliedItem';const text=document.createElement('div');text.innerHTML=`<strong></strong><span></span>`;text.querySelector('strong').textContent=f.name||'Forma';text.querySelector('span').textContent=f.type==='custom-profile'?(f.operation==='cutout'?`Esboço fechado · recorte interno · ${(f.points||[]).length} pontos`:f.operation==='edge-profile'?`Esboço aberto · recorte de borda · ${(f.points||[]).length} pontos`:`Mini CAD legado · ${(f.points||[]).length} pontos · contorno completo`):`R ${nice(f.radius)} mm · ${(f.corners||[]).map(c=>labels[c]||c).join(' + ')}`;const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteAppliedShape(f.id);item.append(text,del);list.appendChild(item);}
+};
+const shapeCadRenderBase=shapeCadRender;
+shapeCadRender=function(){
+  shapeCadRenderBase();const svg=$('shapeCadSvg');if(!svg||$('shapeCadShowDims')?.checked===false||shapeCadState.points.length<2)return;const m=shapeCadMap(),segs=shapeCadSegments(),labels=[];let shown=0;
+  for(const seg of segs){if(shown>=24)break;const len=Math.hypot(seg.b[0]-seg.a[0],seg.b[1]-seg.a[1]),px=len*m.s;if(len<.5||px<42)continue;const x=(m.sx(seg.a[0])+m.sx(seg.b[0]))/2,y=(m.sy(seg.a[1])+m.sy(seg.b[1]))/2;labels.push(`<g pointer-events="none"><rect x="${(x-21).toFixed(1)}" y="${(y-8).toFixed(1)}" width="42" height="16" rx="4" fill="rgba(5,10,13,.88)" stroke="rgba(127,229,148,.38)"/><text x="${x.toFixed(1)}" y="${(y+3.4).toFixed(1)}" text-anchor="middle" fill="#c9f7d2" font-size="9" font-weight="800">${nice(len)}</text></g>`);shown++;}
+  if(labels.length)svg.insertAdjacentHTML('beforeend',labels.join(''));
+};
 // ---------- Exportar / importar móvel + Aspire DXF ----------
 function safeFileName(v,fallback='movel'){
   const t=String(v||fallback).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'');
@@ -12631,6 +12879,7 @@ function flatPartInfo(o,index){
     thicknessAxis:cp?'y':ti.thicknessAxis,uAxis:cp?'x':ti.uAxis,vAxis:cp?'z':ti.vAxis,dims:ti.dims,object:o,
     machining:cloneMachining(u.machining||[]),
     customOutline:fp?.points?JSON.parse(JSON.stringify(fp.points)):(cp?.points?JSON.parse(JSON.stringify(cp.points)):(postProfile?.points?JSON.parse(JSON.stringify(postProfile.points)):null)),
+    customCutouts:fp?.cutouts?JSON.parse(JSON.stringify(fp.cutouts)):[],
     customSlots:cp?.slots?JSON.parse(JSON.stringify(cp.slots)):null,spaceName:'',spaceRootId:u.spaceRootId||''
   };
 }
@@ -12688,6 +12937,7 @@ function buildAspireSheetEntities(placed,cfg,cuts=[]){
       entities.push({kind:'poly',layer:'CORTE_EXTERNO',points:p.customOutline.map(mapPt),part:p,role:'outline'});
       if(p.customSlots?.length){layers.add('ENCAIXE_MONTANTE');for(const slot of p.customSlots)entities.push({kind:'poly',layer:'ENCAIXE_MONTANTE',points:slot.map(mapPt),part:p,role:'slot'});}
     }else entities.push({kind:'rect',layer:'CORTE_EXTERNO',x:p.x,y:p.y,w:p.placedW,h:p.placedH,part:p,role:'outline'});
+    if(p.customCutouts?.length){const mapCut=([u,v])=>p.rotated?[p.x+v,p.y+p.faceW-u]:[p.x+u,p.y+v];layers.add('CORTE_INTERNO');for(const cut of p.customCutouts)entities.push({kind:'poly',layer:'CORTE_INTERNO',points:cut.map(mapCut),part:p,role:'cutout'});}
     for(const op of p.machining)for(const e of projectOperation(p,op,p)){if(e){e.part=p;e.op=op;e.role='machining';entities.push(e);layers.add(e.layer);}}
   }
   if(cfg.cutMode==='panel'&&cuts.length){
@@ -12859,6 +13109,7 @@ function legacyV41_sheetPreviewDraw(){
       line=e.part===sheetPreviewSelectedPart?2.2:1.05;
     }else if(e.layer.startsWith('FURO_')){stroke='#d62d7b';line=1.8}
     else if(e.layer.startsWith('RASGO')){stroke='#0099c7';fill='rgba(0,153,199,.10)';line=1.8}
+    else if(e.layer==='CORTE_INTERNO'){stroke='#c23f7a';fill='rgba(194,63,122,.06)';line=1.7}
     else if(e.layer==='ENCAIXE_MONTANTE'){stroke='#bf8a00';fill='rgba(218,168,16,.10)';line=1.6}
     else{stroke='#7b43d1';line=1.5}
     ctx.save();ctx.strokeStyle=stroke;ctx.lineWidth=line;if(fill)ctx.fillStyle=fill;
@@ -14935,7 +15186,7 @@ async function writeExportTarget(target,blob,filename='arquivo'){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.200.33 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.200.36 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -14950,7 +15201,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.200.33 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.200.36 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -16030,7 +16281,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.35</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.36</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -16362,13 +16613,18 @@ $('shapeCadUndo')?.addEventListener('click',shapeCadUndo);
 $('shapeCadRedo')?.addEventListener('click',shapeCadRedo);
 $('shapeCadClose')?.addEventListener('click',shapeCadCloseContour);
 $('shapeCadClear')?.addEventListener('click',shapeCadClear);
+$('shapeCadZoomIn')?.addEventListener('click',()=>shapeCadZoomBy(1.25));
+$('shapeCadZoomOut')?.addEventListener('click',()=>shapeCadZoomBy(1/1.25));
+$('shapeCadZoomFit')?.addEventListener('click',shapeCadFitView);
 $('shapeCadGrid')?.addEventListener('input',shapeCadRender);
 $('shapeCadSnap')?.addEventListener('change',()=>{shapeCadState.hoverSnap=null;shapeCadState.guides=[];shapeCadRender();});
+$('shapeCadShowDims')?.addEventListener('change',shapeCadRender);
 $('shapeCadSvg')?.addEventListener('pointerdown',shapeCadPointerDown);
 $('shapeCadSvg')?.addEventListener('pointermove',shapeCadPointerMove);
 $('shapeCadSvg')?.addEventListener('pointerup',shapeCadPointerUp);
 $('shapeCadSvg')?.addEventListener('pointercancel',shapeCadPointerUp);
 $('shapeCadSvg')?.addEventListener('pointerleave',shapeCadPointerLeave);
+$('shapeCadSvg')?.addEventListener('wheel',shapeCadZoomWheel,{passive:false});
 document.querySelectorAll('[data-shape-corner]').forEach(b=>b.addEventListener('click',()=>{const c=b.dataset.shapeCorner;if(shapeSelectedCorners.has(c))shapeSelectedCorners.delete(c);else shapeSelectedCorners.add(c);refreshShapeCornerLabels();updateShapePreview();}));
 $('previewShape3D').onclick=previewShape3D;
 $('returnShapePreview').onclick=returnShapePreview;
@@ -16720,10 +16976,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.35'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.35'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.35'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.35'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.36'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.36'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.36'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.36'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -16772,7 +17028,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.35: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.36: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
@@ -16788,7 +17044,7 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
-// 1.200.35: não tentamos mais fingir que uma recuperação automática é igual a
+// 1.200.36: não tentamos mais fingir que uma recuperação automática é igual a
 // um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
 // atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
 // para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
@@ -16846,7 +17102,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.35';
+const DL_LAYOUT_VERSION='1.200.36';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -17593,7 +17849,7 @@ $('layoutPrintPreviewDialog')?.addEventListener('pointerdown',e=>{if(e.target===
 $('technicalLayoutDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('technicalLayoutDialog'))closeTechnicalLayoutDialog();});
 window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.contains('show'))requestAnimationFrame(dlLayoutRender);});
 // ============================================================================
-// 1.200.35 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
+// 1.200.36 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
 // ----------------------------------------------------------------------------
 // 1) Autosave comprometido + histórico das últimas 10 versões.
 // 2) Verificador "Projeto pronto para produção".
@@ -17601,7 +17857,7 @@ window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.c
 // 4) Vista explodida numerada + manual automático de montagem.
 // ============================================================================
 
-const DL_PRODUCTION_SUITE_VERSION='1.200.35';
+const DL_PRODUCTION_SUITE_VERSION='1.200.36';
 const DL_PROJECT_VERSION_LIMIT=10;
 const DL_COMMIT_AUTOSAVE_MS=25000;
 let dlCommitAutosaveTimer=null;
@@ -17659,7 +17915,7 @@ async function dlCommitProjectAutosave({reason='Salvamento automático',force=fa
     updateProjectChrome();
     if(navigator.onLine&&currentIdentityUser&&cloudAccountState.ok){queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));}
     return next;
-  }catch(err){console.warn('Autosave comprometido 1.200.35:',err);return null;}
+  }catch(err){console.warn('Autosave comprometido 1.200.36:',err);return null;}
   finally{dlCommitAutosaveRunning=false;}
 }
 function dlScheduleCommitAutosave(){
