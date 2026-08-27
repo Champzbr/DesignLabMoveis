@@ -1,7 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.19",
+  "version": "1.200.20",
   "required": false,
-  "message": "Correção de atualização do app instalado: cada build agora usa cache único; CSS/JS não podem mais misturar versões. Mantém layout CAD branco e botão Voltar protegido.",
-  "released_at": "2026-08-27T11:45:00-03:00"
+  "message": "Correção do PWA Android: layout exibido como PNG com esquema de cor claro real; botão Voltar passa a usar histórico criado durante gesto do usuário; aviso de atualização visível e recarga forçada do servidor.",
+  "released_at": "2026-08-27T11:55:00-03:00",
+  "build": "1.200.20-r1"
 }
