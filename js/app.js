@@ -489,7 +489,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.23';
+const DESIGNLAB_APP_VERSION='1.200.24';
 
 // 1.200.18 · modo de visualização realmente somente leitura.
 // Usado pela visualização de projeto e por todas as prévias 3D.
@@ -661,7 +661,7 @@ function closeUpdateDialog(){
   if(designLabAvailableUpdate?.required)return;
   $('updateDialog').classList.remove('show');
 }
-async function checkDesignLabUpdate({manual=false,force=false}={}){
+async function checkDesignLabUpdate({manual=false,force=false,autoApply=false}={}){
   const now=Date.now();
   if(!force&&!manual&&now-designLabLastUpdateCheck<DESIGNLAB_UPDATE_MIN_INTERVAL)return null;
   designLabLastUpdateCheck=now;
@@ -683,7 +683,15 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
 
     if(compareAppVersions(info.version,DESIGNLAB_APP_VERSION)>0){
       designLabAvailableUpdate=info;
-      if(manual)openUpdateDialog(info);
+      markDesignLabUpdateAvailable(info);
+      if(autoApply&&!manual){
+        let last={};try{last=JSON.parse(sessionStorage.getItem('designLabAutoUpdateAttempt')||'{}')||{};}catch{}
+        const target=String(info.version||'');
+        if(last.version!==target || Date.now()-Number(last.at||0)>60000){
+          try{sessionStorage.setItem('designLabAutoUpdateAttempt',JSON.stringify({version:target,at:Date.now()}));}catch{}
+          applyDesignLabUpdate().catch(()=>{});
+        }else notifyDesignLabUpdateOnce(info);
+      }else if(manual)openUpdateDialog(info);
       else notifyDesignLabUpdateOnce(info);
       return info;
     }
@@ -737,6 +745,35 @@ async function applyDesignLabUpdate(){
     setUpdateDialogStatus('Não foi possível concluir. Tente novamente em alguns instantes.','error');
   }
 }
+async function forceDesignLabServerRefresh(){
+  if(designLabUpdating)return;
+  designLabUpdating=true;
+  try{
+    try{await projectAutosaveNow();}catch{}
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg){
+        designLabSwRegistration=reg;
+        await reg.update().catch(()=>{});
+        reg.waiting?.postMessage?.({type:'SKIP_WAITING'});
+        reg.active?.postMessage?.({type:'PURGE_APP_CACHE'});
+      }
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
+    }
+    const target=new URL(location.href);
+    target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
+    target.searchParams.set('_refresh',String(Date.now()));
+    location.replace(target.toString());
+  }catch(err){
+    console.error('Recarregar servidor:',err);
+    designLabUpdating=false;
+    toast('Não foi possível recarregar a versão do servidor agora');
+  }
+}
+
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
@@ -16278,6 +16315,7 @@ $('homeLogoutBtn').onclick=logoutOnlineIdentity;
 $('homeCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('menuCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('settingsForceRefresh').onclick=forceDesignLabServerRefresh;
 $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
@@ -16495,13 +16533,13 @@ window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);p
 
 initDesignLabInstallExperience();
 initDesignLabServiceWorker().catch(()=>{});
-setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
-window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
+setTimeout(()=>checkDesignLabUpdate({force:true,autoApply:true}),450);
+window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});}
+  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});}
 });
-window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});});
+window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
 
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();
@@ -16526,7 +16564,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.23';
+const DL_LAYOUT_VERSION='1.200.24';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -16669,7 +16707,17 @@ function dlLayoutConvexHull(points){
   for(const p of uniq){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}for(let i=uniq.length-1;i>=0;i--){const p=uniq[i];while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}lo.pop();up.pop();return lo.concat(up);
 }
 function dlLayoutPointInHull(p,h){
-  if(!h||h.length<3)return false;let inside=false;
+  if(!h||h.length<3)return false;
+  const edgeTol=.08;
+  for(let i=0,j=h.length-1;i<h.length;j=i++){
+    const a=h[j],b=h[i],dx=b.u-a.u,dy=b.v-a.v,l2=dx*dx+dy*dy;
+    if(l2>1e-12){
+      const t=Math.max(0,Math.min(1,((p.u-a.u)*dx+(p.v-a.v)*dy)/l2));
+      const qx=a.u+t*dx,qy=a.v+t*dy;
+      if(Math.hypot(p.u-qx,p.v-qy)<=edgeTol)return true;
+    }
+  }
+  let inside=false;
   for(let i=0,j=h.length-1;i<h.length;j=i++){const a=h[i],b=h[j];const hit=((a.v>p.v)!==(b.v>p.v))&&(p.u<(b.u-a.u)*(p.v-a.v)/((b.v-a.v)||1e-9)+a.u);if(hit)inside=!inside;}
   return inside;
 }
@@ -16717,19 +16765,29 @@ function dlLayoutModel(view,ctx){
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
 const DL_LAYOUT_DIM_TOL=.02;
-function dlLayoutInternalBoundaries(model,axis){
-  const vals=[];
-  // 1.200.23: cota interna nasce somente de geometria realmente visível nesta vista.
-  // Não usa mais limites de células nem caixa de peça escondida atrás de porta/frente.
+function dlLayoutVisibleDimensionBounds(model){
+  const pts=[];
+  for(const it of model.items){
+    if(it.hidden&&!it.cut)continue;
+    if(it.cut&&it.sectionBox){const q=it.sectionBox;pts.push({u:q.minU,v:q.minV},{u:q.maxU,v:q.maxV});continue;}
+    for(const seg of it.segments||[]){if(seg.hidden)continue;pts.push(seg.a,seg.b);}
+  }
+  if(!pts.length)return model.bounds;
+  return {minU:Math.min(...pts.map(p=>p.u)),maxU:Math.max(...pts.map(p=>p.u)),minV:Math.min(...pts.map(p=>p.v)),maxV:Math.max(...pts.map(p=>p.v))};
+}
+function dlLayoutInternalBoundaries(model,axis,dimBounds=null){
+  const vals=[],b=dimBounds||model.bounds;
   for(const it of model.items){
     if(it.cut&&it.sectionBox){const q=it.sectionBox;vals.push(axis==='u'?q.minU:q.minV,axis==='u'?q.maxU:q.maxV);continue;}
     if(it.hidden)continue;
     for(const seg of it.segments||[]){
       if(seg.hidden)continue;
-      vals.push(axis==='u'?seg.a.u:seg.a.v,axis==='u'?seg.b.u:seg.b.v);
+      const du=Math.abs(seg.b.u-seg.a.u),dv=Math.abs(seg.b.v-seg.a.v);
+      if(axis==='u'){if(du>DL_LAYOUT_DIM_TOL||dv<.5)continue;vals.push((seg.a.u+seg.b.u)/2);}
+      else{if(dv>DL_LAYOUT_DIM_TOL||du<.5)continue;vals.push((seg.a.v+seg.b.v)/2);}
     }
   }
-  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
+  const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV;
   vals.push(min,max);
   const sorted=vals.filter(Number.isFinite).map(v=>Math.round(v*100)/100).filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL).sort((a,b)=>a-b);
   const out=[];
@@ -16738,12 +16796,12 @@ function dlLayoutInternalBoundaries(model,axis){
 }
 function dlLayoutDimensionModel(model){
   if(model.view==='perspective')return [];
-  const b=model.bounds,dims=[];
+  const b=dlLayoutVisibleDimensionBounds(model),dims=[];
   dims.push({id:`${model.view}-overall-u`,axis:'u',a:b.minU,b:b.maxU,text:dlLayoutMmText(b.maxU-b.minU),overall:true});
   dims.push({id:`${model.view}-overall-v`,axis:'v',a:b.minV,b:b.maxV,text:dlLayoutMmText(b.maxV-b.minV),overall:true});
   if(dlLayoutState.showInternal){
     for(const axis of ['u','v']){
-      const arr=dlLayoutInternalBoundaries(model,axis),parts=[];
+      const arr=dlLayoutInternalBoundaries(model,axis,b),parts=[];
       const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV,overall=max-min;
       for(let i=0;i<arr.length-1;i++){
         const a=arr[i],bb=arr[i+1],len=bb-a;
