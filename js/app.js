@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.33';
+  return tm?.[1]||'1.200.34';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.33-r1';
+const DESIGNLAB_JS_BUILD='1.200.34-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -772,8 +772,18 @@ async function applyDesignLabUpdate(){
   }
 }
 
-async function forceDesignLabServerRefresh(){
-  if(designLabUpdating)return;
+async function forceDesignLabServerRefresh(options={}){
+  const automatic=!!options.automatic;
+  const gesture=!!options.gesture;
+  const reason=String(options.reason||'manual').replace(/[^a-z0-9_-]+/gi,'-').slice(0,32)||'manual';
+  if(designLabUpdating)return false;
+  // A recuperação automática usa EXATAMENTE o mesmo caminho do botão que o
+  // usuário confirmou funcionar. O marcador só impede o reload de chamar a si
+  // mesmo novamente no novo documento.
+  if(automatic){
+    const q=new URLSearchParams(location.search);
+    if(q.has('_serverRecovered'))return false;
+  }
   designLabUpdating=true;
   try{
     try{await projectAutosaveNow();}catch{}
@@ -790,18 +800,71 @@ async function forceDesignLabServerRefresh(){
       const keys=await caches.keys();
       await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
     }
+    // Dá uma pequena janela para o SW concluir PURGE/SKIP_WAITING antes da
+    // navegação. No clique manual isso já ocorria naturalmente pelo tempo de UI;
+    // no automático fazemos explicitamente para reproduzir o mesmo resultado.
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg?.waiting){
+        await Promise.race([
+          new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true})),
+          new Promise(resolve=>setTimeout(resolve,900))
+        ]);
+      }else{
+        await new Promise(resolve=>setTimeout(resolve,120));
+      }
+    }
     const target=new URL('/',location.origin);
-    target.searchParams.set('_bootFresh','manual-'+Date.now());
+    target.searchParams.set('_bootFresh',(automatic?'auto':'manual')+'-'+Date.now());
     target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
     target.searchParams.set('_refresh',String(Date.now()));
+    if(automatic)target.searchParams.set('_serverRecovered',reason+'-'+Date.now());
+    if(gesture){
+      try{sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');}catch(_){ }
+      target.searchParams.set('_gestureRecovered','1');
+      window.__designLabRecoveryNavigating=true;
+    }
     location.replace(target.toString());
+    return true;
   }catch(err){
     console.error('Recarregar servidor:',err);
     designLabUpdating=false;
-    toast('Não foi possível recarregar a versão do servidor agora');
+    if(!automatic)toast('Não foi possível recarregar a versão do servidor agora');
+    return false;
   }
 }
 
+let designLabAutoRecoveryInFlight=false;
+let designLabWasHidden=false;
+let designLabGestureRecoveryReady=false;
+const DESIGNLAB_GESTURE_RECOVERY_KEY='__designLabGestureServerRecoveryV34';
+try{
+  const q=new URLSearchParams(location.search);
+  designLabGestureRecoveryReady=q.has('_gestureRecovered') || sessionStorage.getItem(DESIGNLAB_GESTURE_RECOVERY_KEY)==='1';
+  if(q.has('_gestureRecovered'))sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');
+}catch(_){ }
+
+async function designLabEnsureServerRecovery(reason='gesture'){
+  if(designLabGestureRecoveryReady||designLabAutoRecoveryInFlight||designLabUpdating||!navigator.onLine)return false;
+  designLabAutoRecoveryInFlight=true;
+  try{
+    // O ponto decisivo é esta rotina ser chamada a partir de uma interação REAL
+    // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
+    // por scripts antes de qualquer ativação humana (History Manipulation
+    // Intervention). O botão manual funcionava justamente porque fornecia essa
+    // ativação. A 1.200.34 reutiliza o primeiro toque normal no próprio CAD.
+    const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
+    if(ok)designLabGestureRecoveryReady=true;
+    return ok;
+  }finally{
+    setTimeout(()=>{designLabAutoRecoveryInFlight=false;},1200);
+  }
+}
+function designLabForgetGestureRecovery(){
+  if(window.__designLabRecoveryNavigating)return;
+  designLabGestureRecoveryReady=false;
+  try{sessionStorage.removeItem(DESIGNLAB_GESTURE_RECOVERY_KEY);}catch(_){ }
+}
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
@@ -10857,7 +10920,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.33 · Mini CAD 2D embutido na ferramenta Forma ----------
+// ---------- 1.200.34 · Mini CAD 2D embutido na ferramenta Forma ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,baseW:0,baseH:0,loadedPresetId:null
@@ -15918,7 +15981,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.33</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.34</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -16607,10 +16670,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.33'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.33'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.34'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.34'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -16659,12 +16722,12 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.33: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.34: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
   try{
-    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server'];let changed=false;
+    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server','_serverRecovered','_gestureRecovered'];let changed=false;
     for(const k of keys)if(u.searchParams.has(k)){u.searchParams.delete(k);changed=true;}
     if(changed)window.history.replaceState(window.history.state||{},'',u.pathname+(u.search||'')+(u.hash||''));
   }catch(_){}
@@ -16675,15 +16738,41 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
+// 1.200.34: não tentamos mais fingir que uma recuperação automática é igual a
+// um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
+// atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
+// para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
 initDesignLabServiceWorker().catch(()=>{});
 setTimeout(()=>checkDesignLabUpdate({force:true,autoApply:true}),450);
 window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
+
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});}
+  if(document.visibilityState==='hidden'){
+    designLabWasHidden=true;
+    designLabForgetGestureRecovery();
+    return;
+  }
+  if(document.visibilityState==='visible'){
+    designLabArmBackGuard();
+    checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+  }
 });
+window.addEventListener('pagehide',()=>{designLabWasHidden=true;designLabForgetGestureRecovery();},{capture:true});
 window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
 
+// A ação normal do usuário acontece primeiro. Em seguida, ainda dentro da janela
+// de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
+// Configurações. Não é necessário abrir Configurações nem procurar o botão.
+function designLabGestureServerRecovery(){
+  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
+  designLabEnsureServerRecovery('first-user-gesture').catch(()=>{});
+}
+document.addEventListener('click',designLabGestureServerRecovery,{capture:false,passive:true});
+document.addEventListener('pointerup',()=>{
+  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
+  setTimeout(designLabGestureServerRecovery,0);
+},{capture:false,passive:true});
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();
 setFrontWorldView();
@@ -16707,7 +16796,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.33';
+const DL_LAYOUT_VERSION='1.200.34';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -17454,7 +17543,7 @@ $('layoutPrintPreviewDialog')?.addEventListener('pointerdown',e=>{if(e.target===
 $('technicalLayoutDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('technicalLayoutDialog'))closeTechnicalLayoutDialog();});
 window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.contains('show'))requestAnimationFrame(dlLayoutRender);});
 // ============================================================================
-// 1.200.33 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
+// 1.200.34 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
 // ----------------------------------------------------------------------------
 // 1) Autosave comprometido + histórico das últimas 10 versões.
 // 2) Verificador "Projeto pronto para produção".
@@ -17462,7 +17551,7 @@ window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.c
 // 4) Vista explodida numerada + manual automático de montagem.
 // ============================================================================
 
-const DL_PRODUCTION_SUITE_VERSION='1.200.33';
+const DL_PRODUCTION_SUITE_VERSION='1.200.34';
 const DL_PROJECT_VERSION_LIMIT=10;
 const DL_COMMIT_AUTOSAVE_MS=25000;
 let dlCommitAutosaveTimer=null;
@@ -17520,7 +17609,7 @@ async function dlCommitProjectAutosave({reason='Salvamento automático',force=fa
     updateProjectChrome();
     if(navigator.onLine&&currentIdentityUser&&cloudAccountState.ok){queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));}
     return next;
-  }catch(err){console.warn('Autosave comprometido 1.200.33:',err);return null;}
+  }catch(err){console.warn('Autosave comprometido 1.200.34:',err);return null;}
   finally{dlCommitAutosaveRunning=false;}
 }
 function dlScheduleCommitAutosave(){
