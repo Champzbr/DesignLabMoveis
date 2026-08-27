@@ -495,9 +495,11 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.28';
+  return tm?.[1]||'1.200.30';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
+const DESIGNLAB_JS_BUILD='1.200.30-r1';
+function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
 // Usado pela visualização de projeto e por todas as prévias 3D.
@@ -517,7 +519,7 @@ function designLabVisualizationOnlyActive(){
   return document.body.classList.contains('visualization-only') || document.body.classList.contains('presentation-active');
 }
 
-const DESIGNLAB_VERSION_URL='./version.json';
+const DESIGNLAB_VERSION_URL='/version.json';
 const DESIGNLAB_UPDATE_MIN_INTERVAL=5*60*1000;
 
 let designLabLastUpdateCheck=0;
@@ -726,28 +728,41 @@ async function applyDesignLabUpdate(){
   try{
     try{await projectAutosaveNow();}catch{}
 
+    let targetBuild=String(designLabAvailableUpdate?.build||designLabAvailableUpdate?.version||Date.now());
     if('serviceWorker' in navigator){
       const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
       if(reg){
         designLabSwRegistration=reg;
-        setUpdateDialogStatus('Baixando arquivos atualizados e renovando o cache…','warn');
-        await reg.update();
-
-        const waiting=reg.waiting;
-        if(waiting)waiting.postMessage({type:'SKIP_WAITING'});
+        setUpdateDialogStatus('Baixando arquivos atualizados diretamente do servidor…','warn');
+        await reg.update().catch(()=>{});
+        reg.waiting?.postMessage?.({type:'SKIP_WAITING'});
+        reg.active?.postMessage?.({type:'PURGE_APP_CACHE'});
       }
     }
 
-    // Cache-buster garante que nem o navegador nem um SW antigo entreguem o HTML antigo.
-    // Sempre volta para a raiz do app. Se uma instalação antiga estiver aberta
-    // por um HTML versionado (ex.: designlabmoveis-1.200.25.html), recarregar a
-    // mesma URL manteria aquela versão para sempre mesmo com o SW novo.
+    // Mesma limpeza do botão manual: a atualização automática não pode deixar
+    // HTML novo usando JS/CSS antigos do PWA.
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
+    }
+
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg?.waiting){
+        await Promise.race([
+          new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true})),
+          new Promise(resolve=>setTimeout(resolve,900))
+        ]);
+      }
+    }
+
     const target=new URL('/',location.origin);
+    target.searchParams.set('_bootFresh',targetBuild);
     target.searchParams.set('_dlv',designLabAvailableUpdate?.version||String(Date.now()));
     target.searchParams.set('_refresh',String(Date.now()));
     setUpdateDialogStatus('Atualização pronta. Reiniciando o DesignLabMoveis…','good');
-
-    setTimeout(()=>location.replace(target.toString()),450);
+    setTimeout(()=>location.replace(target.toString()),250);
   }catch(err){
     console.error('Atualização:',err);
     designLabUpdating=false;
@@ -756,6 +771,7 @@ async function applyDesignLabUpdate(){
     setUpdateDialogStatus('Não foi possível concluir. Tente novamente em alguns instantes.','error');
   }
 }
+
 async function forceDesignLabServerRefresh(){
   if(designLabUpdating)return;
   designLabUpdating=true;
@@ -775,6 +791,7 @@ async function forceDesignLabServerRefresh(){
       await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
     }
     const target=new URL('/',location.origin);
+    target.searchParams.set('_bootFresh','manual-'+Date.now());
     target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
     target.searchParams.set('_refresh',String(Date.now()));
     location.replace(target.toString());

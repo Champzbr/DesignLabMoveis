@@ -1198,11 +1198,11 @@ function designLabInstallBackFence(){
     // Fallback para navegador muito antigo: ainda mantém três entradas internas.
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.18'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.18'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.18'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.30'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.30'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.30'},'',location.href);
     }else if(st.kind!=='guard2'){
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.18'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.30'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1244,6 +1244,21 @@ installOutsideMenuClose();
 window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
+
+// 1.200.30: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
+// bootstrap automático do servidor, sem o usuário precisar tocar em botão.
+setTimeout(()=>{
+  try{
+    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server'];let changed=false;
+    for(const k of keys)if(u.searchParams.has(k)){u.searchParams.delete(k);changed=true;}
+    if(changed)window.history.replaceState(window.history.state||{},'',u.pathname+(u.search||'')+(u.hash||''));
+  }catch(_){}
+},1400);
+// Detecta mistura improvável de HTML atual com bundle antigo e corrige sozinha.
+setTimeout(()=>{
+  try{if(navigator.onLine&&typeof designLabRuntimeBuild==='function'&&designLabRuntimeBuild()!==DESIGNLAB_JS_BUILD)forceDesignLabServerRefresh();}catch(_){}
+},300);
 
 initDesignLabInstallExperience();
 initDesignLabServiceWorker().catch(()=>{});
