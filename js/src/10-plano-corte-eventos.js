@@ -1028,6 +1028,7 @@ $('homeLogoutBtn').onclick=logoutOnlineIdentity;
 $('homeCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('menuCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('settingsForceRefresh').onclick=forceDesignLabServerRefresh;
 $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
@@ -1245,13 +1246,13 @@ window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);p
 
 initDesignLabInstallExperience();
 initDesignLabServiceWorker().catch(()=>{});
-setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
-window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
+setTimeout(()=>checkDesignLabUpdate({force:true,autoApply:true}),450);
+window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});}
+  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});}
 });
-window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});});
+window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
 
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();

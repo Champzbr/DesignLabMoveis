@@ -5,7 +5,7 @@
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.23';
+const DL_LAYOUT_VERSION='1.200.24';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',frontOpen:'Frente sem portas/frentes',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',perspective:'Vista perspectiva',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -148,7 +148,17 @@ function dlLayoutConvexHull(points){
   for(const p of uniq){while(lo.length>=2&&cross(lo.at(-2),lo.at(-1),p)<=0)lo.pop();lo.push(p);}for(let i=uniq.length-1;i>=0;i--){const p=uniq[i];while(up.length>=2&&cross(up.at(-2),up.at(-1),p)<=0)up.pop();up.push(p);}lo.pop();up.pop();return lo.concat(up);
 }
 function dlLayoutPointInHull(p,h){
-  if(!h||h.length<3)return false;let inside=false;
+  if(!h||h.length<3)return false;
+  const edgeTol=.08;
+  for(let i=0,j=h.length-1;i<h.length;j=i++){
+    const a=h[j],b=h[i],dx=b.u-a.u,dy=b.v-a.v,l2=dx*dx+dy*dy;
+    if(l2>1e-12){
+      const t=Math.max(0,Math.min(1,((p.u-a.u)*dx+(p.v-a.v)*dy)/l2));
+      const qx=a.u+t*dx,qy=a.v+t*dy;
+      if(Math.hypot(p.u-qx,p.v-qy)<=edgeTol)return true;
+    }
+  }
+  let inside=false;
   for(let i=0,j=h.length-1;i<h.length;j=i++){const a=h[i],b=h[j];const hit=((a.v>p.v)!==(b.v>p.v))&&(p.u<(b.u-a.u)*(p.v-a.v)/((b.v-a.v)||1e-9)+a.u);if(hit)inside=!inside;}
   return inside;
 }
@@ -196,19 +206,29 @@ function dlLayoutModel(view,ctx){
   return {view,projection,items,bounds:pb,worldBounds:bx,sectionX,sectionY,ctx};
 }
 const DL_LAYOUT_DIM_TOL=.02;
-function dlLayoutInternalBoundaries(model,axis){
-  const vals=[];
-  // 1.200.23: cota interna nasce somente de geometria realmente visível nesta vista.
-  // Não usa mais limites de células nem caixa de peça escondida atrás de porta/frente.
+function dlLayoutVisibleDimensionBounds(model){
+  const pts=[];
+  for(const it of model.items){
+    if(it.hidden&&!it.cut)continue;
+    if(it.cut&&it.sectionBox){const q=it.sectionBox;pts.push({u:q.minU,v:q.minV},{u:q.maxU,v:q.maxV});continue;}
+    for(const seg of it.segments||[]){if(seg.hidden)continue;pts.push(seg.a,seg.b);}
+  }
+  if(!pts.length)return model.bounds;
+  return {minU:Math.min(...pts.map(p=>p.u)),maxU:Math.max(...pts.map(p=>p.u)),minV:Math.min(...pts.map(p=>p.v)),maxV:Math.max(...pts.map(p=>p.v))};
+}
+function dlLayoutInternalBoundaries(model,axis,dimBounds=null){
+  const vals=[],b=dimBounds||model.bounds;
   for(const it of model.items){
     if(it.cut&&it.sectionBox){const q=it.sectionBox;vals.push(axis==='u'?q.minU:q.minV,axis==='u'?q.maxU:q.maxV);continue;}
     if(it.hidden)continue;
     for(const seg of it.segments||[]){
       if(seg.hidden)continue;
-      vals.push(axis==='u'?seg.a.u:seg.a.v,axis==='u'?seg.b.u:seg.b.v);
+      const du=Math.abs(seg.b.u-seg.a.u),dv=Math.abs(seg.b.v-seg.a.v);
+      if(axis==='u'){if(du>DL_LAYOUT_DIM_TOL||dv<.5)continue;vals.push((seg.a.u+seg.b.u)/2);}
+      else{if(dv>DL_LAYOUT_DIM_TOL||du<.5)continue;vals.push((seg.a.v+seg.b.v)/2);}
     }
   }
-  const min=axis==='u'?model.bounds.minU:model.bounds.minV,max=axis==='u'?model.bounds.maxU:model.bounds.maxV;
+  const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV;
   vals.push(min,max);
   const sorted=vals.filter(Number.isFinite).map(v=>Math.round(v*100)/100).filter(v=>v>=min-DL_LAYOUT_DIM_TOL&&v<=max+DL_LAYOUT_DIM_TOL).sort((a,b)=>a-b);
   const out=[];
@@ -217,12 +237,12 @@ function dlLayoutInternalBoundaries(model,axis){
 }
 function dlLayoutDimensionModel(model){
   if(model.view==='perspective')return [];
-  const b=model.bounds,dims=[];
+  const b=dlLayoutVisibleDimensionBounds(model),dims=[];
   dims.push({id:`${model.view}-overall-u`,axis:'u',a:b.minU,b:b.maxU,text:dlLayoutMmText(b.maxU-b.minU),overall:true});
   dims.push({id:`${model.view}-overall-v`,axis:'v',a:b.minV,b:b.maxV,text:dlLayoutMmText(b.maxV-b.minV),overall:true});
   if(dlLayoutState.showInternal){
     for(const axis of ['u','v']){
-      const arr=dlLayoutInternalBoundaries(model,axis),parts=[];
+      const arr=dlLayoutInternalBoundaries(model,axis,b),parts=[];
       const min=axis==='u'?b.minU:b.minV,max=axis==='u'?b.maxU:b.maxV,overall=max-min;
       for(let i=0;i<arr.length-1;i++){
         const a=arr[i],bb=arr[i+1],len=bb-a;

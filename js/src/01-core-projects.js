@@ -489,7 +489,7 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.23';
+const DESIGNLAB_APP_VERSION='1.200.24';
 
 // 1.200.18 · modo de visualização realmente somente leitura.
 // Usado pela visualização de projeto e por todas as prévias 3D.
@@ -661,7 +661,7 @@ function closeUpdateDialog(){
   if(designLabAvailableUpdate?.required)return;
   $('updateDialog').classList.remove('show');
 }
-async function checkDesignLabUpdate({manual=false,force=false}={}){
+async function checkDesignLabUpdate({manual=false,force=false,autoApply=false}={}){
   const now=Date.now();
   if(!force&&!manual&&now-designLabLastUpdateCheck<DESIGNLAB_UPDATE_MIN_INTERVAL)return null;
   designLabLastUpdateCheck=now;
@@ -683,7 +683,15 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
 
     if(compareAppVersions(info.version,DESIGNLAB_APP_VERSION)>0){
       designLabAvailableUpdate=info;
-      if(manual)openUpdateDialog(info);
+      markDesignLabUpdateAvailable(info);
+      if(autoApply&&!manual){
+        let last={};try{last=JSON.parse(sessionStorage.getItem('designLabAutoUpdateAttempt')||'{}')||{};}catch{}
+        const target=String(info.version||'');
+        if(last.version!==target || Date.now()-Number(last.at||0)>60000){
+          try{sessionStorage.setItem('designLabAutoUpdateAttempt',JSON.stringify({version:target,at:Date.now()}));}catch{}
+          applyDesignLabUpdate().catch(()=>{});
+        }else notifyDesignLabUpdateOnce(info);
+      }else if(manual)openUpdateDialog(info);
       else notifyDesignLabUpdateOnce(info);
       return info;
     }
@@ -737,6 +745,35 @@ async function applyDesignLabUpdate(){
     setUpdateDialogStatus('Não foi possível concluir. Tente novamente em alguns instantes.','error');
   }
 }
+async function forceDesignLabServerRefresh(){
+  if(designLabUpdating)return;
+  designLabUpdating=true;
+  try{
+    try{await projectAutosaveNow();}catch{}
+    if('serviceWorker' in navigator){
+      const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
+      if(reg){
+        designLabSwRegistration=reg;
+        await reg.update().catch(()=>{});
+        reg.waiting?.postMessage?.({type:'SKIP_WAITING'});
+        reg.active?.postMessage?.({type:'PURGE_APP_CACHE'});
+      }
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
+    }
+    const target=new URL(location.href);
+    target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
+    target.searchParams.set('_refresh',String(Date.now()));
+    location.replace(target.toString());
+  }catch(err){
+    console.error('Recarregar servidor:',err);
+    designLabUpdating=false;
+    toast('Não foi possível recarregar a versão do servidor agora');
+  }
+}
+
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
