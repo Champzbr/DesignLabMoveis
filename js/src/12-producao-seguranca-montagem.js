@@ -1,5 +1,5 @@
 // ============================================================================
-// 1.200.31 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
+// 1.200.32 · SEGURANÇA DO PROJETO + PRODUÇÃO + MONTAGEM
 // ----------------------------------------------------------------------------
 // 1) Autosave comprometido + histórico das últimas 10 versões.
 // 2) Verificador "Projeto pronto para produção".
@@ -7,7 +7,7 @@
 // 4) Vista explodida numerada + manual automático de montagem.
 // ============================================================================
 
-const DL_PRODUCTION_SUITE_VERSION='1.200.31';
+const DL_PRODUCTION_SUITE_VERSION='1.200.32';
 const DL_PROJECT_VERSION_LIMIT=10;
 const DL_COMMIT_AUTOSAVE_MS=25000;
 let dlCommitAutosaveTimer=null;
@@ -65,7 +65,7 @@ async function dlCommitProjectAutosave({reason='Salvamento automático',force=fa
     updateProjectChrome();
     if(navigator.onLine&&currentIdentityUser&&cloudAccountState.ok){queueMicrotask(()=>cloudSaveProjectRecord(next,{silent:true}));}
     return next;
-  }catch(err){console.warn('Autosave comprometido 1.200.31:',err);return null;}
+  }catch(err){console.warn('Autosave comprometido 1.200.32:',err);return null;}
   finally{dlCommitAutosaveRunning=false;}
 }
 function dlScheduleCommitAutosave(){
