@@ -489,8 +489,8 @@ window.miniCadAuth={
 // ============================================================================
 // 1.100.27 · SISTEMA DE ATUALIZAÇÃO + CACHE SEGURO
 // ============================================================================
-const DESIGNLAB_APP_VERSION='1.200.19';
-const DESIGNLAB_BUILD_ID='1.200.19-r1';
+const DESIGNLAB_APP_VERSION='1.200.20';
+const DESIGNLAB_BUILD_ID='1.200.20-r1';
 window.__DESIGNLAB_BUILD_ID=DESIGNLAB_BUILD_ID;
 (function verifyDesignLabRuntimeBuild(){
   const htmlBuild=document.querySelector('meta[name="designlab-build"]')?.content||'';
@@ -537,6 +537,11 @@ function markDesignLabUpdateAvailable(info){
     const b=$(id);if(!b)continue;
     b.classList.toggle('updateAvailable',!!version);
     if(version)b.title=`Atualização ${version} disponível`;else b.removeAttribute('title');
+  }
+  const chip=$('updateAvailableChip');
+  if(chip){
+    chip.hidden=!version;
+    chip.textContent=version?`↻ Atualizar para ${version}`:'↻ Atualizar app';
   }
 }
 function notifyDesignLabUpdateOnce(info){
@@ -715,6 +720,29 @@ async function checkDesignLabUpdate({manual=false,force=false}={}){
     return null;
   }
 }
+async function forceReloadDesignLabFromServer(){
+  if(designLabUpdating)return;
+  designLabUpdating=true;
+  try{
+    try{await projectAutosaveNow();}catch{}
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations().catch(()=>[]);
+      for(const reg of regs){try{await reg.update();}catch{}}
+    }
+    if('caches' in window){
+      const keys=await caches.keys().catch(()=>[]);
+      await Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)));
+    }
+    const u=new URL(location.origin+location.pathname);
+    u.searchParams.set('_dlforce',String(Date.now()));
+    location.replace(u.toString());
+  }catch(err){
+    console.warn('Recarga forçada:',err);
+    designLabUpdating=false;
+    location.reload();
+  }
+}
+
 async function applyDesignLabUpdate(){
   if(designLabUpdating)return;
   designLabUpdating=true;
@@ -16293,6 +16321,8 @@ $('homeLogoutBtn').onclick=logoutOnlineIdentity;
 $('homeCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('menuCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
 $('settingsCheckUpdate').onclick=()=>checkDesignLabUpdate({manual:true,force:true});
+$('settingsForceRefresh')?.addEventListener('click',()=>forceReloadDesignLabFromServer());
+$('updateAvailableChip')?.addEventListener('click',()=>designLabAvailableUpdate?openUpdateDialog(designLabAvailableUpdate):checkDesignLabUpdate({manual:true,force:true}));
 $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
@@ -16341,9 +16371,9 @@ $('adminPaymentsList').addEventListener('click',e=>{
 });
 
 // ============================================================================
-// 1.200.19 · VOLTAR UNIVERSAL (Android / navegador / PWA)
+// 1.200.20 · VOLTAR UNIVERSAL (Android / navegador / PWA)
 // ----------------------------------------------------------------------------
-// 1.200.19 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
+// 1.200.20 · VOLTAR UNIVERSAL / CERCA DE HISTÓRICO
 // ----------------------------------------------------------------------------
 // O bootstrap instalado no <head> cria uma "almofada" de várias entradas
 // same-document ANTES de o app carregar. Isso é deliberado: em alguns Samsung/
@@ -16453,55 +16483,111 @@ async function designLabHandleBackCascade(){
   return 'root';
 }
 
+
+const DESIGNLAB_HISTORY_KEY='__designLabTrustedHistory';
+let designLabHistorySeq=0;
+let designLabHistoryArmed=false;
 let designLabHandlingPopState=false;
-function designLabInstallBackFence(){
+let designLabBouncingRoot=false;
+let designLabPointerSnapshot=null;
+
+function designLabUiSnapshot(){
+  const layers=[];
+  const ids=['technicalLayoutDialog','sheetPreviewDialog','labelsDialog','partsListDialog','hardwareBuilderDialog','shapeDialog','machiningDialog','curvedStructureDialog','drawerSystemDialog','createPiecesDialog','cutSpaceDialog','newSpaceDialog','editSpaceDialog','libraryDialog','newPanelDialog','toolDockEditDialog','productionDialog','spaceMoreDialog','adminDialog','appSettingsDialog','projectMetaDialog','recoveryDialog','updateDialog'];
+  for(const id of ids)if(designLabBackElementVisible(id))layers.push(id);
+  if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar'))layers.push('curvedPreview');
+  if(shapePreviewActive||designLabBackElementVisible('shape3DPreviewBar'))layers.push('shapePreview');
+  if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar'))layers.push('machiningPreview');
+  if($('projectCardMenu')?.classList.contains('show'))layers.push('projectCardMenu');
+  if(elementIsVisible($('inspector')))layers.push('inspector');
+  if(elementIsVisible($('spaceActions')))layers.push('spaceActions');
+  if(designLabBackElementVisible('morePanel'))layers.push('morePanel');
+  if($('projectMenuPanel')?.classList.contains('show'))layers.push('projectMenuPanel');
+  if($('toolDock')?.classList.contains('open'))layers.push('toolDock');
+  if(toolMode&&toolMode!=='select')layers.push('tool:'+toolMode);
+  if(viewMode2D||camera===orthoCamera)layers.push('view2d');
+  if(visualMode&&!document.body.classList.contains('presentation-active'))layers.push('visual');
+  const base=document.body.classList.contains('project-home-active')?'home':(currentProjectId?'editor':'root');
+  const baseDepth=base==='editor'?1:0;
+  return {base,layers,depth:baseDepth+layers.length,signature:base+'|'+layers.join('>')};
+}
+function designLabHistoryState(kind,snap){
+  return {[DESIGNLAB_HISTORY_KEY]:true,kind,seq:++designLabHistorySeq,version:DESIGNLAB_APP_VERSION,signature:snap?.signature||'',depth:snap?.depth||0};
+}
+function designLabEnsureTrustedRoot(beforeSnap){
+  if(designLabHistoryArmed)return;
   try{
-    const boot=window.__DL_BACK_BOOTSTRAP;
-    if(boot?.ensure)return boot.ensure();
-    // Fallback para navegador muito antigo: ainda mantém três entradas internas.
     const st=window.history.state||{};
-    if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.19'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.19'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.19'},'',location.href);
-    }else if(st.kind!=='guard2'){
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.19'},'',location.href);
+    if(!st[DESIGNLAB_HISTORY_KEY])window.history.replaceState(designLabHistoryState('anchor',beforeSnap),'',location.href);
+    // IMPORTANTE: esta chamada acontece síncrona dentro de pointer/click real.
+    // Chrome Android não marca essa entrada como "skippable".
+    window.history.pushState(designLabHistoryState('rootGuard',beforeSnap),'',location.href);
+    designLabHistoryArmed=true;
+  }catch(err){console.warn('Histórico confiável:',err);}
+}
+function designLabTrackTrustedInteractionBefore(e){
+  if(!e.isTrusted)return;
+  const snap=designLabUiSnapshot();
+  designLabPointerSnapshot=snap;
+  designLabEnsureTrustedRoot(snap);
+}
+function designLabTrackTrustedInteractionAfter(e){
+  if(!e.isTrusted)return;
+  const before=designLabPointerSnapshot||designLabUiSnapshot();
+  const after=designLabUiSnapshot();
+  designLabPointerSnapshot=null;
+  if(before.signature===after.signature)return;
+  try{
+    // Abrir uma camada/entrar no editor cria uma etapa REAL de navegação.
+    if(after.depth>before.depth){
+      window.history.pushState(designLabHistoryState('ui',after),'',location.href);
+    }else{
+      // Fechar por botão/trocar modo não deve deixar lixo na pilha.
+      window.history.replaceState(designLabHistoryState('ui',after),'',location.href);
     }
-    return true;
-  }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
+  }catch(err){console.warn('Rota interna:',err);}
 }
-function designLabPushBackGuard(){return designLabInstallBackFence();}
-function designLabArmBackGuard(){return designLabInstallBackFence();}
-function designLabRunNativeBackCascade(){
+
+// `pointerdown` arma a cerca dentro de um gesto verdadeiro, inclusive antes de
+// arrastar/orbitar no 3D. `click` registra somente mudanças reais de tela/menu.
+window.addEventListener('pointerdown',designLabTrackTrustedInteractionBefore,{capture:true,passive:true});
+window.addEventListener('click',designLabTrackTrustedInteractionAfter,{capture:false});
+
+async function designLabOnPopState(e){
+  if(designLabBouncingRoot){designLabBouncingRoot=false;return;}
   if(designLabHandlingPopState)return;
+  const st=e.state||{};
+  if(st[DESIGNLAB_HISTORY_KEY]&&st.kind==='anchor'){
+    // Nunca sai do PWA na tela de projetos: volta para a entrada rootGuard que
+    // foi criada por um gesto real do usuário (não é ignorada pelo Chrome).
+    designLabBouncingRoot=true;
+    try{window.history.forward();}catch{}
+    return;
+  }
   designLabHandlingPopState=true;
-  Promise.resolve(designLabHandleBackCascade())
-    .catch(err=>console.warn('Voltar DesignLab:',err))
-    .finally(()=>{designLabHandlingPopState=false;designLabPushBackGuard();});
+  try{await designLabHandleBackCascade();}
+  catch(err){console.warn('Voltar DesignLab:',err);}
+  finally{designLabHandlingPopState=false;}
 }
-// O bootstrap do <head> chama esta função a cada popstate.
-window.__designLabRunBackCascade=designLabRunNativeBackCascade;
-if(!window.__DL_BACK_BOOTSTRAP){
-  window.addEventListener('popstate',()=>{designLabPushBackGuard();designLabRunNativeBackCascade();},{capture:true});
-}else{
-  designLabArmBackGuard();
-  const pending=Math.min(3,Number(window.__designLabPendingBack)||0);
-  window.__designLabPendingBack=0;
-  if(pending)setTimeout(()=>designLabRunNativeBackCascade(),0);
-}
-// Wrappers Android/Capacitor/Cordova. Nesse evento o histórico não precisa ser
-// percorrido: cancelamos o evento nativo e executamos a mesma cascata.
+window.addEventListener('popstate',designLabOnPopState,{capture:true});
+
+// Wrappers Android/Capacitor/Cordova, caso o PWA seja empacotado no futuro.
 document.addEventListener('backbutton',e=>{
   e.preventDefault?.();e.stopPropagation?.();
-  designLabRunNativeBackCascade();
+  designLabHandleBackCascade().catch(()=>{});
 },{capture:true});
-// Tecla Esc no PC segue a MESMA cascata e ajuda a testar todos os menus.
+
+// Escape no PC usa a mesma cascata.
 window.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.defaultPrevented)return;
   const t=e.target;if(t&&['INPUT','TEXTAREA','SELECT'].includes(t.tagName))return;
-  e.preventDefault();designLabPushBackGuard();designLabHandleBackCascade().catch(()=>{}).finally(()=>designLabPushBackGuard());
+  e.preventDefault();designLabHandleBackCascade().catch(()=>{});
 },{capture:true});
 
+// Compatibilidade com chamadas antigas: não criam mais estados artificiais.
+function designLabInstallBackFence(){return designLabHistoryArmed;}
+function designLabPushBackGuard(){return designLabHistoryArmed;}
+function designLabArmBackGuard(){return designLabHistoryArmed;}
 installOutsideMenuClose();
 
 window.addEventListener('resize'
@@ -16514,12 +16600,11 @@ setTimeout(()=>checkDesignLabUpdate({force:true}),1200);
 window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
 window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});}
+  if(document.visibilityState==='visible'){checkDesignLabUpdate().catch(()=>{});}
 });
-window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate().catch(()=>{});});
+window.addEventListener('pageshow',()=>{checkDesignLabUpdate().catch(()=>{});});
 
-// Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
-designLabArmBackGuard();
+// Início limpo e frontal. A cerca do Voltar será armada no primeiro gesto real do usuário.
 setFrontWorldView();
 history=[stateString()]; historyIndex=0;
 initToolDock();
@@ -16541,7 +16626,7 @@ animate();
 // câmera e não altera nenhuma peça. Gera vistas, cortes A-A/B-B, cotas,
 // identificação de peças e exportação SVG / PNG / PDF / DXF.
 // ============================================================================
-const DL_LAYOUT_VERSION='1.200.19';
+const DL_LAYOUT_VERSION='1.200.20';
 const DL_LAYOUT_VIEWS={
   front:'Vista frontal',back:'Vista traseira',left:'Lateral esquerda',right:'Lateral direita',
   top:'Planta baixa',bottom:'Vista inferior',sectionX:'Corte A-A',sectionY:'Corte B-B',sheet:'Folha técnica'
@@ -16826,21 +16911,29 @@ function dlLayoutUpdateSectionUi(ctx){
 }
 function dlLayoutPaintPreviewBitmap(wrap,svg,W,H){
   const token=++dlLayoutState.renderToken;
-  const canvas=document.createElement('canvas');
-  canvas.id='technicalLayoutCanvas';canvas.className='layoutPreviewCanvas';canvas.width=W;canvas.height=H;
-  canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Layout técnico em papel branco');
-  wrap.replaceChildren(canvas);
-  const c=canvas.getContext('2d',{alpha:false});
-  if(c){c.fillStyle='#fff';c.fillRect(0,0,W,H);}
+  // Renderiza fora da tela e exibe como PNG <img>. O Auto Dark do Chrome/Samsung
+  // costuma alterar canvas/SVG em PWA standalone, mas preserva imagens.
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const oc=off.getContext('2d',{alpha:false});
+  if(oc){oc.fillStyle='#fff';oc.fillRect(0,0,W,H);}
+  const holder=document.createElement('div');holder.className='layoutPreviewImageHolder';
+  const preview=document.createElement('img');
+  preview.id='technicalLayoutPreviewSurface';preview.className='layoutPreviewImage';
+  preview.alt='Layout técnico em papel branco';preview.width=W;preview.height=H;
+  holder.appendChild(preview);wrap.replaceChildren(holder);
   const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),url=URL.createObjectURL(blob),img=new Image();
   img.onload=()=>{
     try{
       if(token!==dlLayoutState.renderToken)return;
-      const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)return;
+      const ctx=off.getContext('2d',{alpha:false});if(!ctx)return;
       ctx.save();ctx.globalCompositeOperation='copy';ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';ctx.drawImage(img,0,0,W,H);ctx.restore();
+      preview.src=off.toDataURL('image/png');
     }finally{URL.revokeObjectURL(url);}
   };
-  img.onerror=()=>{URL.revokeObjectURL(url);const ctx=canvas.getContext('2d',{alpha:false});if(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#000';ctx.font='24px Arial';ctx.fillText('Não foi possível desenhar a prévia. Exporte o SVG/PDF.',28,44);}};
+  img.onerror=()=>{
+    URL.revokeObjectURL(url);
+    const ctx=off.getContext('2d',{alpha:false});if(ctx){ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#000';ctx.font='24px Arial';ctx.fillText('Não foi possível desenhar a prévia. Exporte o SVG/PDF.',28,44);preview.src=off.toDataURL('image/png');}
+  };
   img.src=url;
 }
 function dlLayoutRender(){
@@ -16879,7 +16972,7 @@ function dlLayoutPickSection(axis){
   toast(axis==='x'?'Toque na vista frontal onde deseja o corte A-A':'Toque na vista frontal onde deseja o corte B-B');
 }
 function dlLayoutHandleSvgClick(e){
-  const canvas=$('technicalLayoutCanvas');if(!canvas)return;
+  const canvas=$('technicalLayoutPreviewSurface')||$('technicalLayoutCanvas');if(!canvas)return;
   const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
   const x=(e.clientX-r.left)*(dlLayoutState.lastWidth/r.width),y=(e.clientY-r.top)*(dlLayoutState.lastHeight/r.height);
   const dim=dlLayoutState.dimHits.find(h=>x>=h.x1&&x<=h.x2&&y>=h.y1&&y<=h.y2);
