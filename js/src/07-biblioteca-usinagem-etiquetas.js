@@ -1105,7 +1105,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.32 · Mini CAD 2D embutido na ferramenta Forma ----------
+// ---------- 1.200.33 · Mini CAD 2D embutido na ferramenta Forma ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,baseW:0,baseH:0,loadedPresetId:null

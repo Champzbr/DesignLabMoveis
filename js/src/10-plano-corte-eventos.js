@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.32</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.33</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -1207,18 +1207,20 @@ async function designLabHandleBackCascade(){
 }
 
 let designLabHandlingPopState=false;
-function designLabInstallBackFence(){
+function designLabInstallBackFence({trusted=false}={}){
   try{
     const boot=window.__DL_BACK_BOOTSTRAP;
-    if(boot?.ensure)return boot.ensure();
-    // Fallback para navegador muito antigo: ainda mantém três entradas internas.
+    if(boot?.ensure)return boot.ensure(!!trusted);
+    // Fallback para navegador sem o bootstrap novo. Só criamos a cerca quando
+    // houver gesto confiável, para o Chrome Android não classificar a entrada
+    // como histórico artificial e ignorá-la no Back.
+    if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',version:'1.200.32'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',version:'1.200.32'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.32'},'',location.href);
-    }else if(st.kind!=='guard2'){
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',version:'1.200.32'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.33'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.33'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.33'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.33'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1230,12 +1232,18 @@ function designLabRunNativeBackCascade(){
   designLabHandlingPopState=true;
   Promise.resolve(designLabHandleBackCascade())
     .catch(err=>console.warn('Voltar DesignLab:',err))
-    .finally(()=>{designLabHandlingPopState=false;designLabPushBackGuard();});
+    .finally(()=>{
+      designLabHandlingPopState=false;
+      // No Chrome/TWA novo o bootstrap restaura a mesma entrada confiável com
+      // history.forward(). Não fazemos pushState aqui, pois esse callback já
+      // ocorre fora do gesto do usuário e o Android poderia ignorar esse state.
+      if(!window.__DL_BACK_BOOTSTRAP)designLabPushBackGuard();
+    });
 }
 // O bootstrap do <head> chama esta função a cada popstate.
 window.__designLabRunBackCascade=designLabRunNativeBackCascade;
 if(!window.__DL_BACK_BOOTSTRAP){
-  window.addEventListener('popstate',()=>{designLabPushBackGuard();designLabRunNativeBackCascade();},{capture:true});
+  window.addEventListener('popstate',()=>{designLabInstallBackFence({trusted:true});designLabRunNativeBackCascade();},{capture:true});
 }else{
   designLabArmBackGuard();
   const pending=Math.min(3,Number(window.__designLabPendingBack)||0);
@@ -1261,7 +1269,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.32: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.33: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
