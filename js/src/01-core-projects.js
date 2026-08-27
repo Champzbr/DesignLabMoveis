@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.34';
+  return tm?.[1]||'1.200.35';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.34-r1';
+const DESIGNLAB_JS_BUILD='1.200.35-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -852,7 +852,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
     // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
     // por scripts antes de qualquer ativação humana (History Manipulation
     // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.34 reutiliza o primeiro toque normal no próprio CAD.
+    // ativação. A 1.200.35 reutiliza o primeiro toque normal no próprio CAD.
     const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
     if(ok)designLabGestureRecoveryReady=true;
     return ok;
