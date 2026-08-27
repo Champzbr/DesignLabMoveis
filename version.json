@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.28",
+  "version": "1.200.30",
   "required": false,
-  "message": "Corrige a versão instalada exibida/validada pelo atualizador e adiciona perfil Marcenaria com cotas úteis + perfil Produção com PDF de 2 páginas (técnica e limpa).",
-  "released_at": "2026-08-27T14:45:00-03:00",
-  "build": "1.200.28-r1"
+  "message": "Validação Android TWA/PWABuilder: Digital Asset Links ligado ao APK oficial para remover a barra do navegador quando o domínio e a assinatura forem validados.",
+  "released_at": "2026-08-27T15:10:00-03:00",
+  "build": "1.200.30-r1"
 }

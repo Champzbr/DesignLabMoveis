@@ -1,4 +1,4 @@
-# DesignLabMoveis 1.200.23 — site estático
+# DesignLabMoveis 1.200.30 — site estático + Android TWA
 [build]
   publish = "."
 
@@ -8,7 +8,7 @@
     Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
-  for = "/designlabmoveis-1.200.23.html"
+  for = "/designlabmoveis-*.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
@@ -21,6 +21,20 @@
   for = "/version.json"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/DesignLabMoveis.apk"
+  [headers.values]
+    Content-Type = "application/vnd.android.package-archive"
+    Content-Disposition = "attachment; filename=DesignLabMoveis.apk"
+    Cache-Control = "no-cache"
 
 [[headers]]
   for = "/*"
