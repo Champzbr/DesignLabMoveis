@@ -1,7 +1,7 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.18",
+  "version": "1.200.19",
   "required": false,
-  "message": "Prévia de Layout em canvas branco real (não escurece no Android) e botão Voltar reforçado com 12 estados internos para nunca sair do app.",
-  "released_at": "2026-08-27T10:55:00-03:00"
+  "message": "Correção de atualização do app instalado: cada build agora usa cache único; CSS/JS não podem mais misturar versões. Mantém layout CAD branco e botão Voltar protegido.",
+  "released_at": "2026-08-27T11:45:00-03:00"
 }

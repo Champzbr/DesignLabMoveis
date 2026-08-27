@@ -1,7 +1,7 @@
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
 
-/designlabmoveis-1.200.18.html
+/designlabmoveis-1.200.19.html
   Cache-Control: no-cache, no-store, must-revalidate
 
 /sw.js
@@ -19,7 +19,7 @@
   Cache-Control: no-cache
 
 /css/*
-  Cache-Control: public, max-age=3600
+  Cache-Control: no-cache, must-revalidate
 
 /js/*
-  Cache-Control: public, max-age=3600
+  Cache-Control: no-cache, must-revalidate

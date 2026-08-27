@@ -2,6 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="designlab-build" content="1.200.19-r1">
+<script id="designLabBuildCacheBootstrap">
+(function(){
+  'use strict';
+  const BUILD='1.200.19-r1';
+  try{
+    const key='__designLabLastHtmlBuild';
+    const previous=localStorage.getItem(key)||'';
+    localStorage.setItem(key,BUILD);
+    if(previous!==BUILD && 'caches' in window){
+      caches.keys().then(keys=>Promise.all(keys.filter(k=>/^designlabmoveis-|^mini-cad-pro-/.test(k)).map(k=>caches.delete(k)))).catch(()=>{});
+    }
+  }catch(_){}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#171717">
 <meta name="application-name" content="DesignLabMoveis">
@@ -20,7 +35,7 @@
     const u=new URL(location.href);u.searchParams.delete('__dlback');return u;
   }
   const BASE=cleanBase();
-  function state(kind,slot){return {[KEY]:true,session:SESSION,kind,slot,version:'1.200.18'};}
+  function state(kind,slot){return {[KEY]:true,session:SESSION,kind,slot,version:'1.200.19'};}
   function guardUrl(slot){const u=new URL(BASE.href);u.searchParams.set('__dlback',String(slot));return u.href;}
   function topUrl(){return BASE.href;}
   function pushTop(){
@@ -60,19 +75,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.18 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/editor.css">
-<link rel="stylesheet" href="css/materials.css">
-<link rel="stylesheet" href="css/labels.css">
-<link rel="stylesheet" href="css/cut-plan.css">
-<link rel="stylesheet" href="css/layout.css?v=1.200.18">
-<link rel="stylesheet" href="css/projects.css">
-<link rel="stylesheet" href="css/settings.css">
-<link rel="stylesheet" href="css/home.css">
-<link rel="stylesheet" href="css/mobile.css">
+<title>DesignLabMoveis 1.200.19 - Forma paramétrica</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.19-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.19-r1">
 
-<!-- 1.200.18: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.19: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -82,7 +97,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.18</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.19</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -176,7 +191,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.18</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.19</span>
         </div>
       </div>
 
@@ -453,7 +468,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.18</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.19</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button>
@@ -480,7 +495,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.18</strong>
+        <strong id="updateCurrentVersion">1.200.19</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -523,7 +538,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.18 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.19 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1276,7 +1291,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.18</span>
+      <span class="cutPlanBadge">1.200.19</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2128,6 +2143,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.18"></script>
+<script type="module" src="js/app.js?v=1.200.19-r1"></script>
 </body>
 </html>
