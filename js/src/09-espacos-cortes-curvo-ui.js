@@ -392,8 +392,8 @@ $('drawerSlideType').addEventListener('change',()=>{drawerApplyPresetDefaults(tr
 ['drawerLengthMode','drawerSideClearance','drawerCount','drawerBoxHeight','drawerBoxThickness','drawerBottomThickness2','drawerBottomOffset','drawerBottomPassLeft','drawerBottomPassRight','drawerBottomPassFront','drawerBottomPassBack','drawerBottomGrooveClearance','drawerBottomGrooveDepth','drawerFrontInset','drawerRearClearance','drawerEdgeGap','drawerFrontThickness','drawerFrontGapLeft','drawerFrontGapRight','drawerFrontGapTop','drawerFrontGapBottom','drawerFrontGapBetween'].forEach(id=>$(id).addEventListener('input',updateDrawerSystemPreview));
 ['drawerDrillFrontRef','drawerDrillOffsets','drawerDrillMountY','drawerDrillDiameter','drawerDrillDepth'].forEach(id=>$(id).addEventListener('input',updateDrawerDrillingFields));
 $('drawerDrillAutoByLength').addEventListener('change',updateDrawerDrillingFields);
-$('drawerDrillVerticalMode').addEventListener('change',updateDrawerDrillingFields);
-$('drawerDrillSide').addEventListener('change',updateDrawerDrillingFields);
+$('drawerDrillVerticalMode')?.addEventListener('change',updateDrawerDrillingFields);
+$('drawerDrillSide')?.addEventListener('change',updateDrawerDrillingFields);
 $('drawerLengthMode').addEventListener('change',updateDrawerDrillingFields);
 $('drawerCreateSlides').addEventListener('change',updateDrawerSystemPreview);
 $('drawerCreateDrilling').addEventListener('change',updateDrawerDrillingFields);

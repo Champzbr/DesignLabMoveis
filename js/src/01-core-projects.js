@@ -2,6 +2,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// 1.200.39: confirma ao HTML que o módulo e suas dependências foram carregados.
+window.__DESIGNLAB_MODULE_STARTED=true;
+window.dispatchEvent(new Event('designlab-module-started'));
+
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
 const MIN_SIZE = 0.001;       // 1 mm
@@ -495,10 +499,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.38';
+  return tm?.[1]||'1.200.39';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.38-r1';
+const DESIGNLAB_JS_BUILD='1.200.39-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -852,7 +856,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
     // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
     // por scripts antes de qualquer ativação humana (History Manipulation
     // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.38 reutiliza o primeiro toque normal no próprio CAD.
+    // ativação. A 1.200.39 reutiliza o primeiro toque normal no próprio CAD.
     const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
     if(ok)designLabGestureRecoveryReady=true;
     return ok;
@@ -2347,12 +2351,20 @@ async function initProjectHub(){
 
 
 // ---------- v61: painel flutuante / favoritos editáveis ----------
-// 1.200.38 · preferências globais de limpeza visual do CAD.
+// 1.200.39 · preferências globais de limpeza visual do CAD.
 // Precisam existir antes da primeira renderização do painel de Ferramentas.
 const CAD_HARDWARE_VISIBLE_KEY='designLabCadHardwareVisibleV1';
 const CAD_MACHINING_VISIBLE_KEY='designLabCadMachiningVisibleV1';
-let cadHardwareVisible=localStorage.getItem(CAD_HARDWARE_VISIBLE_KEY)!=='0';
-let cadMachiningVisible=localStorage.getItem(CAD_MACHINING_VISIBLE_KEY)!=='0';
+// 1.200.39: armazenamento nunca pode impedir o aplicativo de inicializar.
+// Alguns WebViews/abas restauradas podem negar localStorage temporariamente.
+let cadHardwareVisible=true;
+let cadMachiningVisible=true;
+try{
+  cadHardwareVisible=localStorage.getItem(CAD_HARDWARE_VISIBLE_KEY)!=='0';
+  cadMachiningVisible=localStorage.getItem(CAD_MACHINING_VISIBLE_KEY)!=='0';
+}catch(err){
+  console.warn('Preferências de visibilidade indisponíveis no início:',err);
+}
 const TOOL_DOCK_PREFS_KEY='miniCadToolDockPrefsV62';
 const TOOL_DOCK_LEGACY_PREFS_KEY='miniCadToolDockPrefsV61';
 const TOOL_DOCK_POS_KEY='miniCadToolDockPosV61';
@@ -2435,7 +2447,7 @@ function loadToolDockPrefs(){
         if(!valid.includes('layout')) valid.splice(Math.max(0,valid.indexOf('machining')>=0?valid.indexOf('machining'):valid.indexOf('more')),0,'layout');
         if(!valid.includes('curvedStructure')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('space')+1)),0,'curvedStructure');
         if(!valid.includes('drawers')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('curvedStructure'))),0,'drawers');
-        // 1.200.38: os dois controles de limpeza visual entram automaticamente no painel existente.
+        // 1.200.39: os dois controles de limpeza visual entram automaticamente no painel existente.
         const visualAt=valid.indexOf('visual')>=0?valid.indexOf('visual'):Math.max(0,valid.indexOf('more'));
         if(!valid.includes('toggleHardwareVisibility'))valid.splice(visualAt>=0?visualAt:valid.length,0,'toggleHardwareVisibility');
         const visualAt2=valid.indexOf('visual')>=0?valid.indexOf('visual'):Math.max(0,valid.indexOf('more'));

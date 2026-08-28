@@ -294,7 +294,7 @@ const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0),0);
 
 let visualMode=false;
 
-// 1.200.38 · visibilidade de detalhes auxiliares do CAD.
+// 1.200.39 · visibilidade de detalhes auxiliares do CAD.
 // São preferências de visualização, não apagam ferragens nem usinagens do projeto.
 function syncCadDetailVisibilityButtons(){
   const hb=$('toggleHardwareVisibilityBtn');
