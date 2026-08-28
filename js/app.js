@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.49';
+  return tm?.[1]||'1.200.52';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.49-r1';
+const DESIGNLAB_JS_BUILD='1.200.52-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -862,7 +862,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  // 1.200.49: não desarma a sessão ao ir para segundo plano.
+  // 1.200.48: não desarma a sessão ao ir para segundo plano.
   return false;
 }
 async function initDesignLabServiceWorker(){
@@ -2043,6 +2043,8 @@ async function renderProjectHome(){
   updateIdentityChrome();
 }
 async function showProjectHome(){
+  if(typeof closeCopyHardwareTool==='function')closeCopyHardwareTool(false);
+  if(typeof closeCopyShapeTool==='function')closeCopyShapeTool(false);
   await projectAutosaveNow();
   if(document.body.classList.contains('presentation-active'))applyProjectPresentationScene(false);
   document.body.classList.remove('presentation-active');
@@ -2385,7 +2387,9 @@ const TOOL_DOCK_CATALOG=[
   {group:'Peça / Usinagem',key:'hole',label:'● Furo',desc:'Criar furo na peça selecionada'},
   {group:'Peça / Usinagem',key:'groove',label:'▱ Rasgo',desc:'Criar rasgo na peça selecionada'},
   {group:'Peça / Usinagem',key:'hardware',label:'⚙ Ferragens',desc:'Aplicar/criar ferragens inteligentes'},
+  {group:'Peça / Usinagem',key:'copyHardware',label:'⧉ Copiar Ferragens',desc:'Copiar todas as ferragens de uma peça para várias peças em lote'},
   {group:'Peça / Usinagem',key:'shape',label:'◜ Forma',desc:'Alterar o contorno externo da peça'},
+  {group:'Peça / Usinagem',key:'copyShape',label:'⧉ Copiar Forma',desc:'Copiar a Forma de uma peça para várias peças de uma vez'},
   {group:'Peça / Usinagem',key:'machining',label:'🛠 Usinagens',desc:'Abrir lista e editor de usinagens'},
   {group:'Peça / Usinagem',key:'duplicate',label:'⧉ Duplicar peça',desc:'Duplicar a peça selecionada'},
   {group:'Peça / Usinagem',key:'deleteSelected',label:'🗑 Excluir peça',desc:'Excluir a peça selecionada'},
@@ -2579,7 +2583,9 @@ function runDockTool(key){
   else if(key==='hole'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('hole');}}
   else if(key==='groove'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('groove');}}
   else if(key==='hardware'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('hardware');}}
+  else if(key==='copyHardware'){closeToolDockBeforeMenu();openCopyHardwareTool();}
   else if(key==='shape'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openShapeDialog();}}
+  else if(key==='copyShape'){closeToolDockBeforeMenu();openCopyShapeTool();}
   else if(key==='machining'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog((selected?.userData?.machining||[])[0]?.type||'hole');}}
   else if(key==='duplicate'){if(dockEnsurePiece())duplicateSelected();}
   else if(key==='deleteSelected'){if(dockEnsurePiece())deleteSelected();}
@@ -4474,6 +4480,85 @@ function repairVerticalDivisionThickness(root){
 }
 
 
+// ============================================================================
+// 1.200.52 · USINAGENS/FERRAGENS ACOMPANHAM O REDIMENSIONAMENTO DA PEÇA
+// ============================================================================
+// Uma operação salva em 100 mm da borda deve continuar a 100 mm da mesma
+// borda quando um modelo/espaço cresce. Operações próximas da borda oposta
+// passam a usar referência negativa; operações centrais permanecem centradas.
+function machiningResizeRawCoord(op,axis){
+  const r=op?.coordRef?.[axis];
+  if(Number.isFinite(Number(r)))return Number(r);
+  const v=Number(op?.[axis]);return Number.isFinite(v)?v:0;
+}
+function machiningResizeSpan(op,axis){
+  if(op?.type!=='groove')return 0;
+  if(op.lengthAxis===axis)return Math.max(0,Number(op.length)||0);
+  const da=String(op.entryAxis||'').slice(-1);
+  if(axis!==da&&axis!==op.lengthAxis)return Math.max(0,Number(op.width)||0);
+  return 0;
+}
+function machiningResizeAnchorForAxis(op,axis,oldDim,span){
+  op.resizeAnchor=op.resizeAnchor&&typeof op.resizeAnchor==='object'?op.resizeAnchor:{};
+  op.resizeAnchorOffset=op.resizeAnchorOffset&&typeof op.resizeAnchorOffset==='object'?op.resizeAnchorOffset:{};
+  let anchor=op.resizeAnchor[axis];
+  const raw=machiningResizeRawCoord(op,axis);
+  const maxPos=Math.max(0,Number(oldDim)||0)-Math.max(0,Number(span)||0);
+  const pos=raw<0?maxPos+raw:raw;
+  if(!['start','end','center'].includes(anchor)){
+    if(raw<0)anchor='end';
+    else{
+      const center=maxPos/2;
+      const centerTol=Math.max(1.5,Math.min(12,Math.max(0,Number(oldDim)||0)*0.025));
+      if(Math.abs(pos-center)<=centerTol)anchor='center';
+      else anchor=pos<=center?'start':'end';
+    }
+    op.resizeAnchor[axis]=anchor;
+    if(anchor==='start')op.resizeAnchorOffset[axis]=Math.max(0,pos);
+    else if(anchor==='end')op.resizeAnchorOffset[axis]=Math.max(0,maxPos-pos);
+    else op.resizeAnchorOffset[axis]=pos-maxPos/2;
+  }else if(!Number.isFinite(Number(op.resizeAnchorOffset[axis]))){
+    if(anchor==='start')op.resizeAnchorOffset[axis]=Math.max(0,pos);
+    else if(anchor==='end')op.resizeAnchorOffset[axis]=Math.max(0,maxPos-pos);
+    else op.resizeAnchorOffset[axis]=pos-maxPos/2;
+  }
+  return {anchor,offset:Number(op.resizeAnchorOffset[axis])||0};
+}
+function remapMachiningArrayForPieceResize(machining,oldDims,newDims){
+  if(!Array.isArray(machining)||!machining.length)return machining;
+  oldDims=oldDims||{};newDims=newDims||{};
+  for(const op of machining){
+    if(!op)continue;
+    op.coordRef=op.coordRef&&typeof op.coordRef==='object'?op.coordRef:{};
+    const da=String(op.entryAxis||'').slice(-1);
+    for(const axis of ['x','y','z']){
+      if(axis===da)continue;
+      const od=Number(oldDims[axis]),nd=Number(newDims[axis]);
+      if(!Number.isFinite(od)||!Number.isFinite(nd)||od<=0||nd<=0)continue;
+      const span=machiningResizeSpan(op,axis);
+      const {anchor,offset}=machiningResizeAnchorForAxis(op,axis,od,span);
+      const maxNew=Math.max(0,nd-span);
+      let raw;
+      if(anchor==='start')raw=offset;
+      else if(anchor==='end')raw=-offset;
+      else raw=maxNew/2+offset;
+      op.coordRef[axis]=raw;
+    }
+  }
+  return machining;
+}
+function remapMachiningForPieceResize(obj,oldDims,newDims){
+  const arr=obj?.userData?.machining;
+  if(!Array.isArray(arr)||!arr.length)return;
+  remapMachiningArrayForPieceResize(arr,oldDims,newDims);
+}
+function cloneMachiningForTargetSize(machining,oldDims,newDims){
+  const copy=JSON.parse(JSON.stringify(Array.isArray(machining)?machining:[]));
+  remapMachiningArrayForPieceResize(copy,oldDims,newDims);
+  return copy;
+}
+
+
 function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   if(!root) throw new Error('Espaço não encontrado');
   width=Number(width); depth=Number(depth); height=Number(height); yBase=Number(yBase);
@@ -4495,7 +4580,7 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   const linked=objects.filter(o=>o.userData?.spaceRootId===root.id || objectInsideSpaceRoot(o,root));
   const pieceStates=linked.map(o=>{
     const u=o.userData;
-    return {o, minX:o.position.x-u.width/2,maxX:o.position.x+u.width/2,minY:o.position.y-u.height/2,maxY:o.position.y+u.height/2,minZ:o.position.z-u.depth/2,maxZ:o.position.z+u.depth/2};
+    return {o, minX:o.position.x-u.width/2,maxX:o.position.x+u.width/2,minY:o.position.y-u.height/2,maxY:o.position.y+u.height/2,minZ:o.position.z-u.depth/2,maxZ:o.position.z+u.depth/2,oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000}};
   });
 
   // Primeiro remapeia as divisões/vãos internos.
@@ -4512,9 +4597,11 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
     const nx0=mapX(st.minX), nx1=mapX(st.maxX), ny0=mapY(st.minY), ny1=mapY(st.maxY), nz0=mapZ(st.minZ), nz1=mapZ(st.maxZ);
     const nw=Math.max(.001,Math.abs(nx1-nx0)), nh=Math.max(.001,Math.abs(ny1-ny0)), nd=Math.max(.001,Math.abs(nz1-nz0));
     u.width=nw; u.height=nh; u.depth=nd;
+    remapMachiningForPieceResize(o,st.oldDimsMm,{x:nw*1000,y:nh*1000,z:nd*1000});
     if(Array.isArray(u.forms)&&u.forms.length){o.scale.set(1,1,1);rebuildFormGeometry(o);}else o.scale.set(nw,nh,nd);
     o.position.set((nx0+nx1)/2,(ny0+ny1)/2,(nz0+nz1)/2);
     updateAutoMachiningAfterPieceResize(o);
+    sanitizeMachiningForPiece(o);
   }
 
   // Mantém as faixas fixas persistentes corretas para futuros redimensionamentos.
@@ -6750,8 +6837,9 @@ function applyPieceRelativeConfig(){
   toast(parts.length?`Peça ajustada · ${parts.join(' · ')}`:'Nenhum ajuste informado');
 }
 
-function setDimensions(mesh,width,depth,height,keepBase=true){
+function setDimensions(mesh,width,depth,height,keepBase=true,followMachining=true){
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
+  const oldDimsMm={x:Number(mesh.userData.width)*1000,y:Number(mesh.userData.height)*1000,z:Number(mesh.userData.depth)*1000};
   const oldBase=mesh.position.y-mesh.userData.height/2;
   if(mesh.userData.kind==='cylinder'){
     const d=width; mesh.scale.set(d,height,d); mesh.userData.width=d; mesh.userData.depth=d; mesh.userData.height=height;
@@ -6760,6 +6848,7 @@ function setDimensions(mesh,width,depth,height,keepBase=true){
     if(Array.isArray(mesh.userData.forms)&&mesh.userData.forms.length){mesh.scale.set(1,1,1);rebuildFormGeometry(mesh);}else mesh.scale.set(width,height,depth);
   }
   if(keepBase) mesh.position.y=oldBase+height/2;
+  if(followMachining)remapMachiningForPieceResize(mesh,oldDimsMm,{x:Number(mesh.userData.width)*1000,y:Number(mesh.userData.height)*1000,z:Number(mesh.userData.depth)*1000});
   sanitizeMachiningForPiece(mesh);
 }
 
@@ -6787,7 +6876,7 @@ function rotateBox(axis){
   if(axis==='x'){ remapMachiningAxes(u,'y','z'); [d,h]=[h,d]; }
   if(axis==='y'){ remapMachiningAxes(u,'x','z'); [w,d]=[d,w]; }
   if(axis==='z'){ remapMachiningAxes(u,'x','y'); [w,h]=[h,w]; }
-  setDimensions(selected,w,d,h,false);
+  setDimensions(selected,w,d,h,false,false);
   selected.position.y=base+h/2;
   if(u.kind==='panel') u.materialType='MDF';
   updateInspector(); updateMeasureBadge(); commitHistory();
@@ -7583,6 +7672,15 @@ function cancelPieceLongPressOnMove(e){
 }
 
 function beginPick(){
+  // 1.200.51 · Copiar Forma / Copiar Ferragens usam o mesmo raycast do CAD,
+  // mas mantêm seleção múltipla própria. Enquanto um desses modos está ativo,
+  // os toques não entram no fluxo normal de selecionar/mover peça.
+  if(typeof hardwareCopyHandlePick==='function' && hardwareCopyHandlePick()){
+    dragMode=null; controls.enabled=true; return;
+  }
+  if(typeof shapeCopyHandlePick==='function' && shapeCopyHandlePick()){
+    dragMode=null; controls.enabled=true; return;
+  }
   raycaster.setFromCamera(pointer,camera);
   const hits=raycaster.intersectObjects(referenceMeshes(),false);
   if(!hits.length){
@@ -10138,6 +10236,10 @@ function copyLibraryPartMeta(created,p){
 }
 function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
   if(!p)return null;
+  const sourceDimsMm={x:Number(p.width)*1000,y:Number(p.height)*1000,z:Number(p.depth)*1000};
+  const targetDimsMm={x:Number(width)*1000,y:Number(height)*1000,z:Number(depth)*1000};
+  const adaptedMachining=cloneMachiningForTargetSize(p.machining||[],sourceDimsMm,targetDimsMm);
+  const adaptedPart={...p,machining:adaptedMachining};
   let created=null;
   if(p.kind==='cylinder'){
     created=createCylinder({diameter:Math.min(width,depth),height,x,yBase,z,name:p.name||'Cilindro'},false);
@@ -10155,9 +10257,9 @@ function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
     // estrutural usam a posição antiga como fallback.
     created=createCurvedPost({cfg,yBase,x:structural?.x??x,z:structural?.z??z,name:p.name||'Montante curvo',spaceRootId:info.root.id,rotationY:structural?.rotationY??(Number(p.rotationY)||0)},false);
   }else{
-    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
+    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:adaptedMachining,forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
   }
-  return copyLibraryPartMeta(created,p);
+  return copyLibraryPartMeta(created,adaptedPart);
 }
 function placeCustomTemplate(item,info){
   const sb=item.sourceBounds, sw=sb.maxX-sb.minX, sh=sb.maxY-sb.minY, sd=sb.maxZ-sb.minZ; if(sw<=0||sh<=0||sd<=0)return;
@@ -12830,6 +12932,277 @@ rebuildFormGeometry=function(o){
   o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
   const edges=formV47VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
 };
+
+
+// ============================================================================
+// 1.200.50 · COPIAR FORMA EM LOTE
+// Uma peça é a origem. Depois o usuário toca em quantas peças destino quiser e
+// aplica de uma vez. Só a Forma é copiada: posição, material, espessura,
+// usinagens e vínculos das peças destino permanecem próprios.
+// ============================================================================
+const shapeCopyState={active:false,phase:'source',source:null,targets:new Set(),helpers:null};
+
+function shapeCopyPieceEligible(o){
+  if(!o||!objects.includes(o))return false;
+  if(o.userData?.kind==='space-cell'||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return false;
+  return !!pieceThicknessInfo(o);
+}
+function shapeCopySourceHasForm(o){return shapeCopyPieceEligible(o)&&Array.isArray(o.userData?.forms)&&o.userData.forms.length>0;}
+function shapeCopyDisposeHelpers(){
+  const g=shapeCopyState.helpers;if(!g)return;
+  g.traverse?.(o=>{o.geometry?.dispose?.();if(Array.isArray(o.material))o.material.forEach(m=>m?.dispose?.());else o.material?.dispose?.();});
+  scene.remove(g);shapeCopyState.helpers=null;
+}
+function shapeCopyRefreshHelpers(){
+  shapeCopyDisposeHelpers();if(!shapeCopyState.active)return;
+  const g=new THREE.Group();g.userData.isShapeCopyHelper=true;
+  if(shapeCopyState.source&&objects.includes(shapeCopyState.source)){
+    const h=new THREE.BoxHelper(shapeCopyState.source,0x53d6e8);h.userData.isShapeCopyHelper=true;g.add(h);
+  }
+  for(const o of shapeCopyState.targets){
+    if(!objects.includes(o))continue;const h=new THREE.BoxHelper(o,0x7fe594);h.userData.isShapeCopyHelper=true;g.add(h);
+  }
+  scene.add(g);shapeCopyState.helpers=g;
+}
+function shapeCopyEnsureBar(){
+  let bar=document.getElementById('shapeCopyBar');if(bar)return bar;
+  bar=document.createElement('div');bar.id='shapeCopyBar';bar.className='shapeCopyBar';
+  bar.innerHTML=`<div class="shapeCopyBarText"><strong id="shapeCopyBarTitle">⧉ Copiar Forma</strong><span id="shapeCopyBarStatus"></span></div><div class="shapeCopyBarActions"><button id="shapeCopyChangeSource" class="secondary">Trocar origem</button><button id="shapeCopyApplyBtn">Aplicar</button><button id="shapeCopyCancelBtn" class="secondary">Cancelar</button></div>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#shapeCopyChangeSource').onclick=shapeCopyChooseSourceAgain;
+  bar.querySelector('#shapeCopyApplyBtn').onclick=shapeCopyApplyBatch;
+  bar.querySelector('#shapeCopyCancelBtn').onclick=()=>closeCopyShapeTool(true);
+  return bar;
+}
+function shapeCopyUpdateBar(){
+  const bar=shapeCopyEnsureBar(),status=bar.querySelector('#shapeCopyBarStatus'),apply=bar.querySelector('#shapeCopyApplyBtn'),change=bar.querySelector('#shapeCopyChangeSource');
+  bar.style.display=shapeCopyState.active?'flex':'none';if(!shapeCopyState.active)return;
+  if(shapeCopyState.phase==='source'){
+    status.textContent='Toque na peça que já possui a Forma que será copiada.';apply.disabled=true;apply.textContent='Aplicar';change.style.display='none';
+  }else{
+    const n=shapeCopyState.targets.size,name=shapeCopyState.source?.userData?.name||'Peça origem';
+    status.textContent=`Origem: ${name} · toque nas peças destino para marcar/desmarcar · ${n} selecionada(s).`;
+    apply.disabled=n===0;apply.textContent=n?`Aplicar em ${n}`:'Aplicar';change.style.display='inline-flex';
+  }
+}
+function shapeCopyChooseSourceAgain(){
+  shapeCopyState.phase='source';shapeCopyState.source=null;shapeCopyState.targets.clear();shapeCopyRefreshHelpers();shapeCopyUpdateBar();toast('Selecione a peça de origem da Forma');
+}
+function openCopyShapeTool(){
+  if(typeof closeCopyHardwareTool==='function'&&typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active)closeCopyHardwareTool(false);
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  setTool('select');
+  shapeCopyState.active=true;shapeCopyState.targets.clear();
+  if(shapeCopySourceHasForm(selected)){shapeCopyState.source=selected;shapeCopyState.phase='targets';toast('Origem definida. Selecione as peças destino.');}
+  else{shapeCopyState.source=null;shapeCopyState.phase='source';toast('Selecione a peça que contém a Forma a copiar');}
+  shapeCopyRefreshHelpers();shapeCopyUpdateBar();
+}
+function closeCopyShapeTool(notify=false){
+  if(!shapeCopyState.active)return;shapeCopyState.active=false;shapeCopyState.phase='source';shapeCopyState.source=null;shapeCopyState.targets.clear();shapeCopyDisposeHelpers();const bar=document.getElementById('shapeCopyBar');if(bar)bar.style.display='none';if(notify)toast('Copiar Forma cancelado');
+}
+function shapeCopyHandlePick(){
+  if(!shapeCopyState.active)return false;
+  raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(referenceMeshes(),false);
+  const obj=hits.map(h=>h.object).find(o=>shapeCopyPieceEligible(o));
+  if(!obj){toast(shapeCopyState.phase==='source'?'Toque em uma peça que tenha Forma':'Toque em uma peça plana para marcar como destino');return true;}
+  if(shapeCopyState.phase==='source'){
+    if(!shapeCopySourceHasForm(obj)){toast('Essa peça ainda não possui uma Forma para copiar');return true;}
+    shapeCopyState.source=obj;shapeCopyState.phase='targets';shapeCopyState.targets.clear();selectObject(obj);shapeCopyRefreshHelpers();shapeCopyUpdateBar();toast('Origem definida. Agora selecione uma ou várias peças destino.');return true;
+  }
+  if(obj===shapeCopyState.source){toast('Esta é a peça de origem');return true;}
+  if(shapeCopyState.targets.has(obj))shapeCopyState.targets.delete(obj);else shapeCopyState.targets.add(obj);
+  shapeCopyRefreshHelpers();shapeCopyUpdateBar();return true;
+}
+function shapeCopyAdaptForms(source,target){
+  const srcTi=pieceThicknessInfo(source),dstTi=pieceThicknessInfo(target),forms=cloneForms(source.userData?.forms||[]);if(!srcTi||!dstTi)return [];
+  const sx=dstTi.faceW/Math.max(.001,srcTi.faceW),sy=dstTi.faceH/Math.max(.001,srcTi.faceH),maxR=Math.min(dstTi.faceW,dstTi.faceH)/2;
+  return forms.map(f=>{
+    f.id=uid('form');
+    if(f.type==='round-corner')f.radius=Math.max(0,Math.min(maxR,Number(f.radius)||0));
+    if(f.type==='piece-format'&&f.config){
+      f.config.width=dstTi.faceW;f.config.height=dstTi.faceH;
+      if(f.config.format==='rounded-rect')f.config.radius=Math.max(.1,Math.min(maxR,Number(f.config.radius)||50));
+      if(Number.isFinite(Number(f.config.cutW)))f.config.cutW=Math.min(Math.max(.1,Number(f.config.cutW)),Math.max(.1,dstTi.faceW-.1));
+      if(Number.isFinite(Number(f.config.cutH)))f.config.cutH=Math.min(Math.max(.1,Number(f.config.cutH)),Math.max(.1,dstTi.faceH-.1));
+      if(Number.isFinite(Number(f.config.cutX)))f.config.cutX=Math.min(Math.max(.1,Number(f.config.cutX)),dstTi.faceW*.49);
+      if(Number.isFinite(Number(f.config.cutY)))f.config.cutY=Math.min(Math.max(.1,Number(f.config.cutY)),dstTi.faceH*.49);
+    }
+    if(f.type==='custom-profile'&&Array.isArray(f.points)){
+      f.points=f.points.map(p=>[roundMmNumber((Number(p[0])||0)*sx,3),roundMmNumber((Number(p[1])||0)*sy,3)]);
+      if(Number.isFinite(Number(f.sketchW)))f.sketchW=roundMmNumber(Number(f.sketchW)*sx,3);
+      if(Number.isFinite(Number(f.sketchH)))f.sketchH=roundMmNumber(Number(f.sketchH)*sy,3);
+      f.baseW=dstTi.faceW;f.baseH=dstTi.faceH;
+    }
+    return f;
+  });
+}
+function shapeCopyApplyBatch(){
+  const source=shapeCopyState.source,targets=[...shapeCopyState.targets].filter(shapeCopyPieceEligible);
+  if(!shapeCopySourceHasForm(source)){toast('Selecione novamente a peça de origem');shapeCopyChooseSourceAgain();return;}
+  if(!targets.length){toast('Selecione pelo menos uma peça destino');return;}
+  const replacing=targets.filter(o=>Array.isArray(o.userData?.forms)&&o.userData.forms.length).length;
+  if(replacing&&!window.confirm(`${replacing} peça(s) destino já possuem Forma. A Forma atual delas será substituída pela Forma da origem. Continuar?`))return;
+  shapeCopyDisposeHelpers();
+  let done=0;
+  for(const o of targets){
+    const forms=shapeCopyAdaptForms(source,o);if(!forms.length)continue;o.userData.forms=forms;rebuildFormGeometry(o);done++;
+  }
+  renderMachiningVisuals();updateInspector?.();commitHistory();closeCopyShapeTool(false);toast(`Forma copiada para ${done} peça(s) · medidas, posição e usinagens preservadas`);
+}
+
+// ============================================================================
+// 1.200.51 · COPIAR FERRAGENS EM LOTE
+// Copia as operações de usinagem vinculadas a ferragens da peça origem para
+// várias peças destino. Ferragem não é escalada: as medidas em milímetros e as
+// referências de borda são preservadas. Cada destino recebe instâncias próprias.
+// ============================================================================
+const hardwareCopyState={active:false,phase:'source',source:null,targets:new Set(),helpers:null,mirrorFace:false};
+
+function hardwareCopyPieceEligible(o){return shapeCopyPieceEligible(o);}
+function hardwareCopyOpsOnPiece(o){
+  if(!hardwareCopyPieceEligible(o))return [];
+  return (Array.isArray(o.userData?.machining)?o.userData.machining:[]).filter(op=>op&&op.hardwareInstanceId);
+}
+function hardwareCopySourceHasHardware(o){return hardwareCopyOpsOnPiece(o).length>0;}
+function hardwareCopyGroups(o){
+  const m=new Map();
+  for(const op of hardwareCopyOpsOnPiece(o)){
+    const id=String(op.hardwareInstanceId||uid('hwsrc'));
+    if(!m.has(id))m.set(id,[]);
+    m.get(id).push(op);
+  }
+  return [...m.entries()].map(([instanceId,ops])=>({instanceId,ops,name:ops.find(x=>x.hardwareName)?.hardwareName||'Ferragem'}));
+}
+function hardwareCopyDisposeHelpers(){
+  const g=hardwareCopyState.helpers;if(!g)return;
+  g.traverse?.(o=>{o.geometry?.dispose?.();if(Array.isArray(o.material))o.material.forEach(m=>m?.dispose?.());else o.material?.dispose?.();});
+  scene.remove(g);hardwareCopyState.helpers=null;
+}
+function hardwareCopyRefreshHelpers(){
+  hardwareCopyDisposeHelpers();if(!hardwareCopyState.active)return;
+  const g=new THREE.Group();g.userData.isHardwareCopyHelper=true;
+  if(hardwareCopyState.source&&objects.includes(hardwareCopyState.source)){
+    const h=new THREE.BoxHelper(hardwareCopyState.source,0xffc83d);h.userData.isHardwareCopyHelper=true;g.add(h);
+  }
+  for(const o of hardwareCopyState.targets){
+    if(!objects.includes(o))continue;
+    const h=new THREE.BoxHelper(o,0x7fe594);h.userData.isHardwareCopyHelper=true;g.add(h);
+  }
+  scene.add(g);hardwareCopyState.helpers=g;
+}
+function hardwareCopyEnsureBar(){
+  let bar=document.getElementById('hardwareCopyBar');if(bar)return bar;
+  bar=document.createElement('div');bar.id='hardwareCopyBar';bar.className='shapeCopyBar';
+  bar.innerHTML=`<div class="shapeCopyBarText"><strong>⧉ Copiar Ferragens</strong><span id="hardwareCopyBarStatus"></span></div><div class="shapeCopyBarActions"><button id="hardwareCopyChangeSource" class="secondary">Trocar origem</button><button id="hardwareCopyMirror" class="secondary">Face: igual</button><button id="hardwareCopyApplyBtn">Aplicar</button><button id="hardwareCopyCancelBtn" class="secondary">Cancelar</button></div>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#hardwareCopyChangeSource').onclick=hardwareCopyChooseSourceAgain;
+  bar.querySelector('#hardwareCopyMirror').onclick=()=>{hardwareCopyState.mirrorFace=!hardwareCopyState.mirrorFace;hardwareCopyUpdateBar();toast(hardwareCopyState.mirrorFace?'Face de entrada será invertida nos destinos':'Face de entrada será mantida igual à origem');};
+  bar.querySelector('#hardwareCopyApplyBtn').onclick=hardwareCopyApplyBatch;
+  bar.querySelector('#hardwareCopyCancelBtn').onclick=()=>closeCopyHardwareTool(true);
+  return bar;
+}
+function hardwareCopyUpdateBar(){
+  const bar=hardwareCopyEnsureBar(),status=bar.querySelector('#hardwareCopyBarStatus'),apply=bar.querySelector('#hardwareCopyApplyBtn'),change=bar.querySelector('#hardwareCopyChangeSource'),mirror=bar.querySelector('#hardwareCopyMirror');
+  bar.style.display=hardwareCopyState.active?'flex':'none';if(!hardwareCopyState.active)return;
+  mirror.textContent=hardwareCopyState.mirrorFace?'Face: espelhada':'Face: igual';
+  if(hardwareCopyState.phase==='source'){
+    status.textContent='Toque na peça que contém as ferragens que serão copiadas.';apply.disabled=true;apply.textContent='Aplicar';change.style.display='none';mirror.style.display='none';
+  }else{
+    const ops=hardwareCopyOpsOnPiece(hardwareCopyState.source),apps=hardwareCopyGroups(hardwareCopyState.source),n=hardwareCopyState.targets.size,name=hardwareCopyState.source?.userData?.name||'Peça origem';
+    status.textContent=`Origem: ${name} · ${apps.length} ferragem(ns) / ${ops.length} operação(ões) · marque os destinos · ${n} selecionada(s).`;
+    apply.disabled=n===0;apply.textContent=n?`Aplicar em ${n}`:'Aplicar';change.style.display='inline-flex';mirror.style.display='inline-flex';
+  }
+}
+function hardwareCopyChooseSourceAgain(){
+  hardwareCopyState.phase='source';hardwareCopyState.source=null;hardwareCopyState.targets.clear();hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();toast('Selecione a peça de origem das ferragens');
+}
+function openCopyHardwareTool(){
+  if(typeof closeCopyShapeTool==='function'&&typeof shapeCopyState!=='undefined'&&shapeCopyState.active)closeCopyShapeTool(false);
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  const dlg=$('machiningDialog');if(dlg)dlg.style.display='none';
+  setTool('select');hardwareCopyState.active=true;hardwareCopyState.targets.clear();hardwareCopyState.mirrorFace=false;
+  if(hardwareCopySourceHasHardware(selected)){hardwareCopyState.source=selected;hardwareCopyState.phase='targets';toast('Origem definida. Selecione as peças destino.');}
+  else{hardwareCopyState.source=null;hardwareCopyState.phase='source';toast('Selecione a peça que contém as ferragens a copiar');}
+  hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();
+}
+function closeCopyHardwareTool(notify=false){
+  if(!hardwareCopyState.active)return;
+  hardwareCopyState.active=false;hardwareCopyState.phase='source';hardwareCopyState.source=null;hardwareCopyState.targets.clear();hardwareCopyState.mirrorFace=false;
+  hardwareCopyDisposeHelpers();const bar=document.getElementById('hardwareCopyBar');if(bar)bar.style.display='none';if(notify)toast('Copiar Ferragens cancelado');
+}
+function hardwareCopyHandlePick(){
+  if(!hardwareCopyState.active)return false;
+  raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(referenceMeshes(),false);
+  const obj=hits.map(h=>h.object).find(o=>hardwareCopyPieceEligible(o));
+  if(!obj){toast(hardwareCopyState.phase==='source'?'Toque em uma peça que tenha ferragens':'Toque em uma peça plana para marcar como destino');return true;}
+  if(hardwareCopyState.phase==='source'){
+    if(!hardwareCopySourceHasHardware(obj)){toast('Essa peça ainda não possui ferragens para copiar');return true;}
+    hardwareCopyState.source=obj;hardwareCopyState.phase='targets';hardwareCopyState.targets.clear();selectObject(obj);hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();toast('Origem definida. Agora selecione uma ou várias peças destino.');return true;
+  }
+  if(obj===hardwareCopyState.source){toast('Esta é a peça de origem');return true;}
+  if(hardwareCopyState.targets.has(obj))hardwareCopyState.targets.delete(obj);else hardwareCopyState.targets.add(obj);
+  hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();return true;
+}
+function hardwareCopyAxisMap(srcTi,dstTi,axis){
+  if(axis===srcTi.thicknessAxis)return dstTi.thicknessAxis;
+  if(axis===srcTi.uAxis)return dstTi.uAxis;
+  if(axis===srcTi.vAxis)return dstTi.vAxis;
+  return axis;
+}
+function hardwareCopyClampRawRef(raw,dim,margin=0){
+  raw=Number(raw);dim=Math.max(0,Number(dim)||0);margin=Math.max(0,Math.min(Number(margin)||0,dim/2));
+  if(!Number.isFinite(raw))raw=0;
+  if(raw<0){const real=Math.max(margin,Math.min(dim+raw,dim-margin));return roundMmNumber(real-dim,3);}
+  return roundMmNumber(Math.max(margin,Math.min(raw,dim-margin)),3);
+}
+function hardwareCopyMappedOp(source,target,srcOp,newInstanceId,{mirrorFace=false}={}){
+  const srcTi=pieceThicknessInfo(source),dstTi=pieceThicknessInfo(target);if(!srcTi||!dstTi)return null;
+  const op=shapeDeepClone(srcOp),axisMap={};for(const a of ['x','y','z'])axisMap[a]=hardwareCopyAxisMap(srcTi,dstTi,a);
+  const mappedRef={x:0,y:0,z:0};
+  for(const a of ['x','y','z'])mappedRef[axisMap[a]]=machiningRawCoord(srcOp,a);
+  op.id=uid('mach');op.hardwareInstanceId=newInstanceId;op.coordRef=mappedRef;
+  const srcEntry=entryAxisName(srcOp.entryAxis),dstEntry=axisMap[srcEntry]||dstTi.thicknessAxis;
+  let sign=entryAxisSign(srcOp.entryAxis);if(mirrorFace)sign*=-1;op.entryAxis=`${sign<0?'-':'+'}${dstEntry}`;
+  if(srcOp.seriesAxis)op.seriesAxis=axisMap[srcOp.seriesAxis]||dstTi.uAxis;
+  if(srcOp.lengthAxis)op.lengthAxis=axisMap[srcOp.lengthAxis]||dstTi.uAxis;
+  op.hardwareSourcePartId=target.userData?.partId||null;op.hardwareContactPartId=null;
+  op.hardwareCopiedFromPartId=source.userData?.partId||null;op.hardwareCopiedFromInstanceId=srcOp.hardwareInstanceId||null;op.hardwareCopiedDetached=true;
+  const r=op.type==='hole'?Math.max(0,(Number(op.diameter)||0)/2):0;
+  for(const a of ['x','y','z']){
+    if(a===dstEntry){op.coordRef[a]=0;continue;}
+    op.coordRef[a]=hardwareCopyClampRawRef(op.coordRef[a],dstTi.dims[a],r);
+  }
+  for(const a of ['x','y','z'])op[a]=Number(op.coordRef[a])||0;
+  return op;
+}
+function hardwareCopySignature(owner,op){
+  const r=resolvedMachiningCoords(owner,op),v=n=>roundMmNumber(Number(n)||0,2);
+  return [op.hardwarePresetId||'',op.hardwareName||'',op.type||'',op.entryAxis||'',v(r.x),v(r.y),v(r.z),v(op.diameter),v(operationDepthMm(owner,op)),op.lengthAxis||'',v(op.length),v(op.width)].join('|');
+}
+function hardwareCopyApplyBatch(){
+  const source=hardwareCopyState.source,targets=[...hardwareCopyState.targets].filter(hardwareCopyPieceEligible),groups=hardwareCopyGroups(source);
+  if(!hardwareCopySourceHasHardware(source)){toast('Selecione novamente a peça de origem');hardwareCopyChooseSourceAgain();return;}
+  if(!targets.length){toast('Selecione pelo menos uma peça destino');return;}
+  hardwareCopyDisposeHelpers();let piecesDone=0,added=0,duplicates=0;
+  for(const target of targets){
+    const arr=target.userData.machining||(target.userData.machining=[]),existing=new Set(arr.filter(op=>op?.hardwareInstanceId).map(op=>hardwareCopySignature(target,op)));let targetAdded=0;
+    for(const group of groups){
+      const newInstanceId=uid('hwinst');
+      for(const srcOp of group.ops){
+        const op=hardwareCopyMappedOp(source,target,srcOp,newInstanceId,{mirrorFace:hardwareCopyState.mirrorFace});if(!op)continue;
+        arr.push(op);sanitizeMachiningForPiece(target);
+        const sig=hardwareCopySignature(target,op);
+        if(existing.has(sig)){const i=arr.indexOf(op);if(i>=0)arr.splice(i,1);duplicates++;continue;}
+        existing.add(sig);targetAdded++;added++;
+      }
+    }
+    if(targetAdded)piecesDone++;
+  }
+  renderMachiningVisuals();renderMachiningList();updateInspector?.();updateHardwarePanel?.();commitHistory();
+  const mirrored=hardwareCopyState.mirrorFace;closeCopyHardwareTool(false);
+  toast(`Ferragens copiadas para ${piecesDone} peça(s) · ${added} operação(ões)${duplicates?` · ${duplicates} duplicada(s) ignorada(s)`:''}${mirrored?' · face espelhada':''}`);
+}
+
 // ---------- Exportar / importar móvel + Aspire DXF ----------
 function safeFileName(v,fallback='movel'){
   const t=String(v||fallback).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'');
@@ -17137,6 +17510,9 @@ function installOutsideMenuClose(){
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
 
+    if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return;}
+    if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return;}
+
     if($('projectCardMenu')?.classList.contains('show')){
       closeProjectCardMenu(); return;
     }
@@ -17168,6 +17544,9 @@ $('addHoleBtn').onclick=()=>openMachiningDialog('hole');
 $('addGrooveBtn').onclick=()=>openMachiningDialog('groove');
 $('addHardwareBtn').onclick=()=>openMachiningDialog('hardware');
 $('addShapeBtn').onclick=()=>openShapeDialog();
+$('copyShapeBtn').onclick=()=>openCopyShapeTool();
+$('copyHardwareBtn').onclick=()=>openCopyHardwareTool();
+$('copyHardwareFromDialog').onclick=()=>{$('machiningDialog').style.display='none';openCopyHardwareTool();};
 $('manageMachiningBtn').onclick=()=>openMachiningDialog((selected?.userData?.machining||[])[0]?.type||'hole');
 $('materialsToolBtn').onclick=openProductionDialog;
 document.querySelectorAll('[data-machining-type]').forEach(b=>b.onclick=()=>{machiningEditId=null;if(b.dataset.machiningType==='shape'){openShapeDialog();return;}setMachiningType(b.dataset.machiningType,true);});
@@ -17516,6 +17895,8 @@ function designLabGenericBackLayer(){
   el.classList.remove('show','open');el.style.display='none';return true;
 }
 async function designLabHandleBackCascade(){
+  if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return 'closed';}
+  if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return 'closed';}
   if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar')){returnCurvedStructurePreview({reopen:true});return 'closed';}
   if(shapePreviewActive||designLabBackElementVisible('shape3DPreviewBar')){returnShapePreview();return 'closed';}
   if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar')){closeMachining3DPreview({reopen:true});return 'closed';}
@@ -17584,19 +17965,19 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'anchor',level:0,version:'1.200.49'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard1',level:1,version:'1.200.49'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard2',level:2,version:'1.200.49'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard3',level:3,version:'1.200.49'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.48'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
 }
 function designLabPushBackGuard(){return designLabInstallBackFence({trusted:true});}
 function designLabArmBackGuard(){
-  // 1.200.49: abertura/retomada apenas preserva uma cerca já confiável.
-  // Uma cerca nova é criada pelo bootstrap no fim do primeiro gesto real.
-  return designLabInstallBackFence({trusted:false});
+  // 1.200.48: não depende mais de _bootFresh. Faz uma cerca best-effort já na
+  // abertura e o bootstrap do <head> a reconstrói novamente no primeiro gesto.
+  return designLabInstallBackFence({trusted:true});
 }
 function designLabRunNativeBackCascade(){
   if(designLabHandlingPopState)return;
