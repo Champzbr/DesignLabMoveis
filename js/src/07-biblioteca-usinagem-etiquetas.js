@@ -1105,7 +1105,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.39 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
+// ---------- 1.200.42 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,rawCurrent:null,baseW:0,baseH:0,loadedPresetId:null,hoverSnap:null,guides:[],
@@ -2197,7 +2197,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
 
 
 
-// ---------- 1.200.39 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
+// ---------- 1.200.42 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
 // O Mini CAD deixa de nascer como o retângulo inteiro da peça. O usuário cria apenas
 // um esboço local fechado e ele é aplicado como recorte interno real na peça. Presets
 // antigos de contorno completo continuam compatíveis.
@@ -2376,7 +2376,7 @@ shapeCadPointerMove=function(e){
 };
 shapeCadPointerUp=function(e){if(shapeCadState.panPointer===e.pointerId){shapeCadState.panPointer=null;shapeCadState.panStart=null;return;}if(shapeCadState.pointer===e.pointerId){shapeCadState.pointer=null;shapeCadState.dragIndex=-1;shapeCadRender();updateShapePreview();}};
 
-// ---------- 1.200.39b · Esboço de borda + cotas automáticas ----------
+// ---------- 1.200.42b · Esboço de borda + cotas automáticas ----------
 // Um esboço ABERTO com as duas pontas na borda da peça substitui somente aquele
 // trecho do contorno. Assim é possível desenhar entalhes, degraus e recortes tipo Haixun
 // sem redesenhar a chapa inteira. Esboço FECHADO continua sendo recorte interno.
@@ -2445,7 +2445,7 @@ shapeCadRender=function(){
 };
 
 // ============================================================================
-// 1.200.39 · FORMA ESTILO HAIXUN
+// 1.200.42 · FORMA ESTILO HAIXUN
 // Formatos paramétricos + editor de cantos + esboço livre + biblioteca global.
 // ============================================================================
 const BUILTIN_FORMAT_SHAPES_V37=[

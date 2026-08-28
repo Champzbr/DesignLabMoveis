@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.39</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.42</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -632,8 +632,8 @@ $('libraryImportFile').addEventListener('change',async e=>{
 
 $('visualModeMoreBtn').onclick=()=>setVisualMode(!visualMode,{frame:true});
 $('xray3DBtn').onclick=()=>{toggleDockXray();$('morePanel').style.display='none';};
-if($('toggleHardwareVisibilityBtn'))$('toggleHardwareVisibilityBtn').onclick=()=>toggleCadHardwareVisibility();
-if($('toggleMachiningVisibilityBtn'))$('toggleMachiningVisibilityBtn').onclick=()=>toggleCadMachiningVisibility();
+$('toggleHardwareVisibilityBtn').onclick=()=>toggleCadHardwareVisibility();
+$('toggleMachiningVisibilityBtn').onclick=()=>toggleCadMachiningVisibility();
 $('cancelPanel').onclick=()=>{$('newPanelDialog').style.display='none';};
 $('createPanel').onclick=()=>{
   const w=clampSize(m($('newW').value)),d=clampSize(m($('newD').value)),h=clampSize(m($('newT').value));
@@ -1245,10 +1245,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.39'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.39'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.39'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.39'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.42'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.42'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.42'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.42'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1297,7 +1297,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.39: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.42: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
@@ -1313,7 +1313,7 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
-// 1.200.39: não tentamos mais fingir que uma recuperação automática é igual a
+// 1.200.42: não tentamos mais fingir que uma recuperação automática é igual a
 // um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
 // atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
 // para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
@@ -1348,39 +1348,15 @@ document.addEventListener('pointerup',()=>{
   if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
   setTimeout(designLabGestureServerRecovery,0);
 },{capture:false,passive:true});
-// 1.200.39 · inicialização tolerante a falhas.
-// A autenticação começa PRIMEIRO. Um erro isolado no CAD, painel de ferramentas,
-// câmera ou preferência visual não pode mais deixar a tela presa em
-// “Preparando autenticação…”.
-initOnlineIdentity().catch(err=>{
-  console.error('Falha ao iniciar autenticação:',err);
-  setAuthStatus('Falha ao iniciar a autenticação. Toque em “Verificar sessão”.','error');
-});
-
-window.__designLabStartupErrors=window.__designLabStartupErrors||[];
-function designLabSafeStartupStep(name,fn){
-  try{return fn();}
-  catch(err){
-    console.error(`Inicialização ${name}:`,err);
-    window.__designLabStartupErrors.push({name,message:String(err?.message||err),at:new Date().toISOString()});
-    return null;
-  }
-}
-
-// Início limpo e frontal. Cada etapa fica isolada para uma não derrubar as demais.
-designLabSafeStartupStep('histórico Android',()=>designLabArmBackGuard());
-designLabSafeStartupStep('vista frontal',()=>setFrontWorldView());
-designLabSafeStartupStep('histórico do projeto',()=>{history=[stateString()];historyIndex=0;});
-designLabSafeStartupStep('painel Ferramentas',()=>initToolDock());
-designLabSafeStartupStep('painel Espaço',()=>initSpaceActionsDrag());
-designLabSafeStartupStep('inspetor da peça',()=>initPieceInspectorFloating());
-try{
-  const hub=initProjectHub();
-  hub?.catch?.(err=>{console.error(err);toast('Não foi possível abrir o gerenciador de projetos');});
-}catch(err){
-  console.error('Inicialização gerenciador de projetos:',err);
-  window.__designLabStartupErrors.push({name:'gerenciador de projetos',message:String(err?.message||err),at:new Date().toISOString()});
-}
+// Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
+designLabArmBackGuard();
+setFrontWorldView();
+history=[stateString()]; historyIndex=0;
+initToolDock();
+initSpaceActionsDrag();
+initPieceInspectorFloating();
+initProjectHub().catch(err=>{console.error(err);toast('Não foi possível abrir o gerenciador de projetos');});
+initOnlineIdentity().catch(err=>{console.error(err);setAuthStatus('Falha ao iniciar a autenticação.','error');});
 
 function animate(){
   requestAnimationFrame(animate); controls.update(); if(dragMode) updateLiveLabel(); updateMachiningVisualTransforms(); renderer.render(scene,camera);

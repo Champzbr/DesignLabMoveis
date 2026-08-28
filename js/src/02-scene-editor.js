@@ -136,6 +136,10 @@ const XRAY_3D_KEY='miniCadProXray3DV2';
 let cadBackgroundMode='white';
 let cadGridVisible=true;
 let xray3DEnabled=false;
+// 1.200.42: precisa existir antes de applyCadGridVisibility() ser chamado na inicialização.
+// Na 1.200.37 a grade passou a iniciar ligada e acessava visualMode ainda em TDZ,
+// interrompendo o módulo antes de initOnlineIdentity().
+let visualMode=false;
 
 try{
   const saved=localStorage.getItem(CAD_BACKGROUND_KEY);
@@ -292,9 +296,7 @@ worldAxisY.userData.tapeAxis='y';
 worldAxisZ.userData.tapeAxis='z';
 const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0),0);
 
-let visualMode=false;
-
-// 1.200.39 · visibilidade de detalhes auxiliares do CAD.
+// 1.200.42 · visibilidade de detalhes auxiliares do CAD.
 // São preferências de visualização, não apagam ferragens nem usinagens do projeto.
 function syncCadDetailVisibilityButtons(){
   const hb=$('toggleHardwareVisibilityBtn');
