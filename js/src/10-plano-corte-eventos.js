@@ -978,6 +978,9 @@ $('legacyProjectCards').addEventListener('click',e=>{
 $('homeSaveProject').onclick=$('menuSaveProject').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); saveCurrentProject(); };
 $('homeSaveAsProject').onclick=$('menuSaveAsProject').onclick=()=>{ $('projectMenuPanel').classList.remove('show'); if(currentProjectId)openProjectMetaDialog('saveas'); };
 $('homeSettings').onclick=$('menuAppSettings').onclick=()=>openAppSettings();
+document.querySelectorAll('[data-app-theme-choice]').forEach(btn=>{
+  btn.addEventListener('click',()=>applyDesignLabAppTheme(btn.dataset.appThemeChoice,{persist:true,notify:true}));
+});
 $('appSettingsClose').onclick=closeAppSettings;
 $('appSettingsDialog').addEventListener('pointerdown',e=>{if(e.target===$('appSettingsDialog'))closeAppSettings();});
 document.querySelectorAll('[data-cad-bg]').forEach(b=>b.addEventListener('click',()=>{
@@ -1309,7 +1312,12 @@ setTimeout(()=>{
 },1400);
 // Detecta mistura improvável de HTML atual com bundle antigo e corrige sozinha.
 setTimeout(()=>{
-  try{if(navigator.onLine&&typeof designLabRuntimeBuild==='function'&&designLabRuntimeBuild()!==DESIGNLAB_JS_BUILD)forceDesignLabServerRefresh();}catch(_){}
+  try{
+    if(navigator.onLine&&typeof designLabRuntimeBuild==='function'&&designLabRuntimeBuild()!==DESIGNLAB_JS_BUILD){
+      console.warn('Build HTML/JS diferente; atualização automática adiada para não sair do projeto.');
+      updateCacheStatusUI('Arquivos de versões diferentes detectados · use Configurações > Recarregar versão do servidor.');
+    }
+  }catch(_){}
 },300);
 
 initDesignLabInstallExperience();
@@ -1340,14 +1348,10 @@ window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUp
 // de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
 // Configurações. Não é necessário abrir Configurações nem procurar o botão.
 function designLabGestureServerRecovery(){
-  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
-  designLabEnsureServerRecovery('first-user-gesture').catch(()=>{});
+  // 1.200.45: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
+  // O recarregamento do servidor permanece disponível somente em Configurações.
+  return false;
 }
-document.addEventListener('click',designLabGestureServerRecovery,{capture:false,passive:true});
-document.addEventListener('pointerup',()=>{
-  if(designLabGestureRecoveryReady||designLabUpdating||!navigator.onLine)return;
-  setTimeout(designLabGestureServerRecovery,0);
-},{capture:false,passive:true});
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();
 setFrontWorldView();

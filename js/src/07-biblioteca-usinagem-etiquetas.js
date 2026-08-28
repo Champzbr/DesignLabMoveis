@@ -2661,3 +2661,150 @@ returnShapePreview=function(){restoreShapePreview();if(shapePreviewOwner&&object
 openShapeDialog=function(){
   if(visualMode)setVisualMode(false,{notify:false,frame:false});if(!selected){toast('Selecione uma peça');return;}if(selected.userData?.kind==='cylinder'||selected.userData?.kind==='curved-panel'||selected.userData?.curvedRole){toast('Forma disponível para peças planas');return;}shapePreviewOwner=selected;shapePreviewOriginalForms=null;shapePreviewOriginalDims=null;shapePreviewActive=false;shapePresetEditId=null;shapeLibraryScope='local';$('morePanel').style.display='none';$('machiningDialog').style.display='none';const ti=pieceThicknessInfo(selected);$('shapePartInfo').textContent=`Formato: ${selected.userData.name||'Peça'} · ${nice(ti.faceW)} × ${nice(ti.faceH)} × ${nice(ti.thickness)} mm. Formatos e esboços alteram o contorno real exportado no DXF.`;shapeLoadedFormatCornerEdits={};shapeFormatPopulate({format:'rectangle',width:ti.faceW,height:ti.faceH});shapeSetMode('format');shapeSyncScopeUi();refreshShapePresetSelect('builtin-format-rect');shapeCadInitForOwner({forceRect:true});renderAppliedShapes();shapeCornerRender();updateShapePreview();$('shapeDialog').style.display='flex';
 };
+
+// ---------- 1.200.43 · Forma 3D fechada e visual limpo ----------
+// A geometria ExtrudeGeometry já é sólida/fechada. O aspecto de "peça aberta"
+// vinha das quatro linhas verticais artificiais usadas para representar espessura.
+// Agora só desenhamos ligações verticais em cantos geométricos reais. Curvas e
+// elipses ficam contínuas, sem a emenda preta falsa vista na prévia 3D.
+function formVisualSharpCornerIndices(pts,{thresholdDeg=18,maxCorners=32}={}){
+  if(!Array.isArray(pts)||pts.length<3)return [];
+  const threshold=thresholdDeg*Math.PI/180,out=[];
+  for(let i=0;i<pts.length;i++){
+    const a=pts[(i-1+pts.length)%pts.length],b=pts[i],c=pts[(i+1)%pts.length];
+    const v1=[b[0]-a[0],b[1]-a[1]],v2=[c[0]-b[0],c[1]-b[1]],l1=Math.hypot(v1[0],v1[1]),l2=Math.hypot(v2[0],v2[1]);
+    if(l1<1e-6||l2<1e-6)continue;
+    const dot=Math.max(-1,Math.min(1,(v1[0]*v2[0]+v1[1]*v2[1])/(l1*l2))),turn=Math.acos(dot);
+    if(turn>=threshold)out.push(i);
+  }
+  if(out.length>maxCorners)return [];
+  return out;
+}
+makeFormVisualEdges=function(o,pts,ti){
+  const group=new THREE.Group();group.userData.isVisualEdge=true;
+  const xray=xray3DActive(),outlineMat=new THREE.LineBasicMaterial({color:0x15120e,transparent:true,opacity:xray?.82:.82,depthTest:!xray,depthWrite:false});
+  const cornerMat=new THREE.LineBasicMaterial({color:0x1b1711,transparent:true,opacity:xray?.76:.62,depthTest:!xray,depthWrite:false});
+  group.material=outlineMat;const t=ti.thickness/2;
+  // Contorno superior e inferior contínuos: mostram a espessura sem "abrir" a peça.
+  for(const side of [-t,t]){
+    const arr=pts.map(([u,v])=>formLocalPoint(ti,u,v,side));
+    if(arr.length){arr.push(arr[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),outlineMat);line.userData.isVisualEdge=true;group.add(line);}
+  }
+  // Só cantos reais recebem linha vertical. Em círculos/elipses nenhuma emenda é criada.
+  const sharp=formVisualSharpCornerIndices(pts),seg=[];
+  for(const i of sharp){const p=pts[i];seg.push(formLocalPoint(ti,p[0],p[1],-t),formLocalPoint(ti,p[0],p[1],t));}
+  if(seg.length){const sides=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),cornerMat);sides.userData.isVisualEdge=true;group.add(sides);}
+  group.renderOrder=xray?88:12;return group;
+};
+function focusPieceForShapePreview(o){
+  if(!o)return;
+  returnTo3D({restore:false,notify:false});
+  // Box3 usa a geometria já transformada e inclui corretamente formatos redondos/L/chanfrados.
+  const box=new THREE.Box3().setFromObject(o),center=new THREE.Vector3(),size=new THREE.Vector3();box.getCenter(center);box.getSize(size);
+  const span=Math.max(size.x,size.y,size.z,.12),dist=Math.max(.32,span*1.65);
+  perspectiveCamera.up.set(0,1,0);
+  perspectiveCamera.position.set(center.x+dist*.72,center.y+dist*.52,center.z+dist*.88);
+  controls.target.copy(center);perspectiveCamera.lookAt(center);controls.update();
+}
+
+
+// ---------- 1.200.45 · Forma aplicada: sólido limpo e fechado ----------
+// v44: a posição da peça não é alterada. Esta correção atua apenas na malha
+// criada depois de aplicar uma Forma. Em vez de depender do ExtrudeGeometry
+// para o acabamento visual, montamos explicitamente tampas + paredes laterais.
+// Isso elimina o aspecto de duas "cascas"/peça aberta nas curvas e mantém o
+// mesmo contorno milimétrico usado no DXF.
+function formV44CleanLoop(loop){
+  const out=[];
+  for(const p of (loop||[])){
+    const q=[Number(p?.[0]),Number(p?.[1])];
+    if(!q.every(Number.isFinite))continue;
+    const last=out.at(-1);
+    if(!last||Math.hypot(last[0]-q[0],last[1]-q[1])>.0001)out.push(q);
+  }
+  if(out.length>2&&Math.hypot(out[0][0]-out.at(-1)[0],out[0][1]-out.at(-1)[1])<.0001)out.pop();
+  return out;
+}
+function formV44SolidGeometry(outer,holes,ti){
+  outer=formV44CleanLoop(outer);holes=(holes||[]).map(formV44CleanLoop).filter(h=>h.length>=3);
+  if(outer.length<3)return null;
+  const toV2=([u,v])=>new THREE.Vector2((u-ti.faceW/2)*MM_TO_M,(v-ti.faceH/2)*MM_TO_M);
+  const contour=outer.map(toV2),holeV=holes.map(h=>h.map(toV2));
+  let faces=[];
+  try{faces=THREE.ShapeUtils.triangulateShape(contour,holeV)||[];}catch{}
+  if(!faces.length)return null;
+  const flat=[...contour,...holeV.flat()],positions=[],indices=[],uv=[];
+  const half=ti.thickness*MM_TO_M/2,N=flat.length;
+  const uvScaleX=Math.max(.001,ti.faceW*MM_TO_M),uvScaleY=Math.max(.001,ti.faceH*MM_TO_M);
+  const push=(x,y,z,u=0,v=0)=>{positions.push(x,y,z);uv.push(u,v);return positions.length/3-1;};
+  // Tampas com vértices próprios: normais permanecem perfeitamente planas.
+  for(const p of flat)push(p.x,p.y,-half,(p.x+uvScaleX/2)/uvScaleX,(p.y+uvScaleY/2)/uvScaleY);
+  for(const p of flat)push(p.x,p.y, half,(p.x+uvScaleX/2)/uvScaleX,(p.y+uvScaleY/2)/uvScaleY);
+  for(const f of faces){const a=f[0],b=f[1],c=f[2];indices.push(a,c,b);indices.push(N+a,N+b,N+c);}
+  // Parede lateral: cada trecho é um quad real. Nas curvas usamos muitos
+  // segmentos, então a lateral fica contínua sem fissuras nem triangulação aparente.
+  const addWall=(loop,isHole=false)=>{
+    const pts=loop.map(toV2),count=pts.length;if(count<2)return;
+    let acc=0,total=0;for(let i=0;i<count;i++){const p=pts[i],q=pts[(i+1)%count];total+=Math.hypot(q.x-p.x,q.y-p.y);}total=Math.max(total,.001);
+    for(let i=0;i<count;i++){
+      const p=pts[i],q=pts[(i+1)%count],segLen=Math.hypot(q.x-p.x,q.y-p.y),u0=acc/total,u1=(acc+segLen)/total;acc+=segLen;
+      const base=positions.length/3;
+      push(p.x,p.y,-half,u0,0);push(q.x,q.y,-half,u1,0);push(q.x,q.y,half,u1,1);push(p.x,p.y,half,u0,1);
+      if(isHole)indices.push(base,base+2,base+1,base,base+3,base+2);
+      else indices.push(base,base+1,base+2,base,base+2,base+3);
+    }
+  };
+  addWall(outer,false);for(const h of holes)addWall(h,true);
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(indices);
+  // 1.200.45: as peças usam um array de materiais. BufferGeometry sem groups
+  // não é desenhada pelo WebGLRenderer quando mesh.material é um array,
+  // por isso apareciam apenas as linhas. Um grupo cobrindo toda a malha
+  // mantém o material original da peça visível sobre a Forma.
+  g.clearGroups();g.addGroup(0,indices.length,0);
+  g.computeVertexNormals();formMapExtrudeGeometry(g,ti);return g;
+}
+function formV44VisualEdges(o,outer,holes,ti){
+  const group=new THREE.Group();group.userData.isVisualEdge=true;const xray=xray3DActive(),t=ti.thickness/2;
+  // O contorno principal fica nítido; o contorno da face oposta é propositalmente
+  // discreto para a espessura não parecer uma segunda peça solta/aberta.
+  const strongSide=ti.thicknessAxis==='z'?-t:t;
+  const weakSide=-strongSide;
+  const strongMat=new THREE.LineBasicMaterial({color:0x15120e,transparent:true,opacity:xray?.82:.78,depthTest:!xray,depthWrite:false});
+  const weakMat=new THREE.LineBasicMaterial({color:0x221c15,transparent:true,opacity:xray?.45:.20,depthTest:!xray,depthWrite:false});
+  const cornerMat=new THREE.LineBasicMaterial({color:0x1b1711,transparent:true,opacity:xray?.58:.34,depthTest:!xray,depthWrite:false});
+  group.material=strongMat;
+  const addLoop=(loop,side,mat)=>{const pts=formV44CleanLoop(loop),arr=pts.map(([u,v])=>formLocalPoint(ti,u,v,side));if(!arr.length)return;arr.push(arr[0].clone());const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);l.userData.isVisualEdge=true;group.add(l);};
+  addLoop(outer,strongSide,strongMat);addLoop(outer,weakSide,weakMat);
+  for(const h of holes){addLoop(h,strongSide,strongMat);addLoop(h,weakSide,weakMat);}
+  const cleanOuter=formV44CleanLoop(outer),sharp=formVisualSharpCornerIndices(cleanOuter,{thresholdDeg:22,maxCorners:48}),seg=[];
+  for(const i of sharp){const p=cleanOuter[i];if(!p)continue;seg.push(formLocalPoint(ti,p[0],p[1],-t),formLocalPoint(ti,p[0],p[1],t));}
+  if(seg.length){const l=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),cornerMat);l.userData.isVisualEdge=true;group.add(l);}
+  group.renderOrder=xray?88:12;return group;
+}
+// Círculos/elipses ganham resolução maior no sólido final. A medida continua exata.
+const shapeFormatBasePolygonV43=shapeFormatBasePolygon;
+shapeFormatBasePolygon=function(cfg,W,H,segments=64){
+  const f=cfg?.format||'rectangle';
+  if(f==='ellipse'||f==='circle'){
+    const out=[],cx=W/2,cy=H/2,rx=W/2,ry=H/2,n=Math.max(256,Math.ceil(Number(segments||64)*4));
+    for(let i=0;i<n;i++){const a=Math.PI*2*i/n;out.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}return out;
+  }
+  return shapeFormatBasePolygonV43(cfg,W,H,segments);
+};
+const rebuildFormGeometryV43=rebuildFormGeometry;
+rebuildFormGeometry=function(o){
+  if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return rebuildFormGeometryV43(o);
+  const forms=Array.isArray(o.userData?.forms)?o.userData.forms:[];
+  if(!forms.length)return rebuildFormGeometryV43(o);
+  const ti=pieceThicknessInfo(o);if(!ti)return rebuildFormGeometryV43(o);
+  const outer=formOutlinePointsMm(o,forms,96),holes=formCutoutPointsMm(o,forms);if(outer.length<3)return rebuildFormGeometryV43(o);
+  const geom=formV44SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
+  disposeVisualEdgeTree(o);o.geometry?.dispose?.();o.geometry=geom;o.scale.set(1,1,1);
+  const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);
+  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:44};
+  o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
+  const edges=formV44VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
+};

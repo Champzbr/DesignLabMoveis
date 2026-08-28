@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.42';
+  return tm?.[1]||'1.200.45';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.42-r1';
+const DESIGNLAB_JS_BUILD='1.200.45-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -694,7 +694,8 @@ async function checkDesignLabUpdate({manual=false,force=false,autoApply=false}={
     if(compareAppVersions(info.version,DESIGNLAB_APP_VERSION)>0){
       designLabAvailableUpdate=info;
       markDesignLabUpdateAvailable(info);
-      if(autoApply&&!manual){
+      const editingProject=!!(typeof currentProjectId!=='undefined'&&currentProjectId&&!document.body.classList.contains('project-home-active'));
+      if(autoApply&&!manual&&!editingProject&&document.visibilityState==='visible'){
         let last={};try{last=JSON.parse(sessionStorage.getItem('designLabAutoUpdateAttempt')||'{}')||{};}catch{}
         const target=String(info.version||'');
         if(last.version!==target || Date.now()-Number(last.at||0)>60000){
@@ -702,6 +703,7 @@ async function checkDesignLabUpdate({manual=false,force=false,autoApply=false}={
           applyDesignLabUpdate().catch(()=>{});
         }else notifyDesignLabUpdateOnce(info);
       }else if(manual)openUpdateDialog(info);
+      else notifyDesignLabUpdateOnce(info);
       else notifyDesignLabUpdateOnce(info);
       return info;
     }
@@ -861,9 +863,8 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  if(window.__designLabRecoveryNavigating)return;
-  designLabGestureRecoveryReady=false;
-  try{sessionStorage.removeItem(DESIGNLAB_GESTURE_RECOVERY_KEY);}catch(_){ }
+  // 1.200.45: não desarma a sessão ao ir para segundo plano.
+  return false;
 }
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();

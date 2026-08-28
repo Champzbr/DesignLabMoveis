@@ -123,6 +123,30 @@ const container = $('canvas-container');
 
 
 // ============================================================================
+// 1.200.45 · APARÊNCIA DO APLICATIVO
+// ============================================================================
+const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV1';
+let designLabAppTheme='light';
+try{designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';}catch{}
+function syncDesignLabThemeButtons(){
+  document.querySelectorAll('[data-app-theme-choice]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.appThemeChoice===designLabAppTheme);
+    btn.setAttribute('aria-pressed',btn.dataset.appThemeChoice===designLabAppTheme?'true':'false');
+  });
+}
+function applyDesignLabAppTheme(theme,{persist=true,notify=false}={}){
+  designLabAppTheme=theme==='dark'?'dark':'light';
+  document.documentElement.dataset.appTheme=designLabAppTheme;
+  document.body.dataset.appTheme=designLabAppTheme;
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.setAttribute('content',designLabAppTheme==='dark'?'#06151e':'#f4f7f9');
+  syncDesignLabThemeButtons();
+  if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);}catch{}}
+  if(notify)toast(designLabAppTheme==='dark'?'Modo escuro ativado':'Layout clássico claro ativado');
+}
+applyDesignLabAppTheme(designLabAppTheme,{persist:false,notify:false});
+
+// ============================================================================
 // 1.100.10 · FUNDO DO CAD
 // ============================================================================
 const CAD_BACKGROUND_KEY='miniCadProCadBackgroundV2';
@@ -208,6 +232,7 @@ function applyCadBackground(mode,{persist=true,notify=false}={}){
 }
 function openAppSettings(){
   $('projectMenuPanel')?.classList.remove('show');
+  syncDesignLabThemeButtons();
   syncCadBackgroundButtons();
   updateXray3DButton();
   $('appSettingsDialog').classList.add('show');
