@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.44",
+  "version": "1.200.45",
   "required": false,
-  "message": "Corrige somente a Forma aplicada: a peça formada passa a usar um sólido 3D explícito e fechado, com lateral contínua, curvas mais lisas e contorno oposto discreto. Posição e demais recursos não são alterados.",
-  "released_at": "2026-08-28T07:36:00-03:00",
-  "build": "1.200.44-r1"
+  "message": "Corrige a Forma aplicada para manter o material visível, elimina o recarregamento automático que fazia projetos voltarem para a tela inicial ao abrir/retomar o app e adiciona o novo layout Clássico claro, mantendo o visual atual como Modo escuro.",
+  "released_at": "2026-08-28T08:15:00-03:00",
+  "build": "1.200.45-r1"
 }
