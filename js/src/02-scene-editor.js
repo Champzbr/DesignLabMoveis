@@ -123,9 +123,9 @@ const container = $('canvas-container');
 
 
 // ============================================================================
-// 1.200.45 · APARÊNCIA DO APLICATIVO
+// 1.200.47 · APARÊNCIA DO APLICATIVO
 // ============================================================================
-const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV1';
+const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
 let designLabAppTheme='light';
 try{designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';}catch{}
 function syncDesignLabThemeButtons(){

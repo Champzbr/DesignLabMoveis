@@ -1348,7 +1348,7 @@ window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUp
 // de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
 // Configurações. Não é necessário abrir Configurações nem procurar o botão.
 function designLabGestureServerRecovery(){
-  // 1.200.45: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
+  // 1.200.47: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
   // O recarregamento do servidor permanece disponível somente em Configurações.
   return false;
 }

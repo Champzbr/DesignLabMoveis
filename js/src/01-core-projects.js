@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.45';
+  return tm?.[1]||'1.200.47';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.45-r1';
+const DESIGNLAB_JS_BUILD='1.200.47-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -704,7 +704,6 @@ async function checkDesignLabUpdate({manual=false,force=false,autoApply=false}={
         }else notifyDesignLabUpdateOnce(info);
       }else if(manual)openUpdateDialog(info);
       else notifyDesignLabUpdateOnce(info);
-      else notifyDesignLabUpdateOnce(info);
       return info;
     }
 
@@ -863,7 +862,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  // 1.200.45: não desarma a sessão ao ir para segundo plano.
+  // 1.200.47: não desarma a sessão ao ir para segundo plano.
   return false;
 }
 async function initDesignLabServiceWorker(){
