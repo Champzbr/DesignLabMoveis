@@ -355,3 +355,15 @@
   }
 
 
+
+
+/* 1.200.50 · Copiar Forma em lote */
+.shapeCopyBar{
+  position:fixed;z-index:180;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  width:min(760px,calc(100vw - 24px));display:none;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-radius:16px;background:var(--panel);color:var(--text);border:1px solid rgba(83,214,232,.38);
+  box-shadow:0 12px 34px rgba(0,0,0,.34);touch-action:auto;pointer-events:auto;
+}
+.shapeCopyBarText{display:grid;gap:3px;min-width:0}.shapeCopyBarText strong{font-size:13px}.shapeCopyBarText span{font-size:11px;color:var(--muted);line-height:1.35}
+.shapeCopyBarActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.shapeCopyBar button{min-height:38px;padding:8px 12px;border-radius:10px}
+@media(max-width:620px){.shapeCopyBar{align-items:stretch;flex-direction:column;bottom:calc(10px + env(safe-area-inset-bottom))}.shapeCopyBarActions{display:grid;grid-template-columns:1fr 1fr 1fr}.shapeCopyBar button{padding:8px 6px;font-size:11px}}
