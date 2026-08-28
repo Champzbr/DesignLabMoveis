@@ -805,6 +805,85 @@ function repairVerticalDivisionThickness(root){
 }
 
 
+// ============================================================================
+// 1.200.52 · USINAGENS/FERRAGENS ACOMPANHAM O REDIMENSIONAMENTO DA PEÇA
+// ============================================================================
+// Uma operação salva em 100 mm da borda deve continuar a 100 mm da mesma
+// borda quando um modelo/espaço cresce. Operações próximas da borda oposta
+// passam a usar referência negativa; operações centrais permanecem centradas.
+function machiningResizeRawCoord(op,axis){
+  const r=op?.coordRef?.[axis];
+  if(Number.isFinite(Number(r)))return Number(r);
+  const v=Number(op?.[axis]);return Number.isFinite(v)?v:0;
+}
+function machiningResizeSpan(op,axis){
+  if(op?.type!=='groove')return 0;
+  if(op.lengthAxis===axis)return Math.max(0,Number(op.length)||0);
+  const da=String(op.entryAxis||'').slice(-1);
+  if(axis!==da&&axis!==op.lengthAxis)return Math.max(0,Number(op.width)||0);
+  return 0;
+}
+function machiningResizeAnchorForAxis(op,axis,oldDim,span){
+  op.resizeAnchor=op.resizeAnchor&&typeof op.resizeAnchor==='object'?op.resizeAnchor:{};
+  op.resizeAnchorOffset=op.resizeAnchorOffset&&typeof op.resizeAnchorOffset==='object'?op.resizeAnchorOffset:{};
+  let anchor=op.resizeAnchor[axis];
+  const raw=machiningResizeRawCoord(op,axis);
+  const maxPos=Math.max(0,Number(oldDim)||0)-Math.max(0,Number(span)||0);
+  const pos=raw<0?maxPos+raw:raw;
+  if(!['start','end','center'].includes(anchor)){
+    if(raw<0)anchor='end';
+    else{
+      const center=maxPos/2;
+      const centerTol=Math.max(1.5,Math.min(12,Math.max(0,Number(oldDim)||0)*0.025));
+      if(Math.abs(pos-center)<=centerTol)anchor='center';
+      else anchor=pos<=center?'start':'end';
+    }
+    op.resizeAnchor[axis]=anchor;
+    if(anchor==='start')op.resizeAnchorOffset[axis]=Math.max(0,pos);
+    else if(anchor==='end')op.resizeAnchorOffset[axis]=Math.max(0,maxPos-pos);
+    else op.resizeAnchorOffset[axis]=pos-maxPos/2;
+  }else if(!Number.isFinite(Number(op.resizeAnchorOffset[axis]))){
+    if(anchor==='start')op.resizeAnchorOffset[axis]=Math.max(0,pos);
+    else if(anchor==='end')op.resizeAnchorOffset[axis]=Math.max(0,maxPos-pos);
+    else op.resizeAnchorOffset[axis]=pos-maxPos/2;
+  }
+  return {anchor,offset:Number(op.resizeAnchorOffset[axis])||0};
+}
+function remapMachiningArrayForPieceResize(machining,oldDims,newDims){
+  if(!Array.isArray(machining)||!machining.length)return machining;
+  oldDims=oldDims||{};newDims=newDims||{};
+  for(const op of machining){
+    if(!op)continue;
+    op.coordRef=op.coordRef&&typeof op.coordRef==='object'?op.coordRef:{};
+    const da=String(op.entryAxis||'').slice(-1);
+    for(const axis of ['x','y','z']){
+      if(axis===da)continue;
+      const od=Number(oldDims[axis]),nd=Number(newDims[axis]);
+      if(!Number.isFinite(od)||!Number.isFinite(nd)||od<=0||nd<=0)continue;
+      const span=machiningResizeSpan(op,axis);
+      const {anchor,offset}=machiningResizeAnchorForAxis(op,axis,od,span);
+      const maxNew=Math.max(0,nd-span);
+      let raw;
+      if(anchor==='start')raw=offset;
+      else if(anchor==='end')raw=-offset;
+      else raw=maxNew/2+offset;
+      op.coordRef[axis]=raw;
+    }
+  }
+  return machining;
+}
+function remapMachiningForPieceResize(obj,oldDims,newDims){
+  const arr=obj?.userData?.machining;
+  if(!Array.isArray(arr)||!arr.length)return;
+  remapMachiningArrayForPieceResize(arr,oldDims,newDims);
+}
+function cloneMachiningForTargetSize(machining,oldDims,newDims){
+  const copy=JSON.parse(JSON.stringify(Array.isArray(machining)?machining:[]));
+  remapMachiningArrayForPieceResize(copy,oldDims,newDims);
+  return copy;
+}
+
+
 function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   if(!root) throw new Error('Espaço não encontrado');
   width=Number(width); depth=Number(depth); height=Number(height); yBase=Number(yBase);
@@ -826,7 +905,7 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   const linked=objects.filter(o=>o.userData?.spaceRootId===root.id || objectInsideSpaceRoot(o,root));
   const pieceStates=linked.map(o=>{
     const u=o.userData;
-    return {o, minX:o.position.x-u.width/2,maxX:o.position.x+u.width/2,minY:o.position.y-u.height/2,maxY:o.position.y+u.height/2,minZ:o.position.z-u.depth/2,maxZ:o.position.z+u.depth/2};
+    return {o, minX:o.position.x-u.width/2,maxX:o.position.x+u.width/2,minY:o.position.y-u.height/2,maxY:o.position.y+u.height/2,minZ:o.position.z-u.depth/2,maxZ:o.position.z+u.depth/2,oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000}};
   });
 
   // Primeiro remapeia as divisões/vãos internos.
@@ -843,9 +922,11 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
     const nx0=mapX(st.minX), nx1=mapX(st.maxX), ny0=mapY(st.minY), ny1=mapY(st.maxY), nz0=mapZ(st.minZ), nz1=mapZ(st.maxZ);
     const nw=Math.max(.001,Math.abs(nx1-nx0)), nh=Math.max(.001,Math.abs(ny1-ny0)), nd=Math.max(.001,Math.abs(nz1-nz0));
     u.width=nw; u.height=nh; u.depth=nd;
+    remapMachiningForPieceResize(o,st.oldDimsMm,{x:nw*1000,y:nh*1000,z:nd*1000});
     if(Array.isArray(u.forms)&&u.forms.length){o.scale.set(1,1,1);rebuildFormGeometry(o);}else o.scale.set(nw,nh,nd);
     o.position.set((nx0+nx1)/2,(ny0+ny1)/2,(nz0+nz1)/2);
     updateAutoMachiningAfterPieceResize(o);
+    sanitizeMachiningForPiece(o);
   }
 
   // Mantém as faixas fixas persistentes corretas para futuros redimensionamentos.

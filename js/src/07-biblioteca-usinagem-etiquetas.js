@@ -167,6 +167,10 @@ function copyLibraryPartMeta(created,p){
 }
 function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
   if(!p)return null;
+  const sourceDimsMm={x:Number(p.width)*1000,y:Number(p.height)*1000,z:Number(p.depth)*1000};
+  const targetDimsMm={x:Number(width)*1000,y:Number(height)*1000,z:Number(depth)*1000};
+  const adaptedMachining=cloneMachiningForTargetSize(p.machining||[],sourceDimsMm,targetDimsMm);
+  const adaptedPart={...p,machining:adaptedMachining};
   let created=null;
   if(p.kind==='cylinder'){
     created=createCylinder({diameter:Math.min(width,depth),height,x,yBase,z,name:p.name||'Cilindro'},false);
@@ -184,9 +188,9 @@ function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
     // estrutural usam a posição antiga como fallback.
     created=createCurvedPost({cfg,yBase,x:structural?.x??x,z:structural?.z??z,name:p.name||'Montante curvo',spaceRootId:info.root.id,rotationY:structural?.rotationY??(Number(p.rotationY)||0)},false);
   }else{
-    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:p.machining||[],forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
+    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:adaptedMachining,forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
   }
-  return copyLibraryPartMeta(created,p);
+  return copyLibraryPartMeta(created,adaptedPart);
 }
 function placeCustomTemplate(item,info){
   const sb=item.sourceBounds, sw=sb.maxX-sb.minX, sh=sb.maxY-sb.minY, sd=sb.maxZ-sb.minZ; if(sw<=0||sh<=0||sd<=0)return;
@@ -2859,3 +2863,274 @@ rebuildFormGeometry=function(o){
   o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
   const edges=formV47VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
 };
+
+
+// ============================================================================
+// 1.200.50 · COPIAR FORMA EM LOTE
+// Uma peça é a origem. Depois o usuário toca em quantas peças destino quiser e
+// aplica de uma vez. Só a Forma é copiada: posição, material, espessura,
+// usinagens e vínculos das peças destino permanecem próprios.
+// ============================================================================
+const shapeCopyState={active:false,phase:'source',source:null,targets:new Set(),helpers:null};
+
+function shapeCopyPieceEligible(o){
+  if(!o||!objects.includes(o))return false;
+  if(o.userData?.kind==='space-cell'||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return false;
+  return !!pieceThicknessInfo(o);
+}
+function shapeCopySourceHasForm(o){return shapeCopyPieceEligible(o)&&Array.isArray(o.userData?.forms)&&o.userData.forms.length>0;}
+function shapeCopyDisposeHelpers(){
+  const g=shapeCopyState.helpers;if(!g)return;
+  g.traverse?.(o=>{o.geometry?.dispose?.();if(Array.isArray(o.material))o.material.forEach(m=>m?.dispose?.());else o.material?.dispose?.();});
+  scene.remove(g);shapeCopyState.helpers=null;
+}
+function shapeCopyRefreshHelpers(){
+  shapeCopyDisposeHelpers();if(!shapeCopyState.active)return;
+  const g=new THREE.Group();g.userData.isShapeCopyHelper=true;
+  if(shapeCopyState.source&&objects.includes(shapeCopyState.source)){
+    const h=new THREE.BoxHelper(shapeCopyState.source,0x53d6e8);h.userData.isShapeCopyHelper=true;g.add(h);
+  }
+  for(const o of shapeCopyState.targets){
+    if(!objects.includes(o))continue;const h=new THREE.BoxHelper(o,0x7fe594);h.userData.isShapeCopyHelper=true;g.add(h);
+  }
+  scene.add(g);shapeCopyState.helpers=g;
+}
+function shapeCopyEnsureBar(){
+  let bar=document.getElementById('shapeCopyBar');if(bar)return bar;
+  bar=document.createElement('div');bar.id='shapeCopyBar';bar.className='shapeCopyBar';
+  bar.innerHTML=`<div class="shapeCopyBarText"><strong id="shapeCopyBarTitle">⧉ Copiar Forma</strong><span id="shapeCopyBarStatus"></span></div><div class="shapeCopyBarActions"><button id="shapeCopyChangeSource" class="secondary">Trocar origem</button><button id="shapeCopyApplyBtn">Aplicar</button><button id="shapeCopyCancelBtn" class="secondary">Cancelar</button></div>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#shapeCopyChangeSource').onclick=shapeCopyChooseSourceAgain;
+  bar.querySelector('#shapeCopyApplyBtn').onclick=shapeCopyApplyBatch;
+  bar.querySelector('#shapeCopyCancelBtn').onclick=()=>closeCopyShapeTool(true);
+  return bar;
+}
+function shapeCopyUpdateBar(){
+  const bar=shapeCopyEnsureBar(),status=bar.querySelector('#shapeCopyBarStatus'),apply=bar.querySelector('#shapeCopyApplyBtn'),change=bar.querySelector('#shapeCopyChangeSource');
+  bar.style.display=shapeCopyState.active?'flex':'none';if(!shapeCopyState.active)return;
+  if(shapeCopyState.phase==='source'){
+    status.textContent='Toque na peça que já possui a Forma que será copiada.';apply.disabled=true;apply.textContent='Aplicar';change.style.display='none';
+  }else{
+    const n=shapeCopyState.targets.size,name=shapeCopyState.source?.userData?.name||'Peça origem';
+    status.textContent=`Origem: ${name} · toque nas peças destino para marcar/desmarcar · ${n} selecionada(s).`;
+    apply.disabled=n===0;apply.textContent=n?`Aplicar em ${n}`:'Aplicar';change.style.display='inline-flex';
+  }
+}
+function shapeCopyChooseSourceAgain(){
+  shapeCopyState.phase='source';shapeCopyState.source=null;shapeCopyState.targets.clear();shapeCopyRefreshHelpers();shapeCopyUpdateBar();toast('Selecione a peça de origem da Forma');
+}
+function openCopyShapeTool(){
+  if(typeof closeCopyHardwareTool==='function'&&typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active)closeCopyHardwareTool(false);
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  setTool('select');
+  shapeCopyState.active=true;shapeCopyState.targets.clear();
+  if(shapeCopySourceHasForm(selected)){shapeCopyState.source=selected;shapeCopyState.phase='targets';toast('Origem definida. Selecione as peças destino.');}
+  else{shapeCopyState.source=null;shapeCopyState.phase='source';toast('Selecione a peça que contém a Forma a copiar');}
+  shapeCopyRefreshHelpers();shapeCopyUpdateBar();
+}
+function closeCopyShapeTool(notify=false){
+  if(!shapeCopyState.active)return;shapeCopyState.active=false;shapeCopyState.phase='source';shapeCopyState.source=null;shapeCopyState.targets.clear();shapeCopyDisposeHelpers();const bar=document.getElementById('shapeCopyBar');if(bar)bar.style.display='none';if(notify)toast('Copiar Forma cancelado');
+}
+function shapeCopyHandlePick(){
+  if(!shapeCopyState.active)return false;
+  raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(referenceMeshes(),false);
+  const obj=hits.map(h=>h.object).find(o=>shapeCopyPieceEligible(o));
+  if(!obj){toast(shapeCopyState.phase==='source'?'Toque em uma peça que tenha Forma':'Toque em uma peça plana para marcar como destino');return true;}
+  if(shapeCopyState.phase==='source'){
+    if(!shapeCopySourceHasForm(obj)){toast('Essa peça ainda não possui uma Forma para copiar');return true;}
+    shapeCopyState.source=obj;shapeCopyState.phase='targets';shapeCopyState.targets.clear();selectObject(obj);shapeCopyRefreshHelpers();shapeCopyUpdateBar();toast('Origem definida. Agora selecione uma ou várias peças destino.');return true;
+  }
+  if(obj===shapeCopyState.source){toast('Esta é a peça de origem');return true;}
+  if(shapeCopyState.targets.has(obj))shapeCopyState.targets.delete(obj);else shapeCopyState.targets.add(obj);
+  shapeCopyRefreshHelpers();shapeCopyUpdateBar();return true;
+}
+function shapeCopyAdaptForms(source,target){
+  const srcTi=pieceThicknessInfo(source),dstTi=pieceThicknessInfo(target),forms=cloneForms(source.userData?.forms||[]);if(!srcTi||!dstTi)return [];
+  const sx=dstTi.faceW/Math.max(.001,srcTi.faceW),sy=dstTi.faceH/Math.max(.001,srcTi.faceH),maxR=Math.min(dstTi.faceW,dstTi.faceH)/2;
+  return forms.map(f=>{
+    f.id=uid('form');
+    if(f.type==='round-corner')f.radius=Math.max(0,Math.min(maxR,Number(f.radius)||0));
+    if(f.type==='piece-format'&&f.config){
+      f.config.width=dstTi.faceW;f.config.height=dstTi.faceH;
+      if(f.config.format==='rounded-rect')f.config.radius=Math.max(.1,Math.min(maxR,Number(f.config.radius)||50));
+      if(Number.isFinite(Number(f.config.cutW)))f.config.cutW=Math.min(Math.max(.1,Number(f.config.cutW)),Math.max(.1,dstTi.faceW-.1));
+      if(Number.isFinite(Number(f.config.cutH)))f.config.cutH=Math.min(Math.max(.1,Number(f.config.cutH)),Math.max(.1,dstTi.faceH-.1));
+      if(Number.isFinite(Number(f.config.cutX)))f.config.cutX=Math.min(Math.max(.1,Number(f.config.cutX)),dstTi.faceW*.49);
+      if(Number.isFinite(Number(f.config.cutY)))f.config.cutY=Math.min(Math.max(.1,Number(f.config.cutY)),dstTi.faceH*.49);
+    }
+    if(f.type==='custom-profile'&&Array.isArray(f.points)){
+      f.points=f.points.map(p=>[roundMmNumber((Number(p[0])||0)*sx,3),roundMmNumber((Number(p[1])||0)*sy,3)]);
+      if(Number.isFinite(Number(f.sketchW)))f.sketchW=roundMmNumber(Number(f.sketchW)*sx,3);
+      if(Number.isFinite(Number(f.sketchH)))f.sketchH=roundMmNumber(Number(f.sketchH)*sy,3);
+      f.baseW=dstTi.faceW;f.baseH=dstTi.faceH;
+    }
+    return f;
+  });
+}
+function shapeCopyApplyBatch(){
+  const source=shapeCopyState.source,targets=[...shapeCopyState.targets].filter(shapeCopyPieceEligible);
+  if(!shapeCopySourceHasForm(source)){toast('Selecione novamente a peça de origem');shapeCopyChooseSourceAgain();return;}
+  if(!targets.length){toast('Selecione pelo menos uma peça destino');return;}
+  const replacing=targets.filter(o=>Array.isArray(o.userData?.forms)&&o.userData.forms.length).length;
+  if(replacing&&!window.confirm(`${replacing} peça(s) destino já possuem Forma. A Forma atual delas será substituída pela Forma da origem. Continuar?`))return;
+  shapeCopyDisposeHelpers();
+  let done=0;
+  for(const o of targets){
+    const forms=shapeCopyAdaptForms(source,o);if(!forms.length)continue;o.userData.forms=forms;rebuildFormGeometry(o);done++;
+  }
+  renderMachiningVisuals();updateInspector?.();commitHistory();closeCopyShapeTool(false);toast(`Forma copiada para ${done} peça(s) · medidas, posição e usinagens preservadas`);
+}
+
+// ============================================================================
+// 1.200.51 · COPIAR FERRAGENS EM LOTE
+// Copia as operações de usinagem vinculadas a ferragens da peça origem para
+// várias peças destino. Ferragem não é escalada: as medidas em milímetros e as
+// referências de borda são preservadas. Cada destino recebe instâncias próprias.
+// ============================================================================
+const hardwareCopyState={active:false,phase:'source',source:null,targets:new Set(),helpers:null,mirrorFace:false};
+
+function hardwareCopyPieceEligible(o){return shapeCopyPieceEligible(o);}
+function hardwareCopyOpsOnPiece(o){
+  if(!hardwareCopyPieceEligible(o))return [];
+  return (Array.isArray(o.userData?.machining)?o.userData.machining:[]).filter(op=>op&&op.hardwareInstanceId);
+}
+function hardwareCopySourceHasHardware(o){return hardwareCopyOpsOnPiece(o).length>0;}
+function hardwareCopyGroups(o){
+  const m=new Map();
+  for(const op of hardwareCopyOpsOnPiece(o)){
+    const id=String(op.hardwareInstanceId||uid('hwsrc'));
+    if(!m.has(id))m.set(id,[]);
+    m.get(id).push(op);
+  }
+  return [...m.entries()].map(([instanceId,ops])=>({instanceId,ops,name:ops.find(x=>x.hardwareName)?.hardwareName||'Ferragem'}));
+}
+function hardwareCopyDisposeHelpers(){
+  const g=hardwareCopyState.helpers;if(!g)return;
+  g.traverse?.(o=>{o.geometry?.dispose?.();if(Array.isArray(o.material))o.material.forEach(m=>m?.dispose?.());else o.material?.dispose?.();});
+  scene.remove(g);hardwareCopyState.helpers=null;
+}
+function hardwareCopyRefreshHelpers(){
+  hardwareCopyDisposeHelpers();if(!hardwareCopyState.active)return;
+  const g=new THREE.Group();g.userData.isHardwareCopyHelper=true;
+  if(hardwareCopyState.source&&objects.includes(hardwareCopyState.source)){
+    const h=new THREE.BoxHelper(hardwareCopyState.source,0xffc83d);h.userData.isHardwareCopyHelper=true;g.add(h);
+  }
+  for(const o of hardwareCopyState.targets){
+    if(!objects.includes(o))continue;
+    const h=new THREE.BoxHelper(o,0x7fe594);h.userData.isHardwareCopyHelper=true;g.add(h);
+  }
+  scene.add(g);hardwareCopyState.helpers=g;
+}
+function hardwareCopyEnsureBar(){
+  let bar=document.getElementById('hardwareCopyBar');if(bar)return bar;
+  bar=document.createElement('div');bar.id='hardwareCopyBar';bar.className='shapeCopyBar';
+  bar.innerHTML=`<div class="shapeCopyBarText"><strong>⧉ Copiar Ferragens</strong><span id="hardwareCopyBarStatus"></span></div><div class="shapeCopyBarActions"><button id="hardwareCopyChangeSource" class="secondary">Trocar origem</button><button id="hardwareCopyMirror" class="secondary">Face: igual</button><button id="hardwareCopyApplyBtn">Aplicar</button><button id="hardwareCopyCancelBtn" class="secondary">Cancelar</button></div>`;
+  document.body.appendChild(bar);
+  bar.querySelector('#hardwareCopyChangeSource').onclick=hardwareCopyChooseSourceAgain;
+  bar.querySelector('#hardwareCopyMirror').onclick=()=>{hardwareCopyState.mirrorFace=!hardwareCopyState.mirrorFace;hardwareCopyUpdateBar();toast(hardwareCopyState.mirrorFace?'Face de entrada será invertida nos destinos':'Face de entrada será mantida igual à origem');};
+  bar.querySelector('#hardwareCopyApplyBtn').onclick=hardwareCopyApplyBatch;
+  bar.querySelector('#hardwareCopyCancelBtn').onclick=()=>closeCopyHardwareTool(true);
+  return bar;
+}
+function hardwareCopyUpdateBar(){
+  const bar=hardwareCopyEnsureBar(),status=bar.querySelector('#hardwareCopyBarStatus'),apply=bar.querySelector('#hardwareCopyApplyBtn'),change=bar.querySelector('#hardwareCopyChangeSource'),mirror=bar.querySelector('#hardwareCopyMirror');
+  bar.style.display=hardwareCopyState.active?'flex':'none';if(!hardwareCopyState.active)return;
+  mirror.textContent=hardwareCopyState.mirrorFace?'Face: espelhada':'Face: igual';
+  if(hardwareCopyState.phase==='source'){
+    status.textContent='Toque na peça que contém as ferragens que serão copiadas.';apply.disabled=true;apply.textContent='Aplicar';change.style.display='none';mirror.style.display='none';
+  }else{
+    const ops=hardwareCopyOpsOnPiece(hardwareCopyState.source),apps=hardwareCopyGroups(hardwareCopyState.source),n=hardwareCopyState.targets.size,name=hardwareCopyState.source?.userData?.name||'Peça origem';
+    status.textContent=`Origem: ${name} · ${apps.length} ferragem(ns) / ${ops.length} operação(ões) · marque os destinos · ${n} selecionada(s).`;
+    apply.disabled=n===0;apply.textContent=n?`Aplicar em ${n}`:'Aplicar';change.style.display='inline-flex';mirror.style.display='inline-flex';
+  }
+}
+function hardwareCopyChooseSourceAgain(){
+  hardwareCopyState.phase='source';hardwareCopyState.source=null;hardwareCopyState.targets.clear();hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();toast('Selecione a peça de origem das ferragens');
+}
+function openCopyHardwareTool(){
+  if(typeof closeCopyShapeTool==='function'&&typeof shapeCopyState!=='undefined'&&shapeCopyState.active)closeCopyShapeTool(false);
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  const dlg=$('machiningDialog');if(dlg)dlg.style.display='none';
+  setTool('select');hardwareCopyState.active=true;hardwareCopyState.targets.clear();hardwareCopyState.mirrorFace=false;
+  if(hardwareCopySourceHasHardware(selected)){hardwareCopyState.source=selected;hardwareCopyState.phase='targets';toast('Origem definida. Selecione as peças destino.');}
+  else{hardwareCopyState.source=null;hardwareCopyState.phase='source';toast('Selecione a peça que contém as ferragens a copiar');}
+  hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();
+}
+function closeCopyHardwareTool(notify=false){
+  if(!hardwareCopyState.active)return;
+  hardwareCopyState.active=false;hardwareCopyState.phase='source';hardwareCopyState.source=null;hardwareCopyState.targets.clear();hardwareCopyState.mirrorFace=false;
+  hardwareCopyDisposeHelpers();const bar=document.getElementById('hardwareCopyBar');if(bar)bar.style.display='none';if(notify)toast('Copiar Ferragens cancelado');
+}
+function hardwareCopyHandlePick(){
+  if(!hardwareCopyState.active)return false;
+  raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(referenceMeshes(),false);
+  const obj=hits.map(h=>h.object).find(o=>hardwareCopyPieceEligible(o));
+  if(!obj){toast(hardwareCopyState.phase==='source'?'Toque em uma peça que tenha ferragens':'Toque em uma peça plana para marcar como destino');return true;}
+  if(hardwareCopyState.phase==='source'){
+    if(!hardwareCopySourceHasHardware(obj)){toast('Essa peça ainda não possui ferragens para copiar');return true;}
+    hardwareCopyState.source=obj;hardwareCopyState.phase='targets';hardwareCopyState.targets.clear();selectObject(obj);hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();toast('Origem definida. Agora selecione uma ou várias peças destino.');return true;
+  }
+  if(obj===hardwareCopyState.source){toast('Esta é a peça de origem');return true;}
+  if(hardwareCopyState.targets.has(obj))hardwareCopyState.targets.delete(obj);else hardwareCopyState.targets.add(obj);
+  hardwareCopyRefreshHelpers();hardwareCopyUpdateBar();return true;
+}
+function hardwareCopyAxisMap(srcTi,dstTi,axis){
+  if(axis===srcTi.thicknessAxis)return dstTi.thicknessAxis;
+  if(axis===srcTi.uAxis)return dstTi.uAxis;
+  if(axis===srcTi.vAxis)return dstTi.vAxis;
+  return axis;
+}
+function hardwareCopyClampRawRef(raw,dim,margin=0){
+  raw=Number(raw);dim=Math.max(0,Number(dim)||0);margin=Math.max(0,Math.min(Number(margin)||0,dim/2));
+  if(!Number.isFinite(raw))raw=0;
+  if(raw<0){const real=Math.max(margin,Math.min(dim+raw,dim-margin));return roundMmNumber(real-dim,3);}
+  return roundMmNumber(Math.max(margin,Math.min(raw,dim-margin)),3);
+}
+function hardwareCopyMappedOp(source,target,srcOp,newInstanceId,{mirrorFace=false}={}){
+  const srcTi=pieceThicknessInfo(source),dstTi=pieceThicknessInfo(target);if(!srcTi||!dstTi)return null;
+  const op=shapeDeepClone(srcOp),axisMap={};for(const a of ['x','y','z'])axisMap[a]=hardwareCopyAxisMap(srcTi,dstTi,a);
+  const mappedRef={x:0,y:0,z:0};
+  for(const a of ['x','y','z'])mappedRef[axisMap[a]]=machiningRawCoord(srcOp,a);
+  op.id=uid('mach');op.hardwareInstanceId=newInstanceId;op.coordRef=mappedRef;
+  const srcEntry=entryAxisName(srcOp.entryAxis),dstEntry=axisMap[srcEntry]||dstTi.thicknessAxis;
+  let sign=entryAxisSign(srcOp.entryAxis);if(mirrorFace)sign*=-1;op.entryAxis=`${sign<0?'-':'+'}${dstEntry}`;
+  if(srcOp.seriesAxis)op.seriesAxis=axisMap[srcOp.seriesAxis]||dstTi.uAxis;
+  if(srcOp.lengthAxis)op.lengthAxis=axisMap[srcOp.lengthAxis]||dstTi.uAxis;
+  op.hardwareSourcePartId=target.userData?.partId||null;op.hardwareContactPartId=null;
+  op.hardwareCopiedFromPartId=source.userData?.partId||null;op.hardwareCopiedFromInstanceId=srcOp.hardwareInstanceId||null;op.hardwareCopiedDetached=true;
+  const r=op.type==='hole'?Math.max(0,(Number(op.diameter)||0)/2):0;
+  for(const a of ['x','y','z']){
+    if(a===dstEntry){op.coordRef[a]=0;continue;}
+    op.coordRef[a]=hardwareCopyClampRawRef(op.coordRef[a],dstTi.dims[a],r);
+  }
+  for(const a of ['x','y','z'])op[a]=Number(op.coordRef[a])||0;
+  return op;
+}
+function hardwareCopySignature(owner,op){
+  const r=resolvedMachiningCoords(owner,op),v=n=>roundMmNumber(Number(n)||0,2);
+  return [op.hardwarePresetId||'',op.hardwareName||'',op.type||'',op.entryAxis||'',v(r.x),v(r.y),v(r.z),v(op.diameter),v(operationDepthMm(owner,op)),op.lengthAxis||'',v(op.length),v(op.width)].join('|');
+}
+function hardwareCopyApplyBatch(){
+  const source=hardwareCopyState.source,targets=[...hardwareCopyState.targets].filter(hardwareCopyPieceEligible),groups=hardwareCopyGroups(source);
+  if(!hardwareCopySourceHasHardware(source)){toast('Selecione novamente a peça de origem');hardwareCopyChooseSourceAgain();return;}
+  if(!targets.length){toast('Selecione pelo menos uma peça destino');return;}
+  hardwareCopyDisposeHelpers();let piecesDone=0,added=0,duplicates=0;
+  for(const target of targets){
+    const arr=target.userData.machining||(target.userData.machining=[]),existing=new Set(arr.filter(op=>op?.hardwareInstanceId).map(op=>hardwareCopySignature(target,op)));let targetAdded=0;
+    for(const group of groups){
+      const newInstanceId=uid('hwinst');
+      for(const srcOp of group.ops){
+        const op=hardwareCopyMappedOp(source,target,srcOp,newInstanceId,{mirrorFace:hardwareCopyState.mirrorFace});if(!op)continue;
+        arr.push(op);sanitizeMachiningForPiece(target);
+        const sig=hardwareCopySignature(target,op);
+        if(existing.has(sig)){const i=arr.indexOf(op);if(i>=0)arr.splice(i,1);duplicates++;continue;}
+        existing.add(sig);targetAdded++;added++;
+      }
+    }
+    if(targetAdded)piecesDone++;
+  }
+  renderMachiningVisuals();renderMachiningList();updateInspector?.();updateHardwarePanel?.();commitHistory();
+  const mirrored=hardwareCopyState.mirrorFace;closeCopyHardwareTool(false);
+  toast(`Ferragens copiadas para ${piecesDone} peça(s) · ${added} operação(ões)${duplicates?` · ${duplicates} duplicada(s) ignorada(s)`:''}${mirrored?' · face espelhada':''}`);
+}
+

@@ -801,6 +801,9 @@ function installOutsideMenuClose(){
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
 
+    if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return;}
+    if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return;}
+
     if($('projectCardMenu')?.classList.contains('show')){
       closeProjectCardMenu(); return;
     }
@@ -832,6 +835,9 @@ $('addHoleBtn').onclick=()=>openMachiningDialog('hole');
 $('addGrooveBtn').onclick=()=>openMachiningDialog('groove');
 $('addHardwareBtn').onclick=()=>openMachiningDialog('hardware');
 $('addShapeBtn').onclick=()=>openShapeDialog();
+$('copyShapeBtn').onclick=()=>openCopyShapeTool();
+$('copyHardwareBtn').onclick=()=>openCopyHardwareTool();
+$('copyHardwareFromDialog').onclick=()=>{$('machiningDialog').style.display='none';openCopyHardwareTool();};
 $('manageMachiningBtn').onclick=()=>openMachiningDialog((selected?.userData?.machining||[])[0]?.type||'hole');
 $('materialsToolBtn').onclick=openProductionDialog;
 document.querySelectorAll('[data-machining-type]').forEach(b=>b.onclick=()=>{machiningEditId=null;if(b.dataset.machiningType==='shape'){openShapeDialog();return;}setMachiningType(b.dataset.machiningType,true);});
@@ -1180,6 +1186,8 @@ function designLabGenericBackLayer(){
   el.classList.remove('show','open');el.style.display='none';return true;
 }
 async function designLabHandleBackCascade(){
+  if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return 'closed';}
+  if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return 'closed';}
   if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar')){returnCurvedStructurePreview({reopen:true});return 'closed';}
   if(shapePreviewActive||designLabBackElementVisible('shape3DPreviewBar')){returnShapePreview();return 'closed';}
   if(machiningPreviewActive||designLabBackElementVisible('machining3DPreviewBar')){closeMachining3DPreview({reopen:true});return 'closed';}

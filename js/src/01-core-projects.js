@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.48';
+  return tm?.[1]||'1.200.52';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.48-r2';
+const DESIGNLAB_JS_BUILD='1.200.52-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2043,6 +2043,8 @@ async function renderProjectHome(){
   updateIdentityChrome();
 }
 async function showProjectHome(){
+  if(typeof closeCopyHardwareTool==='function')closeCopyHardwareTool(false);
+  if(typeof closeCopyShapeTool==='function')closeCopyShapeTool(false);
   await projectAutosaveNow();
   if(document.body.classList.contains('presentation-active'))applyProjectPresentationScene(false);
   document.body.classList.remove('presentation-active');
@@ -2385,7 +2387,9 @@ const TOOL_DOCK_CATALOG=[
   {group:'Peça / Usinagem',key:'hole',label:'● Furo',desc:'Criar furo na peça selecionada'},
   {group:'Peça / Usinagem',key:'groove',label:'▱ Rasgo',desc:'Criar rasgo na peça selecionada'},
   {group:'Peça / Usinagem',key:'hardware',label:'⚙ Ferragens',desc:'Aplicar/criar ferragens inteligentes'},
+  {group:'Peça / Usinagem',key:'copyHardware',label:'⧉ Copiar Ferragens',desc:'Copiar todas as ferragens de uma peça para várias peças em lote'},
   {group:'Peça / Usinagem',key:'shape',label:'◜ Forma',desc:'Alterar o contorno externo da peça'},
+  {group:'Peça / Usinagem',key:'copyShape',label:'⧉ Copiar Forma',desc:'Copiar a Forma de uma peça para várias peças de uma vez'},
   {group:'Peça / Usinagem',key:'machining',label:'🛠 Usinagens',desc:'Abrir lista e editor de usinagens'},
   {group:'Peça / Usinagem',key:'duplicate',label:'⧉ Duplicar peça',desc:'Duplicar a peça selecionada'},
   {group:'Peça / Usinagem',key:'deleteSelected',label:'🗑 Excluir peça',desc:'Excluir a peça selecionada'},
@@ -2579,7 +2583,9 @@ function runDockTool(key){
   else if(key==='hole'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('hole');}}
   else if(key==='groove'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('groove');}}
   else if(key==='hardware'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('hardware');}}
+  else if(key==='copyHardware'){closeToolDockBeforeMenu();openCopyHardwareTool();}
   else if(key==='shape'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openShapeDialog();}}
+  else if(key==='copyShape'){closeToolDockBeforeMenu();openCopyShapeTool();}
   else if(key==='machining'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog((selected?.userData?.machining||[])[0]?.type||'hole');}}
   else if(key==='duplicate'){if(dockEnsurePiece())duplicateSelected();}
   else if(key==='deleteSelected'){if(dockEnsurePiece())deleteSelected();}

@@ -1049,8 +1049,9 @@ function applyPieceRelativeConfig(){
   toast(parts.length?`Peça ajustada · ${parts.join(' · ')}`:'Nenhum ajuste informado');
 }
 
-function setDimensions(mesh,width,depth,height,keepBase=true){
+function setDimensions(mesh,width,depth,height,keepBase=true,followMachining=true){
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
+  const oldDimsMm={x:Number(mesh.userData.width)*1000,y:Number(mesh.userData.height)*1000,z:Number(mesh.userData.depth)*1000};
   const oldBase=mesh.position.y-mesh.userData.height/2;
   if(mesh.userData.kind==='cylinder'){
     const d=width; mesh.scale.set(d,height,d); mesh.userData.width=d; mesh.userData.depth=d; mesh.userData.height=height;
@@ -1059,6 +1060,7 @@ function setDimensions(mesh,width,depth,height,keepBase=true){
     if(Array.isArray(mesh.userData.forms)&&mesh.userData.forms.length){mesh.scale.set(1,1,1);rebuildFormGeometry(mesh);}else mesh.scale.set(width,height,depth);
   }
   if(keepBase) mesh.position.y=oldBase+height/2;
+  if(followMachining)remapMachiningForPieceResize(mesh,oldDimsMm,{x:Number(mesh.userData.width)*1000,y:Number(mesh.userData.height)*1000,z:Number(mesh.userData.depth)*1000});
   sanitizeMachiningForPiece(mesh);
 }
 
@@ -1086,7 +1088,7 @@ function rotateBox(axis){
   if(axis==='x'){ remapMachiningAxes(u,'y','z'); [d,h]=[h,d]; }
   if(axis==='y'){ remapMachiningAxes(u,'x','z'); [w,d]=[d,w]; }
   if(axis==='z'){ remapMachiningAxes(u,'x','y'); [w,h]=[h,w]; }
-  setDimensions(selected,w,d,h,false);
+  setDimensions(selected,w,d,h,false,false);
   selected.position.y=base+h/2;
   if(u.kind==='panel') u.materialType='MDF';
   updateInspector(); updateMeasureBadge(); commitHistory();
@@ -1882,6 +1884,15 @@ function cancelPieceLongPressOnMove(e){
 }
 
 function beginPick(){
+  // 1.200.51 · Copiar Forma / Copiar Ferragens usam o mesmo raycast do CAD,
+  // mas mantêm seleção múltipla própria. Enquanto um desses modos está ativo,
+  // os toques não entram no fluxo normal de selecionar/mover peça.
+  if(typeof hardwareCopyHandlePick==='function' && hardwareCopyHandlePick()){
+    dragMode=null; controls.enabled=true; return;
+  }
+  if(typeof shapeCopyHandlePick==='function' && shapeCopyHandlePick()){
+    dragMode=null; controls.enabled=true; return;
+  }
   raycaster.setFromCamera(pointer,camera);
   const hits=raycaster.intersectObjects(referenceMeshes(),false);
   if(!hits.length){
