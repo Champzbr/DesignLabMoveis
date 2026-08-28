@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.49-r1">
+<meta name="designlab-build" content="1.200.52-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.49-r1';
+  const BUILD='1.200.52-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -31,7 +31,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.49: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.52: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -48,7 +48,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.49 · VOLTAR ANDROID SEM DEPENDER DO SERVIDOR
+  // 1.200.52 · VOLTAR ANDROID SEM DEPENDER DO SERVIDOR
   const KEY='__designLabBackFenceStableV1';
   const MAX_LEVEL=3;
   let restoring=false;
@@ -68,7 +68,7 @@
   }
   function state(kind,level){
     const st=Object.assign({},window.history.state||{});
-    st[KEY]=true;st.kind=kind;st.level=level;st.version='1.200.49';
+    st[KEY]=true;st.kind=kind;st.level=level;st.version='1.200.52';
     return st;
   }
   function hasRealActivation(){
@@ -162,17 +162,17 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.49 - Forma sólida real e Voltar Android estável</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.49-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.49-r1">
+<title>DesignLabMoveis 1.200.52 - Usinagens acompanham o modelo</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.52-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.52-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -184,7 +184,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.49</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.52</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -278,7 +278,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.49</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.52</span>
         </div>
       </div>
 
@@ -581,7 +581,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.49</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.52</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -607,7 +607,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.49</strong>
+        <strong id="updateCurrentVersion">1.200.52</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -650,7 +650,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.49 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.52 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -858,7 +858,9 @@
     <button id="addHoleBtn" class="secondary">＋ Furo</button>
     <button id="addGrooveBtn" class="secondary">＋ Rasgo</button>
     <button id="addHardwareBtn" class="secondary">⚙ Ferragens</button>
+    <button id="copyHardwareBtn" class="secondary">⧉ Copiar Ferragens</button>
     <button id="addShapeBtn" class="secondary">◜ Forma</button>
+    <button id="copyShapeBtn" class="secondary">⧉ Copiar Forma</button>
     <button id="manageMachiningBtn" class="secondary">Usinagens</button>
     <button id="materialsToolBtn" class="secondary">🎨 Materiais / fitas</button>
     <button id="labelsToolBtn" class="secondary">🏷 Etiquetas das peças</button>
@@ -1221,6 +1223,7 @@
       </div>
       <div id="hardwareContactSummary" class="hardwareContactBox">Selecione ou crie uma ferragem.</div>
       <button id="previewHardware3D" type="button" class="machiningPreview3DBtn">👁 Visualizar ferragem em 3D</button>
+      <button id="copyHardwareFromDialog" type="button" class="secondary" style="width:100%;margin-top:7px">⧉ Copiar ferragens desta peça para outras</button>
       <div class="dialogActions"><button id="cancelHardware" class="secondary">Fechar</button><button id="applyHardware">Aplicar ferragem</button></div>
       <div id="hardwareAppliedInfo" class="hardwareApplied"></div>
     </div>
@@ -1489,7 +1492,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.49</span>
+      <span class="cutPlanBadge">1.200.52</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2432,6 +2435,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.49-r1"></script>
+<script type="module" src="js/app.js?v=1.200.52-r1"></script>
 </body>
 </html>

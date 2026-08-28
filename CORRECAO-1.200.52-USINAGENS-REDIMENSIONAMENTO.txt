@@ -1,0 +1,20 @@
+DesignLabMoveis 1.200.52 — Usinagens e ferragens acompanham o redimensionamento
+
+CORREÇÃO
+- Ao aumentar ou reduzir um espaço, as peças já acompanhavam o móvel, mas as coordenadas de furos/rasgos podiam permanecer presas às medidas antigas.
+- O mesmo acontecia ao inserir um modelo salvo da Biblioteca em um espaço maior ou menor.
+
+NOVA REGRA
+- Furação perto do início da peça mantém a distância daquela borda.
+- Furação perto da borda oposta passa a manter a distância da borda oposta.
+- Furação central permanece centralizada.
+- Rasgos seguem a mesma regra considerando seu comprimento/largura.
+- Referências negativas já existentes continuam sendo respeitadas.
+- Ferragens que geram furação também acompanham o redimensionamento, pois suas usinagens usam a mesma lógica.
+- Editar diretamente o tamanho de uma peça também atualiza as referências.
+- Girar uma peça não é confundido com redimensionamento; a lógica de troca de eixos existente foi preservada.
+
+FORMA, VOLTAR ANDROID E COPIAR FERRAGENS
+- Mantidos sem alteração funcional nesta versão.
+
+Worker/SQL: nenhuma alteração necessária.
