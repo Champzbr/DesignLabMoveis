@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.42",
+  "version": "1.200.43",
   "required": false,
-  "message": "Correção raiz do travamento antes do login introduzido na 1.200.37: a grade ligada por padrão acessava visualMode antes da inicialização. Mantém Forma Haixun, grade do CAD, ocultar ferragens/usinagens e furação central paramétrica das corrediças.",
-  "released_at": "2026-08-27T22:10:00-03:00",
-  "build": "1.200.42-r1"
+  "message": "Melhora o acabamento 3D das Formas: curvas mais lisas, lateral contínua sem emendas verticais artificiais e enquadramento automático da prévia. Mantém as correções de login/grade, Forma Haixun, Formas globais, ocultar ferragens/usinagens e furação central de corrediças.",
+  "released_at": "2026-08-27T23:05:00-03:00",
+  "build": "1.200.43-r1"
 }
