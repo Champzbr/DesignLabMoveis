@@ -2726,25 +2726,39 @@ function formV47CleanLoop(loop){
   if(out.length>2&&Math.hypot(out[0][0]-out.at(-1)[0],out[0][1]-out.at(-1)[1])<.0001)out.pop();
   return out;
 }
-function formV47PathFromLoop(loop,ti,PathCtor){
+// ---------- 1.200.48 · sólido sem reflexão de eixos ----------
+// O mapeamento antigo formMapExtrudeGeometry() fazia uma troca direta de eixos.
+// Para peças cuja espessura é X ou Y essa troca tem determinante negativo:
+// geometricamente é uma REFLEXÃO. A malha continuava existindo, porém o winding
+// das faces ficava invertido e o FrontSide fazia tampas/laterais parecerem abertas.
+//
+// Agora cada orientação é construída no plano correto e depois recebe somente
+// ROTAÇÕES (determinante +1). Assim as normais e o lado externo das faces ficam
+// iguais aos de uma BoxGeometry tradicional.
+function formV48PathFromLoop(loop,ti,PathCtor){
   const pts=formV47CleanLoop(loop);if(pts.length<3)return null;
   const path=new PathCtor();
   pts.forEach(([u,v],i)=>{
-    const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;
+    const su=(u-ti.faceW/2)*MM_TO_M,sv=(v-ti.faceH/2)*MM_TO_M;
+    let x=su,y=sv;
+    // Para orientar a extrusão por rotação sem espelhar o sólido, pré-invertemos
+    // uma coordenada do perfil nos eixos que seriam reflexões no mapeamento antigo.
+    if(ti.thicknessAxis==='y')y=-sv;
+    else if(ti.thicknessAxis==='x')x=-su;
     if(i===0)path.moveTo(x,y);else path.lineTo(x,y);
   });
   path.closePath();
   return path;
 }
-function formV47SolidGeometry(outer,holes,ti){
+function formV48SolidGeometry(outer,holes,ti){
   outer=formV47CleanLoop(outer);
   holes=(holes||[]).map(formV47CleanLoop).filter(h=>h.length>=3);
   if(outer.length<3)return null;
 
-  const shape=formV47PathFromLoop(outer,ti,THREE.Shape);
+  const shape=formV48PathFromLoop(outer,ti,THREE.Shape);
   if(!shape)return null;
   for(const h of holes){
-    const hole=formV47PathFromLoop(h,ti,THREE.Path);
+    const hole=formV48PathFromLoop(h,ti,THREE.Path);
     if(hole)shape.holes.push(hole);
   }
 
@@ -2754,17 +2768,22 @@ function formV47SolidGeometry(outer,holes,ti){
       depth:ti.thickness*MM_TO_M,
       bevelEnabled:false,
       steps:1,
-      curveSegments:96
+      curveSegments:128
     });
   }catch(_){return null;}
   if(!g?.attributes?.position?.count)return null;
 
-  // Centraliza a espessura no mesmo eixo/centro usado pelas peças BoxGeometry.
-  g.translate(0,0,-ti.thickness*MM_TO_M/2);
+  const half=ti.thickness*MM_TO_M/2;
+  // Primeiro centraliza a espessura no eixo Z local da ExtrudeGeometry.
+  g.translate(0,0,-half);
+  // Depois só ROTACIONA para o eixo real da espessura da peça.
+  // Y: [su,-sv,st] --Rx(-90°)--> [su,st,sv]
+  // X: [-su,sv,st] --Ry(+90°)--> [st,sv,su]
+  if(ti.thicknessAxis==='y')g.rotateX(-Math.PI/2);
+  else if(ti.thicknessAxis==='x')g.rotateY(Math.PI/2);
 
-  // ExtrudeGeometry separa tampas (material 0) e laterais (material 1).
-  // As peças normais possuem seis materiais por face. O fallback garante que
-  // nenhum triângulo possa ficar sem material se a geometria vier sem groups.
+  // ExtrudeGeometry usa material 0 nas tampas e 1 nas paredes. Mantemos esses
+  // grupos e garantimos que todos apontem para materiais existentes da peça.
   if(!Array.isArray(g.groups)||!g.groups.length){
     const count=g.index?.count||g.attributes.position.count;
     g.clearGroups();g.addGroup(0,count,0);
@@ -2774,8 +2793,6 @@ function formV47SolidGeometry(outer,holes,ti){
       if(group.materialIndex>1)group.materialIndex=1;
     }
   }
-
-  formMapExtrudeGeometry(g,ti);
   g.computeVertexNormals();
   g.computeBoundingBox();g.computeBoundingSphere();
   return g;
@@ -2830,14 +2847,15 @@ rebuildFormGeometry=function(o){
   if(!forms.length)return rebuildFormGeometryV43(o);
   const ti=pieceThicknessInfo(o);if(!ti)return rebuildFormGeometryV43(o);
   const outer=formOutlinePointsMm(o,forms,128),holes=formCutoutPointsMm(o,forms);if(outer.length<3)return rebuildFormGeometryV43(o);
-  const geom=formV47SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
+  const geom=formV48SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
 
   disposeVisualEdgeTree(o);o.geometry?.dispose?.();o.geometry=geom;o.scale.set(1,1,1);
+  if(Array.isArray(o.userData?.faceMaterials)&&o.userData.faceMaterials.length)o.material=o.userData.faceMaterials;
   formV47RestoreOpaqueMaterials(o);
   if(o===selected&&!visualMode)setAllFaces(o,COLORS.selected);else restoreBaseColor(o);
 
   const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);
-  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:47};
+  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:48};
   o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
   const edges=formV47VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
 };

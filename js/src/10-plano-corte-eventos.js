@@ -1248,16 +1248,20 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.42'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.48'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
 }
-function designLabPushBackGuard(){return designLabInstallBackFence();}
-function designLabArmBackGuard(){return designLabInstallBackFence();}
+function designLabPushBackGuard(){return designLabInstallBackFence({trusted:true});}
+function designLabArmBackGuard(){
+  // 1.200.48: não depende mais de _bootFresh. Faz uma cerca best-effort já na
+  // abertura e o bootstrap do <head> a reconstrói novamente no primeiro gesto.
+  return designLabInstallBackFence({trusted:true});
+}
 function designLabRunNativeBackCascade(){
   if(designLabHandlingPopState)return;
   designLabHandlingPopState=true;
@@ -1337,12 +1341,19 @@ document.addEventListener('visibilitychange',()=>{
     return;
   }
   if(document.visibilityState==='visible'){
+    // Ao retomar o PWA, a pilha nativa pode ter sido descartada pelo Android.
+    // Recria a cerca imediatamente; o próximo toque ainda reforça dentro do gesto.
+    try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
     designLabArmBackGuard();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
   }
 });
 window.addEventListener('pagehide',()=>{designLabWasHidden=true;designLabForgetGestureRecovery();},{capture:true});
-window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
+window.addEventListener('pageshow',()=>{
+  try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
+  designLabArmBackGuard();
+  checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+});
 
 // A ação normal do usuário acontece primeiro. Em seguida, ainda dentro da janela
 // de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
