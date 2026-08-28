@@ -335,6 +335,54 @@
 
 
 /* ==========================================================================
+   1.200.53 · CLARO REAL NO APK / TWA
+   O tema claro deixa de ser uma camada translúcida sobre a base escura.
+   Também impede o escurecimento automático do Android/TWA de alterar o Home.
+   ========================================================================== */
+html[data-app-theme="light"]{
+  color-scheme:only light !important;
+  background:#f4f7f9 !important;
+  forced-color-adjust:none !important;
+}
+html[data-app-theme="light"] body,
+html[data-app-theme="light"] body.project-home-active{
+  background:#f4f7f9 !important;
+  color:#17242c !important;
+  color-scheme:only light !important;
+  forced-color-adjust:none !important;
+}
+html[data-app-theme="light"] #projectHome,
+html[data-app-theme="light"] #projectHome *{
+  color-scheme:only light !important;
+  forced-color-adjust:none !important;
+}
+html[data-app-theme="light"] #projectHome{
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+  isolation:isolate;
+}
+html[data-app-theme="light"] #projectHome::before{
+  filter:none !important;
+  mix-blend-mode:normal !important;
+}
+/* No claro, cartões estruturais são opacos para o fundo escuro antigo nunca
+   aparecer por transparência/backdrop-filter dentro da TWA. */
+html[data-app-theme="light"] .projectWelcomeCard,
+html[data-app-theme="light"] .projectAccountChip,
+html[data-app-theme="light"] .homeQuickAction,
+html[data-app-theme="light"] .projectCard,
+html[data-app-theme="light"] .homeModelCard,
+html[data-app-theme="light"] .homeBottomNav,
+html[data-app-theme="light"] .homeTopButtons button{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+}
+
+/* ==========================================================================
    1.200.48 · CLÁSSICO CLARO
    Tema padrão: claro, moderno e leve. O CSS escuro acima permanece intacto e
    reaparece integralmente quando data-app-theme="dark".
@@ -368,7 +416,7 @@ html[data-app-theme="light"] .homeVersionDot{
   box-shadow:0 0 8px rgba(35,181,159,.35);
 }
 html[data-app-theme="light"] .homeTopButtons button{
-  background:rgba(255,255,255,.88) !important;
+  background:#ffffff !important;
   color:#263840 !important;
   border-color:#d9e4e8 !important;
   box-shadow:0 8px 22px rgba(35,61,72,.08) !important;
@@ -387,7 +435,7 @@ html[data-app-theme="light"] .homeWelcomeEyebrow{color:#148f83}
 html[data-app-theme="light"] #projectWelcomeTitle{color:#15242c}
 html[data-app-theme="light"] .homeWelcomeCopy{color:#677a83}
 html[data-app-theme="light"] .projectAccountChip{
-  background:rgba(255,255,255,.72) !important;
+  background:#ffffff !important;
   border-color:#dbe5e8 !important;
   box-shadow:0 7px 20px rgba(43,70,80,.06);
 }
@@ -450,7 +498,7 @@ html[data-app-theme="light"] .homeQuickText span{color:#73858d}
 html[data-app-theme="light"] .homeQuickChevron{color:#94a6ad}
 
 html[data-app-theme="light"] .homeProjectUtilities button{
-  background:rgba(255,255,255,.74) !important;
+  background:#ffffff !important;
   border-color:#dce5e8 !important;
   color:#657780 !important;
 }
@@ -543,7 +591,7 @@ html[data-app-theme="light"] #legacyProjectsSection{
 /* Barra inferior clara estilo app nativo. */
 html[data-app-theme="light"] .homeBottomNav{
   border-color:#d8e3e6;
-  background:rgba(255,255,255,.91);
+  background:#ffffff;
   box-shadow:0 18px 45px rgba(31,57,67,.15),inset 0 0 0 1px rgba(255,255,255,.65);
 }
 html[data-app-theme="light"] .homeBottomNav button{color:#73858d !important}
