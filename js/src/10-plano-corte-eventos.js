@@ -1214,6 +1214,7 @@ async function designLabHandleBackCascade(){
     ['libraryDialog','closeLibrary'],
     ['newPanelDialog','cancelPanel'],
     ['toolDockEditDialog','toolDockEditCancel'],
+    ['quickDockConfigDialog','quickDockCancel'],
     ['productionDialog','closeProductionDialog'],
     ['spaceMoreDialog','closeSpaceMore'],
     ['adminDialog','closeAdminDialog'],

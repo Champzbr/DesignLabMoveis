@@ -476,3 +476,6 @@ window.designLabProductionSuite={
   history:openProjectVersionsDialog,assembly:openAssemblyExplodedView,manual:openAssemblyManualDialog,
   autosave:()=>dlCommitProjectAutosave({reason:'Autosave solicitado',force:true})
 };
+
+// 1.200.55 · a barra inferior nasce depois que o catálogo recebeu Produção/Montagem.
+try{initQuickDock();}catch(err){console.warn('Barra rápida:',err);}

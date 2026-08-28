@@ -138,8 +138,24 @@ function applyDesignLabAppTheme(theme,{persist=true,notify=false}={}){
   designLabAppTheme=theme==='dark'?'dark':'light';
   document.documentElement.dataset.appTheme=designLabAppTheme;
   document.body.dataset.appTheme=designLabAppTheme;
+
+  // 1.200.53 · APK/TWA: o modo claro precisa ser claro de verdade.
+  // Alguns Androids aplicam escurecimento algorítmico ao conteúdo da TWA.
+  // No claro, declaramos explicitamente ONLY LIGHT e também clareamos a raiz,
+  // evitando o antigo #171717 aparecer através de cartões translúcidos.
+  const light=designLabAppTheme==='light';
+  document.documentElement.style.colorScheme=light?'only light':'light';
+  document.body.style.colorScheme=light?'only light':'light';
+  document.documentElement.style.backgroundColor=light?'#f4f7f9':'#171717';
+  document.body.style.backgroundColor=light?'#f4f7f9':'#171717';
+
   const meta=document.querySelector('meta[name="theme-color"]');
-  if(meta)meta.setAttribute('content',designLabAppTheme==='dark'?'#06151e':'#f4f7f9');
+  if(meta)meta.setAttribute('content',light?'#f4f7f9':'#06151e');
+  const schemeMeta=document.querySelector('meta[name="color-scheme"]');
+  if(schemeMeta)schemeMeta.setAttribute('content',light?'only light':'light');
+  const supported=document.querySelector('meta[name="supported-color-schemes"]');
+  if(supported)supported.setAttribute('content','light');
+
   syncDesignLabThemeButtons();
   if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);}catch{}}
   if(notify)toast(designLabAppTheme==='dark'?'Modo escuro ativado':'Layout clássico claro ativado');

@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.52';
+  return tm?.[1]||'1.200.55';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.52-r1';
+const DESIGNLAB_JS_BUILD='1.200.55-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1198,7 +1198,7 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 // somente preferências/configurações do DesignLabMoveis no D1, por usuário.
 // Configurações antigas do aparelho são aproveitadas no primeiro sincronismo.
 const CLOUD_PREFERENCES_EXACT_KEYS=new Set([
-  'miniCadToolDockPrefsV62','miniCadToolDockPrefsV61','miniCadToolDockPosV61',
+  'miniCadToolDockPrefsV62','miniCadToolDockPrefsV61','miniCadToolDockPosV61','designLabQuickDockV1',
   'designLabSpaceActionsPosV1','designLabPieceInspectorPosV1',
   'miniCadProCadBackgroundV2','miniCadProCadGridVisibleV1','miniCadProXray3DV2',
   'designlabCutPlanV42','designlabCutPlanV42-mode',
@@ -2473,6 +2473,7 @@ function syncToolDockButtons(){
     b.classList.toggle('active',active);
     b.classList.toggle('secondary',!active);
   });
+  syncQuickDockButtons();
 }
 function renderToolDock(){
   const box=$('toolDockTools'); if(!box)return;
@@ -2622,6 +2623,134 @@ function runDockTool(key){
   else if(key==='more'){closeToolDockBeforeMenu();toggleMorePanel();}
   syncToolDockButtons();
 }
+
+// ============================================================================
+// 1.200.55 · BARRA INFERIOR DE ATALHOS CONFIGURÁVEIS (3 / 4 / 5)
+// ============================================================================
+const QUICK_DOCK_PREFS_KEY='designLabQuickDockV1';
+const QUICK_DOCK_DEFAULT=['deleteSelected','space','createPieces','hardware','select'];
+let quickDockConfig=loadQuickDockConfig();
+let quickDockDraft=null;
+
+function quickDockKnownKey(key){
+  return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly';
+}
+function normalizeQuickDockConfig(raw){
+  const count=[3,4,5].includes(Number(raw?.count))?Number(raw.count):4;
+  const items=[];
+  const push=k=>{k=String(k||'');if(k&&quickDockKnownKey(k)&&!items.includes(k))items.push(k);};
+  if(Array.isArray(raw?.items))raw.items.forEach(push);
+  QUICK_DOCK_DEFAULT.forEach(push);
+  TOOL_DOCK_CATALOG.forEach(t=>push(t.key));
+  return {count,items:items.slice(0,5)};
+}
+function loadQuickDockConfig(){
+  try{return normalizeQuickDockConfig(JSON.parse(localStorage.getItem(QUICK_DOCK_PREFS_KEY)||'null'));}
+  catch{return normalizeQuickDockConfig(null);}
+}
+function saveQuickDockConfig(){
+  quickDockConfig=normalizeQuickDockConfig(quickDockConfig);
+  try{localStorage.setItem(QUICK_DOCK_PREFS_KEY,JSON.stringify(quickDockConfig));}catch{}
+}
+function quickDockPresentation(key){
+  const map={
+    deleteSelected:['🗑','Apagar'],space:['＋','Espaço'],createPieces:['▰','Peças'],hardware:['⚙','Ferragens'],select:['⌖','Selecionar'],
+    move:['✥','Mover'],tape:['📏','Trena'],hole:['●','Furo'],groove:['▱','Rasgo'],shape:['◜','Forma'],copyShape:['⧉','C. Forma'],
+    copyHardware:['⧉','C. Ferr.'],machining:['🛠','Usinagem'],cutSpace:['✂','Corte'],drawers:['▤','Gavetas'],library:['▦','Biblioteca'],
+    editSpace:['✎','Editar'],deleteSpaceCell:['🧩','Unir vão'],undo:['↶','Desfazer'],redo:['↷','Refazer'],xray:['◈','Raio-X'],
+    toggleHardwareVisibility:['🔩','Ferragens'],toggleMachiningVisibility:['🟣','Usinagens'],materials:['🎨','Materiais'],layout:['📐','Layout'],
+    save:['💾','Salvar'],more:['•••','Mais'],productionSuite:['✅','Produção'],assembly:['🧩','Montagem'],duplicate:['⧉','Duplicar'],
+    inspector:['📐','Medidas'],openSpace:['▣','Abrir espaço'],front:['▥','Frente'],back:['▥','Trás'],left:['▥','Esq.'],right:['▥','Dir.'],
+    top:['▥','Cima'],bottom:['▥','Baixo'],visual:['👁','Visual'],view3d:['◇','3D'],parts:['📋','Peças'],labels:['🏷','Etiquetas']
+  };
+  if(map[key])return map[key];
+  const def=toolDockDef(key);
+  const label=String(def?.label||key).trim();
+  const m=label.match(/^([^\p{L}\p{N}]+)\s*(.*)$/u);
+  const icon=(m?.[1]||'•').trim().slice(0,3)||'•';
+  const text=(m?.[2]||label).replace(/\s*\/\s*/g,'/').trim().slice(0,11)||'Atalho';
+  return [icon,text];
+}
+function quickDockToolActive(key){
+  return (key==='select'&&toolMode==='select')||(key==='move'&&toolMode==='move-free')||(key==='tape'&&toolMode==='tape')||
+    (key==='visual'&&visualMode)||(key==='xray'&&xray3DEnabled)||(key==='toggleHardwareVisibility'&&cadHardwareVisible)||
+    (key==='toggleMachiningVisibility'&&cadMachiningVisible);
+}
+function syncQuickDockButtons(){
+  document.querySelectorAll('#quickDockTools [data-quick-tool]').forEach(b=>{
+    const active=quickDockToolActive(b.dataset.quickTool);
+    b.classList.toggle('active',active);b.classList.toggle('secondary',!active);
+  });
+}
+function renderQuickDock(){
+  const box=$('quickDockTools');if(!box)return;
+  quickDockConfig=normalizeQuickDockConfig(quickDockConfig);
+  box.innerHTML='';
+  box.style.gridTemplateColumns=`repeat(${quickDockConfig.count},minmax(0,1fr))`;
+  quickDockConfig.items.slice(0,quickDockConfig.count).forEach(key=>{
+    const def=toolDockDef(key);
+    const [icon,text]=quickDockPresentation(key);
+    const b=document.createElement('button');b.type='button';b.className='quickDockTool secondary';b.dataset.quickTool=key;
+    b.title=def?.label||text;b.setAttribute('aria-label',def?.label||text);
+    const i=document.createElement('span');i.className='quickDockIcon';i.textContent=icon;
+    const t=document.createElement('span');t.className='quickDockText';t.textContent=text;
+    b.append(i,t);b.addEventListener('click',()=>runDockTool(key));box.appendChild(b);
+  });
+  syncQuickDockButtons();
+}
+function quickDockBuildSelect(current,index){
+  const sel=document.createElement('select');sel.className='quickDockSelect';sel.dataset.quickSlot=String(index);
+  const groups=[...new Set(TOOL_DOCK_CATALOG.map(t=>t.group||'Outros'))];
+  for(const group of groups){
+    const og=document.createElement('optgroup');og.label=group;
+    TOOL_DOCK_CATALOG.filter(t=>(t.group||'Outros')===group).forEach(def=>{
+      const o=document.createElement('option');o.value=def.key;o.textContent=def.label;o.selected=def.key===current;og.appendChild(o);
+    });
+    sel.appendChild(og);
+  }
+  return sel;
+}
+function renderQuickDockEditor(){
+  if(!quickDockDraft)quickDockDraft=normalizeQuickDockConfig(quickDockConfig);
+  document.querySelectorAll('#quickDockCountChoices [data-quick-count]').forEach(b=>{
+    const active=Number(b.dataset.quickCount)===quickDockDraft.count;b.classList.toggle('active',active);b.classList.toggle('secondary',!active);
+  });
+  const list=$('quickDockSlotList');if(!list)return;list.innerHTML='';
+  for(let i=0;i<quickDockDraft.count;i++){
+    const row=document.createElement('label');row.className='quickDockSlotRow';
+    const n=document.createElement('span');n.className='quickDockSlotNumber';n.textContent=String(i+1);
+    const sel=quickDockBuildSelect(quickDockDraft.items[i],i);
+    sel.addEventListener('change',()=>{
+      const next=sel.value,old=quickDockDraft.items[i];
+      const other=quickDockDraft.items.findIndex((v,j)=>j!==i&&v===next);
+      if(other>=0)quickDockDraft.items[other]=old;
+      quickDockDraft.items[i]=next;renderQuickDockEditor();
+    });
+    row.append(n,sel);list.appendChild(row);
+  }
+}
+function openQuickDockEditor(){
+  quickDockDraft=normalizeQuickDockConfig(quickDockConfig);renderQuickDockEditor();
+  const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='flex';
+}
+function closeQuickDockEditor(){const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='none';quickDockDraft=null;}
+function initQuickDock(){
+  renderQuickDock();
+  $('quickDockSettings')?.addEventListener('click',openQuickDockEditor);
+  document.querySelectorAll('#quickDockCountChoices [data-quick-count]').forEach(b=>b.addEventListener('click',()=>{
+    if(!quickDockDraft)quickDockDraft=normalizeQuickDockConfig(quickDockConfig);
+    quickDockDraft.count=Number(b.dataset.quickCount);quickDockDraft=normalizeQuickDockConfig(quickDockDraft);renderQuickDockEditor();
+  }));
+  $('quickDockReset')?.addEventListener('click',()=>{quickDockDraft={count:4,items:[...QUICK_DOCK_DEFAULT]};renderQuickDockEditor();});
+  $('quickDockCancel')?.addEventListener('click',closeQuickDockEditor);
+  $('quickDockConfigDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('quickDockConfigDialog'))closeQuickDockEditor();});
+  $('quickDockSave')?.addEventListener('click',()=>{
+    if(!quickDockDraft)return;
+    quickDockConfig=normalizeQuickDockConfig(quickDockDraft);saveQuickDockConfig();renderQuickDock();closeQuickDockEditor();
+    toast(`Barra rápida salva · ${quickDockConfig.count} atalhos`);
+  });
+}
+
 function setToolDockOpen(open){
   const dock=$('toolDock'); if(!dock)return;
   dock.classList.toggle('open',!!open);
