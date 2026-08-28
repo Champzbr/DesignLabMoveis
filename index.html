@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.39-r1">
+<meta name="designlab-build" content="1.200.40-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.39-r1';
+  const BUILD='1.200.40-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,7 +20,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.39: não redireciona mais automaticamente antes de o Service Worker
+  // 1.200.40: não redireciona mais automaticamente antes de o Service Worker
   // estar pronto. No Chrome/TWA, uma navegação criada só por script pode ser
   // classificada como histórico manipulável e não equivale ao clique humano que
   // o usuário confirmou funcionar. A recuperação confiável ocorre após o app
@@ -39,7 +39,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.39: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
+  // 1.200.40: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
   // history.state. O Chrome/TWA pode restaurar um state antigo sem restaurar
   // a pilha criada na sessão anterior; isso fazia o DesignLab acreditar que a
   // proteção existia e o primeiro Back encerrava o APK. Agora cada documento
@@ -55,7 +55,7 @@
   let rebuilding=false;
   let needsTrustedRebuild=true;
   function state(kind,level){
-    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.39'});
+    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.40'});
   }
   function owns(st=window.history.state||{}){return !!(st[KEY]&&st.doc===DOC);}
   function rebuildTrustedFence(){
@@ -173,7 +173,7 @@
     // A passagem automática pelo servidor NÃO é necessariamente uma ativação
     // humana. Portanto esta cerca inicial é apenas best-effort; o primeiro toque
     // sempre a refaz dentro de um gesto real. Esse é o ponto que diferencia a
-    // 1.200.39 da correção anterior e elimina a dependência do botão manual.
+    // 1.200.40 da correção anterior e elimina a dependência do botão manual.
     needsTrustedRebuild=true;
   }
   window.__DL_BACK_BOOTSTRAP={
@@ -192,19 +192,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.39 - Visibilidade e furação central de corrediças</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.39-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.39-r1">
+<title>DesignLabMoveis 1.200.40 - Visibilidade e furação central de corrediças</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.40-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.40-r1">
 
-<!-- 1.200.39: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.40: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -214,7 +214,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.39</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.40</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -308,7 +308,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.39</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.40</span>
         </div>
       </div>
 
@@ -593,7 +593,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.39</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.40</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -619,7 +619,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.39</strong>
+        <strong id="updateCurrentVersion">1.200.40</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -662,7 +662,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.39 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.40 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1501,7 +1501,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.39</span>
+      <span class="cutPlanBadge">1.200.40</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2363,7 +2363,7 @@
 
 
 
-<!-- 1.200.39 · Segurança, produção e montagem -->
+<!-- 1.200.40 · Segurança, produção e montagem -->
 <div id="projectVersionsDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Histórico de versões">
   <div class="projectModalCard dlSuiteCard">
     <header class="dlSuiteHead"><div><h3>🕘 Histórico de versões</h3><p>Autosave real + até 10 pontos restauráveis, sincronizados com o projeto.</p></div><button id="closeProjectVersionsDialog" class="secondary" type="button">Fechar</button></header>
@@ -2436,6 +2436,115 @@
   </div>
 </div>
 
+<script id="designLabPreModuleAuthBootstrap">
+(function(){
+  'use strict';
+  // 1.200.40: a tela de conta não depende mais do módulo 3D para responder.
+  // Se Three.js/app.js atrasarem ou falharem, os botões continuam vivos e a tela
+  // informa exatamente qual camada não iniciou, em vez de ficar em "Preparando...".
+  const $=id=>document.getElementById(id);
+  const status=$('authStatus');
+  const startedAt=Date.now();
+  window.__DL_PREMODULE_AUTH={startedAt,build:'1.200.40-r1'};
+
+  function setStatus(text,tone=''){
+    if(!status)return;
+    status.textContent=text;
+    status.className='authStatus'+(tone?` ${tone}`:'');
+  }
+  function show(mode='main'){
+    $('authBannedPanel')?.classList.remove('show');
+    $('authMainActions')?.classList.toggle('hidden',mode!=='main');
+    const map={login:$('authLoginForm'),signup:$('authSignupForm'),forgot:$('authForgotForm')};
+    Object.entries(map).forEach(([k,el])=>el?.classList.toggle('show',k===mode));
+    if(mode==='login')setStatus('Digite seu e-mail e senha.');
+    else if(mode==='signup')setStatus('Preencha os dados para criar sua conta.');
+    else if(mode==='forgot')setStatus('Informe o e-mail usado na sua conta.');
+    else setStatus(window.netlifyIdentity?'Autenticação disponível · iniciando o DesignLab…':'Carregando autenticação…');
+  }
+  function friendly(err){
+    const raw=String(err?.json?.msg||err?.message||err||'Falha na autenticação.');
+    const low=raw.toLowerCase();
+    if(low.includes('invalid login credentials')||low.includes('invalid_grant'))return 'E-mail ou senha incorretos.';
+    if(low.includes('email not confirmed')||low.includes('not confirmed'))return 'Seu e-mail ainda não foi confirmado.';
+    if(low.includes('failed to fetch')||low.includes('network'))return 'Falha de conexão com o Netlify Identity.';
+    return raw;
+  }
+
+  $('authLoginBtn') && ($('authLoginBtn').onclick=()=>show('login'));
+  $('authSignupBtn') && ($('authSignupBtn').onclick=()=>show('signup'));
+  $('authForgotBtn') && ($('authForgotBtn').onclick=()=>show('forgot'));
+  document.querySelectorAll('[data-auth-back]').forEach(b=>b.onclick=()=>show('main'));
+  $('authRetryBtn') && ($('authRetryBtn').onclick=()=>{
+    if(window.__DESIGNLAB_MODULE_STARTED){setStatus('Motor carregado · verificando sessão…');return;}
+    setStatus(window.netlifyIdentity?'Netlify Identity carregou, mas o motor 3D ainda está iniciando…':'Aguardando Netlify Identity e motor 3D…','warn');
+  });
+
+  // Fallback de login independente do app.js. Só atua se o módulo principal ainda
+  // NÃO tiver iniciado; quando app.js carrega, o fluxo normal assume o controle.
+  $('authLoginForm')?.addEventListener('submit',async e=>{
+    if(window.__DESIGNLAB_MODULE_STARTED)return;
+    e.preventDefault();
+    const email=String($('authLoginEmail')?.value||'').trim();
+    const password=String($('authLoginPassword')?.value||'');
+    if(!email||!password){setStatus('Preencha e-mail e senha.','warn');return;}
+    try{
+      setStatus('Conectando ao Netlify Identity…');
+      const deadline=Date.now()+12000;
+      while(!window.netlifyIdentity?.gotrue && Date.now()<deadline)await new Promise(r=>setTimeout(r,100));
+      if(!window.netlifyIdentity?.gotrue)throw new Error('O Netlify Identity não carregou.');
+      await window.netlifyIdentity.gotrue.login(email,password,!!$('authRememberMe')?.checked);
+      setStatus('Sessão criada · aguardando o motor do DesignLab…','good');
+    }catch(err){setStatus(friendly(err),'error');}
+  },true);
+
+  $('authSignupForm')?.addEventListener('submit',async e=>{
+    if(window.__DESIGNLAB_MODULE_STARTED)return;
+    e.preventDefault();
+    const name=String($('authSignupName')?.value||'').trim();
+    const email=String($('authSignupEmail')?.value||'').trim();
+    const password=String($('authSignupPassword')?.value||'');
+    const password2=String($('authSignupPassword2')?.value||'');
+    if(!name||!email||!password||!password2){setStatus('Preencha todos os campos.','warn');return;}
+    if(password!==password2){setStatus('As duas senhas estão diferentes.','warn');return;}
+    try{
+      setStatus('Criando sua conta…');
+      const res=await fetch('/.netlify/identity/signup',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({email,password,data:{full_name:name}})});
+      const data=await res.json().catch(()=>null);
+      if(!res.ok)throw new Error(data?.msg||data?.error_description||`Falha no cadastro (${res.status})`);
+      show('main');setStatus('Conta criada. Confira o e-mail de confirmação.','good');
+    }catch(err){setStatus(friendly(err),'error');}
+  },true);
+
+  $('authForgotForm')?.addEventListener('submit',async e=>{
+    if(window.__DESIGNLAB_MODULE_STARTED)return;
+    e.preventDefault();
+    const email=String($('authForgotEmail')?.value||'').trim();
+    if(!email){setStatus('Digite o e-mail da sua conta.','warn');return;}
+    try{
+      setStatus('Solicitando recuperação…');
+      const res=await fetch('/.netlify/identity/recover',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({email})});
+      const data=await res.json().catch(()=>null);
+      if(!res.ok)throw new Error(data?.msg||data?.error_description||`Falha na recuperação (${res.status})`);
+      show('main');setStatus('Pedido enviado. Confira seu e-mail.','good');
+    }catch(err){setStatus(friendly(err),'error');}
+  },true);
+
+  setStatus('Carregando autenticação e motor 3D…');
+  const poll=setInterval(()=>{
+    if(window.__DESIGNLAB_MODULE_STARTED){clearInterval(poll);return;}
+    if(window.netlifyIdentity && Date.now()-startedAt>700){
+      setStatus('Netlify Identity carregado · iniciando motor 3D…');
+    }
+  },150);
+  setTimeout(()=>{
+    if(window.__DESIGNLAB_MODULE_STARTED)return;
+    clearInterval(poll);
+    if(window.netlifyIdentity)setStatus('A conta está disponível, mas o motor 3D não iniciou. O Worker não bloqueia esta etapa.','error');
+    else setStatus('Netlify Identity e o motor 3D não carregaram. Verifique a publicação/cache do site.','error');
+  },12000);
+})();
+</script>
 <script type="importmap">
 {
   "imports": {
@@ -2459,6 +2568,6 @@
   },12000);
 })();
 </script>
-<script type="module" src="/js/app.js?v=1.200.39-r1" onerror="var s=document.getElementById('authStatus');if(s){s.textContent='Falha ao carregar o motor do DesignLab. Recarregue a versão do servidor.';s.className='authStatus error';}"></script>
+<script type="module" src="/js/app.js?v=1.200.40-r1" onerror="var s=document.getElementById('authStatus');if(s){s.textContent='Falha ao carregar o motor do DesignLab. Recarregue a versão do servidor.';s.className='authStatus error';}"></script>
 </body>
 </html>

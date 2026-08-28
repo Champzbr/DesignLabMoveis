@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.38",
+  "version": "1.200.40",
   "required": false,
-  "message": "Ferramentas para ocultar/mostrar ferragens e usinagens sem apagar operações. Furação de corrediças com centro automático paramétrico da gaveta e escolha da lateral a furar.",
-  "released_at": "2026-08-27T21:18:00-03:00",
-  "build": "1.200.38-r1"
+  "message": "Correção reforçada da inicialização: autenticação e diagnóstico independentes do motor 3D, limpeza segura de cache antigo e teste público do Worker. Mantém as alterações de ferragens/usinagens e furação central paramétrica.",
+  "released_at": "2026-08-27T21:55:00-03:00",
+  "build": "1.200.40-r1"
 }
