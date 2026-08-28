@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.45-r1">
+<meta name="designlab-build" content="1.200.46-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.45-r1';
+  const BUILD='1.200.46-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -31,7 +31,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.45: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.46: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -64,7 +64,7 @@
   let rebuilding=false;
   let needsTrustedRebuild=true;
   function state(kind,level){
-    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.45'});
+    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.46'});
   }
   function owns(st=window.history.state||{}){return !!(st[KEY]&&st.doc===DOC);}
   function rebuildTrustedFence(){
@@ -201,17 +201,17 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.45 - Forma com material, projeto persistente e tema claro</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.45-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.45-r1">
+<title>DesignLabMoveis 1.200.46 - Correção de inicialização, Forma com material, projeto persistente e tema claro</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.46-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.46-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -223,7 +223,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.45</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.46</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -317,7 +317,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.45</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.46</span>
         </div>
       </div>
 
@@ -620,7 +620,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.45</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.46</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -646,7 +646,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.45</strong>
+        <strong id="updateCurrentVersion">1.200.46</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -689,7 +689,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.45 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.46 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1528,7 +1528,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.45</span>
+      <span class="cutPlanBadge">1.200.46</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2471,6 +2471,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.45-r1"></script>
+<script type="module" src="js/app.js?v=1.200.46-r1"></script>
 </body>
 </html>
