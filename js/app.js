@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.46';
+  return tm?.[1]||'1.200.47';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.46-r1';
+const DESIGNLAB_JS_BUILD='1.200.47-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -862,7 +862,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  // 1.200.46: não desarma a sessão ao ir para segundo plano.
+  // 1.200.47: não desarma a sessão ao ir para segundo plano.
   return false;
 }
 async function initDesignLabServiceWorker(){
@@ -2872,9 +2872,9 @@ const container = $('canvas-container');
 
 
 // ============================================================================
-// 1.200.46 · APARÊNCIA DO APLICATIVO
+// 1.200.47 · APARÊNCIA DO APLICATIVO
 // ============================================================================
-const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV1';
+const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
 let designLabAppTheme='light';
 try{designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';}catch{}
 function syncDesignLabThemeButtons(){
@@ -12679,13 +12679,14 @@ function focusPieceForShapePreview(o){
 }
 
 
-// ---------- 1.200.46 · Forma aplicada: sólido limpo e fechado ----------
-// v44: a posição da peça não é alterada. Esta correção atua apenas na malha
-// criada depois de aplicar uma Forma. Em vez de depender do ExtrudeGeometry
-// para o acabamento visual, montamos explicitamente tampas + paredes laterais.
-// Isso elimina o aspecto de duas "cascas"/peça aberta nas curvas e mantém o
-// mesmo contorno milimétrico usado no DXF.
-function formV44CleanLoop(loop){
+// ---------- 1.200.47 · Forma aplicada: sólido fechado igual à peça normal ----------
+// A 1.200.44/46 tentou montar manualmente tampas e paredes com BufferGeometry.
+// Apesar de o contorno existir, em alguns formatos a malha podia parecer uma
+// "casca" incompleta. A partir daqui a Forma usa o gerador sólido do próprio
+// Three.js (ExtrudeGeometry), que fecha automaticamente tampa superior, tampa
+// inferior e TODA a parede lateral, incluindo o segmento último→primeiro.
+// A posição da peça não é alterada; só a geometria do contorno muda.
+function formV47CleanLoop(loop){
   const out=[];
   for(const p of (loop||[])){
     const q=[Number(p?.[0]),Number(p?.[1])];
@@ -12696,66 +12697,94 @@ function formV44CleanLoop(loop){
   if(out.length>2&&Math.hypot(out[0][0]-out.at(-1)[0],out[0][1]-out.at(-1)[1])<.0001)out.pop();
   return out;
 }
-function formV44SolidGeometry(outer,holes,ti){
-  outer=formV44CleanLoop(outer);holes=(holes||[]).map(formV44CleanLoop).filter(h=>h.length>=3);
-  if(outer.length<3)return null;
-  const toV2=([u,v])=>new THREE.Vector2((u-ti.faceW/2)*MM_TO_M,(v-ti.faceH/2)*MM_TO_M);
-  const contour=outer.map(toV2),holeV=holes.map(h=>h.map(toV2));
-  let faces=[];
-  try{faces=THREE.ShapeUtils.triangulateShape(contour,holeV)||[];}catch{}
-  if(!faces.length)return null;
-  const flat=[...contour,...holeV.flat()],positions=[],indices=[],uv=[];
-  const half=ti.thickness*MM_TO_M/2,N=flat.length;
-  const uvScaleX=Math.max(.001,ti.faceW*MM_TO_M),uvScaleY=Math.max(.001,ti.faceH*MM_TO_M);
-  const push=(x,y,z,u=0,v=0)=>{positions.push(x,y,z);uv.push(u,v);return positions.length/3-1;};
-  // Tampas com vértices próprios: normais permanecem perfeitamente planas.
-  for(const p of flat)push(p.x,p.y,-half,(p.x+uvScaleX/2)/uvScaleX,(p.y+uvScaleY/2)/uvScaleY);
-  for(const p of flat)push(p.x,p.y, half,(p.x+uvScaleX/2)/uvScaleX,(p.y+uvScaleY/2)/uvScaleY);
-  for(const f of faces){const a=f[0],b=f[1],c=f[2];indices.push(a,c,b);indices.push(N+a,N+b,N+c);}
-  // Parede lateral: cada trecho é um quad real. Nas curvas usamos muitos
-  // segmentos, então a lateral fica contínua sem fissuras nem triangulação aparente.
-  const addWall=(loop,isHole=false)=>{
-    const pts=loop.map(toV2),count=pts.length;if(count<2)return;
-    let acc=0,total=0;for(let i=0;i<count;i++){const p=pts[i],q=pts[(i+1)%count];total+=Math.hypot(q.x-p.x,q.y-p.y);}total=Math.max(total,.001);
-    for(let i=0;i<count;i++){
-      const p=pts[i],q=pts[(i+1)%count],segLen=Math.hypot(q.x-p.x,q.y-p.y),u0=acc/total,u1=(acc+segLen)/total;acc+=segLen;
-      const base=positions.length/3;
-      push(p.x,p.y,-half,u0,0);push(q.x,q.y,-half,u1,0);push(q.x,q.y,half,u1,1);push(p.x,p.y,half,u0,1);
-      if(isHole)indices.push(base,base+2,base+1,base,base+3,base+2);
-      else indices.push(base,base+1,base+2,base,base+2,base+3);
-    }
-  };
-  addWall(outer,false);for(const h of holes)addWall(h,true);
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-  g.setIndex(indices);
-  // 1.200.46: as peças usam um array de materiais. BufferGeometry sem groups
-  // não é desenhada pelo WebGLRenderer quando mesh.material é um array,
-  // por isso apareciam apenas as linhas. Um grupo cobrindo toda a malha
-  // mantém o material original da peça visível sobre a Forma.
-  g.clearGroups();g.addGroup(0,indices.length,0);
-  g.computeVertexNormals();formMapExtrudeGeometry(g,ti);return g;
+function formV47PathFromLoop(loop,ti,PathCtor){
+  const pts=formV47CleanLoop(loop);if(pts.length<3)return null;
+  const path=new PathCtor();
+  pts.forEach(([u,v],i)=>{
+    const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;
+    if(i===0)path.moveTo(x,y);else path.lineTo(x,y);
+  });
+  path.closePath();
+  return path;
 }
-function formV44VisualEdges(o,outer,holes,ti){
-  const group=new THREE.Group();group.userData.isVisualEdge=true;const xray=xray3DActive(),t=ti.thickness/2;
-  // O contorno principal fica nítido; o contorno da face oposta é propositalmente
-  // discreto para a espessura não parecer uma segunda peça solta/aberta.
-  const strongSide=ti.thicknessAxis==='z'?-t:t;
-  const weakSide=-strongSide;
-  const strongMat=new THREE.LineBasicMaterial({color:0x15120e,transparent:true,opacity:xray?.82:.78,depthTest:!xray,depthWrite:false});
-  const weakMat=new THREE.LineBasicMaterial({color:0x221c15,transparent:true,opacity:xray?.45:.20,depthTest:!xray,depthWrite:false});
-  const cornerMat=new THREE.LineBasicMaterial({color:0x1b1711,transparent:true,opacity:xray?.58:.34,depthTest:!xray,depthWrite:false});
+function formV47SolidGeometry(outer,holes,ti){
+  outer=formV47CleanLoop(outer);
+  holes=(holes||[]).map(formV47CleanLoop).filter(h=>h.length>=3);
+  if(outer.length<3)return null;
+
+  const shape=formV47PathFromLoop(outer,ti,THREE.Shape);
+  if(!shape)return null;
+  for(const h of holes){
+    const hole=formV47PathFromLoop(h,ti,THREE.Path);
+    if(hole)shape.holes.push(hole);
+  }
+
+  let g=null;
+  try{
+    g=new THREE.ExtrudeGeometry(shape,{
+      depth:ti.thickness*MM_TO_M,
+      bevelEnabled:false,
+      steps:1,
+      curveSegments:96
+    });
+  }catch(_){return null;}
+  if(!g?.attributes?.position?.count)return null;
+
+  // Centraliza a espessura no mesmo eixo/centro usado pelas peças BoxGeometry.
+  g.translate(0,0,-ti.thickness*MM_TO_M/2);
+
+  // ExtrudeGeometry separa tampas (material 0) e laterais (material 1).
+  // As peças normais possuem seis materiais por face. O fallback garante que
+  // nenhum triângulo possa ficar sem material se a geometria vier sem groups.
+  if(!Array.isArray(g.groups)||!g.groups.length){
+    const count=g.index?.count||g.attributes.position.count;
+    g.clearGroups();g.addGroup(0,count,0);
+  }else{
+    for(const group of g.groups){
+      if(!Number.isFinite(group.materialIndex)||group.materialIndex<0)group.materialIndex=0;
+      if(group.materialIndex>1)group.materialIndex=1;
+    }
+  }
+
+  formMapExtrudeGeometry(g,ti);
+  g.computeVertexNormals();
+  g.computeBoundingBox();g.computeBoundingSphere();
+  return g;
+}
+function formV47VisualEdges(o,outer,holes,ti){
+  const group=new THREE.Group();group.userData.isVisualEdge=true;
+  const xray=xray3DActive(),t=ti.thickness/2;
+  const strongSide=ti.thicknessAxis==='z'?-t:t,weakSide=-strongSide;
+  const strongMat=new THREE.LineBasicMaterial({color:0x15120e,transparent:true,opacity:xray?.82:.84,depthTest:!xray,depthWrite:false});
+  const weakMat=new THREE.LineBasicMaterial({color:0x221c15,transparent:true,opacity:xray?.50:.30,depthTest:!xray,depthWrite:false});
+  const cornerMat=new THREE.LineBasicMaterial({color:0x1b1711,transparent:true,opacity:xray?.62:.48,depthTest:!xray,depthWrite:false});
   group.material=strongMat;
-  const addLoop=(loop,side,mat)=>{const pts=formV44CleanLoop(loop),arr=pts.map(([u,v])=>formLocalPoint(ti,u,v,side));if(!arr.length)return;arr.push(arr[0].clone());const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);l.userData.isVisualEdge=true;group.add(l);};
+  const addLoop=(loop,side,mat)=>{
+    const pts=formV47CleanLoop(loop),arr=pts.map(([u,v])=>formLocalPoint(ti,u,v,side));
+    if(!arr.length)return;arr.push(arr[0].clone());
+    const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);l.userData.isVisualEdge=true;group.add(l);
+  };
   addLoop(outer,strongSide,strongMat);addLoop(outer,weakSide,weakMat);
   for(const h of holes){addLoop(h,strongSide,strongMat);addLoop(h,weakSide,weakMat);}
-  const cleanOuter=formV44CleanLoop(outer),sharp=formVisualSharpCornerIndices(cleanOuter,{thresholdDeg:22,maxCorners:48}),seg=[];
+
+  // Linhas verticais somente em quinas geométricas reais. O fechamento do sólido
+  // NÃO depende destas linhas; elas são apenas acabamento visual.
+  const cleanOuter=formV47CleanLoop(outer),sharp=formVisualSharpCornerIndices(cleanOuter,{thresholdDeg:22,maxCorners:48}),seg=[];
   for(const i of sharp){const p=cleanOuter[i];if(!p)continue;seg.push(formLocalPoint(ti,p[0],p[1],-t),formLocalPoint(ti,p[0],p[1],t));}
   if(seg.length){const l=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),cornerMat);l.userData.isVisualEdge=true;group.add(l);}
   group.renderOrder=xray?88:12;return group;
 }
-// Círculos/elipses ganham resolução maior no sólido final. A medida continua exata.
+function formV47RestoreOpaqueMaterials(o){
+  // Fora das vistas técnicas 2D, uma Forma deve ter a mesma leitura sólida de
+  // uma peça tradicional: material opaco e depth buffer ativo.
+  if(viewMode2D)return;
+  for(const mat of (o?.userData?.faceMaterials||[])){
+    if(!mat)continue;
+    mat.transparent=false;mat.opacity=1;mat.depthWrite=true;mat.depthTest=true;
+    mat.side=THREE.FrontSide;mat.needsUpdate=true;
+  }
+}
+// Círculos/elipses recebem resolução alta para não parecerem facetados.
 const shapeFormatBasePolygonV43=shapeFormatBasePolygon;
 shapeFormatBasePolygon=function(cfg,W,H,segments=64){
   const f=cfg?.format||'rectangle';
@@ -12771,13 +12800,17 @@ rebuildFormGeometry=function(o){
   const forms=Array.isArray(o.userData?.forms)?o.userData.forms:[];
   if(!forms.length)return rebuildFormGeometryV43(o);
   const ti=pieceThicknessInfo(o);if(!ti)return rebuildFormGeometryV43(o);
-  const outer=formOutlinePointsMm(o,forms,96),holes=formCutoutPointsMm(o,forms);if(outer.length<3)return rebuildFormGeometryV43(o);
-  const geom=formV44SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
+  const outer=formOutlinePointsMm(o,forms,128),holes=formCutoutPointsMm(o,forms);if(outer.length<3)return rebuildFormGeometryV43(o);
+  const geom=formV47SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
+
   disposeVisualEdgeTree(o);o.geometry?.dispose?.();o.geometry=geom;o.scale.set(1,1,1);
+  formV47RestoreOpaqueMaterials(o);
+  if(o===selected&&!visualMode)setAllFaces(o,COLORS.selected);else restoreBaseColor(o);
+
   const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);
-  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:44};
+  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:47};
   o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
-  const edges=formV44VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
+  const edges=formV47VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
 };
 // ---------- Exportar / importar móvel + Aspire DXF ----------
 function safeFileName(v,fallback='movel'){
@@ -17633,7 +17666,7 @@ window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUp
 // de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
 // Configurações. Não é necessário abrir Configurações nem procurar o botão.
 function designLabGestureServerRecovery(){
-  // 1.200.46: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
+  // 1.200.47: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
   // O recarregamento do servidor permanece disponível somente em Configurações.
   return false;
 }
