@@ -332,3 +332,227 @@
   }
   .homeBottomNav button.active .navIcon{color:#55eee3;text-shadow:0 0 11px rgba(64,232,222,.24)}
 
+
+
+/* ==========================================================================
+   1.200.48 · CLÁSSICO CLARO
+   Tema padrão: claro, moderno e leve. O CSS escuro acima permanece intacto e
+   reaparece integralmente quando data-app-theme="dark".
+   ========================================================================== */
+html[data-app-theme="light"] #projectHome{
+  background:
+    radial-gradient(circle at 9% 0%,rgba(42,184,167,.12),transparent 25%),
+    radial-gradient(circle at 92% 12%,rgba(57,126,214,.09),transparent 28%),
+    linear-gradient(155deg,#f8fafb 0%,#f2f6f7 48%,#edf3f4 100%) !important;
+  color:#17242c;
+  scrollbar-color:#b7c8ce transparent;
+}
+html[data-app-theme="light"] #projectHome::before{
+  background-image:
+    linear-gradient(rgba(47,120,130,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(47,120,130,.03) 1px,transparent 1px);
+  mask-image:linear-gradient(to bottom,black,transparent 42%);
+}
+html[data-app-theme="light"] .projectBrandLogo{
+  background:linear-gradient(145deg,#ffffff,#e8f5f3) !important;
+  color:#128b7f !important;
+  border-color:#cfe3df !important;
+  box-shadow:0 8px 24px rgba(35,91,98,.10),inset 0 0 0 1px rgba(255,255,255,.8) !important;
+}
+html[data-app-theme="light"] .projectBrand strong{color:#17242c !important}
+html[data-app-theme="light"] .projectBrand strong .brandMoveis{color:#148f83 !important}
+html[data-app-theme="light"] .projectBrand span,
+html[data-app-theme="light"] .homeVersionPill{color:#71838b !important}
+html[data-app-theme="light"] .homeVersionDot{
+  background:#23b59f;
+  box-shadow:0 0 8px rgba(35,181,159,.35);
+}
+html[data-app-theme="light"] .homeTopButtons button{
+  background:rgba(255,255,255,.88) !important;
+  color:#263840 !important;
+  border-color:#d9e4e8 !important;
+  box-shadow:0 8px 22px rgba(35,61,72,.08) !important;
+}
+html[data-app-theme="light"] .projectWelcomeCard{
+  border-color:#d9e5e8;
+  background:
+    radial-gradient(circle at 8% 42%,rgba(40,186,169,.10),transparent 34%),
+    linear-gradient(135deg,rgba(255,255,255,.98),rgba(246,250,250,.97));
+  box-shadow:0 22px 60px rgba(38,68,78,.10),inset 0 0 0 1px rgba(255,255,255,.7);
+}
+html[data-app-theme="light"] .projectWelcomeCard::after{
+  background:rgba(41,183,168,.07);
+}
+html[data-app-theme="light"] .homeWelcomeEyebrow{color:#148f83}
+html[data-app-theme="light"] #projectWelcomeTitle{color:#15242c}
+html[data-app-theme="light"] .homeWelcomeCopy{color:#677a83}
+html[data-app-theme="light"] .projectAccountChip{
+  background:rgba(255,255,255,.72) !important;
+  border-color:#dbe5e8 !important;
+  box-shadow:0 7px 20px rgba(43,70,80,.06);
+}
+html[data-app-theme="light"] .projectAccountAvatar{
+  color:#fff !important;
+  background:linear-gradient(145deg,#27b8a6,#368bd7) !important;
+  box-shadow:0 0 0 3px rgba(47,174,158,.10),0 8px 22px rgba(35,122,133,.13);
+}
+html[data-app-theme="light"] .projectAccountText strong{color:#1b2c34 !important}
+html[data-app-theme="light"] .projectAccountText #projectAccountEmail{color:#778891 !important}
+html[data-app-theme="light"] .projectAccountText .cloudLine{
+  color:#158d79 !important;
+  background:#edf8f5 !important;
+  border-color:#d4ece6 !important;
+}
+html[data-app-theme="light"] #homeLogoutBtn{
+  background:#f1f5f6 !important;
+  color:#43565f !important;
+  border-color:#dce5e8 !important;
+}
+html[data-app-theme="light"] .homeBlueprint{
+  background:
+    linear-gradient(90deg,transparent 0 12%,rgba(37,145,142,.11) 12.5% 13%,transparent 13.5% 34%,rgba(37,145,142,.11) 34.5% 35%,transparent 35.5% 70%,rgba(37,145,142,.11) 70.5% 71%,transparent 71.5%),
+    linear-gradient(transparent 0 20%,rgba(37,145,142,.11) 20.5% 21%,transparent 21.5% 56%,rgba(37,145,142,.11) 56.5% 57%,transparent 57.5% 82%,rgba(37,145,142,.11) 82.5% 83%,transparent 83.5%),
+    linear-gradient(145deg,#f3faf9,#edf4f5);
+  border-color:#d9e7e7;
+  box-shadow:inset 0 0 35px rgba(35,142,139,.04);
+}
+html[data-app-theme="light"] .homeBlueprint::before,
+html[data-app-theme="light"] .homeBlueprint::after{border-color:rgba(42,139,137,.22)}
+html[data-app-theme="light"] .homeBlueprintLabel{color:#5f8f8d}
+
+/* Ações principais: cartões brancos com hierarquia simples. */
+html[data-app-theme="light"] .homeQuickAction{
+  border-color:#dce6e9 !important;
+  background:linear-gradient(145deg,#ffffff,#f8fafb) !important;
+  color:#1d2d35 !important;
+  box-shadow:0 10px 28px rgba(35,61,72,.075) !important;
+}
+html[data-app-theme="light"] .homeQuickAction:hover{
+  border-color:#bcdcd7 !important;
+  box-shadow:0 14px 32px rgba(35,85,88,.11) !important;
+}
+html[data-app-theme="light"] .homeQuickIcon{
+  border-color:#d9ece8;
+  background:#edf8f5;
+  color:#149582;
+}
+html[data-app-theme="light"] .homeQuickAction:nth-child(2) .homeQuickIcon{
+  color:#337fbd;background:#eef5fb;border-color:#d9e7f2;
+}
+html[data-app-theme="light"] .homeQuickAction:nth-child(3) .homeQuickIcon,
+html[data-app-theme="light"] .homeQuickAction:nth-child(4) .homeQuickIcon{
+  color:#2a9a63;background:#eef8f2;border-color:#d9ecdf;
+}
+html[data-app-theme="light"] #homeDownloadApk .homeQuickIcon{
+  color:#a86a18;background:#fbf5e9;border-color:#eee1c9;
+}
+html[data-app-theme="light"] .homeQuickText span{color:#73858d}
+html[data-app-theme="light"] .homeQuickChevron{color:#94a6ad}
+
+html[data-app-theme="light"] .homeProjectUtilities button{
+  background:rgba(255,255,255,.74) !important;
+  border-color:#dce5e8 !important;
+  color:#657780 !important;
+}
+html[data-app-theme="light"] .projectCurrentStrip{
+  background:#eef7f5 !important;
+  border-color:#d6ebe6 !important;
+  color:#5e7976 !important;
+}
+html[data-app-theme="light"] .projectSectionHead h2,
+html[data-app-theme="light"] .homeModelsHead h2{color:#1b2c34}
+html[data-app-theme="light"] .projectSectionHead span,
+html[data-app-theme="light"] .homeModelsHead span{color:#398f87 !important}
+html[data-app-theme="light"] .projectSectionIcon{
+  background:#edf7f5;
+  color:#178d81;
+  border-color:#d6eae6;
+}
+
+/* Projetos recentes. */
+html[data-app-theme="light"] .projectCard{
+  background:#ffffff !important;
+  border-color:#dce5e8 !important;
+  box-shadow:0 10px 30px rgba(36,60,70,.08) !important;
+}
+html[data-app-theme="light"] .projectCard:hover{
+  border-color:#c3dad7 !important;
+  box-shadow:0 16px 38px rgba(36,70,76,.11) !important;
+}
+html[data-app-theme="light"] .projectThumb{
+  background:
+    radial-gradient(circle at 52% 44%,rgba(48,169,158,.10),transparent 34%),
+    linear-gradient(150deg,#eef5f5,#e4ecee) !important;
+}
+html[data-app-theme="light"] .projectThumbFallback{color:#8da2aa}
+html[data-app-theme="light"] .projectCardName{color:#1b2c34 !important}
+html[data-app-theme="light"] .projectCardMeta{color:#73858d !important}
+html[data-app-theme="light"] .projectCardFooter button.secondary{
+  background:#f0f4f5 !important;
+  border-color:#dce5e8 !important;
+  color:#52656e !important;
+}
+html[data-app-theme="light"] .projectCloudBadge{
+  background:#eef8f6 !important;color:#238e80 !important;border-color:#d7ebe7 !important;
+}
+html[data-app-theme="light"] .projectCloudBadge.ok{
+  color:#258554 !important;background:#eef8f2 !important;border-color:#d7ebdf !important;
+}
+html[data-app-theme="light"] .projectCloudBadge.pending{
+  color:#9a641e !important;background:#fbf5e9 !important;border-color:#eee2cc !important;
+}
+html[data-app-theme="light"] .projectCloudBadge.local{
+  color:#397ead !important;background:#eef5fa !important;border-color:#d9e7ef !important;
+}
+html[data-app-theme="light"] .projectEmpty{
+  background:rgba(255,255,255,.66);
+  border-color:#ccdadd !important;
+  color:#74868e !important;
+}
+
+/* Modelos. */
+html[data-app-theme="light"] .homeModelCard{
+  border-color:#dce5e8;
+  background:linear-gradient(145deg,#ffffff,#f7fafb);
+  box-shadow:0 8px 24px rgba(37,62,72,.06);
+}
+html[data-app-theme="light"] .homeModelCard.favorite{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(42,180,164,.10),transparent 36%),
+    linear-gradient(145deg,#ffffff,#f6faf9);
+}
+html[data-app-theme="light"] .homeModelStar{color:#188f83;text-shadow:none}
+html[data-app-theme="light"] .homeModelCard strong{color:#24343c}
+html[data-app-theme="light"] .homeModelCard small{color:#75878f}
+html[data-app-theme="light"] .homeModelPreview{
+  border-color:#dbe6e8;
+  background:
+    linear-gradient(90deg,transparent 0 18%,rgba(48,151,145,.13) 18.5% 19%,transparent 19.5% 44%,rgba(48,151,145,.13) 44.5% 45%,transparent 45.5% 76%,rgba(48,151,145,.13) 76.5% 77%,transparent 77.5%),
+    linear-gradient(transparent 0 28%,rgba(48,151,145,.13) 28.5% 29%,transparent 29.5% 68%,rgba(48,151,145,.13) 68.5% 69%,transparent 69.5%),
+    linear-gradient(145deg,#eef6f5,#e5edef);
+}
+html[data-app-theme="light"] .homeModelPreview::after{border-color:rgba(43,143,138,.25)}
+html[data-app-theme="light"] .homeModelSoon{
+  background:#eef8f6;border-color:#d8ebe7;color:#338a81;
+}
+html[data-app-theme="light"] #legacyProjectsSection{
+  border-color:#ead9bd !important;
+  background:rgba(255,248,235,.68) !important;
+}
+
+/* Barra inferior clara estilo app nativo. */
+html[data-app-theme="light"] .homeBottomNav{
+  border-color:#d8e3e6;
+  background:rgba(255,255,255,.91);
+  box-shadow:0 18px 45px rgba(31,57,67,.15),inset 0 0 0 1px rgba(255,255,255,.65);
+}
+html[data-app-theme="light"] .homeBottomNav button{color:#73858d !important}
+html[data-app-theme="light"] .homeBottomNav button .navIcon{color:#83959d}
+html[data-app-theme="light"] .homeBottomNav button.active{
+  color:#176f68 !important;
+  background:#edf8f5 !important;
+  box-shadow:inset 0 0 0 1px #d4ebe6 !important;
+}
+html[data-app-theme="light"] .homeBottomNav button.active .navIcon{
+  color:#168f82;text-shadow:none;
+}
