@@ -386,3 +386,127 @@
     .fields { grid-template-columns:repeat(3,1fr); }
   }
 
+
+
+/* ==========================================================================
+   1.200.45 · Aparência do aplicativo
+   ========================================================================== */
+.appThemeChoices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:10px;
+}
+.appThemeChoice{
+  min-height:108px !important;
+  display:flex !important;
+  flex-direction:column;
+  align-items:flex-start !important;
+  justify-content:center;
+  gap:8px;
+  padding:10px !important;
+  border:2px solid #3b4044 !important;
+  border-radius:13px !important;
+  background:#181a1c !important;
+  text-align:left !important;
+}
+.appThemeChoice.active{
+  border-color:#36b8ad !important;
+  box-shadow:0 0 0 2px rgba(54,184,173,.12) !important;
+}
+.appThemeChoice > span:last-child{display:block}
+.appThemeChoice strong{display:block;font-size:11px}
+.appThemeChoice small{display:block;margin-top:3px;color:#8f9aa1;font-size:8px;line-height:1.35}
+.appThemeSample{
+  position:relative;
+  width:100%;
+  height:44px;
+  overflow:hidden;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.14);
+  display:block;
+}
+.appThemeSample i,.appThemeSample b,.appThemeSample em{position:absolute;display:block;border-radius:5px}
+.appThemeSample i{left:7px;top:7px;width:24px;height:30px}
+.appThemeSample b{left:38px;right:7px;top:7px;height:12px}
+.appThemeSample em{left:38px;right:18px;top:24px;height:12px}
+.appThemeSampleLight{background:#f4f7f9;border-color:#d7e0e5}
+.appThemeSampleLight i{background:#fff;border:1px solid #dce5e9;box-shadow:0 3px 8px rgba(32,61,73,.08)}
+.appThemeSampleLight b{background:#dcefee}
+.appThemeSampleLight em{background:#e7edf0}
+.appThemeSampleDark{background:#06141c}
+.appThemeSampleDark i{background:#0d252e;border:1px solid #1d5660}
+.appThemeSampleDark b{background:#14414a}
+.appThemeSampleDark em{background:#102b34}
+
+/* Configurações também acompanham o tema claro, sem alterar o CAD. */
+html[data-app-theme="light"] #appSettingsDialog{
+  background:rgba(26,43,51,.30);
+}
+html[data-app-theme="light"] #appSettingsDialog .projectModalCard{
+  background:#ffffff;
+  color:#17242c;
+  border-color:#dbe4e8;
+  box-shadow:0 24px 70px rgba(31,55,65,.18);
+}
+html[data-app-theme="light"] #appSettingsDialog .projectModalCard > p,
+html[data-app-theme="light"] #appSettingsDialog .appSettingsSectionHead span,
+html[data-app-theme="light"] #appSettingsDialog .cadSettingsNote{
+  color:#697b84 !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .appSettingsSection{
+  background:#f8fafb;
+  border-color:#dfe7ea;
+}
+html[data-app-theme="light"] #appSettingsDialog .cadGridSetting,
+html[data-app-theme="light"] #appSettingsDialog .cadBackgroundChoice,
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice{
+  background:#ffffff !important;
+  color:#1a2931 !important;
+  border-color:#dce5e9 !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice.active,
+html[data-app-theme="light"] #appSettingsDialog .cadBackgroundChoice.active{
+  border-color:#2fae9e !important;
+  box-shadow:0 0 0 2px rgba(47,174,158,.12) !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .cadGridSetting span,
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice small{
+  color:#71828a;
+}
+html[data-app-theme="light"] #appSettingsDialog .updateSettingRow{
+  background:#fff;
+  border-color:#dce5e9;
+}
+html[data-app-theme="light"] #appSettingsDialog button.secondary{
+  background:#eef3f5 !important;
+  color:#24343c !important;
+  border-color:#d6e0e4 !important;
+}
+
+/* Login claro no tema padrão. */
+html[data-app-theme="light"] #authGate{
+  background:
+    radial-gradient(circle at 14% 6%,rgba(51,184,170,.12),transparent 31%),
+    radial-gradient(circle at 88% 86%,rgba(57,126,214,.10),transparent 33%),
+    #f3f6f8;
+  color:#17242c;
+}
+html[data-app-theme="light"] .authCard{
+  background:rgba(255,255,255,.98);
+  border-color:#dbe4e8;
+  box-shadow:0 26px 80px rgba(28,54,65,.18);
+}
+html[data-app-theme="light"] .authHero{
+  border-color:#e3eaed;
+  background:linear-gradient(145deg,rgba(53,184,169,.08),rgba(72,135,221,.055));
+}
+html[data-app-theme="light"] .authBrand span,
+html[data-app-theme="light"] .authHero p,
+html[data-app-theme="light"] .authPrivacy{color:#697b84}
+html[data-app-theme="light"] .authStatus{
+  background:#f8fafb;color:#667780;border-color:#dce5e9;
+}
+html[data-app-theme="light"] .authActions .secondary{
+  background:#eef3f5 !important;color:#24343c !important;border-color:#d6e0e4 !important;
+}
