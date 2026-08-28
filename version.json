@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.40",
+  "version": "1.200.42",
   "required": false,
-  "message": "Correção reforçada da inicialização: autenticação e diagnóstico independentes do motor 3D, limpeza segura de cache antigo e teste público do Worker. Mantém as alterações de ferragens/usinagens e furação central paramétrica.",
-  "released_at": "2026-08-27T21:55:00-03:00",
-  "build": "1.200.40-r1"
+  "message": "Correção raiz do travamento antes do login introduzido na 1.200.37: a grade ligada por padrão acessava visualMode antes da inicialização. Mantém Forma Haixun, grade do CAD, ocultar ferragens/usinagens e furação central paramétrica das corrediças.",
+  "released_at": "2026-08-27T22:10:00-03:00",
+  "build": "1.200.42-r1"
 }
