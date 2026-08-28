@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.43",
+  "version": "1.200.44",
   "required": false,
-  "message": "Melhora o acabamento 3D das Formas: curvas mais lisas, lateral contínua sem emendas verticais artificiais e enquadramento automático da prévia. Mantém as correções de login/grade, Forma Haixun, Formas globais, ocultar ferragens/usinagens e furação central de corrediças.",
-  "released_at": "2026-08-27T23:05:00-03:00",
-  "build": "1.200.43-r1"
+  "message": "Corrige somente a Forma aplicada: a peça formada passa a usar um sólido 3D explícito e fechado, com lateral contínua, curvas mais lisas e contorno oposto discreto. Posição e demais recursos não são alterados.",
+  "released_at": "2026-08-28T07:36:00-03:00",
+  "build": "1.200.44-r1"
 }
