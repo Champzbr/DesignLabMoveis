@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.52",
+  "version": "1.200.55",
   "required": false,
-  "message": "Corrige modelos redimensionados: furos, rasgos e furações de ferragens passam a acompanhar a peça. Referências próximas às bordas mantêm a distância em milímetros e operações centrais continuam centralizadas ao aumentar/reduzir espaço, peça ou modelo da Biblioteca.",
-  "released_at": "2026-08-28T11:54:00-03:00",
-  "build": "1.200.52-r1"
+  "message": "Barra inferior configurável com 3, 4 ou 5 atalhos rápidos no CAD.",
+  "released_at": "2026-08-28T13:10:00-03:00",
+  "build": "1.200.55-r1"
 }
