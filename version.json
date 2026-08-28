@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.46",
+  "version": "1.200.47",
   "required": false,
-  "message": "Correção crítica: remove um else duplicado que impedia o app.js de ser carregado como módulo e deixava a autenticação presa em “Preparando autenticação…”. Mantém Forma com material, permanência no projeto e temas Claro/Escuro da 1.200.45.",
-  "released_at": "2026-08-28T08:44:00-03:00",
-  "build": "1.200.46-r1"
+  "message": "Forma 3D refeita como sólido extrudado fechado: tampa superior, tampa inferior e lateral contínua, com material opaco igual às peças tradicionais. O Clássico claro passa a abrir como padrão nesta atualização; Modo escuro continua opcional e salvo após a escolha. Mantém a correção que impede retorno automático ao menu do projeto.",
+  "released_at": "2026-08-28T08:56:00-03:00",
+  "build": "1.200.47-r1"
 }
