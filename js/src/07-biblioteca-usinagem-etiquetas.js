@@ -1105,7 +1105,7 @@ let shapePresetEditId=null;
 let shapeSelectedCorners=new Set(['bl']);
 let shapePreviewOwner=null, shapePreviewOriginalForms=null, shapePreviewActive=false;
 
-// ---------- 1.200.36 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
+// ---------- 1.200.38 · Mini CAD Forma com inferência magnética estilo SketchUp ----------
 const shapeCadState={
   tool:'edit',points:[],closed:false,undo:[],redo:[],draft:[],pointer:null,dragIndex:-1,
   current:null,rawCurrent:null,baseW:0,baseH:0,loadedPresetId:null,hoverSnap:null,guides:[],
@@ -1636,7 +1636,7 @@ function hardwareInstancesForSourcePreset(source,presetId){
 }
 function refreshAfterHardwareRemoval(){
   clearMachiningDraftPreview();hardwarePreviewOps=[];machiningPreviewActive=false;machiningPreviewOwner=null;
-  machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
+  machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;$('machining3DPreviewBar').style.display='none';
   renderMachiningVisuals();renderMachiningList();updateInspector();updateHardwarePanel();
 }
 function removeAppliedHardware(match,{refresh=true}={}){
@@ -1695,7 +1695,7 @@ function removeHardwareLinkedToObjects(doomed,{refresh=false}={}){
     const r=removeHardwareInstances(ids,{refresh:false});operations=r.removed;pieces=r.pieces;
   }
   clearMachiningDraftPreview();hardwarePreviewOps=[];machiningPreviewActive=false;machiningPreviewOwner=null;
-  machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
+  machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;$('machining3DPreviewBar').style.display='none';
   if(refresh)refreshAfterHardwareRemoval();
   return {instances:ids.size,operations,pieces};
 }
@@ -1730,9 +1730,9 @@ function renderHardwarePreviewOps(plan){
 function focusHardwarePlan(plan){
   const set=[...new Set(plan.operations.map(x=>x.owner))];if(!set.length)return;returnTo3D({restore:false,notify:false});const box=new THREE.Box3();for(const o of set){o.updateMatrixWorld(true);box.expandByObject(o);}const center=new THREE.Vector3(),size=new THREE.Vector3();box.getCenter(center);box.getSize(size);const span=Math.max(size.x,size.y,size.z,.3),dist=span*2.2;perspectiveCamera.position.set(center.x+dist*.7,center.y+dist*.55,center.z+dist*.85);controls.target.copy(center);perspectiveCamera.lookAt(center);controls.update();
 }
-function previewHardware3D(){try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p,{instanceId:'preview'});renderHardwarePreviewOps(plan);machiningPreviewOwner=selected;machiningPreviewActive=true;machiningVisualGroup.visible=false;$('machiningDialog').style.display='none';$('machining3DPreviewBar').style.display='flex';setDesignLabVisualizationOnly(true);$('machining3DPreviewInfo').textContent=`${p.name} · ${plan.contacts.length} contato(s) · ${plan.operations.length} furação(ões) · ainda não salvo`;focusHardwarePlan(plan);toast('Prévia 3D · amarelo = furos da ferragem');}catch(err){clearMachiningDraftPreview();machiningPreviewActive=false;machiningVisualGroup.visible=true;setDesignLabVisualizationOnly(false);toast(err.message||'Não foi possível visualizar a ferragem');}}
+function previewHardware3D(){try{const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');const plan=hardwarePlan(selected,p,{instanceId:'preview'});renderHardwarePreviewOps(plan);machiningPreviewOwner=selected;machiningPreviewActive=true;machiningVisualGroup.visible=false;$('machiningDialog').style.display='none';$('machining3DPreviewBar').style.display='flex';setDesignLabVisualizationOnly(true);$('machining3DPreviewInfo').textContent=`${p.name} · ${plan.contacts.length} contato(s) · ${plan.operations.length} furação(ões) · ainda não salvo`;focusHardwarePlan(plan);toast('Prévia 3D · amarelo = furos da ferragem');}catch(err){clearMachiningDraftPreview();machiningPreviewActive=false;machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;setDesignLabVisualizationOnly(false);toast(err.message||'Não foi possível visualizar a ferragem');}}
 function applySelectedHardware(){
-  clearMachiningDraftPreview();machiningVisualGroup.visible=true;$('machining3DPreviewBar').style.display='none';
+  clearMachiningDraftPreview();machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;$('machining3DPreviewBar').style.display='none';
   try{
     const p=findHardwarePreset($('hardwarePresetSelect')?.value);if(!p)throw new Error('Escolha uma ferragem');
     const oldIds=hardwareInstancesForSourcePreset(selected,p.id);
@@ -1933,12 +1933,12 @@ function renderMachiningVisuals(){
     }
   }
   updateMachiningVisualTransforms();
-  machiningVisualGroup.visible=!visualMode;
+  machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;
 }
 function updateMachiningVisualTransforms(){
   for(const v of machiningVisualGroup.children){
     const o=v.userData.machiningOwner,op=v.userData.machiningOp;
-    if(!o || !objects.includes(o) || !op){v.visible=false;continue;} v.visible=o.visible!==false;
+    if(!o || !objects.includes(o) || !op){v.visible=false;continue;} v.visible=cadMachiningVisible&&o.visible!==false;
     const u=o.userData,ti=pieceThicknessInfo(o); if(!ti)continue;
     const dims=ti.dims, da=entryAxisName(op.entryAxis), sign=entryAxisSign(op.entryAxis), depth=operationDepthMm(o,op);
     const point=v.userData.machiningPoint; const lc=point?{x:Number(point.x)||0,y:Number(point.y)||0,z:Number(point.z)||0}:resolvedMachiningCoords(o,op);
@@ -2030,14 +2030,14 @@ function showMachining3DPreview(){
     focusPieceForMachiningPreview(owner);
     toast('Prévia 3D · verde = volume da usinagem');
   }catch(err){
-    clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=true;
+    clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;
     setDesignLabVisualizationOnly(false);
     toast(err.message||'Não foi possível visualizar a usinagem');
   }
 }
 function closeMachining3DPreview({reopen=true}={}){
   clearMachiningDraftPreview(); hardwarePreviewOps=[];
-  machiningPreviewActive=false; machiningVisualGroup.visible=true;
+  machiningPreviewActive=false; machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;
   setDesignLabVisualizationOnly(false);
   $('machining3DPreviewBar').style.display='none';
   if(machiningPreviewOwner&&objects.includes(machiningPreviewOwner))selectObject(machiningPreviewOwner);
@@ -2163,14 +2163,14 @@ function renderMachiningList(){
 }
 function openMachiningDialog(type='hole'){
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
-  clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=true; $('machining3DPreviewBar').style.display='none'; machiningPreviewOwner=null;
+  clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive; $('machining3DPreviewBar').style.display='none'; machiningPreviewOwner=null;
   if(!selected){toast('Selecione uma peça');return;} if(selected.userData?.kind==='cylinder'){toast('Furo/rasgo em cilindro ainda não está disponível');return;}
   $('morePanel').style.display='none'; machiningEditId=null; machiningType=type==='groove'?'groove':type==='hardware'?'hardware':'hole'; $('machiningTitle').textContent=`Usinagem · ${selected.userData.name||'Peça'}`;
   const ti=pieceThicknessInfo(selected); $('machiningPartInfo').textContent=`Peça ${nice(ti.faceW)} × ${nice(ti.faceH)} × ${nice(ti.thickness)} mm · espessura no eixo ${axisLabel(ti.thicknessAxis)}. X=esquerda→direita, Y=baixo→cima, Z=trás→frente. Valor negativo mede do lado oposto (ex.: Y −100 = 100 mm do topo). DXF sem giro: ${axisLabel(ti.uAxis)} horizontal × ${axisLabel(ti.vAxis)} vertical.`;
   populateMachiningFaceOptions(); setMachiningType(machiningType,machiningType!=='hardware'); if(machiningType!=='hardware')refreshMachiningPresetSelect(); else setHardwareScope(hardwareScope); renderMachiningList(); $('machiningDialog').style.display='flex';
 }
 function saveMachining(){
-  clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=true; $('machining3DPreviewBar').style.display='none'; machiningPreviewOwner=null;
+  clearMachiningDraftPreview(); machiningPreviewActive=false; machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive; $('machining3DPreviewBar').style.display='none'; machiningPreviewOwner=null;
   try{const op=machiningDraft(); const arr=selected.userData.machining||(selected.userData.machining=[]); const i=arr.findIndex(x=>x.id===op.id); if(i>=0)arr[i]=op; else arr.push(op); machiningEditId=null; sanitizeMachiningForPiece(selected); renderMachiningVisuals(); renderMachiningList(); updateInspector(); commitHistory(); setDefaultMachiningValues(); updateMachiningUI(); toast(op.type==='hole'?'Furo salvo':'Rasgo salvo');}catch(err){toast(err.message||'Usinagem inválida');}
 }
 function loadMachiningForEdit(id){
@@ -2197,7 +2197,7 @@ Serão removidas ${st.operations} furação(ões) de ${st.pieces} peça(s) vincu
 
 
 
-// ---------- 1.200.36 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
+// ---------- 1.200.38 · Forma estilo Haixun: esboço local + zoom + grade CAD ----------
 // O Mini CAD deixa de nascer como o retângulo inteiro da peça. O usuário cria apenas
 // um esboço local fechado e ele é aplicado como recorte interno real na peça. Presets
 // antigos de contorno completo continuam compatíveis.
@@ -2376,7 +2376,7 @@ shapeCadPointerMove=function(e){
 };
 shapeCadPointerUp=function(e){if(shapeCadState.panPointer===e.pointerId){shapeCadState.panPointer=null;shapeCadState.panStart=null;return;}if(shapeCadState.pointer===e.pointerId){shapeCadState.pointer=null;shapeCadState.dragIndex=-1;shapeCadRender();updateShapePreview();}};
 
-// ---------- 1.200.36b · Esboço de borda + cotas automáticas ----------
+// ---------- 1.200.38b · Esboço de borda + cotas automáticas ----------
 // Um esboço ABERTO com as duas pontas na borda da peça substitui somente aquele
 // trecho do contorno. Assim é possível desenhar entalhes, degraus e recortes tipo Haixun
 // sem redesenhar a chapa inteira. Esboço FECHADO continua sendo recorte interno.
@@ -2442,4 +2442,222 @@ shapeCadRender=function(){
   shapeCadRenderBase();const svg=$('shapeCadSvg');if(!svg||$('shapeCadShowDims')?.checked===false||shapeCadState.points.length<2)return;const m=shapeCadMap(),segs=shapeCadSegments(),labels=[];let shown=0;
   for(const seg of segs){if(shown>=24)break;const len=Math.hypot(seg.b[0]-seg.a[0],seg.b[1]-seg.a[1]),px=len*m.s;if(len<.5||px<42)continue;const x=(m.sx(seg.a[0])+m.sx(seg.b[0]))/2,y=(m.sy(seg.a[1])+m.sy(seg.b[1]))/2;labels.push(`<g pointer-events="none"><rect x="${(x-21).toFixed(1)}" y="${(y-8).toFixed(1)}" width="42" height="16" rx="4" fill="rgba(5,10,13,.88)" stroke="rgba(127,229,148,.38)"/><text x="${x.toFixed(1)}" y="${(y+3.4).toFixed(1)}" text-anchor="middle" fill="#c9f7d2" font-size="9" font-weight="800">${nice(len)}</text></g>`);shown++;}
   if(labels.length)svg.insertAdjacentHTML('beforeend',labels.join(''));
+};
+
+// ============================================================================
+// 1.200.38 · FORMA ESTILO HAIXUN
+// Formatos paramétricos + editor de cantos + esboço livre + biblioteca global.
+// ============================================================================
+const BUILTIN_FORMAT_SHAPES_V37=[
+  {id:'builtin-format-rect',locked:true,folder:'Formatos rápidos',name:'Retangular',type:'piece-format',formatConfig:{format:'rectangle'}},
+  {id:'builtin-format-ellipse',locked:true,folder:'Formatos rápidos',name:'Elipse',type:'piece-format',formatConfig:{format:'ellipse'}},
+  {id:'builtin-format-circle',locked:true,folder:'Formatos rápidos',name:'Circular',type:'piece-format',formatConfig:{format:'circle'}},
+  {id:'builtin-format-l',locked:true,folder:'Formatos rápidos',name:'Tampo em L',type:'piece-format',formatConfig:{format:'l-top',cutW:200,cutH:125,lCorner:'tr'}},
+  {id:'builtin-format-cut',locked:true,folder:'Formatos rápidos',name:'Cantos cortados',type:'piece-format',formatConfig:{format:'cut-corners',cutX:60,cutY:60,corners:['tl','tr']}},
+  {id:'builtin-format-round',locked:true,folder:'Formatos rápidos',name:'Cantos arredondados',type:'piece-format',formatConfig:{format:'rounded-rect',radius:50}},
+  {id:'builtin-format-chamfer',locked:true,folder:'Formatos rápidos',name:'Tampo chanfrado',type:'piece-format',formatConfig:{format:'chamfered',cutX:60,cutY:60}}
+];
+let shapeUiMode='format';
+let shapeLibraryScope='local';
+let shapeCornerSelectedIndex=0;
+let shapeCornerStyle='round';
+let shapePreviewOriginalDims=null;
+let shapeLoadedFormatCornerEdits={};
+const globalShapeState={loaded:false,loading:false,error:'',items:[]};
+
+function shapeDeepClone(v){return JSON.parse(JSON.stringify(v));}
+function shapeCurrentLocalPresets(){return [...BUILTIN_FORMAT_SHAPES_V37,...BUILTIN_SHAPES,...getUserShapePresets()];}
+function shapeCurrentPresets(){return shapeLibraryScope==='global'?globalShapeState.items:shapeCurrentLocalPresets();}
+allShapePresets=function(){return shapeCurrentLocalPresets();};
+findShapePreset=function(id){return shapeCurrentPresets().find(x=>x.id===id)||null;};
+
+async function loadGlobalShapePresets(force=false){
+  if(globalShapeState.loading||(!force&&globalShapeState.loaded))return;
+  globalShapeState.loading=true;globalShapeState.error='';
+  try{const data=await cloudApiFetch('/shapes/global',{timeoutMs:20000});globalShapeState.items=Array.isArray(data?.items)?data.items:[];globalShapeState.loaded=true;}
+  catch(err){globalShapeState.error=err?.message||'Não foi possível carregar as Formas globais.';}
+  finally{globalShapeState.loading=false;if(shapeLibraryScope==='global')refreshShapePresetSelect();}
+}
+function shapeSyncScopeUi(){
+  $('shapeLocalTab')?.classList.toggle('active',shapeLibraryScope==='local');$('shapeLocalTab')?.classList.toggle('secondary',shapeLibraryScope!=='local');
+  $('shapeGlobalTab')?.classList.toggle('active',shapeLibraryScope==='global');$('shapeGlobalTab')?.classList.toggle('secondary',shapeLibraryScope!=='global');
+  const admin=adminAllowed();
+  if($('shapeGlobalHint'))$('shapeGlobalHint').textContent=shapeLibraryScope==='global'?(globalShapeState.loading?'Carregando formas globais…':globalShapeState.error||'Compartilhadas com todas as contas'):'Minhas formas e padrões';
+  if($('publishShapePreset'))$('publishShapePreset').style.display=shapeLibraryScope==='local'&&admin?'block':'none';
+  for(const id of ['newShapePreset','editShapePreset','saveShapePreset','deleteShapePreset']){const b=$(id);if(!b)continue;b.disabled=shapeLibraryScope==='global'&&!admin;}
+}
+function setShapeLibraryScope(scope){
+  shapeLibraryScope=scope==='global'?'global':'local';shapePresetEditId=null;shapeSyncScopeUi();
+  if(shapeLibraryScope==='global'&&!globalShapeState.loaded&&!globalShapeState.loading)loadGlobalShapePresets();
+  else refreshShapePresetSelect();
+}
+
+function shapeFormatDefaultDims(){const ti=pieceThicknessInfo(shapePreviewOwner||selected);return {W:ti?.faceW||800,H:ti?.faceH||500};}
+function shapeFormatSelectedCorners(){return [...document.querySelectorAll('[data-shape-format-corner]:checked')].map(x=>x.dataset.shapeFormatCorner);}
+function shapeFormatConfigFromUi(){
+  const d=shapeFormatDefaultDims(),format=$('shapeFormatType')?.value||'rectangle';
+  let W=Math.max(1,Number($('shapeFormatWidth')?.value)||d.W),H=Math.max(1,Number($('shapeFormatHeight')?.value)||d.H);
+  if(format==='circle'){const dia=Math.max(1,Number($('shapeFormatDiameter')?.value)||Math.min(W,H));W=dia;H=dia;}
+  return {format,width:W,height:H,cutW:Math.max(.1,Number($('shapeFormatCutW')?.value)||Math.min(200,W/3)),cutH:Math.max(.1,Number($('shapeFormatCutH')?.value)||Math.min(125,H/3)),lCorner:$('shapeFormatLCorner')?.value||'tr',cutX:Math.max(.1,Number($('shapeFormatCutX')?.value)||60),cutY:Math.max(.1,Number($('shapeFormatCutY')?.value)||60),corners:shapeFormatSelectedCorners(),radius:Math.max(.1,Number($('shapeFormatRadius')?.value)||50)};
+}
+function shapeFormatPopulate(cfg={}){
+  const d=shapeFormatDefaultDims(),f=cfg.format||'rectangle';if($('shapeFormatType'))$('shapeFormatType').value=f;
+  if($('shapeFormatWidth'))$('shapeFormatWidth').value=nice(Number(cfg.width)||d.W);if($('shapeFormatHeight'))$('shapeFormatHeight').value=nice(Number(cfg.height)||d.H);
+  if($('shapeFormatDiameter'))$('shapeFormatDiameter').value=nice(Number(cfg.width)||Math.min(d.W,d.H));
+  if($('shapeFormatCutW'))$('shapeFormatCutW').value=nice(Number(cfg.cutW)||Math.min(200,d.W/3));if($('shapeFormatCutH'))$('shapeFormatCutH').value=nice(Number(cfg.cutH)||Math.min(125,d.H/3));if($('shapeFormatLCorner'))$('shapeFormatLCorner').value=cfg.lCorner||'tr';
+  if($('shapeFormatCutX'))$('shapeFormatCutX').value=nice(Number(cfg.cutX)||60);if($('shapeFormatCutY'))$('shapeFormatCutY').value=nice(Number(cfg.cutY)||60);if($('shapeFormatRadius'))$('shapeFormatRadius').value=nice(Number(cfg.radius)||50);
+  const cs=new Set(Array.isArray(cfg.corners)?cfg.corners:['tl','tr']);document.querySelectorAll('[data-shape-format-corner]').forEach(x=>x.checked=cs.has(x.dataset.shapeFormatCorner));shapeFormatUpdateFields();
+}
+function shapeFormatTypeChanged(){shapeLoadedFormatCornerEdits={};shapeFormatUpdateFields();}
+function shapeFormatUpdateFields(){
+  const f=$('shapeFormatType')?.value||'rectangle';if($('shapeFormatLFields'))$('shapeFormatLFields').style.display=f==='l-top'?'grid':'none';if($('shapeFormatCutFields'))$('shapeFormatCutFields').style.display=['cut-corners','chamfered'].includes(f)?'grid':'none';if($('shapeFormatRadiusFields'))$('shapeFormatRadiusFields').style.display=f==='rounded-rect'?'grid':'none';if($('shapeFormatDiameterLabel'))$('shapeFormatDiameterLabel').style.display=f==='circle'?'grid':'none';if($('shapeFormatWidthLabel'))$('shapeFormatWidthLabel').style.display=f==='circle'?'none':'grid';if($('shapeFormatHeightLabel'))$('shapeFormatHeightLabel').style.display=f==='circle'?'none':'grid';updateShapePreview();
+}
+function shapeCutRectangle(W,H,corners,dx,dy){
+  const c=new Set(corners||[]),x=Math.min(Math.max(.01,dx),W*.49),y=Math.min(Math.max(.01,dy),H*.49),p=[];
+  c.has('bl')?p.push([x,0],[0,y]):p.push([0,0]);
+  c.has('br')?p.push([W-x,0],[W,y]):p.push([W,0]);
+  c.has('tr')?p.push([W,H-y],[W-x,H]):p.push([W,H]);
+  c.has('tl')?p.push([x,H],[0,H-y]):p.push([0,H]);return p;
+}
+function shapeFormatBasePolygon(cfg,W,H,segments=56){
+  cfg=cfg||{format:'rectangle'};const f=cfg.format||'rectangle';
+  if(f==='ellipse'||f==='circle'){const out=[],cx=W/2,cy=H/2,rx=W/2,ry=H/2,n=Math.max(24,segments);for(let i=0;i<n;i++){const a=Math.PI*2*i/n;out.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}return out;}
+  if(f==='l-top'){
+    const cw=Math.min(Math.max(.1,Number(cfg.cutW)||W/3),W-.1),ch=Math.min(Math.max(.1,Number(cfg.cutH)||H/3),H-.1),c=cfg.lCorner||'tr';
+    if(c==='tr')return [[0,0],[W,0],[W,H-ch],[W-cw,H-ch],[W-cw,H],[0,H]];
+    if(c==='tl')return [[0,0],[W,0],[W,H],[cw,H],[cw,H-ch],[0,H-ch]];
+    if(c==='br')return [[0,0],[W-cw,0],[W-cw,ch],[W,ch],[W,H],[0,H]];
+    return [[cw,0],[W,0],[W,H],[0,H],[0,ch],[cw,ch]];
+  }
+  if(f==='cut-corners')return shapeCutRectangle(W,H,cfg.corners||['tl','tr'],Number(cfg.cutX)||60,Number(cfg.cutY)||60);
+  if(f==='chamfered')return shapeCutRectangle(W,H,['bl','br','tr','tl'],Number(cfg.cutX)||60,Number(cfg.cutY)||60);
+  return [[0,0],[W,0],[W,H],[0,H]];
+}
+function shapeApplyCornerEdits(poly,edits={},samples=9){
+  if(!Array.isArray(poly)||poly.length<3)return poly||[];const out=[];
+  const add=p=>{const q=[Number(p[0])||0,Number(p[1])||0],last=out.at(-1);if(!last||Math.hypot(last[0]-q[0],last[1]-q[1])>.001)out.push(q);};
+  for(let i=0;i<poly.length;i++){
+    const B=poly[i],A=poly[(i-1+poly.length)%poly.length],C=poly[(i+1)%poly.length],e=edits?.[String(i)];if(!e||e.style==='straight'){add(B);continue;}
+    const d1=Math.hypot(A[0]-B[0],A[1]-B[1]),d2=Math.hypot(C[0]-B[0],C[1]-B[1]);if(d1<.01||d2<.01){add(B);continue;}
+    const val=Math.max(.01,Number(e.value)||0),d=Math.min(val,d1*.45,d2*.45),u1=[(A[0]-B[0])/d1,(A[1]-B[1])/d1],u2=[(C[0]-B[0])/d2,(C[1]-B[1])/d2],P1=[B[0]+u1[0]*d,B[1]+u1[1]*d],P2=[B[0]+u2[0]*d,B[1]+u2[1]*d];
+    if(e.style==='chamfer'){add(P1);add(P2);continue;}
+    add(P1);for(let k=1;k<samples;k++){const t=k/samples,s=1-t;add([s*s*P1[0]+2*s*t*B[0]+t*t*P2[0],s*s*P1[1]+2*s*t*B[1]+t*t*P2[1]]);}add(P2);
+  }return out;
+}
+function shapePieceFormatForm(o,formsOverride=null){const forms=formsOverride??o?.userData?.forms??[];return [...forms].reverse().find(f=>f?.type==='piece-format')||null;}
+function shapePieceFormatRawPolygon(o,formsOverride=null){const ti=pieceThicknessInfo(o);if(!ti)return [];const f=shapePieceFormatForm(o,formsOverride);if(!f)return [[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]];return shapeFormatBasePolygon(f.config||{format:'rectangle'},ti.faceW,ti.faceH,64);}
+function shapePieceFormatOutline(o,formsOverride=null){const base=shapePieceFormatRawPolygon(o,formsOverride),f=shapePieceFormatForm(o,formsOverride);return shapeApplyCornerEdits(base,f?.cornerEdits||{},9);}
+function shapePolylinePerimeter(pts){if(!Array.isArray(pts)||pts.length<2)return 0;let n=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];n+=Math.hypot(b[0]-a[0],b[1]-a[1]);}return n;}
+
+const formOutlineV36=formOutlinePointsMm;
+formOutlinePointsMm=function(o,formsOverride=null,segments=48){
+  const forms=formsOverride??o.userData?.forms??[];
+  const edge=[...forms].reverse().find(f=>f?.type==='custom-profile'&&f?.operation==='edge-profile');if(edge)return formOutlineV36(o,formsOverride,segments);
+  const legacy=[...forms].reverse().find(f=>f?.type==='custom-profile'&&!f.operation&&Array.isArray(f.points)&&f.points.length>=3);if(legacy)return formOutlineV36(o,formsOverride,segments);
+  if(shapePieceFormatForm(o,forms))return shapePieceFormatOutline(o,forms);
+  return formOutlineV36(o,formsOverride,segments);
+};
+const rebuildFormV36=rebuildFormGeometry;
+rebuildFormGeometry=function(o){rebuildFormV36(o);if(o?.userData?.formProfile){const outer=o.userData.formProfile.points||[],holes=o.userData.formProfile.cutouts||[];const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);o.userData.formProfile.perimeterMm=roundMmNumber(perimeter,2);o.userData.formPerimeterMm=roundMmNumber(perimeter,2);}};
+
+function shapeResizeFace(o,Wmm,Hmm){
+  const ti=pieceThicknessInfo(o);if(!ti)return;const dims={x:o.userData.width,y:o.userData.height,z:o.userData.depth};dims[ti.uAxis]=Wmm*MM_TO_M;dims[ti.vAxis]=Hmm*MM_TO_M;setDimensions(o,dims.x,dims.z,dims.y,true);
+}
+function shapeFormatRecordFromConfig(cfg,name=null,folder=null,cornerEdits=null){
+  const e=shapeDeepClone(cornerEdits||{});if(cfg.format==='rounded-rect'&&!Object.keys(e).length){for(let i=0;i<4;i++)e[String(i)]={style:'round',value:cfg.radius||50};}
+  return {id:uid('form'),type:'piece-format',name:name||({rectangle:'Retangular',ellipse:'Elipse',circle:'Circular','l-top':'Tampo em L','cut-corners':'Cantos cortados','rounded-rect':'Cantos arredondados',chamfered:'Tampo chanfrado'}[cfg.format]||'Formato'),folder:folder||'Formatos',config:shapeDeepClone(cfg),cornerEdits:e};
+}
+function shapeApplyFormatConfig(owner,cfg,{commit=false,name=null,folder=null,cornerEdits=null}={}){
+  if(!owner)return;shapeResizeFace(owner,cfg.width,cfg.height);owner.userData.forms=[shapeFormatRecordFromConfig(cfg,name,folder,cornerEdits)];rebuildFormGeometry(owner);renderMachiningVisuals();updateInspector?.();if(commit)commitHistory();
+}
+function applyParametricFormatToPiece(){
+  const owner=shapePreviewOwner||selected;if(!owner)return;try{restoreShapePreview();shapePreviewOwner=owner;const cfg=shapeFormatConfigFromUi();if(cfg.format==='l-top'&&(cfg.cutW>=cfg.width||cfg.cutH>=cfg.height))throw new Error('O recorte do L precisa ser menor que a peça');shapeApplyFormatConfig(owner,cfg,{commit:true,name:$('shapeName')?.value||null,folder:$('shapeFolder')?.value||null,cornerEdits:shapeLoadedFormatCornerEdits});renderAppliedShapes();shapeCornerSelectedIndex=0;shapeCornerRender();updateShapePreview();toast('Formato aplicado à peça');}catch(err){toast(err.message||'Não foi possível aplicar o formato');}
+}
+
+function shapeEnsurePieceFormat(owner){let f=shapePieceFormatForm(owner);if(f)return f;f=shapeFormatRecordFromConfig({format:'rectangle',width:pieceThicknessInfo(owner).faceW,height:pieceThicknessInfo(owner).faceH},'Retangular','Formatos');owner.userData.forms=[...(owner.userData.forms||[]).filter(x=>x?.type==='custom-profile'&&x?.operation==='cutout'),f];return f;}
+function shapeCornerBaseInfo(ensure=false){const owner=shapePreviewOwner||selected;if(!owner)return null;let f=shapePieceFormatForm(owner);if(!f){const ti=pieceThicknessInfo(owner);f=shapeFormatRecordFromConfig({format:'rectangle',width:ti.faceW,height:ti.faceH},'Retangular','Formatos');if(ensure)owner.userData.forms=[...(owner.userData.forms||[]).filter(x=>x?.type==='custom-profile'&&x?.operation==='cutout'),f];}const ti=pieceThicknessInfo(owner),base=shapeFormatBasePolygon(f.config||{format:'rectangle'},ti.faceW,ti.faceH,64);if(['ellipse','circle'].includes(f.config?.format))return {owner,f,base,disabled:true,temporary:!shapePieceFormatForm(owner)};return {owner,f,base,disabled:false,temporary:!shapePieceFormatForm(owner)};}
+function shapeCornerRender(){
+  const svg=$('shapeCornerEditSvg');if(!svg)return;const info=shapeCornerBaseInfo();if(!info)return;const {owner,f,base}=info,ti=pieceThicknessInfo(owner),W=ti.faceW,H=ti.faceH,sw=640,sh=340,pad=34,s=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H)),ox=(sw-W*s)/2,oy=(sh-H*s)/2,sx=x=>ox+x*s,sy=y=>sh-(oy+y*s),outer=shapeApplyCornerEdits(base,f.cornerEdits||{},9),parts=['<rect width="640" height="340" fill="#fbfcfa"/>'];
+  const grid=50,px=grid*s;if(px>=10){for(let x=0;x<=W+.1;x+=grid)parts.push(`<line x1="${sx(x)}" y1="${sy(0)}" x2="${sx(x)}" y2="${sy(H)}" stroke="#e7eaeb" stroke-width="1"/>`);for(let y=0;y<=H+.1;y+=grid)parts.push(`<line x1="${sx(0)}" y1="${sy(y)}" x2="${sx(W)}" y2="${sy(y)}" stroke="#e7eaeb" stroke-width="1"/>`);}
+  const d=outer.map((p,i)=>`${i?'L':'M'} ${sx(p[0]).toFixed(2)} ${sy(p[1]).toFixed(2)}`).join(' ')+' Z';parts.push(`<path d="${d}" fill="#e7e5df" stroke="#4c5559" stroke-width="2"/>`);
+  if(info.disabled){parts.push('<text x="320" y="170" text-anchor="middle" fill="#586268" font-size="14">Este formato não possui cantos retos para editar.</text>');shapeCornerSelectedIndex=0;}else{shapeCornerSelectedIndex=Math.max(0,Math.min(base.length-1,shapeCornerSelectedIndex));base.forEach((p,i)=>{const active=i===shapeCornerSelectedIndex;parts.push(`<circle data-shape-corner-index="${i}" cx="${sx(p[0]).toFixed(2)}" cy="${sy(p[1]).toFixed(2)}" r="${active?9:7}" fill="${active?'#d85862':'#36a684'}" stroke="#fff" stroke-width="2" style="cursor:pointer"/>`);});}
+  svg.innerHTML=parts.join('');if($('shapeCornerSelectedText'))$('shapeCornerSelectedText').textContent=info.disabled?'Elipse/círculo: use o formato diretamente.':`Canto selecionado: ${shapeCornerSelectedIndex+1} de ${base.length} · ${f.cornerEdits?.[String(shapeCornerSelectedIndex)]?.style==='chamfer'?'Chanfro':f.cornerEdits?.[String(shapeCornerSelectedIndex)]?.style==='round'?'Arco':'Reto'}`;
+}
+function shapeCornerSelectFromEvent(e){const t=e.target?.closest?.('[data-shape-corner-index]');if(!t)return;shapeCornerSelectedIndex=Number(t.dataset.shapeCornerIndex)||0;shapeCornerRender();}
+function shapeSetCornerStyle(style){shapeCornerStyle=['round','chamfer','straight'].includes(style)?style:'round';document.querySelectorAll('[data-shape-corner-style]').forEach(b=>{b.classList.toggle('active',b.dataset.shapeCornerStyle===shapeCornerStyle);b.classList.toggle('secondary',b.dataset.shapeCornerStyle!==shapeCornerStyle);});}
+function shapeApplyCornerEdit(all=false){
+  const info=shapeCornerBaseInfo(true);if(!info||info.disabled){toast('Este formato não possui cantos editáveis');return;}const val=Math.max(.1,Number($('shapeCornerEditValue')?.value)||30),idx=all?info.base.map((_,i)=>i):[shapeCornerSelectedIndex];info.f.cornerEdits=info.f.cornerEdits||{};for(const i of idx){if(shapeCornerStyle==='straight')delete info.f.cornerEdits[String(i)];else info.f.cornerEdits[String(i)]={style:shapeCornerStyle,value:val};}rebuildFormGeometry(info.owner);renderMachiningVisuals();commitHistory();shapeCornerRender();renderAppliedShapes();updateShapePreview();toast(all?'Cantos atualizados':'Canto atualizado');
+}
+function shapeResetCorners(){const info=shapeCornerBaseInfo(false);if(!info||info.disabled||info.temporary){toast('A peça já está com cantos retos');return;}info.f.cornerEdits={};if(info.f.config?.format==='rounded-rect')info.f.config.format='rectangle';rebuildFormGeometry(info.owner);renderMachiningVisuals();commitHistory();shapeCornerRender();renderAppliedShapes();updateShapePreview();toast('Cantos resetados');}
+
+function shapeSetMode(mode){
+  shapeUiMode=['format','corners','sketch'].includes(mode)?mode:'format';document.querySelectorAll('[data-shape-mode]').forEach(b=>{const on=b.dataset.shapeMode===shapeUiMode;b.classList.toggle('active',on);b.classList.toggle('secondary',!on);});
+  if($('shapeFormatPanel'))$('shapeFormatPanel').style.display=shapeUiMode==='format'?'grid':'none';if($('shapeCornersPanel'))$('shapeCornersPanel').style.display=shapeUiMode==='corners'?'grid':'none';if($('shapeSketchPanel'))$('shapeSketchPanel').style.display=shapeUiMode==='sketch'?'grid':'none';if($('applyShape'))$('applyShape').style.display=shapeUiMode==='sketch'?'inline-block':'none';if($('shapeType'))$('shapeType').value=shapeUiMode==='sketch'?'custom-profile':'piece-format';if(shapeUiMode==='sketch'){shapeCadInitForOwner();shapeCadFitView();}if(shapeUiMode==='corners')shapeCornerRender();updateShapePreview();
+}
+const shapeCadSyncUiV36=shapeCadSyncUi;
+shapeCadSyncUi=function(){if($('shapeMiniCad'))$('shapeMiniCad').style.display=shapeUiMode==='sketch'?'grid':'none';if(shapeUiMode==='sketch')shapeCadSyncUiV36();};
+
+function shapePreviewSvgRender(outer,holes,W,H,msg){
+  const svg=$('shapePreviewSvg');if(!svg)return;const pad=22,sw=420,sh=260,scale=Math.min((sw-pad*2)/Math.max(1,W),(sh-pad*2)/Math.max(1,H)),ox=(sw-W*scale)/2,oy=(sh-H*scale)/2,path=pts=>pts.map(([u,v],i)=>`${i?'L':'M'} ${(ox+u*scale).toFixed(2)} ${(sh-(oy+v*scale)).toFixed(2)}`).join(' ')+' Z';let d=path(outer);for(const h of holes||[])d+=' '+path(h);svg.innerHTML=`<rect width="420" height="260" fill="#fafbf9"/><path d="${d}" fill="#d9d6cf" fill-rule="evenodd" stroke="#232829" stroke-width="2.2"/><text x="210" y="18" text-anchor="middle" fill="#317d70" font-size="12" font-weight="800">${nice(W)} × ${nice(H)} mm</text>`;const peri=shapePolylinePerimeter(outer)+(holes||[]).reduce((n,h)=>n+shapePolylinePerimeter(h),0);if($('shapePerimeterInfo'))$('shapePerimeterInfo').textContent=`Perímetro real ${nice(peri)} mm`;if($('shapePreviewText'))$('shapePreviewText').textContent=msg||'Prévia da forma.';
+}
+const updateShapePreviewV36b=updateShapePreview;
+updateShapePreview=function(){
+  const owner=shapePreviewOwner||selected;if(!owner)return;
+  if(shapeUiMode==='format'){
+    const cfg=shapeFormatConfigFromUi(),W=cfg.width,H=cfg.height,base=shapeFormatBasePolygon(cfg,W,H,64),edits=shapeDeepClone(shapeLoadedFormatCornerEdits||{});if(cfg.format==='rounded-rect'&&!Object.keys(edits).length)for(let i=0;i<4;i++)edits[String(i)]={style:'round',value:cfg.radius};const outer=shapeApplyCornerEdits(base,edits,9);shapePreviewSvgRender(outer,[],W,H,`${({rectangle:'Retangular',ellipse:'Elipse',circle:'Circular','l-top':'Tampo em L','cut-corners':'Cantos cortados','rounded-rect':'Cantos arredondados',chamfered:'Tampo chanfrado'}[cfg.format]||'Formato')} · prévia paramétrica.`);return;
+  }
+  if(shapeUiMode==='corners'){const ti=pieceThicknessInfo(owner),outer=formOutlinePointsMm(owner,owner.userData.forms||[],48),holes=formCutoutPointsMm(owner,owner.userData.forms||[]);shapePreviewSvgRender(outer,holes,ti.faceW,ti.faceH,'Selecione os cantos na prévia acima e aplique Arco, Chanfro ou Reto.');return;}
+  updateShapePreviewV36b();const ti=pieceThicknessInfo(owner),outer=formOutlinePointsMm(owner,[...(owner.userData.forms||[]),(()=>{try{return shapeDraftOperation();}catch{return null;}})()].filter(Boolean),48);if(outer?.length&&ti&&$('shapePerimeterInfo'))$('shapePerimeterInfo').textContent=`Perímetro real ${nice(shapePolylinePerimeter(outer))} mm`;
+};
+
+function shapeTransformEditor(kind){
+  if(shapeUiMode==='sketch'){
+    const {W,H}=shapeCadOwnerInfo();if(!shapeCadState.points.length){toast('Desenhe ou carregue um esboço primeiro');return;}shapeCadPushUndo();let pts=shapeCadState.points.map(p=>p.slice());if(kind==='h')pts=pts.map(([x,y])=>[W-x,y]);else if(kind==='v')pts=pts.map(([x,y])=>[x,H-y]);else{const b=shapeCadSketchBounds(pts),cx=(b.minX+b.maxX)/2,cy=(b.minY+b.maxY)/2;pts=pts.map(([x,y])=>[cx-(y-cy),cy+(x-cx)]);const nb=shapeCadSketchBounds(pts),scale=Math.min(1,(W-2)/Math.max(1,nb.w),(H-2)/Math.max(1,nb.h)),ncx=(nb.minX+nb.maxX)/2,ncy=(nb.minY+nb.maxY)/2;pts=pts.map(([x,y])=>[W/2+(x-ncx)*scale,H/2+(y-ncy)*scale]);}shapeCadState.points=pts.map(shapeCadClampPoint);shapeCadRender();updateShapePreview();return;
+  }
+  const cfg=shapeFormatConfigFromUi(),mapH={tr:'tl',tl:'tr',br:'bl',bl:'br'},mapV={tr:'br',br:'tr',tl:'bl',bl:'tl'},mapR={tr:'tl',tl:'bl',bl:'br',br:'tr'};const mapCorners=m=>{cfg.corners=(cfg.corners||[]).map(c=>m[c]||c);};if(kind==='h'){if(cfg.lCorner)cfg.lCorner=mapH[cfg.lCorner]||cfg.lCorner;mapCorners(mapH);}if(kind==='v'){if(cfg.lCorner)cfg.lCorner=mapV[cfg.lCorner]||cfg.lCorner;mapCorners(mapV);}if(kind==='r'){if(cfg.lCorner)cfg.lCorner=mapR[cfg.lCorner]||cfg.lCorner;mapCorners(mapR);[cfg.width,cfg.height]=[cfg.height,cfg.width];[cfg.cutW,cfg.cutH]=[cfg.cutH,cfg.cutW];[cfg.cutX,cfg.cutY]=[cfg.cutY,cfg.cutX];}shapeFormatPopulate(cfg);updateShapePreview();
+}
+
+refreshShapePresetSelect=function(preferred=null){
+  const sel=$('shapePresetSelect');if(!sel)return;const all=shapeCurrentPresets();sel.innerHTML='';if(shapeLibraryScope==='global'&&globalShapeState.loading){const o=document.createElement('option');o.textContent='Carregando…';sel.appendChild(o);shapeSyncScopeUi();return;}if(shapeLibraryScope==='global'&&globalShapeState.error){const o=document.createElement('option');o.textContent='Falha ao carregar';sel.appendChild(o);shapeSyncScopeUi();return;}if(!all.length){const o=document.createElement('option');o.textContent=shapeLibraryScope==='global'?'Nenhuma forma global publicada':'Nenhuma forma';sel.appendChild(o);shapeSyncScopeUi();return;}
+  const groups=new Map();for(const p of all){const g=String(p.folder||'Sem pasta').trim()||'Sem pasta';if(!groups.has(g))groups.set(g,[]);groups.get(g).push(p);}for(const [g,arr] of groups){const og=document.createElement('optgroup');og.label=g;for(const p of arr){const o=document.createElement('option');o.value=p.id;o.textContent=p.name+(p.locked?' · padrão':p.global?' · global':'');og.appendChild(o);}sel.appendChild(og);}const wanted=preferred&&all.some(x=>x.id===preferred)?preferred:(all.find(x=>x.id==='builtin-format-rect')?.id||all[0]?.id);if(wanted)sel.value=wanted;shapeSyncScopeUi();loadSelectedShapePresetToEditor(false);
+};
+function shapeLoadPieceFormatPreset(p){const cfg={...shapeFormatConfigFromUi(),...(p.formatConfig||p.config||{})};shapeLoadedFormatCornerEdits=shapeDeepClone(p.cornerEdits||{});shapeFormatPopulate(cfg);shapeSetMode('format');}
+loadSelectedShapePresetToEditor=function(setEdit=false){
+  const p=findShapePreset($('shapePresetSelect')?.value);if(!p)return;if($('shapeFolder'))$('shapeFolder').value=p.folder||'Formas';if($('shapeName'))$('shapeName').value=p.name||'Forma';shapePresetEditId=setEdit&&!p.locked&&(!p.global||adminAllowed())?p.id:null;$('saveShapePreset').textContent=shapePresetEditId?'💾 Salvar alteração':(shapeLibraryScope==='global'?'💾 Salvar global':'💾 Salvar na biblioteca');
+  if(p.type==='piece-format'){shapeLoadPieceFormatPreset(p);return;}if(p.type==='custom-profile'){if($('shapeType'))$('shapeType').value='custom-profile';shapeSetMode('sketch');shapeCadLoadPreset(p);shapeCadFitView();updateShapePreview();return;}if(p.type==='round-corner'){shapeSetMode('corners');shapeSetCornerStyle('round');if($('shapeCornerEditValue'))$('shapeCornerEditValue').value=nice(p.radius||50);shapeCornerRender();updateShapePreview();}
+};
+newShapePreset=function(){shapePresetEditId=null;if(shapeLibraryScope==='global'&&!adminAllowed()){toast('Somente o administrador pode criar Formas globais');return;}$('shapeFolder').value=shapeLibraryScope==='global'?'Formas globais':'Formas personalizadas';$('shapeName').value='Minha forma';shapeSetMode('sketch');shapeCadResetToPieceRect({record:false});$('saveShapePreset').textContent=shapeLibraryScope==='global'?'💾 Salvar global':'💾 Salvar na biblioteca';$('shapeName').focus();};
+editSelectedShapePreset=function(){const p=findShapePreset($('shapePresetSelect')?.value);if(!p)return;if(p.global&&!adminAllowed()){toast('Somente o administrador pode editar Formas globais');return;}if(p.locked){shapePresetEditId=null;$('shapeName').value=(p.name||'Forma')+' personalizada';toast('Forma padrão aberta como cópia editável');}else shapePresetEditId=p.id;loadSelectedShapePresetToEditor(true);};
+function shapePresetFromEditor(){
+  const name=String($('shapeName')?.value||'').trim(),folder=String($('shapeFolder')?.value||'Formas').trim()||'Formas';if(!name)throw new Error('Dê um nome para a forma');
+  if(shapeUiMode==='format'){return {name,folder,type:'piece-format',formatConfig:shapeFormatConfigFromUi()};}
+  if(shapeUiMode==='corners'){const info=shapeCornerBaseInfo();if(!info)throw new Error('Selecione uma peça');return {name,folder,type:'piece-format',formatConfig:{...(info.f.config||{}),width:pieceThicknessInfo(info.owner).faceW,height:pieceThicknessInfo(info.owner).faceH},cornerEdits:shapeDeepClone(info.f.cornerEdits||{})};}
+  const pts=shapeCadState.points.map(shapeCadClampPoint);if(shapeCadState.closed){if(pts.length<3||Math.abs(shapeCadPolygonArea(pts))<.5)throw new Error('Feche um esboço válido');const {W,H}=shapeCadOwnerInfo();if(pts.some(q=>shapeCadBoundaryRef(q,W,H)))throw new Error('Para forma na borda, deixe o esboço aberto');const b=shapeCadSketchBounds(pts);return {name,folder,type:'custom-profile',sketchPoints:pts.map(p=>[roundMmNumber(p[0]-b.minX,3),roundMmNumber(p[1]-b.minY,3)]),sketchW:roundMmNumber(b.w,3),sketchH:roundMmNumber(b.h,3),closed:true,profileVersion:2,operation:'cutout'};}
+  const {W,H}=shapeCadOwnerInfo();if(pts.length<2||!shapeCadBoundaryRef(pts[0],W,H)||!shapeCadBoundaryRef(pts.at(-1),W,H))throw new Error('Esboço aberto precisa começar e terminar na borda da peça');return {name,folder,type:'custom-profile',profileNormalized:shapeCadNormalizePoints(pts,W,H),closed:false,profileVersion:2,operation:'edge-profile'};
+}
+saveShapePresetLibrary=async function(){
+  try{const p=shapePresetFromEditor();if(shapeLibraryScope==='global'){if(!adminAllowed())throw new Error('Somente o administrador pode salvar Formas globais');let data;if(shapePresetEditId)data=await cloudApiFetch(`/admin/shapes/global/${encodeURIComponent(shapePresetEditId)}`,{method:'PUT',body:{preset:p},timeoutMs:20000});else data=await cloudApiFetch('/admin/shapes/global',{method:'POST',body:{preset:p},timeoutMs:20000});shapePresetEditId=data?.item?.id||shapePresetEditId;await loadGlobalShapePresets(true);refreshShapePresetSelect(shapePresetEditId);toast('Forma global salva para todos');return;}const arr=getUserShapePresets();if(shapePresetEditId){const i=arr.findIndex(x=>x.id===shapePresetEditId);if(i>=0)arr[i]={...arr[i],...p,id:shapePresetEditId};else shapePresetEditId=null;}if(!shapePresetEditId){const item={...p,id:uid('shapePreset')};arr.push(item);shapePresetEditId=item.id;}setUserShapePresets(arr);refreshShapePresetSelect(shapePresetEditId);toast('Forma salva na biblioteca');}catch(err){toast(err.message||'Não foi possível salvar a forma');}
+};
+deleteShapePresetLibrary=async function(){
+  const id=$('shapePresetSelect')?.value,p=findShapePreset(id);if(!p)return;if(p.locked){toast('As formas padrão não podem ser excluídas');return;}if(shapeLibraryScope==='global'){if(!adminAllowed()){toast('Somente o administrador pode excluir Formas globais');return;}if(!window.confirm(`Excluir a Forma global “${p.name}”?`))return;try{await cloudApiFetch(`/admin/shapes/global/${encodeURIComponent(id)}`,{method:'DELETE',body:{},timeoutMs:20000});await loadGlobalShapePresets(true);refreshShapePresetSelect();toast('Forma global excluída');}catch(err){toast(err.message||'Falha ao excluir Forma global');}return;}if(!window.confirm(`Excluir a forma “${p.name}” da sua biblioteca?`))return;setUserShapePresets(getUserShapePresets().filter(x=>x.id!==id));shapePresetEditId=null;refreshShapePresetSelect();toast('Forma removida da biblioteca');
+};
+async function publishSelectedShapePresetGlobal(){const p=findShapePreset($('shapePresetSelect')?.value);if(!p||shapeLibraryScope!=='local')return;if(!adminAllowed()){toast('Somente o administrador pode publicar Formas globais');return;}try{const copy=shapeDeepClone(p);delete copy.id;delete copy.locked;delete copy.global;if(copy.type==='piece-format'){const d=shapeFormatDefaultDims();copy.formatConfig={width:d.W,height:d.H,...(copy.formatConfig||{})};}const data=await cloudApiFetch('/admin/shapes/global',{method:'POST',body:{preset:copy},timeoutMs:20000});globalShapeState.loaded=false;toast(`Forma “${data?.item?.name||p.name}” publicada para todos`);}catch(err){toast(err.message||'Não foi possível publicar a Forma');}}
+
+const renderAppliedShapesV36=renderAppliedShapes;
+renderAppliedShapes=function(){
+  const list=$('shapeAppliedList');if(!list)return;list.innerHTML='';const owner=shapePreviewOwner||selected,forms=owner?.userData?.forms||[],labels=shapeCornerLabels(owner);if(!forms.length){const d=document.createElement('div');d.className='dialogHelp';d.textContent='Nenhuma Forma aplicada nesta peça.';list.appendChild(d);return;}
+  for(const f of forms){const item=document.createElement('div');item.className='shapeAppliedItem';const text=document.createElement('div');text.innerHTML='<strong></strong><span></span>';text.querySelector('strong').textContent=f.name||'Forma';let detail='';if(f.type==='piece-format'){const fmt=f.config?.format||'rectangle';detail=`Formato ${fmt} · ${Object.keys(f.cornerEdits||{}).length} canto(s) editado(s)`;}else if(f.type==='custom-profile')detail=f.operation==='cutout'?`Esboço fechado · recorte interno · ${(f.points||[]).length} pontos`:f.operation==='edge-profile'?`Esboço aberto · recorte de borda · ${(f.points||[]).length} pontos`:`Mini CAD · ${(f.points||[]).length} pontos`;else detail=`R ${nice(f.radius)} mm · ${(f.corners||[]).map(c=>labels[c]||c).join(' + ')}`;text.querySelector('span').textContent=detail;const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>deleteAppliedShape(f.id);item.append(text,del);list.appendChild(item);}
+};
+
+const restoreShapePreviewV36=restoreShapePreview;
+restoreShapePreview=function(){
+  if(shapePreviewActive&&shapePreviewOwner&&objects.includes(shapePreviewOwner)&&shapePreviewOriginalDims){shapePreviewOwner.userData.forms=cloneForms(shapePreviewOriginalForms||[]);setDimensions(shapePreviewOwner,shapePreviewOriginalDims.width,shapePreviewOriginalDims.depth,shapePreviewOriginalDims.height,true);rebuildFormGeometry(shapePreviewOwner);shapePreviewActive=false;shapePreviewOriginalForms=null;shapePreviewOriginalDims=null;$('shape3DPreviewBar').style.display='none';setDesignLabVisualizationOnly(false);renderMachiningVisuals();return;}restoreShapePreviewV36();shapePreviewOriginalDims=null;
+};
+previewShape3D=function(){
+  const owner=shapePreviewOwner||selected;if(!owner)return;try{restoreShapePreview();shapePreviewOwner=owner;shapePreviewOriginalForms=cloneForms(owner.userData.forms||[]);shapePreviewOriginalDims={width:owner.userData.width,depth:owner.userData.depth,height:owner.userData.height};if(shapeUiMode==='format'){shapeApplyFormatConfig(owner,shapeFormatConfigFromUi(),{commit:false,name:$('shapeName')?.value||null,folder:$('shapeFolder')?.value||null,cornerEdits:shapeLoadedFormatCornerEdits});shapePreviewActive=true;}else if(shapeUiMode==='sketch'){const forms=cloneForms(shapePreviewOriginalForms);forms.push(shapeDraftOperation());owner.userData.forms=forms;rebuildFormGeometry(owner);shapePreviewActive=true;}else{shapePreviewOriginalForms=null;shapePreviewOriginalDims=null;shapePreviewActive=false;}$('shapeDialog').style.display='none';$('shape3DPreviewBar').style.display='flex';setDesignLabVisualizationOnly(true);$('shape3DPreviewInfo').textContent=`${owner.userData.name||'Peça'} · prévia 3D; gire e aproxime, depois volte.`;selectObject(owner);toast('Prévia 3D da Forma');}catch(err){restoreShapePreview();toast(err.message||'Não foi possível visualizar');}
+};
+returnShapePreview=function(){restoreShapePreview();if(shapePreviewOwner&&objects.includes(shapePreviewOwner))selectObject(shapePreviewOwner);$('shapeDialog').style.display='flex';if(shapeUiMode==='corners')shapeCornerRender();updateShapePreview();};
+
+openShapeDialog=function(){
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});if(!selected){toast('Selecione uma peça');return;}if(selected.userData?.kind==='cylinder'||selected.userData?.kind==='curved-panel'||selected.userData?.curvedRole){toast('Forma disponível para peças planas');return;}shapePreviewOwner=selected;shapePreviewOriginalForms=null;shapePreviewOriginalDims=null;shapePreviewActive=false;shapePresetEditId=null;shapeLibraryScope='local';$('morePanel').style.display='none';$('machiningDialog').style.display='none';const ti=pieceThicknessInfo(selected);$('shapePartInfo').textContent=`Formato: ${selected.userData.name||'Peça'} · ${nice(ti.faceW)} × ${nice(ti.faceH)} × ${nice(ti.thickness)} mm. Formatos e esboços alteram o contorno real exportado no DXF.`;shapeLoadedFormatCornerEdits={};shapeFormatPopulate({format:'rectangle',width:ti.faceW,height:ti.faceH});shapeSetMode('format');shapeSyncScopeUi();refreshShapePresetSelect('builtin-format-rect');shapeCadInitForOwner({forceRect:true});renderAppliedShapes();shapeCornerRender();updateShapePreview();$('shapeDialog').style.display='flex';
 };

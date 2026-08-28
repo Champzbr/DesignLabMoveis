@@ -131,10 +131,10 @@ const XRAY_3D_KEY='miniCadProXray3DV2';
 
 // Padrão tipo CAD:
 // - fundo branco;
-// - grade desligada;
+// - grade leve ligada por padrão (pode ser desligada nas configurações);
 // - Raio-X 3D desligado.
 let cadBackgroundMode='white';
-let cadGridVisible=false;
+let cadGridVisible=true;
 let xray3DEnabled=false;
 
 try{
@@ -159,6 +159,7 @@ function syncCadBackgroundButtons(){
     b.classList.toggle('active',b.dataset.cadBg===cadBackgroundMode);
   });
   if($('cadGridVisibleSetting'))$('cadGridVisibleSetting').checked=!!cadGridVisible;
+  if($('cadGridQuickToggle'))$('cadGridQuickToggle').classList.toggle('active',!!cadGridVisible);
 }
 function applyCadGridVisibility(visible,{persist=true,notify=false}={}){
   cadGridVisible=!!visible;
@@ -186,6 +187,11 @@ function applyCadBackground(mode,{persist=true,notify=false}={}){
   if(typeof visualFloorMat!=='undefined'&&visualFloorMat?.color){
     visualFloorMat.color.setHex(cadFloorHex());
     visualFloorMat.needsUpdate=true;
+  }
+  if(typeof grid!=='undefined'&&grid?.material){
+    grid.material.transparent=true;
+    grid.material.opacity=cadBackgroundMode==='white'?.52:.34;
+    grid.material.needsUpdate=true;
   }
 
   document.body.dataset.cadBackground=cadBackgroundMode;
@@ -254,7 +260,11 @@ const visualFloorMat=new THREE.MeshStandardMaterial({color:cadFloorHex(),roughne
 const visualFloor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),visualFloorMat);
 visualFloor.rotation.x=-Math.PI/2; visualFloor.position.y=-.004; visualFloor.receiveShadow=true; visualFloor.visible=false; scene.add(visualFloor);
 
-const grid = new THREE.GridHelper(20, 200, 0x555555, 0x262626); // linhas a cada 100 mm
+const grid = new THREE.GridHelper(20, 200, 0xb9c1c5, 0xd9dddf); // malha leve estilo CAD · linhas a cada 100 mm
+grid.material.transparent=true;
+grid.material.opacity=.52;
+grid.material.depthWrite=false;
+grid.position.y=.001;
 scene.add(grid);
 applyCadBackground(cadBackgroundMode,{persist:false});
 applyCadGridVisibility(cadGridVisible,{persist:false});
@@ -283,6 +293,55 @@ worldAxisZ.userData.tapeAxis='z';
 const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0),0);
 
 let visualMode=false;
+
+// 1.200.38 · visibilidade de detalhes auxiliares do CAD.
+// São preferências de visualização, não apagam ferragens nem usinagens do projeto.
+function syncCadDetailVisibilityButtons(){
+  const hb=$('toggleHardwareVisibilityBtn');
+  if(hb){
+    hb.textContent=cadHardwareVisible?'🔩 Ferragens: visíveis':'🔩 Ferragens: ocultas';
+    hb.classList.toggle('active',cadHardwareVisible);
+    hb.classList.toggle('secondary',!cadHardwareVisible);
+  }
+  const mb=$('toggleMachiningVisibilityBtn');
+  if(mb){
+    mb.textContent=cadMachiningVisible?'🟣 Usinagens: visíveis':'🟣 Usinagens: ocultas';
+    mb.classList.toggle('active',cadMachiningVisible);
+    mb.classList.toggle('secondary',!cadMachiningVisible);
+  }
+  if(typeof syncToolDockButtons==='function')syncToolDockButtons();
+}
+function applyCadDetailVisibility({persist=false,notify=false}={}){
+  if(persist){
+    try{
+      localStorage.setItem(CAD_HARDWARE_VISIBLE_KEY,cadHardwareVisible?'1':'0');
+      localStorage.setItem(CAD_MACHINING_VISIBLE_KEY,cadMachiningVisible?'1':'0');
+    }catch{}
+  }
+  if(typeof objects!=='undefined'){
+    for(const o of objects){
+      if(o?.userData?.kind!=='hardware-visual')continue;
+      o.visible=!!cadHardwareVisible;
+      if(o.userData?.visualEdges)o.userData.visualEdges.visible=!!cadHardwareVisible;
+    }
+  }
+  if(typeof machiningVisualGroup!=='undefined'){
+    machiningVisualGroup.visible=!!cadMachiningVisible&&!visualMode&&!machiningPreviewActive;
+  }
+  if(typeof setPieceVisualEdgesVisible==='function')setPieceVisualEdgesVisible(true);
+  syncCadDetailVisibilityButtons();
+  if(notify){
+    toast(`Ferragens ${cadHardwareVisible?'visíveis':'ocultas'} · usinagens ${cadMachiningVisible?'visíveis':'ocultas'}`);
+  }
+}
+function toggleCadHardwareVisibility(){
+  cadHardwareVisible=!cadHardwareVisible;
+  applyCadDetailVisibility({persist:true,notify:true});
+}
+function toggleCadMachiningVisibility(){
+  cadMachiningVisible=!cadMachiningVisible;
+  applyCadDetailVisibility({persist:true,notify:true});
+}
 function updateXray3DButton(){
   const b=$('xray3DBtn');
   if(b){
@@ -319,7 +378,12 @@ function applyVisualSceneState(){
   grid.visible=cadGridVisible&&!visualMode;
   worldAxisX.visible=!visualMode; worldAxisY.visible=!visualMode; worldAxisZ.visible=!visualMode;
   visualFloor.visible=visualMode;
-  if(typeof machiningVisualGroup!=='undefined') machiningVisualGroup.visible=!visualMode;
+  if(typeof machiningVisualGroup!=='undefined') machiningVisualGroup.visible=cadMachiningVisible&&!visualMode&&!machiningPreviewActive;
+  if(typeof objects!=='undefined'){
+    for(const o of objects){
+      if(o?.userData?.kind==='hardware-visual')o.visible=!!cadHardwareVisible;
+    }
+  }
   if(typeof spacePickMeshes!=='undefined'){
     for(const mesh of spacePickMeshes){
       mesh.visible=!visualMode;

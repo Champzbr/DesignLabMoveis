@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.36';
+  return tm?.[1]||'1.200.38';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.36-r1';
+const DESIGNLAB_JS_BUILD='1.200.38-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -852,7 +852,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
     // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
     // por scripts antes de qualquer ativação humana (History Manipulation
     // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.36 reutiliza o primeiro toque normal no próprio CAD.
+    // ativação. A 1.200.38 reutiliza o primeiro toque normal no próprio CAD.
     const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
     if(ok)designLabGestureRecoveryReady=true;
     return ok;
@@ -2347,10 +2347,16 @@ async function initProjectHub(){
 
 
 // ---------- v61: painel flutuante / favoritos editáveis ----------
+// 1.200.38 · preferências globais de limpeza visual do CAD.
+// Precisam existir antes da primeira renderização do painel de Ferramentas.
+const CAD_HARDWARE_VISIBLE_KEY='designLabCadHardwareVisibleV1';
+const CAD_MACHINING_VISIBLE_KEY='designLabCadMachiningVisibleV1';
+let cadHardwareVisible=localStorage.getItem(CAD_HARDWARE_VISIBLE_KEY)!=='0';
+let cadMachiningVisible=localStorage.getItem(CAD_MACHINING_VISIBLE_KEY)!=='0';
 const TOOL_DOCK_PREFS_KEY='miniCadToolDockPrefsV62';
 const TOOL_DOCK_LEGACY_PREFS_KEY='miniCadToolDockPrefsV61';
 const TOOL_DOCK_POS_KEY='miniCadToolDockPosV61';
-const TOOL_DOCK_DEFAULT=['space','select','move','tape','parts','materials','labels','layout','machining','visual','more'];
+const TOOL_DOCK_DEFAULT=['space','select','move','tape','parts','materials','labels','layout','machining','toggleHardwareVisibility','toggleMachiningVisibility','visual','more'];
 const TOOL_DOCK_CATALOG=[
   // Projeto / navegação
   {group:'Projeto',key:'space',label:'＋ Espaço',desc:'Criar outro espaço'},
@@ -2363,6 +2369,8 @@ const TOOL_DOCK_CATALOG=[
   {group:'Projeto',key:'layout',label:'📐 Gerar layout',desc:'Frente, planta, laterais, cortes, cotas e exportação PDF/DXF'},
   {group:'Projeto',key:'visual',label:'👁 Visual',desc:'Alternar Projeto / Visual'},
   {group:'Projeto',key:'xray',label:'◈ Raio-X 3D',desc:'Mostrar contornos internos através das chapas'},
+  {group:'Projeto',key:'toggleHardwareVisibility',label:'🔩 Ocultar / mostrar ferragens',desc:'Esconder ou exibir corrediças e outras ferragens visuais sem apagar nada'},
+  {group:'Projeto',key:'toggleMachiningVisibility',label:'🟣 Ocultar / mostrar usinagens',desc:'Esconder ou exibir os marcadores de furos e rasgos sem apagar as operações'},
   {group:'Projeto',key:'view3d',label:'◇ Vista 3D',desc:'Voltar à perspectiva 3D'},
   {group:'Projeto',key:'undo',label:'↶ Desfazer',desc:'Voltar uma alteração'},
   {group:'Projeto',key:'redo',label:'↷ Refazer',desc:'Refazer alteração'},
@@ -2427,6 +2435,11 @@ function loadToolDockPrefs(){
         if(!valid.includes('layout')) valid.splice(Math.max(0,valid.indexOf('machining')>=0?valid.indexOf('machining'):valid.indexOf('more')),0,'layout');
         if(!valid.includes('curvedStructure')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('space')+1)),0,'curvedStructure');
         if(!valid.includes('drawers')) valid.splice(Math.min(valid.length,Math.max(1,valid.indexOf('curvedStructure'))),0,'drawers');
+        // 1.200.38: os dois controles de limpeza visual entram automaticamente no painel existente.
+        const visualAt=valid.indexOf('visual')>=0?valid.indexOf('visual'):Math.max(0,valid.indexOf('more'));
+        if(!valid.includes('toggleHardwareVisibility'))valid.splice(visualAt>=0?visualAt:valid.length,0,'toggleHardwareVisibility');
+        const visualAt2=valid.indexOf('visual')>=0?valid.indexOf('visual'):Math.max(0,valid.indexOf('more'));
+        if(!valid.includes('toggleMachiningVisibility'))valid.splice(visualAt2>=0?visualAt2:valid.length,0,'toggleMachiningVisibility');
         return valid;
       }
     }
@@ -2440,13 +2453,15 @@ function toolDockDef(key){return TOOL_DOCK_CATALOG.find(t=>t.key===key)||null;}
 function toolDockLabel(key){
   if(key==='visual')return visualMode?'🛠 Projeto':'👁 Visual';
   if(key==='xray')return xray3DEnabled?'◈ Raio-X: ligado':'◈ Raio-X: desligado';
+  if(key==='toggleHardwareVisibility')return cadHardwareVisible?'🔩 Ferragens: visíveis':'🔩 Ferragens: ocultas';
+  if(key==='toggleMachiningVisibility')return cadMachiningVisible?'🟣 Usinagens: visíveis':'🟣 Usinagens: ocultas';
   return toolDockDef(key)?.label||key;
 }
 function syncToolDockButtons(){
   document.querySelectorAll('#toolDockTools [data-dock-tool]').forEach(b=>{
     const key=b.dataset.dockTool;
     b.textContent=toolDockLabel(key);
-    const active=(key==='select'&&toolMode==='select')||(key==='move'&&toolMode==='move-free')||(key==='tape'&&toolMode==='tape')||(key==='visual'&&visualMode)||(key==='xray'&&xray3DEnabled);
+    const active=(key==='select'&&toolMode==='select')||(key==='move'&&toolMode==='move-free')||(key==='tape'&&toolMode==='tape')||(key==='visual'&&visualMode)||(key==='xray'&&xray3DEnabled)||(key==='toggleHardwareVisibility'&&cadHardwareVisible)||(key==='toggleMachiningVisibility'&&cadMachiningVisible);
     b.classList.toggle('active',active);
     b.classList.toggle('secondary',!active);
   });
@@ -2549,6 +2564,8 @@ function runDockTool(key){
   else if(key==='layout'){closeToolDockBeforeMenu();openTechnicalLayoutDialog();}
   else if(key==='visual')setVisualMode(!visualMode,{frame:true});
   else if(key==='xray')toggleDockXray();
+  else if(key==='toggleHardwareVisibility')toggleCadHardwareVisibility();
+  else if(key==='toggleMachiningVisibility')toggleCadMachiningVisibility();
   else if(key==='view3d'){returnTo3D({restore:true,notify:false});setFrontWorldView();toast('Vista 3D');}
   else if(key==='undo')undo();
   else if(key==='redo')redo();

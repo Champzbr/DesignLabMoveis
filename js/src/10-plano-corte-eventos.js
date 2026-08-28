@@ -528,7 +528,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.36</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.200.38</span></footer>
     </section>`;
   }).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><title>Plano de corte · ${project}</title><style>
@@ -632,6 +632,8 @@ $('libraryImportFile').addEventListener('change',async e=>{
 
 $('visualModeMoreBtn').onclick=()=>setVisualMode(!visualMode,{frame:true});
 $('xray3DBtn').onclick=()=>{toggleDockXray();$('morePanel').style.display='none';};
+$('toggleHardwareVisibilityBtn').onclick=()=>toggleCadHardwareVisibility();
+$('toggleMachiningVisibilityBtn').onclick=()=>toggleCadMachiningVisibility();
 $('cancelPanel').onclick=()=>{$('newPanelDialog').style.display='none';};
 $('createPanel').onclick=()=>{
   const w=clampSize(m($('newW').value)),d=clampSize(m($('newD').value)),h=clampSize(m($('newT').value));
@@ -879,6 +881,25 @@ $('applyShape').onclick=applyShapeToPiece;
 $('cancelShape').onclick=closeShapeDialog;
 $('shapeDialog').addEventListener('pointerdown',e=>{if(e.target===$('shapeDialog'))closeShapeDialog();});
 
+document.querySelectorAll('[data-shape-mode]').forEach(b=>b.addEventListener('click',()=>shapeSetMode(b.dataset.shapeMode)));
+$('shapeLocalTab')?.addEventListener('click',()=>setShapeLibraryScope('local'));
+$('shapeGlobalTab')?.addEventListener('click',()=>setShapeLibraryScope('global'));
+$('publishShapePreset')?.addEventListener('click',publishSelectedShapePresetGlobal);
+$('shapeFormatType')?.addEventListener('change',shapeFormatTypeChanged);
+['shapeFormatWidth','shapeFormatHeight','shapeFormatDiameter','shapeFormatCutW','shapeFormatCutH','shapeFormatCutX','shapeFormatCutY','shapeFormatRadius'].forEach(id=>$(id)?.addEventListener('input',updateShapePreview));
+$('shapeFormatLCorner')?.addEventListener('change',updateShapePreview);
+document.querySelectorAll('[data-shape-format-corner]').forEach(x=>x.addEventListener('change',updateShapePreview));
+$('shapeApplyFormat')?.addEventListener('click',applyParametricFormatToPiece);
+$('shapeCornerEditSvg')?.addEventListener('click',shapeCornerSelectFromEvent);
+document.querySelectorAll('[data-shape-corner-style]').forEach(b=>b.addEventListener('click',()=>shapeSetCornerStyle(b.dataset.shapeCornerStyle)));
+$('shapeCornerApplyOne')?.addEventListener('click',()=>shapeApplyCornerEdit(false));
+$('shapeCornerApplyAll')?.addEventListener('click',()=>shapeApplyCornerEdit(true));
+$('shapeCornerReset')?.addEventListener('click',shapeResetCorners);
+$('shapeMirrorH')?.addEventListener('click',()=>shapeTransformEditor('h'));
+$('shapeMirrorV')?.addEventListener('click',()=>shapeTransformEditor('v'));
+$('shapeRotate90')?.addEventListener('click',()=>shapeTransformEditor('r'));
+
+
 $('hardwarePresetSelect').addEventListener('change',updateHardwarePanel);
 $('hardwareLocalTab').onclick=()=>setHardwareScope('local');
 $('hardwareGlobalTab').onclick=()=>setHardwareScope('global');
@@ -965,6 +986,7 @@ document.querySelectorAll('[data-cad-bg]').forEach(b=>b.addEventListener('click'
 $('cadGridVisibleSetting').addEventListener('change',e=>{
   applyCadGridVisibility(e.target.checked,{persist:true,notify:true});
 });
+$('cadGridQuickToggle')?.addEventListener('click',()=>applyCadGridVisibility(!cadGridVisible,{persist:true,notify:true}));
 $('cadXrayVisibleSetting').addEventListener('change',e=>{
   applyXray3D(e.target.checked,{persist:true,notify:true});
 });
@@ -1223,10 +1245,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.36'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.36'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.36'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.36'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.38'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.38'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.38'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.38'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -1275,7 +1297,7 @@ window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
-// 1.200.36: remove os parâmetros técnicos depois que a cópia fresca abriu.
+// 1.200.38: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
@@ -1291,7 +1313,7 @@ setTimeout(()=>{
 },300);
 
 initDesignLabInstallExperience();
-// 1.200.36: não tentamos mais fingir que uma recuperação automática é igual a
+// 1.200.38: não tentamos mais fingir que uma recuperação automática é igual a
 // um clique humano. Chrome/TWA diferencia essas duas situações. Registramos e
 // atualizamos o SW normalmente; o PRIMEIRO toque/click real que a pessoa já faria
 // para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
@@ -1340,5 +1362,6 @@ function animate(){
   requestAnimationFrame(animate); controls.update(); if(dragMode) updateLiveLabel(); updateMachiningVisualTransforms(); renderer.render(scene,camera);
 }
 updateXray3DButton();
+applyCadDetailVisibility({persist:false,notify:false});
 setPieceVisualEdgesVisible(true);
 animate();

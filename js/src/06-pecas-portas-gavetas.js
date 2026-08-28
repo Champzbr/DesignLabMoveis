@@ -698,7 +698,7 @@ function refreshDrawerSlideLibrarySelect(keep=''){
 }
 function captureDrawerSlidePreset(){
   return {
-    version:4,
+    version:5,
     slideType:$('drawerSlideType').value,
     lengthMode:$('drawerLengthMode').value,
     sideClearance:Number($('drawerSideClearance').value),
@@ -728,6 +728,8 @@ function captureDrawerSlidePreset(){
     drillFrontRef:Number($('drawerDrillFrontRef').value),
     drillOffsets:drawerParseDrillOffsets($('drawerDrillOffsets').value),
     drillAutoByLength:!!$('drawerDrillAutoByLength').checked,
+    drillVerticalMode:$('drawerDrillVerticalMode')?.value==='fixed'?'fixed':'center',
+    drillSide:['left','right'].includes($('drawerDrillSide')?.value)?$('drawerDrillSide').value:'both',
     drillMountY:Number($('drawerDrillMountY').value),
     drillDiameter:Number($('drawerDrillDiameter').value),
     drillDepth:Number($('drawerDrillDepth').value)
@@ -799,6 +801,9 @@ function applyDrawerSlidePresetLibrary(){
   $('drawerDrillAutoByLength').checked=typeof item.drillAutoByLength==='boolean'
     ? item.drillAutoByLength
     : !!savedDrillPreset.drillByLength;
+  // Configurações antigas continuam em medida fixa para não deslocar furos já existentes.
+  $('drawerDrillVerticalMode').value=item.drillVerticalMode==='center'?'center':'fixed';
+  $('drawerDrillSide').value=['left','right'].includes(item.drillSide)?item.drillSide:'both';
   $('drawerDrillMountY').value=nice(Number.isFinite(Number(item.drillMountY))?Number(item.drillMountY):drillDefault.mountY);
   $('drawerDrillDiameter').value=nice(Number.isFinite(Number(item.drillDiameter))?Number(item.drillDiameter):drillDefault.diameter);
   $('drawerDrillDepth').value=nice(Number.isFinite(Number(item.drillDepth))?Number(item.drillDepth):drillDefault.depth);
@@ -856,6 +861,8 @@ function drawerDrillValuesFromUi(){
     frontRef:Number.isFinite(frontRef)?frontRef:d.frontRef,
     offsets:offsets.length?offsets:d.offsets,
     autoByLength:!!$('drawerDrillAutoByLength')?.checked,
+    verticalMode:$('drawerDrillVerticalMode')?.value==='fixed'?'fixed':'center',
+    side:['left','right'].includes($('drawerDrillSide')?.value)?$('drawerDrillSide').value:'both',
     mountY:Number.isFinite(mountY)?mountY:d.mountY,
     diameter:Number.isFinite(diameter)?diameter:d.diameter,
     depth:Number.isFinite(depth)?depth:d.depth
@@ -880,6 +887,8 @@ function drawerSetDrillingUiFromPreset(presetOrId){
   $('drawerDrillFrontRef').value=nice(d.frontRef);
   $('drawerDrillOffsets').value=d.offsets.map(n=>nice(n)).join(', ');
   $('drawerDrillAutoByLength').checked=!!p?.drillByLength && p.drillAutoByLength!==false;
+  $('drawerDrillVerticalMode').value='center';
+  $('drawerDrillSide').value='both';
   $('drawerDrillMountY').value=nice(d.mountY);
   $('drawerDrillDiameter').value=nice(d.diameter);
   $('drawerDrillDepth').value=nice(d.depth);
@@ -907,6 +916,10 @@ function updateDrawerDrillingFields(){
       $('drawerDrillOffsets').readOnly=false;
     }
 
+    const centerMode=vals.verticalMode==='center';
+    if($('drawerDrillMountY'))$('drawerDrillMountY').disabled=centerMode;
+    if($('drawerDrillMountYLabel'))$('drawerDrillMountYLabel').style.opacity=centerMode?'.55':'1';
+
     if(on&&$('drawerDrillResult')){
       const cfg={
         slideType:preset.id,
@@ -918,12 +931,17 @@ function updateDrawerDrillingFields(){
       const abs=drawerAbsoluteDrillPositions(cfg,preset);
       const code=drawerCatalogCodeForLength(preset,resolved.length);
       const rel=auto&&row?.length?row:vals.offsets;
+      const boxHeight=Math.max(0,Number($('drawerBoxHeight')?.value)||0);
+      const yText=centerMode
+        ? `centro automático da lateral (${nice(boxHeight/2)} mm nesta gaveta)`
+        : `${nice(vals.mountY)} mm a partir da base`;
+      const sideText=vals.side==='left'?'esquerda':vals.side==='right'?'direita':'ambas';
       $('drawerDrillResult').innerHTML=
         `<strong>${auto?'Catálogo automático':'Manual'}:</strong> `+
         `${nice(vals.frontRef)} + [${rel.map(n=>nice(n)).join(', ')}] = `+
         `<strong>${abs.length?abs.map(n=>nice(n)).join(' / '):'nenhum ponto válido'} mm</strong> desde a frente`+
         `${code?` · Häfele ${code}`:''}`+
-        ` · linha Y ${nice(vals.mountY)} mm · Ø${nice(vals.diameter)} × ${nice(vals.depth)} mm.`;
+        ` · linha Y: ${yText} · lateral: ${sideText} · Ø${nice(vals.diameter)} × ${nice(vals.depth)} mm.`;
     }
   }catch(_){}
 
@@ -998,7 +1016,7 @@ function drawerReadConfig(){
   const grooveLeft=!!$('drawerGrooveLeft').checked,grooveRight=!!$('drawerGrooveRight').checked,grooveFront=!!$('drawerGrooveFront').checked,grooveBack=!!$('drawerGrooveBack').checked;
   const createFronts=!!$('drawerCreateFronts').checked,frontThickness=Number($('drawerFrontThickness').value),frontGapLeft=Number($('drawerFrontGapLeft').value),frontGapRight=Number($('drawerFrontGapRight').value),frontGapTop=Number($('drawerFrontGapTop').value),frontGapBottom=Number($('drawerFrontGapBottom').value),frontGapBetween=Number($('drawerFrontGapBetween').value);
   const drillUi=drawerDrillValuesFromUi();
-  const drillFrontRef=drillUi.frontRef,drillOffsets=drillUi.offsets,drillAutoByLength=drillUi.autoByLength,drillMountY=drillUi.mountY,drillDiameter=drillUi.diameter,drillDepth=drillUi.depth;
+  const drillFrontRef=drillUi.frontRef,drillOffsets=drillUi.offsets,drillAutoByLength=drillUi.autoByLength,drillVerticalMode=drillUi.verticalMode,drillSide=drillUi.side,drillMountY=drillUi.mountY,drillDiameter=drillUi.diameter,drillDepth=drillUi.depth;
 
   if(![sideClearance,boxHeight,boxThickness,bottomThickness,frontInset,rearClearance,edgeGap,bottomOffset,bottomPassLeft,bottomPassRight,bottomPassFront,bottomPassBack,bottomGrooveClearance,bottomGrooveDepth,drillFrontRef,drillMountY,drillDiameter,drillDepth].every(Number.isFinite))throw new Error('Confira as medidas das gavetas');
   if(Math.min(sideClearance,frontInset,rearClearance,edgeGap,bottomPassLeft,bottomPassRight,bottomPassFront,bottomPassBack,bottomGrooveClearance,drillFrontRef,drillMountY)<0||boxHeight<=0||boxThickness<=0||bottomThickness<=0||bottomGrooveDepth<=0||drillDiameter<=0||drillDepth<=0)throw new Error('Confira as medidas das gavetas');
@@ -1060,9 +1078,9 @@ function drawerReadConfig(){
     machineBottom,bottomGrooveClearance,bottomGrooveDepth,grooveLeft,grooveRight,grooveFront,grooveBack,
     createFronts,frontThickness,frontGapLeft,frontGapRight,frontGapTop,frontGapBottom,frontGapBetween,frontW,frontH,
     createSlides:!!$('drawerCreateSlides').checked,createDrilling:!!$('drawerCreateDrilling').checked,
-    drillFrontRef,drillOffsets,drillAutoByLength,drillMountY,drillDiameter,drillDepth,
+    drillFrontRef,drillOffsets,drillAutoByLength,drillVerticalMode,drillSide,drillMountY,drillDiameter,drillDepth,
     openingW,openingH,openingD:mm(target.size.depth),outerW,innerW,
-    version:4
+    version:5
   };
 }
 function updateDrawerSystemPreview(){
@@ -1095,8 +1113,13 @@ function updateDrawerSystemPreview(){
     const left=drawerFindSidePanel(cfg,'left'),right=drawerFindSidePanel(cfg,'right');
     const drillPos=drawerAbsoluteDrillPositions(cfg,p);
     const catCode=drawerCatalogCodeForLength(p,cfg.resolvedLength);
+    const leftStatus=cfg.drillSide==='right'?'não usada':left?'OK':'não encontrada';
+    const rightStatus=cfg.drillSide==='left'?'não usada':right?'OK':'não encontrada';
+    const yStatus=cfg.drillVerticalMode==='center'
+      ? `centro automático (${nice(cfg.boxHeight/2)} mm)`
+      : `${nice(cfg.drillMountY)} mm da base`;
     status.textContent=cfg.createDrilling
-      ? `Furação automática: E ${left?'OK':'não encontrada'} · D ${right?'OK':'não encontrada'} · ${cfg.drillAutoByLength&&p.drillByLength?'CATÁLOGO':'manual'} · posições ${drillPos.map(n=>nice(n)).join(' / ')} mm desde a frente${catCode?` · Häfele ${catCode}`:''} · linha ${nice(cfg.drillMountY)} mm · Ø${nice(cfg.drillDiameter)} × ${nice(cfg.drillDepth)} mm.`
+      ? `Furação automática: E ${leftStatus} · D ${rightStatus} · ${cfg.drillAutoByLength&&p.drillByLength?'CATÁLOGO':'manual'} · posições ${drillPos.map(n=>nice(n)).join(' / ')} mm desde a frente${catCode?` · Häfele ${catCode}`:''} · linha ${yStatus} · Ø${nice(cfg.drillDiameter)} × ${nice(cfg.drillDepth)} mm.`
       : 'Furação automática desligada.';
   }catch(err){
     $('drawerResolvedLength').value='—';
@@ -1195,6 +1218,9 @@ function openDrawerSystemDialog(source=null){
   $('drawerDrillAutoByLength').checked=typeof cfg?.drillAutoByLength==='boolean'
     ? cfg.drillAutoByLength
     : !!openDrillPreset.drillByLength;
+  // Novos conjuntos começam centralizados. Projetos antigos continuam com a medida fixa que já usavam.
+  $('drawerDrillVerticalMode').value=cfg ? (cfg.drillVerticalMode==='center'?'center':'fixed') : 'center';
+  $('drawerDrillSide').value=cfg&&['left','right'].includes(cfg.drillSide)?cfg.drillSide:'both';
   $('drawerDrillMountY').value=nice(Number.isFinite(Number(cfg?.drillMountY))?Number(cfg.drillMountY):drillDefault.mountY);
   $('drawerDrillDiameter').value=nice(Number.isFinite(Number(cfg?.drillDiameter))?Number(cfg.drillDiameter):drillDefault.diameter);
   $('drawerDrillDepth').value=nice(Number.isFinite(Number(cfg?.drillDepth))?Number(cfg.drillDepth):drillDefault.depth);
@@ -1341,6 +1367,10 @@ function removeDrawerSet(setId,{commit=false,keepSelection=false}={}){
 }
 function drawerCreatePiece(opts,cfg,role,index,kind='panel',exclude=false){
   const o=createBox({...opts,kind,materialType:kind==='hardware-visual'?'Ferragem':'MDF',baseColor:kind==='hardware-visual'?0x60656b:COLORS.panel,spaceRootId:cfg.targetRootId,drawerSetId:cfg.id,drawerRole:role,drawerIndex:index,drawerConfig:cfg,excludeFromCutList:exclude},false);
+  if(kind==='hardware-visual'&&!cadHardwareVisible){
+    o.visible=false;
+    if(o.userData?.visualEdges)o.userData.visualEdges.visible=false;
+  }
   return o;
 }
 function drawerAddBottomGroove(owner,cfg,index,role){
@@ -1483,19 +1513,29 @@ function drawerAddCabinetDrilling(cfg,levels){
   const drillDiameter=Number.isFinite(Number(cfg.drillDiameter))?Number(cfg.drillDiameter):d.diameter;
   const drillDepth=Number.isFinite(Number(cfg.drillDepth))?Number(cfg.drillDepth):d.depth;
   const drillPositions=drawerAbsoluteDrillPositions(cfg,p);
+  const drillSide=['left','right'].includes(cfg?.drillSide)?cfg.drillSide:'both';
+  const allowLeft=drillSide!=='right',allowRight=drillSide!=='left';
+  const centerVertical=cfg?.drillVerticalMode==='center';
 
   // Níveis reais das laterais de gaveta têm prioridade.
   const actualLevels=drawerLevelsFromSet(cfg);
   const useLevels=actualLevels.length?actualLevels:levels;
 
   for(const [side,owner] of [['left',left],['right',right]]){
+    if(side==='left'&&!allowLeft)continue;
+    if(side==='right'&&!allowRight)continue;
     if(!owner)continue;
     const entry=side==='left'?'+x':'-x';
     const ob=objectBoundsMm(owner);
     const x=side==='left'?ob.maxX:ob.minX;
 
     useLevels.forEach((baseM,idx)=>{
-      const y=mm(baseM)+Math.min(Number(cfg.boxHeight||120)-5,drillMountY);
+      // Centro automático: sempre metade da altura REAL da lateral da gaveta.
+      // Se o usuário trocar a altura da caixa, o furo acompanha sem editar o modelo.
+      const yOffset=centerVertical
+        ? Number(cfg.boxHeight||120)/2
+        : Math.min(Number(cfg.boxHeight||120)-5,drillMountY);
+      const y=mm(baseM)+yOffset;
       for(const pos of drillPositions){
         const world={x,y,z:cabinetFrontZ-pos};
 
@@ -1521,7 +1561,7 @@ function drawerAddCabinetDrilling(cfg,levels){
 
     sanitizeMachiningForPiece(owner);
   }
-  return {holes,left:!!left,right:!!right};
+  return {holes,left:allowLeft?!!left:true,right:allowRight?!!right:true};
 }
 function createDrawerSetFromConfig(input,{doHistory=true}={}){
   const cfg=JSON.parse(JSON.stringify(input||{}));
@@ -1555,6 +1595,9 @@ function createDrawerSetFromConfig(input,{doHistory=true}={}){
     cfg.drillOffsets=drawerParseDrillOffsets(cfg.drillOffsets?.length?cfg.drillOffsets:d.offsets);
     if(!cfg.drillOffsets.length)cfg.drillOffsets=d.offsets;
     if(typeof cfg.drillAutoByLength!=='boolean')cfg.drillAutoByLength=!!preset.drillByLength;
+    // Migração segura: conjuntos antigos sem este campo mantêm a altura fixa histórica.
+    if(!['center','fixed'].includes(cfg.drillVerticalMode))cfg.drillVerticalMode='fixed';
+    if(!['both','left','right'].includes(cfg.drillSide))cfg.drillSide='both';
     if(!Number.isFinite(Number(cfg.drillMountY)))cfg.drillMountY=d.mountY;
     if(!Number.isFinite(Number(cfg.drillDiameter)))cfg.drillDiameter=d.diameter;
     if(!Number.isFinite(Number(cfg.drillDepth)))cfg.drillDepth=d.depth;

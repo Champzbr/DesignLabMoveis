@@ -867,6 +867,7 @@ function applyState(state){
   }
 
   renderSpaces(); applyAllDoorVisibility(); renderMachiningVisuals();
+  applyCadDetailVisibility({persist:false,notify:false});
   selectObject(objects.filter(o=>o.visible!==false).at(-1)||null); if(!objects.some(o=>o.visible!==false)) clearSpaceSelection();
   historyMuted=false;
 }
