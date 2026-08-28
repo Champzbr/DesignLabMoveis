@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.47';
+  return tm?.[1]||'1.200.48';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.47-r1';
+const DESIGNLAB_JS_BUILD='1.200.48-r2';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -862,7 +862,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  // 1.200.47: não desarma a sessão ao ir para segundo plano.
+  // 1.200.48: não desarma a sessão ao ir para segundo plano.
   return false;
 }
 async function initDesignLabServiceWorker(){
@@ -2872,7 +2872,7 @@ const container = $('canvas-container');
 
 
 // ============================================================================
-// 1.200.47 · APARÊNCIA DO APLICATIVO
+// 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
 let designLabAppTheme='light';
@@ -12697,25 +12697,39 @@ function formV47CleanLoop(loop){
   if(out.length>2&&Math.hypot(out[0][0]-out.at(-1)[0],out[0][1]-out.at(-1)[1])<.0001)out.pop();
   return out;
 }
-function formV47PathFromLoop(loop,ti,PathCtor){
+// ---------- 1.200.48 · sólido sem reflexão de eixos ----------
+// O mapeamento antigo formMapExtrudeGeometry() fazia uma troca direta de eixos.
+// Para peças cuja espessura é X ou Y essa troca tem determinante negativo:
+// geometricamente é uma REFLEXÃO. A malha continuava existindo, porém o winding
+// das faces ficava invertido e o FrontSide fazia tampas/laterais parecerem abertas.
+//
+// Agora cada orientação é construída no plano correto e depois recebe somente
+// ROTAÇÕES (determinante +1). Assim as normais e o lado externo das faces ficam
+// iguais aos de uma BoxGeometry tradicional.
+function formV48PathFromLoop(loop,ti,PathCtor){
   const pts=formV47CleanLoop(loop);if(pts.length<3)return null;
   const path=new PathCtor();
   pts.forEach(([u,v],i)=>{
-    const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;
+    const su=(u-ti.faceW/2)*MM_TO_M,sv=(v-ti.faceH/2)*MM_TO_M;
+    let x=su,y=sv;
+    // Para orientar a extrusão por rotação sem espelhar o sólido, pré-invertemos
+    // uma coordenada do perfil nos eixos que seriam reflexões no mapeamento antigo.
+    if(ti.thicknessAxis==='y')y=-sv;
+    else if(ti.thicknessAxis==='x')x=-su;
     if(i===0)path.moveTo(x,y);else path.lineTo(x,y);
   });
   path.closePath();
   return path;
 }
-function formV47SolidGeometry(outer,holes,ti){
+function formV48SolidGeometry(outer,holes,ti){
   outer=formV47CleanLoop(outer);
   holes=(holes||[]).map(formV47CleanLoop).filter(h=>h.length>=3);
   if(outer.length<3)return null;
 
-  const shape=formV47PathFromLoop(outer,ti,THREE.Shape);
+  const shape=formV48PathFromLoop(outer,ti,THREE.Shape);
   if(!shape)return null;
   for(const h of holes){
-    const hole=formV47PathFromLoop(h,ti,THREE.Path);
+    const hole=formV48PathFromLoop(h,ti,THREE.Path);
     if(hole)shape.holes.push(hole);
   }
 
@@ -12725,17 +12739,22 @@ function formV47SolidGeometry(outer,holes,ti){
       depth:ti.thickness*MM_TO_M,
       bevelEnabled:false,
       steps:1,
-      curveSegments:96
+      curveSegments:128
     });
   }catch(_){return null;}
   if(!g?.attributes?.position?.count)return null;
 
-  // Centraliza a espessura no mesmo eixo/centro usado pelas peças BoxGeometry.
-  g.translate(0,0,-ti.thickness*MM_TO_M/2);
+  const half=ti.thickness*MM_TO_M/2;
+  // Primeiro centraliza a espessura no eixo Z local da ExtrudeGeometry.
+  g.translate(0,0,-half);
+  // Depois só ROTACIONA para o eixo real da espessura da peça.
+  // Y: [su,-sv,st] --Rx(-90°)--> [su,st,sv]
+  // X: [-su,sv,st] --Ry(+90°)--> [st,sv,su]
+  if(ti.thicknessAxis==='y')g.rotateX(-Math.PI/2);
+  else if(ti.thicknessAxis==='x')g.rotateY(Math.PI/2);
 
-  // ExtrudeGeometry separa tampas (material 0) e laterais (material 1).
-  // As peças normais possuem seis materiais por face. O fallback garante que
-  // nenhum triângulo possa ficar sem material se a geometria vier sem groups.
+  // ExtrudeGeometry usa material 0 nas tampas e 1 nas paredes. Mantemos esses
+  // grupos e garantimos que todos apontem para materiais existentes da peça.
   if(!Array.isArray(g.groups)||!g.groups.length){
     const count=g.index?.count||g.attributes.position.count;
     g.clearGroups();g.addGroup(0,count,0);
@@ -12745,8 +12764,6 @@ function formV47SolidGeometry(outer,holes,ti){
       if(group.materialIndex>1)group.materialIndex=1;
     }
   }
-
-  formMapExtrudeGeometry(g,ti);
   g.computeVertexNormals();
   g.computeBoundingBox();g.computeBoundingSphere();
   return g;
@@ -12801,14 +12818,15 @@ rebuildFormGeometry=function(o){
   if(!forms.length)return rebuildFormGeometryV43(o);
   const ti=pieceThicknessInfo(o);if(!ti)return rebuildFormGeometryV43(o);
   const outer=formOutlinePointsMm(o,forms,128),holes=formCutoutPointsMm(o,forms);if(outer.length<3)return rebuildFormGeometryV43(o);
-  const geom=formV47SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
+  const geom=formV48SolidGeometry(outer,holes,ti);if(!geom)return rebuildFormGeometryV43(o);
 
   disposeVisualEdgeTree(o);o.geometry?.dispose?.();o.geometry=geom;o.scale.set(1,1,1);
+  if(Array.isArray(o.userData?.faceMaterials)&&o.userData.faceMaterials.length)o.material=o.userData.faceMaterials;
   formV47RestoreOpaqueMaterials(o);
   if(o===selected&&!visualMode)setAllFaces(o,COLORS.selected);else restoreBaseColor(o);
 
   const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);
-  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:47};
+  o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:48};
   o.userData.formPerimeterMm=roundMmNumber(perimeter,2);
   const edges=formV47VisualEdges(o,outer,holes,ti);o.add(edges);o.userData.visualEdges=edges;
 };
@@ -17566,16 +17584,20 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.42'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.42'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.48'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.48'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
 }
-function designLabPushBackGuard(){return designLabInstallBackFence();}
-function designLabArmBackGuard(){return designLabInstallBackFence();}
+function designLabPushBackGuard(){return designLabInstallBackFence({trusted:true});}
+function designLabArmBackGuard(){
+  // 1.200.48: não depende mais de _bootFresh. Faz uma cerca best-effort já na
+  // abertura e o bootstrap do <head> a reconstrói novamente no primeiro gesto.
+  return designLabInstallBackFence({trusted:true});
+}
 function designLabRunNativeBackCascade(){
   if(designLabHandlingPopState)return;
   designLabHandlingPopState=true;
@@ -17655,12 +17677,19 @@ document.addEventListener('visibilitychange',()=>{
     return;
   }
   if(document.visibilityState==='visible'){
+    // Ao retomar o PWA, a pilha nativa pode ter sido descartada pelo Android.
+    // Recria a cerca imediatamente; o próximo toque ainda reforça dentro do gesto.
+    try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
     designLabArmBackGuard();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
   }
 });
 window.addEventListener('pagehide',()=>{designLabWasHidden=true;designLabForgetGestureRecovery();},{capture:true});
-window.addEventListener('pageshow',()=>{designLabArmBackGuard();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});});
+window.addEventListener('pageshow',()=>{
+  try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
+  designLabArmBackGuard();
+  checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+});
 
 // A ação normal do usuário acontece primeiro. Em seguida, ainda dentro da janela
 // de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
