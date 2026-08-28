@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.36-r1">
+<meta name="designlab-build" content="1.200.38-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.36-r1';
+  const BUILD='1.200.38-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,7 +20,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.36: não redireciona mais automaticamente antes de o Service Worker
+  // 1.200.38: não redireciona mais automaticamente antes de o Service Worker
   // estar pronto. No Chrome/TWA, uma navegação criada só por script pode ser
   // classificada como histórico manipulável e não equivale ao clique humano que
   // o usuário confirmou funcionar. A recuperação confiável ocorre após o app
@@ -39,7 +39,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.36: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
+  // 1.200.38: cerca do Voltar reconstruída por DOCUMENTO, não apenas pelo
   // history.state. O Chrome/TWA pode restaurar um state antigo sem restaurar
   // a pilha criada na sessão anterior; isso fazia o DesignLab acreditar que a
   // proteção existia e o primeiro Back encerrava o APK. Agora cada documento
@@ -55,7 +55,7 @@
   let rebuilding=false;
   let needsTrustedRebuild=true;
   function state(kind,level){
-    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.36'});
+    return Object.assign({},window.history.state||{},{[KEY]:true,doc:DOC,kind,level,version:'1.200.38'});
   }
   function owns(st=window.history.state||{}){return !!(st[KEY]&&st.doc===DOC);}
   function rebuildTrustedFence(){
@@ -173,7 +173,7 @@
     // A passagem automática pelo servidor NÃO é necessariamente uma ativação
     // humana. Portanto esta cerca inicial é apenas best-effort; o primeiro toque
     // sempre a refaz dentro de um gesto real. Esse é o ponto que diferencia a
-    // 1.200.36 da correção anterior e elimina a dependência do botão manual.
+    // 1.200.38 da correção anterior e elimina a dependência do botão manual.
     needsTrustedRebuild=true;
   }
   window.__DL_BACK_BOOTSTRAP={
@@ -192,19 +192,19 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.36 - Forma paramétrica</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.36-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.36-r1">
+<title>DesignLabMoveis 1.200.38 - Visibilidade e furação central de corrediças</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.38-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.38-r1">
 
-<!-- 1.200.36: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+<!-- 1.200.38: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
 <body>
 
@@ -214,7 +214,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.36</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.38</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -308,7 +308,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.36</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.38</span>
         </div>
       </div>
 
@@ -553,14 +553,14 @@
     <div class="appSettingsSection">
       <div class="appSettingsSectionHead">
         <strong>Grade do chão</strong>
-        <span>Ative somente quando quiser usar a malha como referência visual.</span>
+        <span>Quadriculado leve estilo CAD/Haixun para referência visual. Pode ser ligado ou desligado.</span>
       </div>
 
       <label class="cadGridSetting">
         <input id="cadGridVisibleSetting" type="checkbox">
         <div>
-          <strong>Mostrar grade no chão</strong>
-          <span>Desativado por padrão. Os eixos X/Y/Z continuam disponíveis normalmente.</span>
+          <strong>Mostrar quadriculado na área de trabalho</strong>
+          <span>Ligado por padrão. Desative quando quiser uma área totalmente limpa.</span>
         </div>
       </label>
     </div>
@@ -593,7 +593,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.36</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.38</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -619,7 +619,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.36</strong>
+        <strong id="updateCurrentVersion">1.200.38</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -662,7 +662,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.36 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.38 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -675,6 +675,7 @@
   </svg>
 </div>
 <button id="viewModeBadge" type="button">2D · voltar ao 3D</button>
+<button id="cadGridQuickToggle" type="button" title="Ativar/desativar quadriculado da área de trabalho">▦ Grade</button>
 <div id="measureBadge"></div>
 <div id="liveLabel"></div>
 <div id="tapeCrosshair"><div id="tapeCrosshairLabel">Trena</div></div>
@@ -887,6 +888,8 @@
     <button id="resetCam" class="secondary">Vista 3D</button>
     <button id="visualModeMoreBtn" class="secondary">👁 Visual limpo</button>
     <button id="xray3DBtn" class="secondary">◇ Raio-X 3D: desligado</button>
+    <button id="toggleHardwareVisibilityBtn" class="secondary">🔩 Ferragens: visíveis</button>
+    <button id="toggleMachiningVisibilityBtn" class="secondary">🟣 Usinagens: visíveis</button>
     <button id="clearGuidesBtn" class="secondary">Limpar guias</button>
     <button id="showHiddenSpacesBtn" class="secondary">Mostrar divisões ocultas</button>
     <button id="deleteBtn" class="danger">Excluir</button>
@@ -1241,13 +1244,21 @@
 
 
 <div id="shapeDialog">
-  <div class="card">
-    <h3>◜ Forma da peça</h3>
-    <p id="shapePartInfo" class="dialogHelp">Selecione uma peça retangular. O Mini CAD cria apenas o esboço local da forma; a peça inteira fica como referência.</p>
+  <div class="card shapeDialogCardV37">
+    <h3>◜ Formato / Forma da peça</h3>
+    <p id="shapePartInfo" class="dialogHelp">Selecione uma peça. Use formatos rápidos, edite os cantos ou crie um esboço livre.</p>
 
-    <div class="shapeLibraryBox">
-      <div class="machiningPresetHead"><strong>▦ Biblioteca de formas</strong><span class="dialogHelp" style="margin:0">Paramétrica</span></div>
+    <div class="shapeLibraryBox shapeLibraryV37">
+      <div class="machiningPresetHead"><strong>▦ Biblioteca de formas</strong><span id="shapeGlobalHint" class="dialogHelp" style="margin:0">Minhas formas</span></div>
+      <div class="shapeScopeTabs">
+        <button id="shapeLocalTab" type="button" class="active">Minhas formas</button>
+        <button id="shapeGlobalTab" type="button" class="secondary">🌐 Formas globais</button>
+      </div>
       <label style="font-size:10px;color:var(--muted)">Forma<select id="shapePresetSelect" style="width:100%;margin-top:4px;padding:10px 8px;border-radius:8px;border:1px solid #4b4b4b;background:#111;color:#fff;font-size:15px"></select></label>
+      <div class="spaceFields two shapePresetMetaFields">
+        <label>Pasta<input id="shapeFolder" value="Formatos" autocomplete="off"></label>
+        <label>Nome<input id="shapeName" value="Retangular" autocomplete="off"></label>
+      </div>
       <div class="machiningPresetActions">
         <button id="newShapePreset" type="button" class="secondary">＋ Nova forma</button>
         <button id="editShapePreset" type="button" class="secondary">Editar forma</button>
@@ -1256,75 +1267,110 @@
         <button id="saveShapePreset" type="button" class="secondary">💾 Salvar na biblioteca</button>
         <button id="deleteShapePreset" type="button" class="danger">Excluir salvo</button>
       </div>
+      <div class="machiningPresetActions shapeLibraryTransformActions">
+        <button id="shapeMirrorH" type="button" class="secondary">↔ Espelhar H</button>
+        <button id="shapeMirrorV" type="button" class="secondary">↕ Espelhar V</button>
+        <button id="shapeRotate90" type="button" class="secondary">↻ Girar 90°</button>
+      </div>
+      <button id="publishShapePreset" type="button" class="secondary shapePublishGlobal" style="display:none">🌐 Publicar selecionada para todos</button>
     </div>
 
-    <div class="spaceFields two">
-      <label>Pasta<input id="shapeFolder" value="Cantos" autocomplete="off"></label>
-      <label>Nome<input id="shapeName" value="Canto R150" autocomplete="off"></label>
-    </div>
-    <div class="spaceFields two" style="margin-top:8px">
-      <label>Tipo<select id="shapeType"><option value="round-corner">Canto arredondado paramétrico</option><option value="custom-profile">Mini CAD · contorno livre</option></select></label>
-      <label id="shapeRadiusLabel">Raio (mm)<input id="shapeRadius" type="number" value="150" min="1" step="1"></label>
+    <div class="shapeModeTabs" role="tablist" aria-label="Modo da ferramenta Forma">
+      <button id="shapeModeFormat" type="button" class="active" data-shape-mode="format">Formato da peça</button>
+      <button id="shapeModeCorners" type="button" class="secondary" data-shape-mode="corners">Editar cantos</button>
+      <button id="shapeModeSketch" type="button" class="secondary" data-shape-mode="sketch">Esboço livre</button>
     </div>
 
-    <div style="margin-top:11px;font-size:12px;font-weight:900">Aplicar em</div>
-    <div id="shapeCornerGrid" class="shapeCornerGrid">
-      <button type="button" class="secondary" data-shape-corner="tl">Canto 1</button>
-      <button type="button" class="secondary" data-shape-corner="tr">Canto 2</button>
-      <button type="button" class="secondary active" data-shape-corner="bl">Canto 3</button>
-      <button type="button" class="secondary" data-shape-corner="br">Canto 4</button>
-    </div>
-    <p class="dialogHelp">Você pode marcar mais de um canto. O mesmo preset pode ser usado em peças de tamanhos diferentes sem deformar o raio.</p>
+    <section id="shapeFormatPanel" class="shapeModePanel">
+      <div class="shapePanelTitle"><strong>Formato da peça</strong><span>Escolha um formato pronto e informe somente as medidas.</span></div>
+      <div class="spaceFields two">
+        <label>Tipo de formato<select id="shapeFormatType">
+          <option value="rectangle">Retangular</option>
+          <option value="ellipse">Elipse</option>
+          <option value="circle">Circular</option>
+          <option value="l-top">Tampo em L</option>
+          <option value="cut-corners">Cantos cortados</option>
+          <option value="rounded-rect">Cantos arredondados</option>
+          <option value="chamfered">Tampo chanfrado</option>
+        </select></label>
+        <label id="shapeFormatWidthLabel">Largura (mm)<input id="shapeFormatWidth" type="number" value="800" min="1" step="1"></label>
+        <label id="shapeFormatHeightLabel">Profundidade / altura da face (mm)<input id="shapeFormatHeight" type="number" value="500" min="1" step="1"></label>
+        <label id="shapeFormatDiameterLabel" style="display:none">Diâmetro (mm)<input id="shapeFormatDiameter" type="number" value="500" min="1" step="1"></label>
+      </div>
+      <div id="shapeFormatLFields" class="shapeConditionalFields" style="display:none">
+        <div class="spaceFields two">
+          <label>Recorte largura (mm)<input id="shapeFormatCutW" type="number" value="200" min="1" step="1"></label>
+          <label>Recorte profundidade (mm)<input id="shapeFormatCutH" type="number" value="125" min="1" step="1"></label>
+        </div>
+        <label>Local do recorte<select id="shapeFormatLCorner"><option value="tr">Superior direito</option><option value="tl">Superior esquerdo</option><option value="br">Inferior direito</option><option value="bl">Inferior esquerdo</option></select></label>
+      </div>
+      <div id="shapeFormatCutFields" class="shapeConditionalFields" style="display:none">
+        <div class="spaceFields two">
+          <label>Corte X (mm)<input id="shapeFormatCutX" type="number" value="60" min="1" step="1"></label>
+          <label>Corte Y (mm)<input id="shapeFormatCutY" type="number" value="60" min="1" step="1"></label>
+        </div>
+        <div class="shapeFormatCornerChecks">
+          <label><input type="checkbox" data-shape-format-corner="tl" checked> Superior E</label>
+          <label><input type="checkbox" data-shape-format-corner="tr" checked> Superior D</label>
+          <label><input type="checkbox" data-shape-format-corner="bl"> Inferior E</label>
+          <label><input type="checkbox" data-shape-format-corner="br"> Inferior D</label>
+        </div>
+      </div>
+      <div id="shapeFormatRadiusFields" class="shapeConditionalFields" style="display:none">
+        <label>Raio dos cantos (mm)<input id="shapeFormatRadius" type="number" value="50" min="0.1" step="1"></label>
+      </div>
+      <button id="shapeApplyFormat" type="button" class="machiningPreview3DBtn">Aplicar formato</button>
+    </section>
 
-    <section id="shapeMiniCad" class="shapeMiniCad" style="display:none">
-      <div class="shapeCadHead">
-        <div><strong>✎ Mini CAD da Forma</strong><span>Desenhe só o trecho/recorte desejado. Esboço aberto entre bordas modifica o contorno; fechado cria recorte interno.</span></div>
-        <div class="shapeCadCoords" id="shapeCadCoords">X 0 · Y 0 mm</div>
+    <section id="shapeCornersPanel" class="shapeModePanel" style="display:none">
+      <div class="shapePanelTitle"><strong>Editar cantos</strong><span>Toque em um ponto da prévia 2D, escolha Arco, Chanfro ou Reto e aplique.</span></div>
+      <div class="shapeCornerEditorViewport"><svg id="shapeCornerEditSvg" viewBox="0 0 640 340" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div id="shapeCornerSelectedText" class="dialogHelp">Selecione um canto na prévia.</div>
+      <div class="shapeCornerOperationButtons">
+        <button type="button" class="active" data-shape-corner-style="round">Arco</button>
+        <button type="button" class="secondary" data-shape-corner-style="chamfer">Chanfro</button>
+        <button type="button" class="secondary" data-shape-corner-style="straight">Reto</button>
       </div>
-      <div class="shapeCadToolbar" aria-label="Ferramentas do mini CAD">
-        <button type="button" class="secondary active" data-shape-cad-tool="edit">⌖ Editar</button>
-        <button type="button" class="secondary" data-shape-cad-tool="pan">✋ Mover tela</button>
-        <button type="button" class="secondary" data-shape-cad-tool="line">╱ Linha</button>
-        <button type="button" class="secondary" data-shape-cad-tool="rect">▭ Retângulo</button>
-        <button type="button" class="secondary" data-shape-cad-tool="circle">○ Círculo</button>
-        <button type="button" class="secondary" data-shape-cad-tool="arc">⌒ Arco</button>
-        <button type="button" class="secondary" data-shape-cad-tool="curve">∿ Curva</button>
-        <button type="button" class="secondary" data-shape-cad-tool="fillet">◜ Raio</button>
-        <button type="button" class="secondary" data-shape-cad-tool="chamfer">⌿ Chanfro</button>
-        <button type="button" class="secondary" data-shape-cad-tool="trim">✂ Aparar</button>
-      </div>
-      <div class="shapeCadOptions">
-        <label class="layoutCheck"><input id="shapeCadSnap" type="checkbox" checked> Snap inteligente</label>
-        <label class="layoutCheck"><input id="shapeCadShowDims" type="checkbox" checked> Cotas do esboço</label>
-        <label>Grade (mm)<input id="shapeCadGrid" type="number" value="10" min="0.1" step="0.1"></label>
-        <label>Raio/chanfro (mm)<input id="shapeCadRadius" type="number" value="50" min="0.1" step="0.1"></label>
-        <button id="shapeCadUndo" type="button" class="secondary">↶ Desfazer</button>
-        <button id="shapeCadRedo" type="button" class="secondary">↷ Refazer</button>
-        <button id="shapeCadClose" type="button" class="secondary">⬡ Fechar contorno</button>
-        <button id="shapeCadClear" type="button" class="danger">Limpar</button>
-        <div class="shapeCadZoomControls" aria-label="Zoom do Mini CAD"><button id="shapeCadZoomOut" type="button" class="secondary">−</button><button id="shapeCadZoomFit" type="button" class="secondary">Ajustar</button><span id="shapeCadZoomValue">100%</span><button id="shapeCadZoomIn" type="button" class="secondary">＋</button></div>
-      </div>
-      <div class="shapeCadInferenceHint">Esboço local estilo CAD: grade quadriculada · snap · extremidade · meio · interseção · centro · aresta · horizontal · vertical · 45° · zoom</div>
-      <div class="shapeCadViewport">
-        <svg id="shapeCadSvg" viewBox="0 0 640 390" preserveAspectRatio="xMidYMid meet" aria-label="Editor CAD 2D da forma"></svg>
-      </div>
-      <div class="shapeCadFooter">
-        <span id="shapeCadStatus">Use Editar para mover pontos ou escolha uma ferramenta para desenhar.</span>
-        <span id="shapeCadMeasure">—</span>
+      <label id="shapeCornerEditValueLabel">Raio / tamanho (mm)<input id="shapeCornerEditValue" type="number" value="30" min="0.1" step="1"></label>
+      <div class="shapeCornerEditorActions">
+        <button id="shapeCornerReset" type="button" class="secondary">Resetar cantos</button>
+        <button id="shapeCornerApplyAll" type="button" class="secondary">Aplicar em todos</button>
+        <button id="shapeCornerApplyOne" type="button">Aplicar no canto</button>
       </div>
     </section>
 
-    <div class="shapePreviewBox">
+    <section id="shapeSketchPanel" class="shapeModePanel" style="display:none">
+      <div class="shapePanelTitle"><strong>Esboço livre</strong><span>Mini CAD para formas especiais: desenhe apenas o trecho que quer modificar ou um recorte interno.</span></div>
+      <select id="shapeType" style="display:none"><option value="round-corner">Canto arredondado paramétrico</option><option value="custom-profile">Mini CAD · contorno livre</option><option value="piece-format">Formato paramétrico</option></select>
+      <label id="shapeRadiusLabel" style="display:none">Raio (mm)<input id="shapeRadius" type="number" value="150" min="1" step="1"></label>
+      <div id="shapeCornerGrid" class="shapeCornerGrid" style="display:none">
+        <button type="button" class="secondary" data-shape-corner="tl">Canto 1</button><button type="button" class="secondary" data-shape-corner="tr">Canto 2</button><button type="button" class="secondary active" data-shape-corner="bl">Canto 3</button><button type="button" class="secondary" data-shape-corner="br">Canto 4</button>
+      </div>
+      <p class="dialogHelp" style="display:none">Compatibilidade com formas antigas.</p>
+
+      <section id="shapeMiniCad" class="shapeMiniCad">
+        <div class="shapeCadHead"><div><strong>✎ Mini CAD da Forma</strong><span>Esboço aberto entre bordas modifica o contorno; fechado cria recorte interno.</span></div><div class="shapeCadCoords" id="shapeCadCoords">X 0 · Y 0 mm</div></div>
+        <div class="shapeCadToolbar" aria-label="Ferramentas do mini CAD">
+          <button type="button" class="secondary active" data-shape-cad-tool="edit">⌖ Editar</button><button type="button" class="secondary" data-shape-cad-tool="pan">✋ Mover tela</button><button type="button" class="secondary" data-shape-cad-tool="line">╱ Linha</button><button type="button" class="secondary" data-shape-cad-tool="rect">▭ Retângulo</button><button type="button" class="secondary" data-shape-cad-tool="circle">○ Círculo</button><button type="button" class="secondary" data-shape-cad-tool="arc">⌒ Arco</button><button type="button" class="secondary" data-shape-cad-tool="curve">∿ Curva</button><button type="button" class="secondary" data-shape-cad-tool="fillet">◜ Raio</button><button type="button" class="secondary" data-shape-cad-tool="chamfer">⌿ Chanfro</button><button type="button" class="secondary" data-shape-cad-tool="trim">✂ Aparar</button>
+        </div>
+        <div class="shapeCadOptions">
+          <label class="layoutCheck"><input id="shapeCadSnap" type="checkbox" checked> Snap inteligente</label><label class="layoutCheck"><input id="shapeCadShowDims" type="checkbox" checked> Cotas do esboço</label><label>Grade (mm)<input id="shapeCadGrid" type="number" value="10" min="0.1" step="0.1"></label><label>Raio/chanfro (mm)<input id="shapeCadRadius" type="number" value="50" min="0.1" step="0.1"></label><button id="shapeCadUndo" type="button" class="secondary">↶ Desfazer</button><button id="shapeCadRedo" type="button" class="secondary">↷ Refazer</button><button id="shapeCadClose" type="button" class="secondary">⬡ Fechar contorno</button><button id="shapeCadClear" type="button" class="danger">Limpar</button><div class="shapeCadZoomControls" aria-label="Zoom do Mini CAD"><button id="shapeCadZoomOut" type="button" class="secondary">−</button><button id="shapeCadZoomFit" type="button" class="secondary">Ajustar</button><span id="shapeCadZoomValue">100%</span><button id="shapeCadZoomIn" type="button" class="secondary">＋</button></div>
+        </div>
+        <div class="shapeCadInferenceHint">Grade quadriculada · snap · extremidade · meio · interseção · centro · aresta · horizontal · vertical · 45° · zoom</div>
+        <div class="shapeCadViewport"><svg id="shapeCadSvg" viewBox="0 0 640 390" preserveAspectRatio="xMidYMid meet" aria-label="Editor CAD 2D da forma"></svg></div>
+        <div class="shapeCadFooter"><span id="shapeCadStatus">Use Editar para mover pontos ou escolha uma ferramenta para desenhar.</span><span id="shapeCadMeasure">—</span></div>
+      </section>
+    </section>
+
+    <div class="shapePreviewBox shapePreviewV37">
+      <div class="shapePreviewHead"><strong>Prévia 2D</strong><span id="shapePerimeterInfo">—</span></div>
       <svg id="shapePreviewSvg" viewBox="0 0 420 260" preserveAspectRatio="xMidYMid meet"></svg>
       <div id="shapePreviewText" class="dialogHelp" style="margin:7px 2px 0">Prévia da forma.</div>
     </div>
-    <button id="previewShape3D" type="button" class="machiningPreview3DBtn">👁 Visualizar Forma em 3D antes de aplicar</button>
+    <button id="previewShape3D" type="button" class="machiningPreview3DBtn">👁 Visualizar em 3D antes de aplicar</button>
 
-    <div class="machiningDivider"></div>
-    <div style="font-size:12px;font-weight:900">Formas aplicadas nesta peça</div>
-    <div id="shapeAppliedList" class="shapeAppliedList"></div>
-
-    <div class="dialogActions"><button id="cancelShape" class="secondary">Fechar</button><button id="applyShape">Aplicar forma</button></div>
+    <div class="machiningDivider"></div><div style="font-size:12px;font-weight:900">Formas aplicadas nesta peça</div><div id="shapeAppliedList" class="shapeAppliedList"></div>
+    <div class="dialogActions"><button id="cancelShape" class="secondary">Fechar</button><button id="applyShape" style="display:none">Aplicar esboço</button></div>
   </div>
 </div>
 
@@ -1455,7 +1501,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.36</span>
+      <span class="cutPlanBadge">1.200.38</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2025,7 +2071,11 @@
         <label>Pontos relativos (mm)<input id="drawerDrillOffsets" type="text" value="0, 128, 224" inputmode="decimal" placeholder="0, 128, 224"></label>
       </div>
       <div class="spaceFields two" style="margin-top:7px">
-        <label>Altura da linha (mm)<input id="drawerDrillMountY" type="number" value="10" min="0" step="0.5"></label>
+        <label>Linha vertical<select id="drawerDrillVerticalMode"><option value="center" selected>Centro automático da gaveta</option><option value="fixed">Medida fixa</option></select></label>
+        <label>Lateral a furar<select id="drawerDrillSide"><option value="both" selected>Ambas</option><option value="left">Somente esquerda</option><option value="right">Somente direita</option></select></label>
+      </div>
+      <div class="spaceFields two" style="margin-top:7px">
+        <label id="drawerDrillMountYLabel">Altura fixa da linha (mm)<input id="drawerDrillMountY" type="number" value="10" min="0" step="0.5"></label>
         <label>Diâmetro do furo (mm)<input id="drawerDrillDiameter" type="number" value="5" min="1" step="0.5"></label>
       </div>
       <div class="spaceFields two" style="margin-top:7px">
@@ -2034,8 +2084,8 @@
       </div>
       <div id="drawerDrillResult" class="drawerDrillResult"><strong>Resultado:</strong> 37 / 165 / 261 mm a partir da frente do armário.</div>
       <p class="dialogHelp" style="margin:7px 0 0">
-        <strong>Häfele H45 P:</strong> 37 mm da frente e padrão automático específico para cada comprimento.
-        Ex.: 400 mm usa 0 / 128 / 224 / 320 relativos. A corrediça oculta continua usando o padrão configurável da versão anterior.
+        <strong>Centro automático:</strong> a altura do furo é recalculada no centro real de cada lateral da gaveta sempre que a altura da caixa mudar. Assim o modelo continua correto mesmo com gavetas de tamanhos diferentes.<br>
+        <strong>Häfele H45 P:</strong> 37 mm da frente e padrão automático específico para cada comprimento. Ex.: 400 mm usa 0 / 128 / 224 / 320 relativos.
       </p>
     </div>
 
@@ -2313,7 +2363,7 @@
 
 
 
-<!-- 1.200.36 · Segurança, produção e montagem -->
+<!-- 1.200.38 · Segurança, produção e montagem -->
 <div id="projectVersionsDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Histórico de versões">
   <div class="projectModalCard dlSuiteCard">
     <header class="dlSuiteHead"><div><h3>🕘 Histórico de versões</h3><p>Autosave real + até 10 pontos restauráveis, sincronizados com o projeto.</p></div><button id="closeProjectVersionsDialog" class="secondary" type="button">Fechar</button></header>
@@ -2394,6 +2444,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.36-r1"></script>
+<script type="module" src="js/app.js?v=1.200.38-r1"></script>
 </body>
 </html>

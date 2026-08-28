@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.36",
+  "version": "1.200.38",
   "required": false,
-  "message": "Forma inspirada no fluxo Haixun: desenhe só o esboço local; aberto entre bordas cria recorte no contorno, fechado cria recorte interno. Grade quadriculada, cotas, zoom, mover tela, snap e biblioteca reutilizável.",
-  "released_at": "2026-08-27T19:18:00-03:00",
-  "build": "1.200.36-r1"
+  "message": "Ferramentas para ocultar/mostrar ferragens e usinagens sem apagar operações. Furação de corrediças com centro automático paramétrico da gaveta e escolha da lateral a furar.",
+  "released_at": "2026-08-27T21:18:00-03:00",
+  "build": "1.200.38-r1"
 }
