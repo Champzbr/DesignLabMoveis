@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.48';
+  return tm?.[1]||'1.200.49';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.48-r2';
+const DESIGNLAB_JS_BUILD='1.200.49-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -862,7 +862,7 @@ async function designLabEnsureServerRecovery(reason='gesture'){
   }
 }
 function designLabForgetGestureRecovery(){
-  // 1.200.48: não desarma a sessão ao ir para segundo plano.
+  // 1.200.49: não desarma a sessão ao ir para segundo plano.
   return false;
 }
 async function initDesignLabServiceWorker(){
@@ -17584,19 +17584,19 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.48'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'anchor',level:0,version:'1.200.49'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard1',level:1,version:'1.200.49'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard2',level:2,version:'1.200.49'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,__designLabBackFenceStableV1:true,kind:'guard3',level:3,version:'1.200.49'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
 }
 function designLabPushBackGuard(){return designLabInstallBackFence({trusted:true});}
 function designLabArmBackGuard(){
-  // 1.200.48: não depende mais de _bootFresh. Faz uma cerca best-effort já na
-  // abertura e o bootstrap do <head> a reconstrói novamente no primeiro gesto.
-  return designLabInstallBackFence({trusted:true});
+  // 1.200.49: abertura/retomada apenas preserva uma cerca já confiável.
+  // Uma cerca nova é criada pelo bootstrap no fim do primeiro gesto real.
+  return designLabInstallBackFence({trusted:false});
 }
 function designLabRunNativeBackCascade(){
   if(designLabHandlingPopState)return;
