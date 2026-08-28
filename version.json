@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.48",
+  "version": "1.200.49",
   "required": false,
-  "message": "Corrige o Voltar do Android sem depender de Recarregar versão do servidor e refaz a Forma com orientação 3D sem reflexão de eixos, mantendo tampas e laterais externas fechadas como uma peça normal.",
+  "message": "Corrige o Voltar do Android para armar a cascata somente no fim do primeiro gesto real e preservar uma pilha válida entre versões e retomadas, eliminando a dependência de Recarregar versão do servidor. Mantém a Forma sólida da 1.200.48 sem alterações.",
   "released_at": "2026-08-28T10:35:00-03:00",
-  "build": "1.200.48-r2"
+  "build": "1.200.49-r1"
 }

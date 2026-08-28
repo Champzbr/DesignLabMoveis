@@ -1,24 +1,24 @@
-const BUILD = '1.200.48-r2';
+const BUILD = '1.200.49-r1';
 const CACHE = 'designlabmoveis-' + BUILD;
 const APP_SHELL = [
   './',
   './index.html',
-  './designlabmoveis-1.200.48.html',
+  './designlabmoveis-1.200.49.html',
   './manifest.json',
   './version.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './css/base.css?v=1.200.48-r2',
-  './css/editor.css?v=1.200.48-r2',
-  './css/materials.css?v=1.200.48-r2',
-  './css/labels.css?v=1.200.48-r2',
-  './css/cut-plan.css?v=1.200.48-r2',
-  './css/layout.css?v=1.200.48-r2',
-  './css/projects.css?v=1.200.48-r2',
-  './css/settings.css?v=1.200.48-r2',
-  './css/home.css?v=1.200.48-r2',
-  './css/mobile.css?v=1.200.48-r2',
-  './js/app.js?v=1.200.48-r2'
+  './css/base.css?v=1.200.49-r1',
+  './css/editor.css?v=1.200.49-r1',
+  './css/materials.css?v=1.200.49-r1',
+  './css/labels.css?v=1.200.49-r1',
+  './css/cut-plan.css?v=1.200.49-r1',
+  './css/layout.css?v=1.200.49-r1',
+  './css/projects.css?v=1.200.49-r1',
+  './css/settings.css?v=1.200.49-r1',
+  './css/home.css?v=1.200.49-r1',
+  './css/mobile.css?v=1.200.49-r1',
+  './js/app.js?v=1.200.49-r1'
 ];
 
 self.addEventListener('install', event => {
