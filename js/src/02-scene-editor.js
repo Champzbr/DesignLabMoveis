@@ -126,10 +126,10 @@ const container = $('canvas-container');
 // 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
-const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV1';
+const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV2';
 let designLabAppTheme='light';
 try{
-  // 1.200.61: instalações antigas podiam carregar para sempre o `dark` salvo
+  // 1.200.62: instalações antigas podiam carregar para sempre o `dark` salvo
   // quando o tema escuro ainda era o padrão. Fazemos UMA migração para o
   // Clássico claro. Depois dela, qualquer escolha manual do usuário é respeitada.
   if(localStorage.getItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY)!=='1'){

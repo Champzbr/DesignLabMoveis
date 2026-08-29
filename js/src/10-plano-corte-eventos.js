@@ -1103,6 +1103,12 @@ $('adminUsersTabBtn').onclick=async()=>{adminSetTab('users');await refreshAdminP
 $('adminPaymentsTabBtn').onclick=async()=>{adminSetTab('payments');await refreshAdminPanel();};
 $('adminSettingsTabBtn').onclick=async()=>{adminSetTab('settings');await refreshAdminPanel();};
 $('adminSaveSettingsBtn').onclick=saveAdminSettings;
+$('adminSavePaymentSettingsBtn').onclick=saveAdminSettings;
+$('premiumPurchaseClose').onclick=closePremiumPurchase;
+$('premiumPurchaseDialog').addEventListener('pointerdown',e=>{if(e.target===$('premiumPurchaseDialog'))closePremiumPurchase();});
+$('premiumPixCopyBtn').onclick=copyPremiumPix;
+$('premiumPixPaidBtn').onclick=markPremiumPaymentPaid;
+$('premiumPixVerifyBtn').onclick=verifyPremiumPayment;
 $('adminRefreshBtn').onclick=refreshAdminPanel;
 $('adminUserSearchBtn').onclick=async()=>{adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();};
 $('adminUserSearch').addEventListener('keydown',async e=>{if(e.key==='Enter'){e.preventDefault();adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();}});
