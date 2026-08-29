@@ -170,7 +170,7 @@
   #toolDockEditActions { display:flex; gap:7px; margin-top:11px; justify-content:flex-end; }
 
 
-  /* 1.200.55 · dock inferior de atalhos, acima da navegação do Android */
+  /* 1.200.56 · dock inferior em 2 bancos, com swap discreto */
   #quickDock{
     position:fixed;z-index:45;left:50%;transform:translateX(-50%);
     bottom:calc(8px + env(safe-area-inset-bottom));width:min(540px,calc(100vw - 16px));
@@ -183,6 +183,16 @@
   #quickDock .quickDockTool,#quickDockSettings{
     min-width:0;min-height:52px;padding:5px 2px;border-radius:11px;box-shadow:none;
   }
+  #quickDockSwap{
+    position:absolute;z-index:3;right:49px;top:-10px;width:31px;height:24px;min-height:24px;padding:0;
+    display:grid;place-items:center;border-radius:999px;background:rgba(50,50,50,.96);color:#fff;
+    border:1px solid rgba(255,255,255,.18);box-shadow:0 3px 10px rgba(0,0,0,.34);font-size:16px;line-height:1;
+  }
+  #quickDockSwap::after{
+    content:attr(data-page);position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;
+    display:grid;place-items:center;background:var(--green);color:#fff;font:900 7px/1 system-ui,sans-serif;border:1px solid #202020;
+  }
+  #quickDockSwap:active{transform:scale(.92)}
   #quickDock .quickDockTool{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
   #quickDock .quickDockTool.active{background:var(--green)}
   .quickDockIcon{font-size:18px;line-height:1;max-width:100%;overflow:hidden}
@@ -205,6 +215,8 @@
   #quickDockCountChoices button{min-height:42px;box-shadow:none}
   #quickDockCountChoices button.active{background:var(--green)}
   #quickDockSlotList{display:flex;flex-direction:column;gap:8px}
+  .quickDockPageHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;padding:5px 3px 1px;color:#fff}
+  .quickDockPageHeader b{font-size:11px;color:#8fe1ff}.quickDockPageHeader span{font-size:8px;color:var(--muted);font-weight:800}
   .quickDockSlotRow{display:grid;grid-template-columns:36px 1fr;align-items:center;gap:8px;padding:7px;background:#171717;border:1px solid #3b3b3b;border-radius:12px}
   .quickDockSlotNumber{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#303030;font-size:12px;font-weight:900;color:#8fe1ff}
   .quickDockSelect{width:100%;min-height:40px;border-radius:9px;background:#2d2d2d;color:#fff;border:1px solid #505050;padding:7px 8px;font:750 11px system-ui,sans-serif}
