@@ -170,7 +170,7 @@
   #toolDockEditActions { display:flex; gap:7px; margin-top:11px; justify-content:flex-end; }
 
 
-  /* 1.200.56 · dock inferior em 2 bancos, com swap discreto */
+  /* 1.200.58 · visual da 1.200.56 preservado; submenus apenas flutuam acima */
   #quickDock{
     position:fixed;z-index:45;left:50%;transform:translateX(-50%);
     bottom:calc(8px + env(safe-area-inset-bottom));width:min(540px,calc(100vw - 16px));
@@ -198,8 +198,33 @@
   .quickDockIcon{font-size:18px;line-height:1;max-width:100%;overflow:hidden}
   .quickDockText{display:block;width:100%;font-size:7.5px;line-height:1.05;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
   #quickDockSettings{flex:0 0 46px;font-size:20px;background:#3a3a3a;padding:4px}
+  #quickDockSubmenu{
+    /* Fora do #quickDock para nunca participar do flex/grid da barra principal. */
+    position:fixed;z-index:46;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));
+    transform:translateX(-50%) translateY(6px);
+    width:min(650px,calc(100vw - 12px));padding:7px;border-radius:16px;background:rgba(24,24,24,.97);
+    border:1px solid rgba(255,255,255,.16);box-shadow:0 14px 34px rgba(0,0,0,.42);
+    opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease,transform .12s ease;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  #quickDockSubmenu.show{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+  .quickDockSubmenuHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px 5px}
+  .quickDockSubmenuHeader b{font-size:9px;color:#8fe1ff;letter-spacing:.2px}.quickDockSubmenuHeader span{font-size:7px;color:#aeb7bc;font-weight:750}
+  #quickDockSubmenuTools{display:grid;grid-template-columns:repeat(var(--quick-sub-count,8),minmax(0,1fr));gap:4px}
+  .quickDockSubTool{min-width:0;min-height:62px;padding:5px 2px 4px;border-radius:11px;box-shadow:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:#303030!important}
+  .quickDockSubTool:active{transform:scale(.96);background:#3b454a!important}
+  .quickDockSubIcon{font-size:19px;line-height:1;display:grid;place-items:center;height:29px}
+  .quickDockSubText{width:100%;font-size:7px;line-height:1.05;font-weight:850;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+  .quickSubPieceIcon{position:relative;width:34px;height:28px;border:2px solid #9aa7ad;border-radius:5px;display:block;background:rgba(255,255,255,.025);box-sizing:border-box;overflow:hidden}
+  .quickSubPieceIcon::before{content:'';position:absolute;left:7px;right:7px;top:4px;bottom:4px;border:1px solid rgba(154,167,173,.45);border-radius:2px}
+  .quickSubPieceIcon i{position:absolute;display:block;background:linear-gradient(145deg,#6bd8ff,#188fd0);box-shadow:0 0 5px rgba(54,190,245,.35)}
+  .quickSubPiece-left i{left:2px;top:3px;bottom:3px;width:8px}.quickSubPiece-right i{right:2px;top:3px;bottom:3px;width:8px}
+  .quickSubPiece-base i{left:3px;right:3px;bottom:2px;height:8px}.quickSubPiece-top i{left:3px;right:3px;top:2px;height:8px}
+  .quickSubPiece-front i{right:5px;top:4px;bottom:4px;width:12px;transform:skewY(-7deg)}.quickSubPiece-back i{left:5px;top:4px;bottom:4px;width:12px;transform:skewY(7deg)}
+  .quickSubPiece-shelf i{left:3px;right:3px;top:10px;height:7px}.quickSubPiece-division i{left:13px;top:2px;bottom:2px;width:7px}
+  @media(max-width:430px){.quickDockSubTool{min-height:58px}.quickSubPieceIcon{width:31px;height:25px}.quickDockSubText{font-size:6.4px}#quickDockSubmenu{padding:6px 5px}}
   body.project-home-active #quickDock,body.presentation-active #quickDock,body.visualization-only #quickDock,
-  body.project-home-active #quickDockConfigDialog,body.presentation-active #quickDockConfigDialog,body.visualization-only #quickDockConfigDialog{display:none!important}
+  body.project-home-active #quickDockConfigDialog,body.presentation-active #quickDockConfigDialog,body.visualization-only #quickDockConfigDialog,body.project-home-active #quickDockSubmenu,body.presentation-active #quickDockSubmenu,body.visualization-only #quickDockSubmenu{display:none!important}
 
   #quickDockConfigDialog{
     position:fixed;inset:0;z-index:116;display:none;align-items:flex-end;justify-content:center;
