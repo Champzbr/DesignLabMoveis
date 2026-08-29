@@ -126,8 +126,18 @@ const container = $('canvas-container');
 // 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
+const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV1';
 let designLabAppTheme='light';
-try{designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';}catch{}
+try{
+  // 1.200.61: instalações antigas podiam carregar para sempre o `dark` salvo
+  // quando o tema escuro ainda era o padrão. Fazemos UMA migração para o
+  // Clássico claro. Depois dela, qualquer escolha manual do usuário é respeitada.
+  if(localStorage.getItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY)!=='1'){
+    localStorage.setItem(DESIGNLAB_APP_THEME_KEY,'light');
+    localStorage.setItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY,'1');
+  }
+  designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';
+}catch{}
 function syncDesignLabThemeButtons(){
   document.querySelectorAll('[data-app-theme-choice]').forEach(btn=>{
     btn.classList.toggle('active',btn.dataset.appThemeChoice===designLabAppTheme);
@@ -157,7 +167,7 @@ function applyDesignLabAppTheme(theme,{persist=true,notify=false}={}){
   if(supported)supported.setAttribute('content','light');
 
   syncDesignLabThemeButtons();
-  if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);}catch{}}
+  if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);localStorage.setItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY,'1');}catch{}}
   if(notify)toast(designLabAppTheme==='dark'?'Modo escuro ativado':'Layout clássico claro ativado');
 }
 applyDesignLabAppTheme(designLabAppTheme,{persist:false,notify:false});
