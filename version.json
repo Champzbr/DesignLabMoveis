@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.57",
+  "version": "1.200.58",
   "required": false,
-  "message": "Atalhos com submenus em cascata: Peças abre 8 tipos, Usinagem abre todas as operações e há submenus opcionais de Espaço e Vistas.",
-  "released_at": "2026-08-28T22:29:00-03:00",
-  "build": "1.200.57-r1"
+  "message": "Mantém exatamente o visual da barra 1.200.56; Peças e Usinagem abrem submenus flutuantes sem comprimir ou deformar os atalhos principais.",
+  "released_at": "2026-08-28T22:45:00-03:00",
+  "build": "1.200.58-r1"
 }
