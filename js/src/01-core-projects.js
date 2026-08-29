@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.56';
+  return tm?.[1]||'1.200.57';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.56-r1';
+const DESIGNLAB_JS_BUILD='1.200.57-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2625,7 +2625,7 @@ function runDockTool(key){
 }
 
 // ============================================================================
-// 1.200.56 · BARRA INFERIOR DE ATALHOS · 2 BANCOS (3/4/5 POR PÁGINA)
+// 1.200.57 · BARRA INFERIOR · 2 BANCOS + SUBMENUS EM CASCATA
 // ============================================================================
 const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
 const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
@@ -2638,7 +2638,7 @@ let quickDockDraft=null;
 let quickDockPage=0;
 
 function quickDockKnownKey(key){
-  return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly';
+  return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly'||key==='spaceMenu'||key==='viewMenu';
 }
 function normalizeQuickDockConfig(raw){
   const count=[3,4,5].includes(Number(raw?.count))?Number(raw.count):4;
@@ -2667,7 +2667,7 @@ function quickDockPresentation(key){
     copyHardware:['⧉','C. Ferr.'],machining:['🛠','Usinagem'],cutSpace:['✂','Corte'],drawers:['▤','Gavetas'],library:['▦','Biblioteca'],
     editSpace:['✎','Editar'],deleteSpaceCell:['🧩','Unir vão'],undo:['↶','Desfazer'],redo:['↷','Refazer'],xray:['◈','Raio-X'],
     toggleHardwareVisibility:['🔩','Ferragens'],toggleMachiningVisibility:['🟣','Usinagens'],materials:['🎨','Materiais'],layout:['📐','Layout'],
-    save:['💾','Salvar'],more:['•••','Mais'],productionSuite:['✅','Produção'],assembly:['🧩','Montagem'],duplicate:['⧉','Duplicar'],
+    save:['💾','Salvar'],more:['•••','Mais'],productionSuite:['✅','Produção'],assembly:['🧩','Montagem'],spaceMenu:['▦','Espaço+'],viewMenu:['◫','Vistas'],duplicate:['⧉','Duplicar'],
     inspector:['📐','Medidas'],openSpace:['▣','Abrir espaço'],front:['▥','Frente'],back:['▥','Trás'],left:['▥','Esq.'],right:['▥','Dir.'],
     top:['▥','Cima'],bottom:['▥','Baixo'],visual:['👁','Visual'],view3d:['◇','3D'],parts:['📋','Peças'],labels:['🏷','Etiquetas']
   };
@@ -2684,6 +2684,120 @@ function quickDockToolActive(key){
     (key==='visual'&&visualMode)||(key==='xray'&&xray3DEnabled)||(key==='toggleHardwareVisibility'&&cadHardwareVisible)||
     (key==='toggleMachiningVisibility'&&cadMachiningVisible);
 }
+
+const QUICK_DOCK_SUBMENUS={
+  createPieces:{
+    title:'Criar peças',kind:'pieces',items:[
+      {label:'Lat. esq.',pieceType:'left',pieceIcon:'left'},
+      {label:'Lat. dir.',pieceType:'right',pieceIcon:'right'},
+      {label:'Base',pieceType:'base',pieceIcon:'base'},
+      {label:'Chapéu',pieceType:'top',pieceIcon:'top'},
+      {label:'Frente',pieceType:'front',pieceIcon:'front'},
+      {label:'Fundo',pieceType:'back',pieceIcon:'back'},
+      {label:'Prateleira',pieceType:'shelf',pieceIcon:'shelf'},
+      {label:'Divisão',pieceType:'division',pieceIcon:'division'}
+    ]
+  },
+  machining:{
+    title:'Usinagem',kind:'machining',items:[
+      {label:'Furo',icon:'●',tool:'hole'},
+      {label:'Rasgo',icon:'▱',tool:'groove'},
+      {label:'Ferragens',icon:'⚙',tool:'hardware'},
+      {label:'Forma',icon:'◜',tool:'shape'},
+      {label:'C. Forma',icon:'⧉',tool:'copyShape'},
+      {label:'C. Ferr.',icon:'⧉',tool:'copyHardware'},
+      {label:'Gerenciar',icon:'🛠',tool:'machining'},
+      {label:'Ocultar',icon:'◉',tool:'toggleMachiningVisibility'}
+    ]
+  },
+  spaceMenu:{
+    title:'Espaço / móvel',kind:'space',items:[
+      {label:'Novo',icon:'＋',tool:'space'},
+      {label:'Corte',icon:'✂',tool:'cutSpace'},
+      {label:'Peças',icon:'▰',tool:'createPiecesDirect'},
+      {label:'Gavetas',icon:'▤',tool:'drawers'},
+      {label:'Biblioteca',icon:'▦',tool:'library'},
+      {label:'Editar',icon:'✎',tool:'editSpace'},
+      {label:'Unir vão',icon:'🧩',tool:'deleteSpaceCell'},
+      {label:'Ocultar',icon:'◫',tool:'toggleSpace'}
+    ]
+  },
+  viewMenu:{
+    title:'Vistas',kind:'views',items:[
+      {label:'Frente',icon:'▥',tool:'front'},
+      {label:'Trás',icon:'▥',tool:'back'},
+      {label:'Esq.',icon:'▥',tool:'left'},
+      {label:'Dir.',icon:'▥',tool:'right'},
+      {label:'Cima',icon:'▤',tool:'top'},
+      {label:'Baixo',icon:'▤',tool:'bottom'},
+      {label:'3D',icon:'◇',tool:'view3d'},
+      {label:'Raio-X',icon:'◈',tool:'xray'}
+    ]
+  }
+};
+let quickDockSubmenuKey=null;
+function quickDockHasSubmenu(key){return !!QUICK_DOCK_SUBMENUS[key];}
+function quickDockSubmenuVisible(){const p=$('quickDockSubmenu');return !!(p&&p.classList.contains('show'));}
+function ensureQuickDockSubmenu(){
+  let p=$('quickDockSubmenu');
+  if(p)return p;
+  const dock=$('quickDock');if(!dock)return null;
+  p=document.createElement('div');p.id='quickDockSubmenu';p.setAttribute('role','menu');p.setAttribute('aria-label','Submenu de atalhos');
+  const h=document.createElement('div');h.className='quickDockSubmenuHeader';
+  const title=document.createElement('b');title.id='quickDockSubmenuTitle';
+  const hint=document.createElement('span');hint.textContent='toque em uma opção';h.append(title,hint);
+  const tools=document.createElement('div');tools.id='quickDockSubmenuTools';
+  p.append(h,tools);dock.appendChild(p);return p;
+}
+function closeQuickDockSubmenu(){
+  const p=$('quickDockSubmenu');if(p)p.classList.remove('show');
+  quickDockSubmenuKey=null;
+  document.querySelectorAll('#quickDockTools .quickDockTool.submenu-open').forEach(b=>b.classList.remove('submenu-open'));
+}
+function quickDockPieceIcon(kind){
+  const w=document.createElement('span');w.className=`quickSubPieceIcon quickSubPiece-${kind}`;
+  const face=document.createElement('i');w.appendChild(face);return w;
+}
+function quickDockOpenPieceType(type){
+  closeQuickDockSubmenu();
+  if(!dockEnsureSpace(true))return;
+  closeToolDockBeforeMenu();
+  const opener=$('createPiecesBtn');if(!opener){toast('Criar peças indisponível');return;}
+  opener.click();
+  const b=document.querySelector(`[data-piece-type="${type}"]`);
+  if(b)selectPieceCreateTypeButton(b);
+}
+function runQuickDockSubItem(item){
+  if(!item)return;
+  if(item.pieceType){quickDockOpenPieceType(item.pieceType);return;}
+  closeQuickDockSubmenu();
+  if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}
+  if(item.tool)runDockTool(item.tool);
+}
+function openQuickDockSubmenu(key,anchor=null){
+  const def=QUICK_DOCK_SUBMENUS[key];if(!def)return false;
+  const p=ensureQuickDockSubmenu();if(!p)return false;
+  if(quickDockSubmenuKey===key&&p.classList.contains('show')){closeQuickDockSubmenu();return true;}
+  quickDockSubmenuKey=key;
+  const title=$('quickDockSubmenuTitle');if(title)title.textContent=def.title;
+  const box=$('quickDockSubmenuTools');if(!box)return false;
+  box.innerHTML='';box.style.setProperty('--quick-sub-count',String(Math.max(1,Math.min(8,def.items.length))));
+  def.items.forEach(item=>{
+    const b=document.createElement('button');b.type='button';b.className='quickDockSubTool secondary';b.setAttribute('role','menuitem');b.title=item.label;
+    const icon=item.pieceIcon?quickDockPieceIcon(item.pieceIcon):document.createElement('span');
+    if(!item.pieceIcon){icon.className='quickDockSubIcon';icon.textContent=item.icon||'•';}
+    const txt=document.createElement('span');txt.className='quickDockSubText';txt.textContent=item.label;
+    b.append(icon,txt);b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});box.appendChild(b);
+  });
+  p.classList.add('show');
+  document.querySelectorAll('#quickDockTools .quickDockTool').forEach(b=>b.classList.toggle('submenu-open',b===anchor));
+  return true;
+}
+function runQuickDockTool(key,anchor){
+  if(quickDockHasSubmenu(key)){openQuickDockSubmenu(key,anchor);return;}
+  closeQuickDockSubmenu();runDockTool(key);
+}
+
 function syncQuickDockButtons(){
   document.querySelectorAll('#quickDockTools [data-quick-tool]').forEach(b=>{
     const active=quickDockToolActive(b.dataset.quickTool);
@@ -2712,7 +2826,7 @@ function renderQuickDock(animate=false){
     b.title=def?.label||text;b.setAttribute('aria-label',def?.label||text);
     const i=document.createElement('span');i.className='quickDockIcon';i.textContent=icon;
     const t=document.createElement('span');t.className='quickDockText';t.textContent=text;
-    b.append(i,t);b.addEventListener('click',()=>runDockTool(key));box.appendChild(b);
+    b.append(i,t);b.addEventListener('click',()=>runQuickDockTool(key,b));box.appendChild(b);
   });
   syncQuickDockButtons();syncQuickDockSwapButton();
   if(animate&&box.animate){
@@ -2721,11 +2835,17 @@ function renderQuickDock(animate=false){
   }
 }
 function swapQuickDockPage(){
+  closeQuickDockSubmenu();
   quickDockPage=quickDockPage===0?1:0;
   renderQuickDock(true);
 }
 function quickDockBuildSelect(current,index){
   const sel=document.createElement('select');sel.className='quickDockSelect';sel.dataset.quickSlot=String(index);
+  const submenuGroup=document.createElement('optgroup');submenuGroup.label='Submenus rápidos';
+  [['spaceMenu','▦ Espaço / móvel · submenu'],['viewMenu','◫ Vistas · submenu']].forEach(([key,label])=>{
+    const o=document.createElement('option');o.value=key;o.textContent=label;o.selected=key===current;submenuGroup.appendChild(o);
+  });
+  sel.appendChild(submenuGroup);
   const groups=[...new Set(TOOL_DOCK_CATALOG.map(t=>t.group||'Outros'))];
   for(const group of groups){
     const og=document.createElement('optgroup');og.label=group;
@@ -2762,12 +2882,13 @@ function renderQuickDockEditor(){
   }
 }
 function openQuickDockEditor(){
+  closeQuickDockSubmenu();
   quickDockDraft=normalizeQuickDockConfig(quickDockConfig);renderQuickDockEditor();
   const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='flex';
 }
 function closeQuickDockEditor(){const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='none';quickDockDraft=null;}
 function initQuickDock(){
-  renderQuickDock();
+  renderQuickDock();ensureQuickDockSubmenu();
   $('quickDockSwap')?.addEventListener('click',swapQuickDockPage);
   $('quickDockSettings')?.addEventListener('click',openQuickDockEditor);
   document.querySelectorAll('#quickDockCountChoices [data-quick-count]').forEach(b=>b.addEventListener('click',()=>{
@@ -2782,6 +2903,12 @@ function initQuickDock(){
     quickDockConfig=normalizeQuickDockConfig(quickDockDraft);quickDockPage=0;saveQuickDockConfig();renderQuickDock();closeQuickDockEditor();
     toast(`Barra rápida salva · ${quickDockConfig.count*2} atalhos em 2 páginas`);
   });
+  document.addEventListener('pointerdown',e=>{
+    if(!quickDockSubmenuVisible())return;
+    const p=$('quickDockSubmenu');
+    if(p?.contains(e.target)||e.target?.closest?.('#quickDockTools .quickDockTool'))return;
+    closeQuickDockSubmenu();
+  },{capture:true});
 }
 
 function setToolDockOpen(open){

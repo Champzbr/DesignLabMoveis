@@ -1186,6 +1186,7 @@ function designLabGenericBackLayer(){
   el.classList.remove('show','open');el.style.display='none';return true;
 }
 async function designLabHandleBackCascade(){
+  if(typeof quickDockSubmenuVisible==='function'&&quickDockSubmenuVisible()){closeQuickDockSubmenu();return 'closed';}
   if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return 'closed';}
   if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return 'closed';}
   if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar')){returnCurvedStructurePreview({reopen:true});return 'closed';}
