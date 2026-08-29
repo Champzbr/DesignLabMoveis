@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.55",
+  "version": "1.200.56",
   "required": false,
-  "message": "Barra inferior configurável com 3, 4 ou 5 atalhos rápidos no CAD.",
-  "released_at": "2026-08-28T13:10:00-03:00",
-  "build": "1.200.55-r1"
+  "message": "Barra rápida com 2 páginas: até 10 atalhos configuráveis e botão discreto de troca.",
+  "released_at": "2026-08-28T18:42:00-03:00",
+  "build": "1.200.56-r1"
 }
