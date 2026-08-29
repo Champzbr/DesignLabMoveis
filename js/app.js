@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.64-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.65-r1';
 
 
 // ============================================================================
@@ -115,7 +115,7 @@ function ensurePremiumAccessPanel(){
 function hidePremiumAccessPanel(){ $('authPremiumPanel')?.classList.remove('show'); }
 
 // ============================================================================
-// 1.200.64 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
+// 1.200.65 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
 // ============================================================================
 let premiumPurchaseState={payment:null,busy:false};
 let premiumQrModulePromise=null;
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.64-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.65-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.64';
+  return tm?.[1]||'1.200.65';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.64-r1';
+const DESIGNLAB_JS_BUILD='1.200.65-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -964,18 +964,8 @@ async function applyDesignLabUpdate(){
   }
 }
 
-async function forceDesignLabServerRefresh(options={}){
-  const automatic=!!options.automatic;
-  const gesture=!!options.gesture;
-  const reason=String(options.reason||'manual').replace(/[^a-z0-9_-]+/gi,'-').slice(0,32)||'manual';
+async function forceDesignLabServerRefresh(){
   if(designLabUpdating)return false;
-  // A recuperação automática usa EXATAMENTE o mesmo caminho do botão que o
-  // usuário confirmou funcionar. O marcador só impede o reload de chamar a si
-  // mesmo novamente no novo documento.
-  if(automatic){
-    const q=new URLSearchParams(location.search);
-    if(q.has('_serverRecovered'))return false;
-  }
   designLabUpdating=true;
   try{
     try{await projectAutosaveNow();}catch{}
@@ -992,9 +982,6 @@ async function forceDesignLabServerRefresh(options={}){
       const keys=await caches.keys();
       await Promise.all(keys.filter(k=>k.startsWith('designlabmoveis-')||k.startsWith('mini-cad-pro-')).map(k=>caches.delete(k)));
     }
-    // Dá uma pequena janela para o SW concluir PURGE/SKIP_WAITING antes da
-    // navegação. No clique manual isso já ocorria naturalmente pelo tempo de UI;
-    // no automático fazemos explicitamente para reproduzir o mesmo resultado.
     if('serviceWorker' in navigator){
       const reg=designLabSwRegistration || await navigator.serviceWorker.getRegistration();
       if(reg?.waiting){
@@ -1007,55 +994,19 @@ async function forceDesignLabServerRefresh(options={}){
       }
     }
     const target=new URL('/',location.origin);
-    target.searchParams.set('_bootFresh',(automatic?'auto':'manual')+'-'+Date.now());
+    target.searchParams.set('_bootFresh','manual-'+Date.now());
     target.searchParams.set('_server',DESIGNLAB_APP_VERSION);
     target.searchParams.set('_refresh',String(Date.now()));
-    if(automatic)target.searchParams.set('_serverRecovered',reason+'-'+Date.now());
-    if(gesture){
-      try{sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');}catch(_){ }
-      target.searchParams.set('_gestureRecovered','1');
-      window.__designLabRecoveryNavigating=true;
-    }
     location.replace(target.toString());
     return true;
   }catch(err){
     console.error('Recarregar servidor:',err);
     designLabUpdating=false;
-    if(!automatic)toast('Não foi possível recarregar a versão do servidor agora');
+    toast('Não foi possível recarregar a versão do servidor agora');
     return false;
   }
 }
 
-let designLabAutoRecoveryInFlight=false;
-let designLabWasHidden=false;
-let designLabGestureRecoveryReady=false;
-const DESIGNLAB_GESTURE_RECOVERY_KEY='__designLabGestureServerRecoveryV34';
-try{
-  const q=new URLSearchParams(location.search);
-  designLabGestureRecoveryReady=q.has('_gestureRecovered') || sessionStorage.getItem(DESIGNLAB_GESTURE_RECOVERY_KEY)==='1';
-  if(q.has('_gestureRecovered'))sessionStorage.setItem(DESIGNLAB_GESTURE_RECOVERY_KEY,'1');
-}catch(_){ }
-
-async function designLabEnsureServerRecovery(reason='gesture'){
-  if(designLabGestureRecoveryReady||designLabAutoRecoveryInFlight||designLabUpdating||!navigator.onLine)return false;
-  designLabAutoRecoveryInFlight=true;
-  try{
-    // O ponto decisivo é esta rotina ser chamada a partir de uma interação REAL
-    // do usuário. Chrome Android/TWA pode ignorar entradas de histórico criadas
-    // por scripts antes de qualquer ativação humana (History Manipulation
-    // Intervention). O botão manual funcionava justamente porque fornecia essa
-    // ativação. A 1.200.42 reutiliza o primeiro toque normal no próprio CAD.
-    const ok=await forceDesignLabServerRefresh({automatic:true,reason,gesture:true});
-    if(ok)designLabGestureRecoveryReady=true;
-    return ok;
-  }finally{
-    setTimeout(()=>{designLabAutoRecoveryInFlight=false;},1200);
-  }
-}
-function designLabForgetGestureRecovery(){
-  // 1.200.48: não desarma a sessão ao ir para segundo plano.
-  return false;
-}
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
@@ -1523,14 +1474,10 @@ async function syncCloudPreferences({silent=true,allowReload=true}={}){
     }
     const changed=applyCloudPreferences(data.settings||{},data.revision);
     cloudPreferencesUpdatedAt=data.updated_at||null;
-    if(changed&&allowReload){
-      const stamp=cloudPreferencesReloadStamp(data.revision);
-      if(sessionStorage.getItem('designlabCloudPrefsReloadStamp')!==stamp){
-        sessionStorage.setItem('designlabCloudPrefsReloadStamp',stamp);
-        setTimeout(()=>location.reload(),0);
-        return {ok:true,changed:true,reloading:true};
-      }
-    }
+    // 1.200.65: nunca recarrega a página só porque preferências da conta mudaram.
+    // No Android isso podia zerar a pilha de navegação e fazer o Voltar fechar o
+    // PWA. As preferências ficam salvas imediatamente e valem integralmente na
+    // próxima abertura; as telas abertas continuam estáveis nesta sessão.
     if(!silent)toast(changed?'Configurações da conta carregadas':'Configurações da conta sincronizadas');
     return {ok:true,changed,reloading:false};
   }catch(err){
@@ -1565,7 +1512,11 @@ async function syncCloudAccount({silent=false}={}){
       return data;
     }
 
-    const prefSync=await syncCloudPreferences({silent:true,allowReload:true});
+    // 1.200.65: sincronização da conta não pode recarregar o documento por baixo
+    // do usuário. Reload automático derrubava o estado de navegação/Voltar em
+    // alguns PWAs Android. As preferências são gravadas localmente e o runtime
+    // continua; o próximo acesso já parte delas sem precisar sincronizar servidor.
+    const prefSync=await syncCloudPreferences({silent:true,allowReload:false});
     if(prefSync?.reloading)return data;
     await syncCloudProjects({silent:true});
     if(document.body.classList.contains('project-home-active'))await renderProjectHome();
@@ -2185,6 +2136,7 @@ async function loadProjectRecord(record,{useDraft=false,presentation=true}={}){
     if(!restored&&objects.length)frameFurnitureVisual();
     $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   }
+  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();}catch(_){ }
   setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 function enterProjectEditor(){
@@ -2193,6 +2145,7 @@ function enterProjectEditor(){
   applyProjectPresentationScene(false);
   $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   updateProjectChrome();
+  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();}catch(_){ }
   setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 async function renderProjectHome(){
@@ -3436,17 +3389,16 @@ const container = $('canvas-container');
 // 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
-const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV2';
+const DESIGNLAB_APP_THEME_USER_CHOICE_KEY='designLabAppThemeUserChoiceV1';
 let designLabAppTheme='light';
 try{
-  // 1.200.62: instalações antigas podiam carregar para sempre o `dark` salvo
-  // quando o tema escuro ainda era o padrão. Fazemos UMA migração para o
-  // Clássico claro. Depois dela, qualquer escolha manual do usuário é respeitada.
-  if(localStorage.getItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY)!=='1'){
-    localStorage.setItem(DESIGNLAB_APP_THEME_KEY,'light');
-    localStorage.setItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY,'1');
-  }
-  designLabAppTheme=localStorage.getItem(DESIGNLAB_APP_THEME_KEY)==='dark'?'dark':'light';
+  // 1.200.65: `dark` gravado por builds antigos não vale como escolha do usuário.
+  // Só aceitamos o escuro quando o novo marcador de escolha explícita diz dark.
+  // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
+  // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
+  const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
+  designLabAppTheme=explicit==='dark'?'dark':'light';
+  localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
 }catch{}
 function syncDesignLabThemeButtons(){
   document.querySelectorAll('[data-app-theme-choice]').forEach(btn=>{
@@ -3477,7 +3429,7 @@ function applyDesignLabAppTheme(theme,{persist=true,notify=false}={}){
   if(supported)supported.setAttribute('content','light');
 
   syncDesignLabThemeButtons();
-  if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);localStorage.setItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY,'1');}catch{}}
+  if(persist){try{localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);localStorage.setItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY,designLabAppTheme);}catch{}}
   if(notify)toast(designLabAppTheme==='dark'?'Modo escuro ativado':'Layout clássico claro ativado');
 }
 applyDesignLabAppTheme(designLabAppTheme,{persist:false,notify:false});
@@ -18554,10 +18506,10 @@ function designLabInstallBackFence({trusted=false}={}){
     if(!trusted)return false;
     const st=window.history.state||{};
     if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.48'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.48'},'',location.href);
+      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.65'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.65'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.65'},'',location.href);
+      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.65'},'',location.href);
     }
     return true;
   }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
@@ -18615,7 +18567,7 @@ window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);p
 // bootstrap automático do servidor, sem o usuário precisar tocar em botão.
 setTimeout(()=>{
   try{
-    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server','_serverRecovered','_gestureRecovered'];let changed=false;
+    const u=new URL(location.href),keys=['_bootFresh','_refresh','_dlv','_server'];let changed=false;
     for(const k of keys)if(u.searchParams.has(k)){u.searchParams.delete(k);changed=true;}
     if(changed)window.history.replaceState(window.history.state||{},'',u.pathname+(u.search||'')+(u.hash||''));
   }catch(_){}
@@ -18641,34 +18593,21 @@ window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate
 window.addEventListener('offline',updateCacheStatusUI);
 
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){
-    designLabWasHidden=true;
-    designLabForgetGestureRecovery();
-    return;
-  }
+  if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
     // Ao retomar o PWA, a pilha nativa pode ter sido descartada pelo Android.
     // Recria a cerca imediatamente; o próximo toque ainda reforça dentro do gesto.
-    try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
+    try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
     designLabArmBackGuard();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
   }
 });
-window.addEventListener('pagehide',()=>{designLabWasHidden=true;designLabForgetGestureRecovery();},{capture:true});
 window.addEventListener('pageshow',()=>{
-  try{window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
+  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
   designLabArmBackGuard();
   checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
 });
 
-// A ação normal do usuário acontece primeiro. Em seguida, ainda dentro da janela
-// de ativação humana do Chrome, fazemos a recuperação equivalente ao botão de
-// Configurações. Não é necessário abrir Configurações nem procurar o botão.
-function designLabGestureServerRecovery(){
-  // 1.200.47: desativado para nunca tirar o usuário do projeto ao abrir/retomar.
-  // O recarregamento do servidor permanece disponível somente em Configurações.
-  return false;
-}
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
 designLabArmBackGuard();
 setFrontWorldView();
