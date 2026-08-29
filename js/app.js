@@ -1,7 +1,6 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { qrSvg } from './qr-local.js';
 
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
@@ -35,6 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
+window.__DESIGNLAB_APP_BOOTED='1.200.64-r1';
 
 
 // ============================================================================
@@ -115,9 +115,24 @@ function ensurePremiumAccessPanel(){
 function hidePremiumAccessPanel(){ $('authPremiumPanel')?.classList.remove('show'); }
 
 // ============================================================================
-// 1.200.63 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
+// 1.200.64 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
 // ============================================================================
 let premiumPurchaseState={payment:null,busy:false};
+let premiumQrModulePromise=null;
+async function premiumRenderQr(code){
+  const holder=$('premiumPixQr');if(!holder)return;
+  holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
+  try{
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.64-r1');
+    const mod=await premiumQrModulePromise;
+    if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
+      holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
+    }
+  }catch(err){
+    console.error('QR PIX:',err);
+    if(holder)holder.innerHTML='<div style="padding:20px;color:#a33;text-align:center">Não foi possível montar o QR Code. Use o PIX copia e cola abaixo.</div>';
+  }
+}
 function premiumMoney(cents){return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function premiumPurchaseSetStatus(message='',tone=''){
   const el=$('premiumPurchaseStatus');if(!el)return;
@@ -134,8 +149,7 @@ function renderPremiumPurchase(payment){
   $('premiumPurchasePrice').textContent=premiumMoney(payment.amount_cents);
   $('premiumPurchaseDays').textContent=`${Number(payment.days_purchased||30)} dias de acesso Premium`;
   $('premiumPixCode').value=String(payment.pix_copy_paste||'');
-  try{$('premiumPixQr').innerHTML=qrSvg(payment.pix_copy_paste,{size:260,margin:4,errorLevel:'M'});}
-  catch(err){$('premiumPixQr').innerHTML='<div style="padding:20px;color:#a33;text-align:center">Não foi possível montar o QR Code.</div>';console.error('QR PIX:',err);}
+  premiumRenderQr(payment.pix_copy_paste);
   const status=String(payment.status||'pending');
   if(payment.reported_paid)premiumPurchaseSetStatus('Pagamento informado. Aguardando conferência do administrador.','warn');
   else if(status==='paid')premiumPurchaseSetStatus('Pagamento aprovado. Liberando o Premium…','good');
@@ -672,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.63';
+  return tm?.[1]||'1.200.64';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.63-r1';
+const DESIGNLAB_JS_BUILD='1.200.64-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -18379,12 +18393,12 @@ $('adminUsersTabBtn').onclick=async()=>{adminSetTab('users');await refreshAdminP
 $('adminPaymentsTabBtn').onclick=async()=>{adminSetTab('payments');await refreshAdminPanel();};
 $('adminSettingsTabBtn').onclick=async()=>{adminSetTab('settings');await refreshAdminPanel();};
 $('adminSaveSettingsBtn').onclick=saveAdminSettings;
-$('adminSavePaymentSettingsBtn').onclick=saveAdminSettings;
-$('premiumPurchaseClose').onclick=closePremiumPurchase;
-$('premiumPurchaseDialog').addEventListener('pointerdown',e=>{if(e.target===$('premiumPurchaseDialog'))closePremiumPurchase();});
-$('premiumPixCopyBtn').onclick=copyPremiumPix;
-$('premiumPixPaidBtn').onclick=markPremiumPaymentPaid;
-$('premiumPixVerifyBtn').onclick=verifyPremiumPayment;
+$('adminSavePaymentSettingsBtn')?.addEventListener('click',saveAdminSettings);
+$('premiumPurchaseClose')?.addEventListener('click',closePremiumPurchase);
+$('premiumPurchaseDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('premiumPurchaseDialog'))closePremiumPurchase();});
+$('premiumPixCopyBtn')?.addEventListener('click',copyPremiumPix);
+$('premiumPixPaidBtn')?.addEventListener('click',markPremiumPaymentPaid);
+$('premiumPixVerifyBtn')?.addEventListener('click',verifyPremiumPayment);
 $('adminRefreshBtn').onclick=refreshAdminPanel;
 $('adminUserSearchBtn').onclick=async()=>{adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();};
 $('adminUserSearch').addEventListener('keydown',async e=>{if(e.key==='Enter'){e.preventDefault();adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();}});
