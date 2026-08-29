@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { qrSvg } from './qr-local.js';
 
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
@@ -72,12 +73,14 @@ let currentIdentityUser=null;
 let authLocalMode=false;
 let authInitialized=false;
 let authWidgetEventsBound=false;
+let premiumAccessCheckSerial=0;
+let premiumAccessExpiryTimer=null;
+let premiumAccessRecheckTimer=null;
+const PREMIUM_ACCESS_RECHECK_MS=5*60*1000;
 
-function isLocalAuthDevelopment(){
-  const protocol=String(location.protocol||'').toLowerCase();
-  const host=String(location.hostname||'').toLowerCase();
-  return protocol==='file:' || protocol==='content:' || host==='localhost' || host==='127.0.0.1';
-}
+// 1.200.60: a versão comercial não possui bypass local.
+// Desenvolvimento/login devem ser testados no endereço HTTPS publicado.
+function isLocalAuthDevelopment(){ return false; }
 function authUserName(user){
   const meta=user?.user_metadata||{};
   const full=String(meta.full_name||meta.name||'').trim();
@@ -94,6 +97,182 @@ function setAuthStatus(message,tone=''){
   const el=$('authStatus');if(!el)return;
   el.textContent=message;
   el.className='authStatus'+(tone?` ${tone}`:'');
+}
+function ensurePremiumAccessPanel(){
+  let panel=$('authPremiumPanel');
+  if(panel)return panel;
+  panel=document.createElement('div');
+  panel.id='authPremiumPanel';
+  panel.className='authBannedPanel';
+  panel.innerHTML=`<strong id="authPremiumTitle">Premium necessário</strong><p id="authPremiumMessage">Verificando sua assinatura…</p><button id="authPremiumBuy" type="button">💎 Comprar Premium</button><button id="authPremiumRetry" class="secondary" type="button">↻ Verificar acesso</button><button id="authPremiumLogout" class="secondary" type="button">Sair desta conta</button>`;
+  const body=document.querySelector('#authGate .authBody');
+  if(body){const status=$('authStatus');status?body.insertBefore(panel,status):body.appendChild(panel);}
+  $('authPremiumBuy')?.addEventListener('click',()=>openPremiumPurchase());
+  $('authPremiumRetry')?.addEventListener('click',()=>verifyPremiumWorkspaceAccess({message:'Acesso Premium confirmado.'}));
+  $('authPremiumLogout')?.addEventListener('click',()=>logoutOnlineIdentity());
+  return panel;
+}
+function hidePremiumAccessPanel(){ $('authPremiumPanel')?.classList.remove('show'); }
+
+// ============================================================================
+// 1.200.63 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
+// ============================================================================
+let premiumPurchaseState={payment:null,busy:false};
+function premiumMoney(cents){return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function premiumPurchaseSetStatus(message='',tone=''){
+  const el=$('premiumPurchaseStatus');if(!el)return;
+  el.textContent=message;el.className='premiumPurchaseStatus'+(tone?` ${tone}`:'');
+}
+function closePremiumPurchase(){
+  const dlg=$('premiumPurchaseDialog');if(dlg){dlg.classList.remove('show');dlg.setAttribute('aria-hidden','true');}
+}
+function renderPremiumPurchase(payment){
+  if(!payment)return;
+  premiumPurchaseState.payment=payment;
+  $('premiumPurchaseLoading').style.display='none';
+  $('premiumPurchaseContent').style.display='block';
+  $('premiumPurchasePrice').textContent=premiumMoney(payment.amount_cents);
+  $('premiumPurchaseDays').textContent=`${Number(payment.days_purchased||30)} dias de acesso Premium`;
+  $('premiumPixCode').value=String(payment.pix_copy_paste||'');
+  try{$('premiumPixQr').innerHTML=qrSvg(payment.pix_copy_paste,{size:260,margin:4,errorLevel:'M'});}
+  catch(err){$('premiumPixQr').innerHTML='<div style="padding:20px;color:#a33;text-align:center">Não foi possível montar o QR Code.</div>';console.error('QR PIX:',err);}
+  const status=String(payment.status||'pending');
+  if(payment.reported_paid)premiumPurchaseSetStatus('Pagamento informado. Aguardando conferência do administrador.','warn');
+  else if(status==='paid')premiumPurchaseSetStatus('Pagamento aprovado. Liberando o Premium…','good');
+  else premiumPurchaseSetStatus('Escaneie o QR Code ou copie o código PIX. Depois toque em “Já fiz o pagamento”.','');
+}
+async function openPremiumPurchase(){
+  if(!currentIdentityUser){setAuthStatus('Entre na conta antes de comprar o Premium.','warn');return;}
+  const dlg=$('premiumPurchaseDialog');if(!dlg)return;
+  dlg.classList.add('show');dlg.setAttribute('aria-hidden','false');
+  $('premiumPurchaseLoading').style.display='block';
+  $('premiumPurchaseContent').style.display='none';
+  $('premiumPurchaseLoading').textContent='Gerando seu PIX…';
+  premiumPurchaseSetStatus('');
+  premiumPurchaseState.payment=null;
+  try{
+    const data=await cloudApiFetch('/payments/pix',{method:'POST',body:{},timeoutMs:20000});
+    renderPremiumPurchase(data?.payment);
+  }catch(err){
+    console.error('Comprar Premium:',err);
+    $('premiumPurchaseLoading').textContent=err?.data?.error==='pix_not_configured'
+      ?'O PIX ainda não foi configurado pelo administrador.'
+      :(err.message||'Não foi possível gerar o PIX agora.');
+    premiumPurchaseSetStatus('Você pode fechar esta janela e tentar novamente depois.','error');
+  }
+}
+async function copyPremiumPix(){
+  const code=String($('premiumPixCode')?.value||'');if(!code)return;
+  try{
+    if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(code);
+    else{const ta=$('premiumPixCode');ta.focus();ta.select();document.execCommand('copy');}
+    premiumPurchaseSetStatus('Código PIX copiado.','good');
+  }catch{premiumPurchaseSetStatus('Não foi possível copiar automaticamente. Selecione o código e copie manualmente.','error');}
+}
+async function markPremiumPaymentPaid(){
+  const payment=premiumPurchaseState.payment;if(!payment?.id||premiumPurchaseState.busy)return;
+  premiumPurchaseState.busy=true;
+  premiumPurchaseSetStatus('Registrando que você fez o pagamento…');
+  try{
+    const data=await cloudApiFetch(`/payments/${encodeURIComponent(payment.id)}/paid`,{method:'POST',body:{},timeoutMs:15000});
+    payment.status=data?.status||'pending';payment.reported_paid=!!data?.reported_paid;
+    renderPremiumPurchase(payment);
+  }catch(err){premiumPurchaseSetStatus(err.message||'Não foi possível registrar o pagamento.','error');}
+  finally{premiumPurchaseState.busy=false;}
+}
+async function verifyPremiumPayment(){
+  const payment=premiumPurchaseState.payment;if(!payment?.id||premiumPurchaseState.busy)return;
+  premiumPurchaseState.busy=true;premiumPurchaseSetStatus('Verificando pagamento e acesso Premium…');
+  try{
+    const data=await cloudApiFetch(`/payments/${encodeURIComponent(payment.id)}`,{timeoutMs:15000});
+    if(data?.payment?.status==='paid'||data?.subscription?.premium_active){
+      premiumPurchaseSetStatus('Pagamento aprovado. Premium liberado!','good');
+      setTimeout(()=>closePremiumPurchase(),350);
+      await verifyPremiumWorkspaceAccess({message:'Premium liberado. Bem-vindo!'});
+    }else if(data?.payment?.status==='rejected'){
+      payment.status='rejected';premiumPurchaseSetStatus('Este pagamento foi rejeitado. Gere um novo PIX ou fale com o suporte.','error');
+    }else{
+      payment.status=data?.payment?.status||payment.status;payment.reported_paid=!!data?.payment?.reported_paid;
+      premiumPurchaseSetStatus(payment.reported_paid?'Ainda aguardando a conferência do administrador.':'Pagamento ainda não aprovado.','warn');
+    }
+  }catch(err){premiumPurchaseSetStatus(err.message||'Não foi possível verificar o pagamento.','error');}
+  finally{premiumPurchaseState.busy=false;}
+}
+
+function stopPremiumAccessWatch(){
+  clearTimeout(premiumAccessExpiryTimer);premiumAccessExpiryTimer=null;
+  clearInterval(premiumAccessRecheckTimer);premiumAccessRecheckTimer=null;
+}
+function premiumWorkspaceAllowed(data){
+  return data?.user?.role==='admin' || !!data?.subscription?.premium_active;
+}
+function premiumUntilText(subscription){
+  const raw=subscription?.premium_until;if(!raw)return '';
+  const d=new Date(raw);return Number.isNaN(d.getTime())?'':d.toLocaleString('pt-BR');
+}
+function showPremiumAccessRequired(subscription,{verificationError=false}={}){
+  if(authLocalMode)return;
+  stopPremiumAccessWatch();
+  $('authGate')?.classList.remove('hidden');
+  $('authMainActions')?.classList.add('hidden');
+  for(const id of ['authLoginForm','authSignupForm','authForgotForm'])$(id)?.classList.remove('show');
+  $('authBannedPanel')?.classList.remove('show');
+  const panel=ensurePremiumAccessPanel();panel?.classList.add('show');
+  const title=$('authPremiumTitle'),msg=$('authPremiumMessage');
+  if(verificationError){
+    if(title)title.textContent='Não foi possível verificar o Premium';
+    if(msg)msg.textContent='Confira sua internet e toque em “Verificar acesso”. A área de trabalho permanece protegida até a assinatura ser confirmada.';
+    setAuthStatus('Não foi possível validar sua assinatura.','error');
+    return;
+  }
+  const until=premiumUntilText(subscription);
+  if(title)title.textContent='Premium expirado';
+  if(msg)msg.textContent=until?`Seu acesso Premium terminou em ${until}. Renove o Premium para voltar à área de trabalho.`:'Sua conta não possui Premium ativo. Renove o Premium para acessar a área de trabalho.';
+  setAuthStatus('Acesso à área de trabalho bloqueado até a renovação do Premium.','warn');
+}
+function schedulePremiumAccessWatch(data){
+  stopPremiumAccessWatch();
+  if(data?.user?.role==='admin')return;
+  const until=Date.parse(String(data?.subscription?.premium_until||''));
+  if(Number.isFinite(until)){
+    const remaining=until-Date.now();
+    if(remaining<=0){showPremiumAccessRequired(data?.subscription||null);return;}
+    premiumAccessExpiryTimer=setTimeout(()=>verifyPremiumWorkspaceAccess({background:true}),Math.min(remaining+750,2147480000));
+  }
+  premiumAccessRecheckTimer=setInterval(()=>{
+    if(document.visibilityState==='visible'&&currentIdentityUser)verifyPremiumWorkspaceAccess({background:true});
+  },PREMIUM_ACCESS_RECHECK_MS);
+}
+async function verifyPremiumWorkspaceAccess({message='Conta conectada.',background=false}={}){
+  if(authLocalMode||!currentIdentityUser)return false;
+  const user=currentIdentityUser,serial=++premiumAccessCheckSerial;
+  if(!background){
+    hidePremiumAccessPanel();
+    $('authBannedPanel')?.classList.remove('show');
+    $('authMainActions')?.classList.add('hidden');
+    $('authGate')?.classList.remove('hidden');
+    setAuthStatus('Verificando acesso Premium…','');
+  }
+  const data=await syncCloudAccount({silent:true});
+  if(serial!==premiumAccessCheckSerial||currentIdentityUser?.id!==user?.id)return false;
+  if(cloudAccountState.banned)return false;
+  if(!data){
+    // Durante uma sessão já verificada, uma queda momentânea não derruba o CAD
+    // antes da data de expiração conhecida. Na abertura, porém, falhamos fechado.
+    const until=Date.parse(String(cloudAccountState?.subscription?.premium_until||''));
+    if(background&&cloudAccountState?.subscription?.premium_active&&Number.isFinite(until)&&until>Date.now())return true;
+    showPremiumAccessRequired(cloudAccountState?.subscription||null,{verificationError:true});
+    return false;
+  }
+  if(!premiumWorkspaceAllowed(data)){showPremiumAccessRequired(data?.subscription||null);return false;}
+  hidePremiumAccessPanel();
+  closePremiumPurchase();
+  $('authMainActions')?.classList.remove('hidden');
+  $('authGate')?.classList.add('hidden');
+  setAuthStatus(message,'good');
+  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
+  schedulePremiumAccessWatch(data);
+  return true;
 }
 function updateIdentityChrome(){
   const chip=$('projectAccountChip'),avatar=$('projectAccountAvatar'),name=$('projectAccountName'),
@@ -124,8 +303,11 @@ function updateIdentityChrome(){
   if(typeof updateProjectHomeWelcome==='function')updateProjectHomeWelcome();
 }
 function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
-  if(authLocalMode)return;
+  stopPremiumAccessWatch();premiumAccessCheckSerial++;
+  authLocalMode=false;
   currentIdentityUser=null;
+  hidePremiumAccessPanel();
+  $('authBannedPanel')?.classList.remove('show');
   updateIdentityChrome();
   $('authGate')?.classList.remove('hidden');
   showAuthInlineForm('main');
@@ -136,21 +318,14 @@ function unlockOnlineApp(user,{message='Conta conectada.'}={}){
   authLocalMode=false;
   prepareProjectAccountSwitch();
   updateIdentityChrome();
-  $('authGate')?.classList.add('hidden');
-  setAuthStatus(message,'good');
-  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
-  queueMicrotask(()=>syncCloudAccount({silent:true}));
+  $('authGate')?.classList.remove('hidden');
+  setAuthStatus('Verificando acesso Premium…','');
+  queueMicrotask(()=>verifyPremiumWorkspaceAccess({message}));
 }
 function localAuthContinue(){
-  if(!isLocalAuthDevelopment())return;
-  authLocalMode=true;
-  currentIdentityUser=null;
-  prepareProjectAccountSwitch();
-  updateIdentityChrome();
-  updateCloudAccountChrome();
-  $('authGate')?.classList.add('hidden');
-  setAuthStatus('Modo local ativo. Publique no Netlify para testar cadastro e login.','warn');
-  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
+  authLocalMode=false;
+  $('authGate')?.classList.remove('hidden');
+  setAuthStatus('Modo local desativado na versão comercial. Use o site HTTPS para entrar.','warn');
 }
 async function waitForNetlifyIdentity(timeoutMs=10000){
   const start=Date.now();
@@ -174,6 +349,7 @@ function bindIdentityEvents(client){
     try{client.close();}catch{}
   });
   client.on('logout',()=>{
+    stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
     currentIdentityUser=null;
     authLocalMode=false;
     cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
@@ -296,6 +472,7 @@ function authFriendlyError(err){
   return raw;
 }
 function showAuthInlineForm(mode='main'){
+  hidePremiumAccessPanel();
   $('authBannedPanel')?.classList.remove('show');
   const main=$('authMainActions');
   const forms={
@@ -495,10 +672,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.59';
+  return tm?.[1]||'1.200.63';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.59-r1';
+const DESIGNLAB_JS_BUILD='1.200.63-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -896,7 +1073,7 @@ async function initDesignLabServiceWorker(){
 }
 
 
-let adminPanelState={tab:'users',stats:null,users:[],payments:[],settings:{free_trial_days:15},search:'',paymentStatus:''};
+let adminPanelState={tab:'users',stats:null,users:[],payments:[],settings:{free_trial_days:15,premium_price_cents:2999,premium_days:30,payment_provider:'manual_pix',pix_key:'',pix_receiver_name:'',pix_receiver_city:''},search:'',paymentStatus:''};
 
 function adminAllowed(){
   return !!(cloudAccountState.ok && cloudAccountState.user?.role==='admin' && !cloudAccountState.user?.banned);
@@ -974,20 +1151,23 @@ function renderAdminUsers(){
 }
 function renderAdminPayments(){
   const box=$('adminPaymentsList'),rows=adminPanelState.payments||[];
-  if(!rows.length){box.innerHTML='<div class="adminEmpty">Nenhum pagamento encontrado. Quando adicionarmos a compra de dias, eles aparecerão aqui.</div>';return;}
+  if(!rows.length){box.innerHTML='<div class="adminEmpty">Nenhum pagamento encontrado.</div>';return;}
   box.innerHTML=rows.map(p=>{
-    const pending=p.status==='pending';
+    const review=p.status==='pending';
+    const statusLabel=p.status==='pending'&&Number(p.reported_paid)?'AGUARDANDO CONFERÊNCIA':String(p.status||'').toUpperCase();
+    const badgeClass=p.status==='paid'?'premium':review?'pending':'';
     return `<article class="adminPaymentCard" data-admin-payment="${escapeHtml(p.id)}">
       <div class="adminPaymentTop">
         <div><strong>${escapeHtml(p.name||p.email||'Usuário')}</strong><small>${escapeHtml(p.email||'')} · ${escapeHtml(p.id)}</small></div>
-        <div class="adminBadges"><span class="adminBadge ${p.status==='pending'?'pending':p.status==='paid'?'premium':''}">${escapeHtml(String(p.status||'').toUpperCase())}</span></div>
+        <div class="adminBadges"><span class="adminBadge ${badgeClass}">${escapeHtml(statusLabel)}</span></div>
       </div>
       <div class="adminMeta">
         <div><strong>Valor</strong>${escapeHtml(adminMoney(p.amount_cents||0))}</div>
         <div><strong>Dias</strong>${Number(p.days_purchased||0)}</div>
         <div><strong>Criado</strong>${escapeHtml(adminDate(p.created_at))}</div>
       </div>
-      ${pending?`<div class="adminActions"><button data-admin-payment-action="approve">✓ Aprovar pagamento</button><button class="danger" data-admin-payment-action="reject">Rejeitar</button></div>`:''}
+      ${p.status==='pending'&&Number(p.reported_paid)?'<div class="adminPaymentReported">✓ O usuário informou que já realizou o PIX.</div>':''}
+      ${review?`<div class="adminActions"><button data-admin-payment-action="approve">✓ Aprovar pagamento</button><button class="danger" data-admin-payment-action="reject">Rejeitar</button></div>`:''}
     </article>`;
   }).join('');
 }
@@ -996,37 +1176,44 @@ function renderAdminSettings(){
   const s=adminPanelState.settings||{};
   const days=Math.max(0,Number(s.free_trial_days??15)||0);
   $('adminFreeTrialDays').value=days;
-  $('adminTrialSettingsInfo').textContent=
-    days>0
-      ? `Novas contas recebem ${days} dia(s) de Premium grátis. O período começa na data de criação da conta no Netlify.`
-      : 'Teste grátis desativado. Novas contas começam diretamente no plano Free.';
+  $('adminTrialSettingsInfo').textContent=days>0
+    ? `Novas contas recebem ${days} dia(s) de Premium grátis. O período começa na data de criação da conta no Netlify.`
+    : 'Teste grátis desativado. Novas contas começam diretamente no plano Free.';
+  if($('adminPremiumPrice'))$('adminPremiumPrice').value=(Math.max(100,Number(s.premium_price_cents??2999)||2999)/100).toFixed(2);
+  if($('adminPremiumDays'))$('adminPremiumDays').value=Math.max(1,Number(s.premium_days??30)||30);
+  if($('adminPaymentProvider'))$('adminPaymentProvider').value=String(s.payment_provider||'manual_pix');
+  if($('adminPixKey'))$('adminPixKey').value=String(s.pix_key||'');
+  if($('adminPixReceiverName'))$('adminPixReceiverName').value=String(s.pix_receiver_name||'');
+  if($('adminPixReceiverCity'))$('adminPixReceiverCity').value=String(s.pix_receiver_city||'');
+  if($('adminPaymentSettingsInfo')){
+    const configured=!!(String(s.pix_key||'').trim()&&String(s.pix_receiver_name||'').trim()&&String(s.pix_receiver_city||'').trim());
+    $('adminPaymentSettingsInfo').textContent=configured
+      ? `PIX configurado · ${adminMoney(s.premium_price_cents||2999)} por ${Number(s.premium_days||30)} dias. Compra manual ativa.`
+      : 'PIX ainda incompleto. Informe a mesma chave, nome do recebedor e cidade usados no Contas Fácil.';
+  }
 }
 async function loadAdminSettings(){
   const d=await cloudApiFetch('/admin/settings');
-  adminPanelState.settings=d?.settings||{free_trial_days:15};
+  adminPanelState.settings=d?.settings||adminPanelState.settings;
   renderAdminSettings();
 }
 async function saveAdminSettings(){
-  const raw=Number($('adminFreeTrialDays').value);
-  const days=Math.max(0,Math.min(365,Math.trunc(Number.isFinite(raw)?raw:15)));
-  $('adminFreeTrialDays').value=days;
-  adminSetStatus('Salvando configuração do teste grátis…');
+  const trialRaw=Number($('adminFreeTrialDays')?.value),trialDays=Math.max(0,Math.min(365,Math.trunc(Number.isFinite(trialRaw)?trialRaw:15)));
+  const priceRaw=Number($('adminPremiumPrice')?.value),priceCents=Math.max(100,Math.min(999900,Math.round((Number.isFinite(priceRaw)?priceRaw:29.99)*100)));
+  const premiumDays=Math.max(1,Math.min(3650,Math.trunc(Number($('adminPremiumDays')?.value)||30)));
+  const body={
+    free_trial_days:trialDays,premium_price_cents:priceCents,premium_days:premiumDays,
+    payment_provider:String($('adminPaymentProvider')?.value||'manual_pix'),
+    pix_key:String($('adminPixKey')?.value||'').trim(),
+    pix_receiver_name:String($('adminPixReceiverName')?.value||'').trim(),
+    pix_receiver_city:String($('adminPixReceiverCity')?.value||'').trim()
+  };
+  adminSetStatus('Salvando teste grátis, Premium e PIX…');
   try{
-    const d=await cloudApiFetch('/admin/settings',{
-      method:'POST',
-      body:{free_trial_days:days}
-    });
-    adminPanelState.settings=d?.settings||{free_trial_days:days};
-    renderAdminSettings();
-    adminSetStatus(
-      days>0
-        ? `Teste grátis configurado em ${days} dia(s) para novas contas.`
-        : 'Teste grátis desativado para novas contas.',
-      'good'
-    );
-  }catch(err){
-    adminSetStatus(err.message||'Não foi possível salvar a configuração.','error');
-  }
+    const d=await cloudApiFetch('/admin/settings',{method:'POST',body});
+    adminPanelState.settings=d?.settings||body;renderAdminSettings();
+    adminSetStatus('Configurações do Premium e PIX salvas.','good');
+  }catch(err){adminSetStatus(err.message||'Não foi possível salvar as configurações.','error');}
 }
 
 async function loadAdminStats(){const d=await cloudApiFetch('/admin/stats');adminPanelState.stats=d?.stats||{};renderAdminStats();}
@@ -1357,6 +1544,13 @@ async function syncCloudAccount({silent=false}={}){
     };
     updateCloudAccountChrome();
 
+    // 1.200.60: login do Identity não é licença. Sem Premium ativo (exceto admin),
+    // não sincronizamos projetos/preferências nem liberamos a área de trabalho.
+    if(!premiumWorkspaceAllowed(data)){
+      showPremiumAccessRequired(data?.subscription||null);
+      return data;
+    }
+
     const prefSync=await syncCloudPreferences({silent:true,allowReload:true});
     if(prefSync?.reloading)return data;
     await syncCloudProjects({silent:true});
@@ -1373,8 +1567,9 @@ async function syncCloudAccount({silent=false}={}){
       return null;
     }
     cloudAccountState={
+      ...cloudAccountState,
       loading:false,ok:false,error:String(err?.message||'Não foi possível conectar à nuvem.'),
-      user:null,subscription:null,lastSync:null,banned:false
+      lastSync:cloudAccountState.lastSync||null,banned:false
     };
     updateCloudAccountChrome();
     if(!silent)toast('Login feito, mas a nuvem não respondeu');
@@ -2625,7 +2820,7 @@ function runDockTool(key){
 }
 
 // ============================================================================
-// 1.200.59 · BARRA 1.200.56 + SUBMENUS FLUTUANTES + PEÇAS DE UM TOQUE
+// 1.200.59 · BARRA INFERIOR VISUAL 1.200.56 + SUBMENUS FLUTUANTES
 // ============================================================================
 const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
 const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
@@ -2745,9 +2940,9 @@ function ensureQuickDockSubmenu(){
   p=document.createElement('div');p.id='quickDockSubmenu';p.setAttribute('role','menu');p.setAttribute('aria-label','Submenu de atalhos');
   const h=document.createElement('div');h.className='quickDockSubmenuHeader';
   const title=document.createElement('b');title.id='quickDockSubmenuTitle';
-  const hint=document.createElement('span');hint.textContent='toque cria · segure para opções';h.append(title,hint);
+  const hint=document.createElement('span');hint.id='quickDockSubmenuHint';hint.textContent='toque em uma opção';h.append(title,hint);
   const tools=document.createElement('div');tools.id='quickDockSubmenuTools';
-  // 1.200.58: o submenu fica fora do flex da barra. Assim a barra conserva
+  // 1.200.59: o submenu fica fora do flex da barra. Assim a barra conserva
   // exatamente as dimensões/visual da 1.200.56 e o submenu apenas flutua acima.
   p.append(h,tools);document.body.appendChild(p);return p;
 }
@@ -2756,103 +2951,69 @@ function closeQuickDockSubmenu(){
   quickDockSubmenuKey=null;
   document.querySelectorAll('#quickDockTools .quickDockTool.submenu-open').forEach(b=>b.classList.remove('submenu-open'));
 }
-function quickDockPieceSvg(kind){
-  // 1.200.59 · ícones vetoriais próprios. Nada de imagem raster/"quadrado azul" improvisado:
-  // cada peça usa o mesmo cubo isométrico e destaca exatamente a face correspondente.
-  const faces={
-    left:'<polygon class="quickPieceFace" points="8,18 31,30 31,56 8,44"/>',
-    right:'<polygon class="quickPieceFace" points="31,30 56,18 56,44 31,56"/>',
-    base:'<polygon class="quickPieceFace" points="8,44 31,56 56,44 31,32"/>',
-    top:'<polygon class="quickPieceFace" points="8,18 31,6 56,18 31,30"/>',
-    front:'<polygon class="quickPieceFace quickPieceFaceFront" points="14,23 36,31 36,53 14,45"/>',
-    back:'<polygon class="quickPieceFace quickPieceFaceBack" points="28,12 50,21 50,43 28,34"/>',
-    shelf:'<polygon class="quickPieceFace" points="8,33 31,45 56,33 31,22"/>',
-    division:'<polygon class="quickPieceFace" points="27,9 36,14 36,50 27,45"/>'
-  };
-  return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-    <g class="quickPieceWire">
-      <path d="M31 6 8 18v26l23 12 25-12V18L31 6Z"/>
-      <path d="M8 18 31 30 56 18M31 6v24M31 30v26"/>
-    </g>
-    ${faces[kind]||''}
-    <g class="quickPieceWire quickPieceWireTop">
-      <path d="M31 6 8 18v26l23 12 25-12V18L31 6Z"/>
-      <path d="M8 18 31 30 56 18M31 6v24M31 30v26"/>
-    </g>
-  </svg>`;
-}
 function quickDockPieceIcon(kind){
-  const w=document.createElement('span');
-  w.className=`quickSubPieceIcon quickSubPiece-${kind}`;
-  w.innerHTML=quickDockPieceSvg(kind);
+  const w=document.createElement('span');w.className='quickSubPieceIconSvg';w.setAttribute('aria-hidden','true');
+  const faces={
+    left:'10,18 32,30 32,56 10,44',
+    right:'32,30 54,18 54,44 32,56',
+    base:'10,43 32,55 54,43 32,31',
+    top:'32,6 54,18 32,30 10,18',
+    front:'13,22 44,22 44,49 13,49',
+    back:'20,14 49,22 49,46 20,38',
+    shelf:'10,31 32,43 54,31 32,19',
+    division:'27,14 37,20 37,48 27,42'
+  };
+  const fill=faces[kind]||faces.left;
+  w.innerHTML=`<svg viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+    <defs><linearGradient id="qdp-${kind}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#62d8ff"/><stop offset="1" stop-color="#0879d8"/></linearGradient></defs>
+    <polygon class="quickPieceFace" points="${fill}" fill="url(#qdp-${kind})"/>
+    <path class="quickPieceWire" d="M32 6 54 18 54 44 32 56 10 44 10 18 32 6Zm0 24L10 18m22 12 22-12m-22 12v26"/>
+    ${kind==='shelf'?'<path class="quickPieceAccent" d="M10 31 32 43 54 31"/>':''}
+    ${kind==='division'?'<path class="quickPieceAccent" d="M32 7v49"/>':''}
+  </svg>`;
   return w;
 }
-function quickDockOpenPieceType(type){
-  // Segurar = fluxo completo, com todas as opções/configurações já existentes.
-  closeQuickDockSubmenu();
-  if(!dockEnsureSpace(true))return;
+function quickDockPreparePieceType(type){
+  if(!dockEnsureSpace(true))return null;
   closeToolDockBeforeMenu();
-  const opener=$('createPiecesBtn');if(!opener){toast('Criar peças indisponível');return;}
+  const opener=$('createPiecesBtn');if(!opener){toast('Criar peças indisponível');return null;}
   opener.click();
   const b=document.querySelector(`[data-piece-type="${type}"]`);
   if(b)selectPieceCreateTypeButton(b);
+  return b||null;
 }
-function quickDockCreatePieceDirect(type){
-  // Toque simples = cria imediatamente usando os valores rápidos atuais/salvos.
-  // O diálogo não chega a abrir, por isso o fluxo fica realmente de um toque.
+function quickDockOpenPieceType(type){
   closeQuickDockSubmenu();
-  if(!dockEnsureSpace(true))return false;
-  const b=document.querySelector(`[data-piece-type="${type}"]`);
-  if(b)selectPieceCreateTypeButton(b);else pieceCreateType=type||'left';
-  try{
-    const root=selectedSpaceCell?getSpaceRoot(selectedSpaceCell.rootId):null;
-    if(root)applySavedPieceThickness(root);
-    updateCreatePiecesUI();
-    if(createPiecesInSelectedCell()){
-      savePieceThicknessPreference({silent:true});
-      return true;
-    }
-  }catch(err){
-    console.error('Criar peça rápida:',err);
-    toast('Erro ao criar peça: '+(err?.message||err));
-  }
-  return false;
+  quickDockPreparePieceType(type);
 }
-const QUICK_PIECE_HOLD_MS=520;
-function bindQuickDockPieceGesture(button,item){
-  let timer=null,held=false,startX=0,startY=0,pointerId=null;
-  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}button.classList.remove('holding');};
+function quickDockDirectCreatePieceType(type){
+  closeQuickDockSubmenu();
+  const b=quickDockPreparePieceType(type);
+  if(!b)return;
+  quickCreatePieceFromTypeButton(b);
+}
+function bindQuickDockPieceSubTool(button,item){
+  let holdTimer=0,longPress=false;
+  const clearHold=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=0;}};
   button.addEventListener('pointerdown',e=>{
-    if(e.button!=null&&e.button!==0)return;
-    e.stopPropagation();held=false;pointerId=e.pointerId;startX=e.clientX;startY=e.clientY;
-    button.classList.add('holding');
-    timer=setTimeout(()=>{
-      timer=null;held=true;button.classList.remove('holding');
-      try{navigator.vibrate?.(18);}catch{}
-      quickDockOpenPieceType(item.pieceType);
-    },QUICK_PIECE_HOLD_MS);
-  });
-  button.addEventListener('pointermove',e=>{
-    if(pointerId!==e.pointerId)return;
-    if(Math.hypot(e.clientX-startX,e.clientY-startY)>14)clear();
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.stopPropagation();longPress=false;clearHold();
+    holdTimer=setTimeout(()=>{holdTimer=0;longPress=true;quickDockOpenPieceType(item.pieceType);},520);
   });
   button.addEventListener('pointerup',e=>{
-    if(pointerId!==e.pointerId)return;
-    e.stopPropagation();const wasHeld=held;clear();pointerId=null;
-    if(!wasHeld)quickDockCreatePieceDirect(item.pieceType);
+    e.stopPropagation();const wasLong=longPress;clearHold();
+    if(!wasLong)quickDockDirectCreatePieceType(item.pieceType);
+    longPress=false;
   });
-  button.addEventListener('pointercancel',()=>{clear();pointerId=null;held=false;});
+  button.addEventListener('pointercancel',()=>{clearHold();longPress=false;});
+  button.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')clearHold();});
   button.addEventListener('contextmenu',e=>e.preventDefault());
-  // Enter/Espaço continuam acessíveis como criação direta.
-  button.addEventListener('keydown',e=>{
-    if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();quickDockCreatePieceDirect(item.pieceType);}
-  });
-  // Evita o click sintético posterior ao pointerup disparar outra ação.
-  button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});
+  // Teclado/acessibilidade: Enter/Espaço equivalem ao toque simples.
+  button.addEventListener('click',e=>{if(e.detail===0){e.stopPropagation();quickDockDirectCreatePieceType(item.pieceType);}});
 }
 function runQuickDockSubItem(item){
   if(!item)return;
-  if(item.pieceType){quickDockCreatePieceDirect(item.pieceType);return;}
+  if(item.pieceType){quickDockDirectCreatePieceType(item.pieceType);return;}
   closeQuickDockSubmenu();
   if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}
   if(item.tool)runDockTool(item.tool);
@@ -2863,6 +3024,7 @@ function openQuickDockSubmenu(key,anchor=null){
   if(quickDockSubmenuKey===key&&p.classList.contains('show')){closeQuickDockSubmenu();return true;}
   quickDockSubmenuKey=key;
   const title=$('quickDockSubmenuTitle');if(title)title.textContent=def.title;
+  const hint=$('quickDockSubmenuHint');if(hint)hint.textContent=def.kind==='pieces'?'toque cria · segure para opções':'toque em uma opção';
   const box=$('quickDockSubmenuTools');if(!box)return false;
   box.innerHTML='';box.style.setProperty('--quick-sub-count',String(Math.max(1,Math.min(8,def.items.length))));
   def.items.forEach(item=>{
@@ -2872,9 +3034,8 @@ function openQuickDockSubmenu(key,anchor=null){
     const txt=document.createElement('span');txt.className='quickDockSubText';txt.textContent=item.label;
     b.append(icon,txt);
     if(item.pieceType){
-      b.title=`${item.label} · toque cria direto · segure para opções`;
-      b.setAttribute('aria-label',`${item.label}. Toque para criar. Segure para abrir opções.`);
-      bindQuickDockPieceGesture(b,item);
+      b.title=`${item.label} · toque cria · segure para opções`;
+      bindQuickDockPieceSubTool(b,item);
     }else{
       b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});
     }
