@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.64",
+  "version": "1.200.65",
   "required": false,
-  "message": "Correção do travamento em Preparando autenticação: QR Code do Premium passou a carregar somente ao abrir a compra, bindings PIX são tolerantes a cache misto e o pacote de publicação foi limpo para conter apenas arquivos necessários.",
-  "released_at": "2026-08-29T16:47:00-03:00",
-  "build": "1.200.64-r1"
+  "message": "Correção de tema e Voltar Android: instalações antigas entram no Clássico claro salvo quando não existe escolha explícita; CloseWatcher passa a tratar o Voltar da plataforma sem depender de sincronização, com History API apenas como fallback.",
+  "released_at": "2026-08-29T17:52:00-03:00",
+  "build": "1.200.65-r1"
 }
