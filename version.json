@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.61",
+  "version": "1.200.63",
   "required": false,
-  "message": "Correção de tema no PWA instalado: migração única de instalações antigas para o Clássico claro, mantendo a escolha manual depois disso.",
-  "released_at": "2026-08-29T13:05:00-03:00",
-  "build": "1.200.61-r1"
+  "message": "Compra do Premium via PIX manual: botão no bloqueio Premium, QR Code local, copia e cola, aviso de pagamento, aprovação pelo painel administrativo e configurações de preço/PIX preparadas para provedor automático futuro.",
+  "released_at": "2026-08-29T15:30:00-03:00",
+  "build": "1.200.63-r1"
 }

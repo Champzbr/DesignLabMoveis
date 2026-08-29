@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.61-r1">
+<meta name="designlab-build" content="1.200.63-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.61-r1';
+  const BUILD='1.200.63-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -22,8 +22,8 @@
   'use strict';
   try{
     const THEME_KEY='designLabAppThemeV2';
-    const MIGRATION_KEY='designLabAppThemeLightDefaultV1';
-    // 1.200.61: instalações antigas podem ter preservado o modo escuro que era
+    const MIGRATION_KEY='designLabAppThemeLightDefaultV2';
+    // 1.200.63: instalações antigas podem ter preservado o modo escuro que era
     // padrão em builds anteriores. Migra UMA vez para o Clássico claro.
     if(localStorage.getItem(MIGRATION_KEY)!=='1'){
       localStorage.setItem(THEME_KEY,'light');
@@ -46,7 +46,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.61: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.63: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -64,7 +64,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.61 · VOLTAR ANDROID SEM DEPENDER DO SERVIDOR
+  // 1.200.63 · VOLTAR ANDROID SEM DEPENDER DO SERVIDOR
   const KEY='__designLabBackFenceStableV1';
   const MAX_LEVEL=3;
   let restoring=false;
@@ -84,7 +84,7 @@
   }
   function state(kind,level){
     const st=Object.assign({},window.history.state||{});
-    st[KEY]=true;st.kind=kind;st.level=level;st.version='1.200.61';
+    st[KEY]=true;st.kind=kind;st.level=level;st.version='1.200.63';
     return st;
   }
   function hasRealActivation(){
@@ -178,17 +178,17 @@
 <link rel="preconnect" href="https://identity.netlify.com" crossorigin>
 <link rel="dns-prefetch" href="//identity.netlify.com">
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.61 - tema claro em instalações antigas</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.61-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.61-r1">
+<title>DesignLabMoveis 1.200.63 - Comprar Premium via PIX</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.63-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.63-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -200,7 +200,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.61</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.63</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -284,6 +284,34 @@
   </div>
 </div>
 
+<div id="premiumPurchaseDialog" class="premiumPurchaseDialog" aria-hidden="true">
+  <div class="premiumPurchaseCard" role="dialog" aria-modal="true" aria-labelledby="premiumPurchaseTitle">
+    <div class="premiumPurchaseHead">
+      <div>
+        <strong id="premiumPurchaseTitle">💎 Comprar Premium</strong>
+        <span>Pagamento via PIX · liberação após confirmação</span>
+      </div>
+      <button id="premiumPurchaseClose" class="secondary" type="button" aria-label="Fechar">×</button>
+    </div>
+    <div id="premiumPurchaseLoading" class="premiumPurchaseLoading">Gerando seu PIX…</div>
+    <div id="premiumPurchaseContent" class="premiumPurchaseContent" style="display:none">
+      <div class="premiumPurchaseOffer">
+        <span>DesignLabMoveis Premium</span>
+        <strong id="premiumPurchasePrice">R$ 29,99</strong>
+        <small id="premiumPurchaseDays">30 dias de acesso</small>
+      </div>
+      <div id="premiumPixQr" class="premiumPixQr" aria-label="QR Code PIX"></div>
+      <label class="premiumPixCopyLabel">PIX copia e cola
+        <textarea id="premiumPixCode" readonly rows="4"></textarea>
+      </label>
+      <button id="premiumPixCopyBtn" type="button">📋 Copiar código PIX</button>
+      <button id="premiumPixPaidBtn" class="premiumPaidBtn" type="button">✓ Já fiz o pagamento</button>
+      <button id="premiumPixVerifyBtn" class="secondary" type="button">↻ Verificar liberação</button>
+      <p class="premiumPurchaseHelp">Depois de pagar, toque em “Já fiz o pagamento”. Nesta fase a conferência é manual pelo administrador. A estrutura já fica preparada para pagamento automático no futuro.</p>
+    </div>
+    <div id="premiumPurchaseStatus" class="premiumPurchaseStatus"></div>
+  </div>
+</div>
 
 
 <div id="projectHome" aria-label="Projetos">
@@ -294,7 +322,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.61</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.63</span>
         </div>
       </div>
 
@@ -345,12 +373,6 @@
       <button id="heroOpenFile" class="homeQuickAction secondary" type="button">
         <span class="homeQuickIcon">⇧</span>
         <span class="homeQuickText"><strong>Importar</strong><span>.MCAD ou JSON</span></span>
-        <span class="homeQuickChevron">›</span>
-      </button>
-
-      <button id="homeProductionSuite" class="homeQuickAction secondary" type="button">
-        <span class="homeQuickIcon">✓</span>
-        <span class="homeQuickText"><strong>Produção</strong><span>Verificar, pacote, histórico e montagem</span></span>
         <span class="homeQuickChevron">›</span>
       </button>
 
@@ -597,7 +619,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.61</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.63</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -623,7 +645,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.61</strong>
+        <strong id="updateCurrentVersion">1.200.63</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -666,7 +688,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.61 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.63 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -945,7 +967,7 @@
       <div class="adminToolbar">
         <select id="adminPaymentFilter">
           <option value="">Todos os pagamentos</option>
-          <option value="pending">Pendentes</option>
+          <option value="pending">Gerados / pendentes</option>
           <option value="paid">Pagos</option>
           <option value="rejected">Rejeitados</option>
         </select>
@@ -972,6 +994,37 @@
 
         <div id="adminTrialSettingsInfo" class="trialInfoBox">
           Padrão atual: 15 dias. Use 0 para desativar o teste grátis.
+        </div>
+      </div>
+
+      <div class="adminSettingsCard adminPaymentSettingsCard">
+        <h4>💳 Compra do Premium · PIX</h4>
+        <p>Configure o PIX manual usado para vender o Premium. Você pode colocar aqui a mesma chave PIX do Contas Fácil. O fluxo foi separado por provedor para permitir Mercado Pago ou outra instituição futuramente.</p>
+        <div class="adminPaymentSettingsGrid">
+          <label>Preço do Premium (R$)
+            <input id="adminPremiumPrice" type="number" min="1" max="9999" step="0.01" value="29.99">
+          </label>
+          <label>Dias liberados por compra
+            <input id="adminPremiumDays" type="number" min="1" max="3650" step="1" value="30">
+          </label>
+          <label>Provedor atual
+            <select id="adminPaymentProvider">
+              <option value="manual_pix">PIX manual</option>
+            </select>
+          </label>
+          <label>Chave PIX
+            <input id="adminPixKey" type="text" autocomplete="off" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória">
+          </label>
+          <label>Nome do recebedor
+            <input id="adminPixReceiverName" type="text" maxlength="60" placeholder="Nome do titular do PIX">
+          </label>
+          <label>Cidade do recebedor
+            <input id="adminPixReceiverCity" type="text" maxlength="40" placeholder="Ex.: SAO PAULO">
+          </label>
+        </div>
+        <button id="adminSavePaymentSettingsBtn" type="button">Salvar Premium e PIX</button>
+        <div id="adminPaymentSettingsInfo" class="trialInfoBox">
+          O QR Code só fica disponível aos clientes depois de configurar chave, nome e cidade.
         </div>
       </div>
     </section>
@@ -1520,7 +1573,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.61</span>
+      <span class="cutPlanBadge">1.200.63</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2455,7 +2508,7 @@
   </div>
 </div>
 
-<!-- 1.200.61 · barra original preservada + submenus flutuantes -->
+<!-- 1.200.63 · barra original preservada + submenus flutuantes -->
 <div id="quickDock" aria-label="Barra de atalhos rápidos do CAD">
   <div id="quickDockTools"></div>
   <button id="quickDockSwap" class="secondary" type="button" aria-label="Trocar página de atalhos" title="Trocar atalhos">⇄</button>
@@ -2488,6 +2541,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.61-r1"></script>
+<script type="module" src="js/app.js?v=1.200.63-r1"></script>
 </body>
 </html>
