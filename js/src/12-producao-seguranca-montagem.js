@@ -477,5 +477,5 @@ window.designLabProductionSuite={
   autosave:()=>dlCommitProjectAutosave({reason:'Autosave solicitado',force:true})
 };
 
-// 1.200.55 · a barra inferior nasce depois que o catálogo recebeu Produção/Montagem.
+// 1.200.56 · a barra inferior nasce depois que o catálogo recebeu Produção/Montagem.
 try{initQuickDock();}catch(err){console.warn('Barra rápida:',err);}

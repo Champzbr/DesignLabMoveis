@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.55';
+  return tm?.[1]||'1.200.56';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.55-r1';
+const DESIGNLAB_JS_BUILD='1.200.56-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1198,7 +1198,7 @@ async function cloudApiFetch(path,{method='GET',body=null,timeoutMs=12000}={}){
 // somente preferências/configurações do DesignLabMoveis no D1, por usuário.
 // Configurações antigas do aparelho são aproveitadas no primeiro sincronismo.
 const CLOUD_PREFERENCES_EXACT_KEYS=new Set([
-  'miniCadToolDockPrefsV62','miniCadToolDockPrefsV61','miniCadToolDockPosV61','designLabQuickDockV1',
+  'miniCadToolDockPrefsV62','miniCadToolDockPrefsV61','miniCadToolDockPosV61','designLabQuickDockV2','designLabQuickDockV1',
   'designLabSpaceActionsPosV1','designLabPieceInspectorPosV1',
   'miniCadProCadBackgroundV2','miniCadProCadGridVisibleV1','miniCadProXray3DV2',
   'designlabCutPlanV42','designlabCutPlanV42-mode',
@@ -2625,28 +2625,36 @@ function runDockTool(key){
 }
 
 // ============================================================================
-// 1.200.55 · BARRA INFERIOR DE ATALHOS CONFIGURÁVEIS (3 / 4 / 5)
+// 1.200.56 · BARRA INFERIOR DE ATALHOS · 2 BANCOS (3/4/5 POR PÁGINA)
 // ============================================================================
-const QUICK_DOCK_PREFS_KEY='designLabQuickDockV1';
-const QUICK_DOCK_DEFAULT=['deleteSelected','space','createPieces','hardware','select'];
+const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
+const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
+const QUICK_DOCK_DEFAULT=[
+  'deleteSelected','space','createPieces','cutSpace','machining',
+  'hardware','copyShape','copyHardware','undo','select'
+];
 let quickDockConfig=loadQuickDockConfig();
 let quickDockDraft=null;
+let quickDockPage=0;
 
 function quickDockKnownKey(key){
   return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly';
 }
 function normalizeQuickDockConfig(raw){
   const count=[3,4,5].includes(Number(raw?.count))?Number(raw.count):4;
+  const total=count*2;
   const items=[];
   const push=k=>{k=String(k||'');if(k&&quickDockKnownKey(k)&&!items.includes(k))items.push(k);};
   if(Array.isArray(raw?.items))raw.items.forEach(push);
   QUICK_DOCK_DEFAULT.forEach(push);
   TOOL_DOCK_CATALOG.forEach(t=>push(t.key));
-  return {count,items:items.slice(0,5)};
+  return {count,items:items.slice(0,total)};
 }
 function loadQuickDockConfig(){
-  try{return normalizeQuickDockConfig(JSON.parse(localStorage.getItem(QUICK_DOCK_PREFS_KEY)||'null'));}
-  catch{return normalizeQuickDockConfig(null);}
+  try{
+    const raw=localStorage.getItem(QUICK_DOCK_PREFS_KEY) || localStorage.getItem(QUICK_DOCK_LEGACY_PREFS_KEY);
+    return normalizeQuickDockConfig(JSON.parse(raw||'null'));
+  }catch{return normalizeQuickDockConfig(null);}
 }
 function saveQuickDockConfig(){
   quickDockConfig=normalizeQuickDockConfig(quickDockConfig);
@@ -2682,12 +2690,22 @@ function syncQuickDockButtons(){
     b.classList.toggle('active',active);b.classList.toggle('secondary',!active);
   });
 }
-function renderQuickDock(){
+function syncQuickDockSwapButton(){
+  const b=$('quickDockSwap');if(!b)return;
+  const start=quickDockPage*quickDockConfig.count+1;
+  const end=start+quickDockConfig.count-1;
+  b.dataset.page=String(quickDockPage+1);
+  b.title=`Trocar atalhos · mostrando ${start}–${end} de ${quickDockConfig.count*2}`;
+  b.setAttribute('aria-label',`Trocar para página ${quickDockPage===0?2:1} de atalhos`);
+}
+function renderQuickDock(animate=false){
   const box=$('quickDockTools');if(!box)return;
   quickDockConfig=normalizeQuickDockConfig(quickDockConfig);
+  if(quickDockPage>1)quickDockPage=0;
   box.innerHTML='';
   box.style.gridTemplateColumns=`repeat(${quickDockConfig.count},minmax(0,1fr))`;
-  quickDockConfig.items.slice(0,quickDockConfig.count).forEach(key=>{
+  const start=quickDockPage*quickDockConfig.count;
+  quickDockConfig.items.slice(start,start+quickDockConfig.count).forEach(key=>{
     const def=toolDockDef(key);
     const [icon,text]=quickDockPresentation(key);
     const b=document.createElement('button');b.type='button';b.className='quickDockTool secondary';b.dataset.quickTool=key;
@@ -2696,7 +2714,15 @@ function renderQuickDock(){
     const t=document.createElement('span');t.className='quickDockText';t.textContent=text;
     b.append(i,t);b.addEventListener('click',()=>runDockTool(key));box.appendChild(b);
   });
-  syncQuickDockButtons();
+  syncQuickDockButtons();syncQuickDockSwapButton();
+  if(animate&&box.animate){
+    const dir=quickDockPage===1?-1:1;
+    box.animate([{opacity:.2,transform:`translateX(${dir*10}px)`},{opacity:1,transform:'translateX(0)'}],{duration:150,easing:'ease-out'});
+  }
+}
+function swapQuickDockPage(){
+  quickDockPage=quickDockPage===0?1:0;
+  renderQuickDock(true);
 }
 function quickDockBuildSelect(current,index){
   const sel=document.createElement('select');sel.className='quickDockSelect';sel.dataset.quickSlot=String(index);
@@ -2716,7 +2742,13 @@ function renderQuickDockEditor(){
     const active=Number(b.dataset.quickCount)===quickDockDraft.count;b.classList.toggle('active',active);b.classList.toggle('secondary',!active);
   });
   const list=$('quickDockSlotList');if(!list)return;list.innerHTML='';
-  for(let i=0;i<quickDockDraft.count;i++){
+  const total=quickDockDraft.count*2;
+  for(let i=0;i<total;i++){
+    if(i===0||i===quickDockDraft.count){
+      const head=document.createElement('div');head.className='quickDockPageHeader';
+      head.innerHTML=`<b>Página ${i===0?1:2}</b><span>atalhos ${i+1}–${i+quickDockDraft.count}</span>`;
+      list.appendChild(head);
+    }
     const row=document.createElement('label');row.className='quickDockSlotRow';
     const n=document.createElement('span');n.className='quickDockSlotNumber';n.textContent=String(i+1);
     const sel=quickDockBuildSelect(quickDockDraft.items[i],i);
@@ -2736,18 +2768,19 @@ function openQuickDockEditor(){
 function closeQuickDockEditor(){const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='none';quickDockDraft=null;}
 function initQuickDock(){
   renderQuickDock();
+  $('quickDockSwap')?.addEventListener('click',swapQuickDockPage);
   $('quickDockSettings')?.addEventListener('click',openQuickDockEditor);
   document.querySelectorAll('#quickDockCountChoices [data-quick-count]').forEach(b=>b.addEventListener('click',()=>{
     if(!quickDockDraft)quickDockDraft=normalizeQuickDockConfig(quickDockConfig);
     quickDockDraft.count=Number(b.dataset.quickCount);quickDockDraft=normalizeQuickDockConfig(quickDockDraft);renderQuickDockEditor();
   }));
-  $('quickDockReset')?.addEventListener('click',()=>{quickDockDraft={count:4,items:[...QUICK_DOCK_DEFAULT]};renderQuickDockEditor();});
+  $('quickDockReset')?.addEventListener('click',()=>{quickDockDraft={count:5,items:[...QUICK_DOCK_DEFAULT]};renderQuickDockEditor();});
   $('quickDockCancel')?.addEventListener('click',closeQuickDockEditor);
   $('quickDockConfigDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('quickDockConfigDialog'))closeQuickDockEditor();});
   $('quickDockSave')?.addEventListener('click',()=>{
     if(!quickDockDraft)return;
-    quickDockConfig=normalizeQuickDockConfig(quickDockDraft);saveQuickDockConfig();renderQuickDock();closeQuickDockEditor();
-    toast(`Barra rápida salva · ${quickDockConfig.count} atalhos`);
+    quickDockConfig=normalizeQuickDockConfig(quickDockDraft);quickDockPage=0;saveQuickDockConfig();renderQuickDock();closeQuickDockEditor();
+    toast(`Barra rápida salva · ${quickDockConfig.count*2} atalhos em 2 páginas`);
   });
 }
 
