@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.60",
+  "version": "1.200.61",
   "required": false,
-  "message": "Auditoria pré-lançamento: Premium vencido bloqueia a área de trabalho; modo local comercial desativado; prévia do plano de corte não quebra por elementos removidos.",
-  "released_at": "2026-08-29T13:10:00-03:00",
-  "build": "1.200.60-r1"
+  "message": "Correção de tema no PWA instalado: migração única de instalações antigas para o Clássico claro, mantendo a escolha manual depois disso.",
+  "released_at": "2026-08-29T13:05:00-03:00",
+  "build": "1.200.61-r1"
 }
