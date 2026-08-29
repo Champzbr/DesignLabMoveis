@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.57';
+  return tm?.[1]||'1.200.58';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.57-r1';
+const DESIGNLAB_JS_BUILD='1.200.58-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2625,7 +2625,7 @@ function runDockTool(key){
 }
 
 // ============================================================================
-// 1.200.57 · BARRA INFERIOR · 2 BANCOS + SUBMENUS EM CASCATA
+// 1.200.58 · BARRA INFERIOR VISUAL 1.200.56 + SUBMENUS FLUTUANTES
 // ============================================================================
 const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
 const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
@@ -2741,13 +2741,15 @@ function quickDockSubmenuVisible(){const p=$('quickDockSubmenu');return !!(p&&p.
 function ensureQuickDockSubmenu(){
   let p=$('quickDockSubmenu');
   if(p)return p;
-  const dock=$('quickDock');if(!dock)return null;
+  if(!$('quickDock'))return null;
   p=document.createElement('div');p.id='quickDockSubmenu';p.setAttribute('role','menu');p.setAttribute('aria-label','Submenu de atalhos');
   const h=document.createElement('div');h.className='quickDockSubmenuHeader';
   const title=document.createElement('b');title.id='quickDockSubmenuTitle';
   const hint=document.createElement('span');hint.textContent='toque em uma opção';h.append(title,hint);
   const tools=document.createElement('div');tools.id='quickDockSubmenuTools';
-  p.append(h,tools);dock.appendChild(p);return p;
+  // 1.200.58: o submenu fica fora do flex da barra. Assim a barra conserva
+  // exatamente as dimensões/visual da 1.200.56 e o submenu apenas flutua acima.
+  p.append(h,tools);document.body.appendChild(p);return p;
 }
 function closeQuickDockSubmenu(){
   const p=$('quickDockSubmenu');if(p)p.classList.remove('show');
