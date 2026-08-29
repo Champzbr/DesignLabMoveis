@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.56';
+  return tm?.[1]||'1.200.57';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.56-r1';
+const DESIGNLAB_JS_BUILD='1.200.57-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2409,7 +2409,6 @@ const TOOL_DOCK_CATALOG=[
   {group:'Espaço / Móvel',key:'aspireFurniture',label:'DXF Aspire · móvel',desc:'Gerar Aspire ZIP do móvel selecionado'},
   {group:'Espaço / Móvel',key:'aspireProject',label:'DXF Aspire · projeto',desc:'Gerar todas as chapas do projeto inteiro'},
   {group:'Espaço / Móvel',key:'deleteSpace',label:'🗑 Excluir espaço',desc:'Excluir o móvel/espaço selecionado'},
-  {group:'Espaço / Móvel',key:'deleteSpaceCell',label:'🧩 Apagar espaço selecionado',desc:'Desfazer o corte selecionado e unir o vão novamente'},
 
   // Vistas técnicas
   {group:'Vistas',key:'front',label:'Vista frontal',desc:'Vista 2D frontal'},
@@ -2606,7 +2605,6 @@ function runDockTool(key){
   else if(key==='aspireFurniture'){if(dockEnsureSpace(false))exportSelectedAspireDxf();}
   else if(key==='aspireProject')exportProjectAspireZip();
   else if(key==='deleteSpace'){if(dockEnsureSpace(false)){closeToolDockBeforeMenu();deleteSelectedSpaceRoot();}}
-  else if(key==='deleteSpaceCell'){if(dockEnsureSpace(true)){closeToolDockBeforeMenu();openDeleteSelectedSpaceCellDialog();}}
 
   else if(key==='front')dockView('front');
   else if(key==='back')dockView('back');
@@ -2625,8 +2623,9 @@ function runDockTool(key){
   else if(key==='more'){closeToolDockBeforeMenu();toggleMorePanel();}
   syncToolDockButtons();
 }
+
 // ============================================================================
-// 1.200.56 · BARRA INFERIOR DE ATALHOS · 2 BANCOS (3/4/5 POR PÁGINA)
+// 1.200.57 · BARRA INFERIOR · 2 BANCOS + SUBMENUS EM CASCATA
 // ============================================================================
 const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
 const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
@@ -2639,7 +2638,7 @@ let quickDockDraft=null;
 let quickDockPage=0;
 
 function quickDockKnownKey(key){
-  return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly';
+  return TOOL_DOCK_CATALOG.some(t=>t.key===key)||key==='productionSuite'||key==='assembly'||key==='spaceMenu'||key==='viewMenu';
 }
 function normalizeQuickDockConfig(raw){
   const count=[3,4,5].includes(Number(raw?.count))?Number(raw.count):4;
@@ -2668,7 +2667,7 @@ function quickDockPresentation(key){
     copyHardware:['⧉','C. Ferr.'],machining:['🛠','Usinagem'],cutSpace:['✂','Corte'],drawers:['▤','Gavetas'],library:['▦','Biblioteca'],
     editSpace:['✎','Editar'],deleteSpaceCell:['🧩','Unir vão'],undo:['↶','Desfazer'],redo:['↷','Refazer'],xray:['◈','Raio-X'],
     toggleHardwareVisibility:['🔩','Ferragens'],toggleMachiningVisibility:['🟣','Usinagens'],materials:['🎨','Materiais'],layout:['📐','Layout'],
-    save:['💾','Salvar'],more:['•••','Mais'],productionSuite:['✅','Produção'],assembly:['🧩','Montagem'],duplicate:['⧉','Duplicar'],
+    save:['💾','Salvar'],more:['•••','Mais'],productionSuite:['✅','Produção'],assembly:['🧩','Montagem'],spaceMenu:['▦','Espaço+'],viewMenu:['◫','Vistas'],duplicate:['⧉','Duplicar'],
     inspector:['📐','Medidas'],openSpace:['▣','Abrir espaço'],front:['▥','Frente'],back:['▥','Trás'],left:['▥','Esq.'],right:['▥','Dir.'],
     top:['▥','Cima'],bottom:['▥','Baixo'],visual:['👁','Visual'],view3d:['◇','3D'],parts:['📋','Peças'],labels:['🏷','Etiquetas']
   };
@@ -2685,6 +2684,120 @@ function quickDockToolActive(key){
     (key==='visual'&&visualMode)||(key==='xray'&&xray3DEnabled)||(key==='toggleHardwareVisibility'&&cadHardwareVisible)||
     (key==='toggleMachiningVisibility'&&cadMachiningVisible);
 }
+
+const QUICK_DOCK_SUBMENUS={
+  createPieces:{
+    title:'Criar peças',kind:'pieces',items:[
+      {label:'Lat. esq.',pieceType:'left',pieceIcon:'left'},
+      {label:'Lat. dir.',pieceType:'right',pieceIcon:'right'},
+      {label:'Base',pieceType:'base',pieceIcon:'base'},
+      {label:'Chapéu',pieceType:'top',pieceIcon:'top'},
+      {label:'Frente',pieceType:'front',pieceIcon:'front'},
+      {label:'Fundo',pieceType:'back',pieceIcon:'back'},
+      {label:'Prateleira',pieceType:'shelf',pieceIcon:'shelf'},
+      {label:'Divisão',pieceType:'division',pieceIcon:'division'}
+    ]
+  },
+  machining:{
+    title:'Usinagem',kind:'machining',items:[
+      {label:'Furo',icon:'●',tool:'hole'},
+      {label:'Rasgo',icon:'▱',tool:'groove'},
+      {label:'Ferragens',icon:'⚙',tool:'hardware'},
+      {label:'Forma',icon:'◜',tool:'shape'},
+      {label:'C. Forma',icon:'⧉',tool:'copyShape'},
+      {label:'C. Ferr.',icon:'⧉',tool:'copyHardware'},
+      {label:'Gerenciar',icon:'🛠',tool:'machining'},
+      {label:'Ocultar',icon:'◉',tool:'toggleMachiningVisibility'}
+    ]
+  },
+  spaceMenu:{
+    title:'Espaço / móvel',kind:'space',items:[
+      {label:'Novo',icon:'＋',tool:'space'},
+      {label:'Corte',icon:'✂',tool:'cutSpace'},
+      {label:'Peças',icon:'▰',tool:'createPiecesDirect'},
+      {label:'Gavetas',icon:'▤',tool:'drawers'},
+      {label:'Biblioteca',icon:'▦',tool:'library'},
+      {label:'Editar',icon:'✎',tool:'editSpace'},
+      {label:'Unir vão',icon:'🧩',tool:'deleteSpaceCell'},
+      {label:'Ocultar',icon:'◫',tool:'toggleSpace'}
+    ]
+  },
+  viewMenu:{
+    title:'Vistas',kind:'views',items:[
+      {label:'Frente',icon:'▥',tool:'front'},
+      {label:'Trás',icon:'▥',tool:'back'},
+      {label:'Esq.',icon:'▥',tool:'left'},
+      {label:'Dir.',icon:'▥',tool:'right'},
+      {label:'Cima',icon:'▤',tool:'top'},
+      {label:'Baixo',icon:'▤',tool:'bottom'},
+      {label:'3D',icon:'◇',tool:'view3d'},
+      {label:'Raio-X',icon:'◈',tool:'xray'}
+    ]
+  }
+};
+let quickDockSubmenuKey=null;
+function quickDockHasSubmenu(key){return !!QUICK_DOCK_SUBMENUS[key];}
+function quickDockSubmenuVisible(){const p=$('quickDockSubmenu');return !!(p&&p.classList.contains('show'));}
+function ensureQuickDockSubmenu(){
+  let p=$('quickDockSubmenu');
+  if(p)return p;
+  const dock=$('quickDock');if(!dock)return null;
+  p=document.createElement('div');p.id='quickDockSubmenu';p.setAttribute('role','menu');p.setAttribute('aria-label','Submenu de atalhos');
+  const h=document.createElement('div');h.className='quickDockSubmenuHeader';
+  const title=document.createElement('b');title.id='quickDockSubmenuTitle';
+  const hint=document.createElement('span');hint.textContent='toque em uma opção';h.append(title,hint);
+  const tools=document.createElement('div');tools.id='quickDockSubmenuTools';
+  p.append(h,tools);dock.appendChild(p);return p;
+}
+function closeQuickDockSubmenu(){
+  const p=$('quickDockSubmenu');if(p)p.classList.remove('show');
+  quickDockSubmenuKey=null;
+  document.querySelectorAll('#quickDockTools .quickDockTool.submenu-open').forEach(b=>b.classList.remove('submenu-open'));
+}
+function quickDockPieceIcon(kind){
+  const w=document.createElement('span');w.className=`quickSubPieceIcon quickSubPiece-${kind}`;
+  const face=document.createElement('i');w.appendChild(face);return w;
+}
+function quickDockOpenPieceType(type){
+  closeQuickDockSubmenu();
+  if(!dockEnsureSpace(true))return;
+  closeToolDockBeforeMenu();
+  const opener=$('createPiecesBtn');if(!opener){toast('Criar peças indisponível');return;}
+  opener.click();
+  const b=document.querySelector(`[data-piece-type="${type}"]`);
+  if(b)selectPieceCreateTypeButton(b);
+}
+function runQuickDockSubItem(item){
+  if(!item)return;
+  if(item.pieceType){quickDockOpenPieceType(item.pieceType);return;}
+  closeQuickDockSubmenu();
+  if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}
+  if(item.tool)runDockTool(item.tool);
+}
+function openQuickDockSubmenu(key,anchor=null){
+  const def=QUICK_DOCK_SUBMENUS[key];if(!def)return false;
+  const p=ensureQuickDockSubmenu();if(!p)return false;
+  if(quickDockSubmenuKey===key&&p.classList.contains('show')){closeQuickDockSubmenu();return true;}
+  quickDockSubmenuKey=key;
+  const title=$('quickDockSubmenuTitle');if(title)title.textContent=def.title;
+  const box=$('quickDockSubmenuTools');if(!box)return false;
+  box.innerHTML='';box.style.setProperty('--quick-sub-count',String(Math.max(1,Math.min(8,def.items.length))));
+  def.items.forEach(item=>{
+    const b=document.createElement('button');b.type='button';b.className='quickDockSubTool secondary';b.setAttribute('role','menuitem');b.title=item.label;
+    const icon=item.pieceIcon?quickDockPieceIcon(item.pieceIcon):document.createElement('span');
+    if(!item.pieceIcon){icon.className='quickDockSubIcon';icon.textContent=item.icon||'•';}
+    const txt=document.createElement('span');txt.className='quickDockSubText';txt.textContent=item.label;
+    b.append(icon,txt);b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});box.appendChild(b);
+  });
+  p.classList.add('show');
+  document.querySelectorAll('#quickDockTools .quickDockTool').forEach(b=>b.classList.toggle('submenu-open',b===anchor));
+  return true;
+}
+function runQuickDockTool(key,anchor){
+  if(quickDockHasSubmenu(key)){openQuickDockSubmenu(key,anchor);return;}
+  closeQuickDockSubmenu();runDockTool(key);
+}
+
 function syncQuickDockButtons(){
   document.querySelectorAll('#quickDockTools [data-quick-tool]').forEach(b=>{
     const active=quickDockToolActive(b.dataset.quickTool);
@@ -2713,7 +2826,7 @@ function renderQuickDock(animate=false){
     b.title=def?.label||text;b.setAttribute('aria-label',def?.label||text);
     const i=document.createElement('span');i.className='quickDockIcon';i.textContent=icon;
     const t=document.createElement('span');t.className='quickDockText';t.textContent=text;
-    b.append(i,t);b.addEventListener('click',()=>runDockTool(key));box.appendChild(b);
+    b.append(i,t);b.addEventListener('click',()=>runQuickDockTool(key,b));box.appendChild(b);
   });
   syncQuickDockButtons();syncQuickDockSwapButton();
   if(animate&&box.animate){
@@ -2722,11 +2835,17 @@ function renderQuickDock(animate=false){
   }
 }
 function swapQuickDockPage(){
+  closeQuickDockSubmenu();
   quickDockPage=quickDockPage===0?1:0;
   renderQuickDock(true);
 }
 function quickDockBuildSelect(current,index){
   const sel=document.createElement('select');sel.className='quickDockSelect';sel.dataset.quickSlot=String(index);
+  const submenuGroup=document.createElement('optgroup');submenuGroup.label='Submenus rápidos';
+  [['spaceMenu','▦ Espaço / móvel · submenu'],['viewMenu','◫ Vistas · submenu']].forEach(([key,label])=>{
+    const o=document.createElement('option');o.value=key;o.textContent=label;o.selected=key===current;submenuGroup.appendChild(o);
+  });
+  sel.appendChild(submenuGroup);
   const groups=[...new Set(TOOL_DOCK_CATALOG.map(t=>t.group||'Outros'))];
   for(const group of groups){
     const og=document.createElement('optgroup');og.label=group;
@@ -2763,12 +2882,13 @@ function renderQuickDockEditor(){
   }
 }
 function openQuickDockEditor(){
+  closeQuickDockSubmenu();
   quickDockDraft=normalizeQuickDockConfig(quickDockConfig);renderQuickDockEditor();
   const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='flex';
 }
 function closeQuickDockEditor(){const dlg=$('quickDockConfigDialog');if(dlg)dlg.style.display='none';quickDockDraft=null;}
 function initQuickDock(){
-  renderQuickDock();
+  renderQuickDock();ensureQuickDockSubmenu();
   $('quickDockSwap')?.addEventListener('click',swapQuickDockPage);
   $('quickDockSettings')?.addEventListener('click',openQuickDockEditor);
   document.querySelectorAll('#quickDockCountChoices [data-quick-count]').forEach(b=>b.addEventListener('click',()=>{
@@ -2783,6 +2903,12 @@ function initQuickDock(){
     quickDockConfig=normalizeQuickDockConfig(quickDockDraft);quickDockPage=0;saveQuickDockConfig();renderQuickDock();closeQuickDockEditor();
     toast(`Barra rápida salva · ${quickDockConfig.count*2} atalhos em 2 páginas`);
   });
+  document.addEventListener('pointerdown',e=>{
+    if(!quickDockSubmenuVisible())return;
+    const p=$('quickDockSubmenu');
+    if(p?.contains(e.target)||e.target?.closest?.('#quickDockTools .quickDockTool'))return;
+    closeQuickDockSubmenu();
+  },{capture:true});
 }
 
 function setToolDockOpen(open){
@@ -4374,12 +4500,6 @@ function setSpaceActionCellMode(hasCell){
   for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn','deleteSelectedSpaceBtn']){
     const b=$(id);if(b)b.disabled=!hasCell;
   }
-  const delCell=$('deleteSpaceCellBtn');
-  if(delCell){
-    const root=hasCell?activeSpaceRoot():null;
-    delCell.disabled=!hasCell||!root||(root.cells||[]).length<=1;
-    delCell.title=delCell.disabled?'Não há corte selecionado para desfazer':'Apaga só esta divisão e une o vão novamente';
-  }
 }
 function selectSpaceRootOnly(root,{showMenu}={}){
   if(!root){ clearSpaceSelection(); return; }
@@ -4526,14 +4646,6 @@ function cutSelectedSpace(side,amountM,isFixed=false){
     toast(`Use 0 para dividir ao meio ou uma medida entre 1 e ${Math.max(1,mm(limit)-1)} mm`);
     return false;
   }
-  // 1.200.54: registra a origem do corte. Isso permite que “Apagar espaço
-  // selecionado” desfaça exatamente ESTE corte e devolva o vão anterior, sem
-  // apagar o móvel principal. Projetos antigos continuam com fallback geométrico.
-  const previousCutMeta=cell.cutMeta?JSON.parse(JSON.stringify(cell.cutMeta)):null;
-  const cutId=uid('cut');
-  const parentBounds=cellBox(cell);
-  const parentFixedAxes={...(cell.fixedAxes||{})};
-  const parentHidden=!!cell.hidden;
   const a={...cell,id:uid('cell')}, b={...cell,id:uid('cell')}; let cutCell=a;
   if(side==='left'){ const p=cell.minX+amountM; a.maxX=p; b.minX=p; cutCell=a; }
   if(side==='right'){ const p=cell.maxX-amountM; a.minX=p; b.maxX=p; cutCell=a; }
@@ -4547,25 +4659,16 @@ function cutSelectedSpace(side,amountM,isFixed=false){
   // Ao reutilizar o modelo em outro espaço, os trechos fixos mantêm sua medida
   // e apenas os trechos soltos absorvem o aumento/redução.
   a.fixedAxes={...(a.fixedAxes||{})}; b.fixedAxes={...(b.fixedAxes||{})};
-  const cutAxis=(side==='left'||side==='right')?'x':((side==='front'||side==='back')?'z':'y');
-  let createdFixedBand=null;
   if(isFixed){
-    const axis=cutAxis;
+    const axis=(side==='left'||side==='right')?'x':((side==='front'||side==='back')?'z':'y');
     cutCell.fixedAxes={...(cutCell.fixedAxes||{}),[axis]:true};
     root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
     const rb=rootBounds(root);
     const rootMin=axis==='x'?rb.minX:(axis==='y'?rb.minY:rb.minZ);
     const cMin=axis==='x'?cutCell.minX:(axis==='y'?cutCell.minY:cutCell.minZ);
     const cMax=axis==='x'?cutCell.maxX:(axis==='y'?cutCell.maxY:cutCell.maxZ);
-    createdFixedBand=[cMin-rootMin,cMax-rootMin];
-    root.fixedBands[axis]=mergeIntervals([...(root.fixedBands[axis]||[]),createdFixedBand]);
+    root.fixedBands[axis]=mergeIntervals([...(root.fixedBands[axis]||[]),[cMin-rootMin,cMax-rootMin]]);
   }
-  const cutMetaBase={
-    cutId,axis:cutAxis,side:String(side||''),parentBounds,parentFixedAxes,parentHidden,
-    previousCutMeta,fixed:!!isFixed,fixedBand:createdFixedBand?createdFixedBand.slice():null
-  };
-  a.cutMeta={...JSON.parse(JSON.stringify(cutMetaBase)),role:'a'};
-  b.cutMeta={...JSON.parse(JSON.stringify(cutMetaBase)),role:'b'};
   const i=root.cells.findIndex(c=>c.id===cell.id); root.cells.splice(i,1,a,b); renderSpaces(); selectSpaceCellByIds(root.id,cutCell.id); commitHistory(); return true;
 }
 function rootBounds(root){
@@ -4898,164 +5001,6 @@ function deleteSelectedSpaceRoot(){
     ? `“${root.name}” apagado · ${linked.length} peça(s) removida(s)`
     : `“${root.name}” apagado`
   );
-  return true;
-}
-
-
-// ============================================================================
-// 1.200.54 · APAGAR SOMENTE O SUBESPAÇO SELECIONADO / DESFAZER CORTE
-// ============================================================================
-let pendingDeleteSpaceCell=null;
-const SPACE_CELL_DELETE_TOL=.0012;
-function spaceCellBoundsEqual(a,b,tol=SPACE_CELL_DELETE_TOL){
-  if(!a||!b)return false;
-  return ['minX','maxX','minY','maxY','minZ','maxZ'].every(k=>Math.abs(Number(a[k])-Number(b[k]))<=tol);
-}
-function spaceCellSameTangents(a,b,axis,tol=SPACE_CELL_DELETE_TOL){
-  const [u,v]=tangentAxesForSpace(axis);
-  return Math.abs(cellAxisMin(a,u)-cellAxisMin(b,u))<=tol
-    && Math.abs(cellAxisMax(a,u)-cellAxisMax(b,u))<=tol
-    && Math.abs(cellAxisMin(a,v)-cellAxisMin(b,v))<=tol
-    && Math.abs(cellAxisMax(a,v)-cellAxisMax(b,v))<=tol;
-}
-function spaceCellsTouchOnAxis(a,b,axis,tol=SPACE_CELL_DELETE_TOL){
-  return Math.abs(cellAxisMax(a,axis)-cellAxisMin(b,axis))<=tol
-      || Math.abs(cellAxisMax(b,axis)-cellAxisMin(a,axis))<=tol;
-}
-function spaceCellUnionBounds(a,b){
-  return {
-    minX:Math.min(a.minX,b.minX),maxX:Math.max(a.maxX,b.maxX),
-    minY:Math.min(a.minY,b.minY),maxY:Math.max(a.maxY,b.maxY),
-    minZ:Math.min(a.minZ,b.minZ),maxZ:Math.max(a.maxZ,b.maxZ)
-  };
-}
-function removeExactFixedBand(root,axis,band){
-  if(!root||!axis||!Array.isArray(band)||band.length<2)return 0;
-  root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
-  const tol=.00001,a=Math.min(Number(band[0]),Number(band[1])),b=Math.max(Number(band[0]),Number(band[1]));
-  const before=(root.fixedBands[axis]||[]).length,out=[];
-  for(const raw of (root.fixedBands[axis]||[])){
-    const s=Math.min(Number(raw[0]),Number(raw[1])),e=Math.max(Number(raw[0]),Number(raw[1]));
-    if(e<=a+tol||s>=b-tol){out.push([s,e]);continue;}
-    // Subtrai somente a faixa criada por este corte. Se ela estiver fundida
-    // com outra faixa fixa adjacente, preserva o restante em vez de apagar tudo.
-    if(s<a-tol)out.push([s,a]);
-    if(e>b+tol)out.push([b,e]);
-  }
-  root.fixedBands[axis]=mergeIntervals(out);
-  return Math.max(0,before-root.fixedBands[axis].length);
-}
-function findDeleteSpaceCellPlan(root,cell){
-  if(!root||!cell||(root.cells||[]).length<=1)return null;
-  const meta=cell.cutMeta&&typeof cell.cutMeta==='object'?cell.cutMeta:null;
-  if(meta?.cutId&&meta?.parentBounds){
-    const siblings=root.cells.filter(c=>c.id!==cell.id&&c.cutMeta?.cutId===meta.cutId);
-    if(siblings.length===1){
-      const sibling=siblings[0];
-      const merged={
-        id:uid('cell'),hidden:!!meta.parentHidden,fixedAxes:{...(meta.parentFixedAxes||{})},
-        ...JSON.parse(JSON.stringify(meta.parentBounds))
-      };
-      if(meta.previousCutMeta)merged.cutMeta=JSON.parse(JSON.stringify(meta.previousCutMeta));
-      return {root,cell,sibling,removeCells:[cell,sibling],merged,axis:meta.axis||null,fixedBand:meta.fixedBand||null,exact:true};
-    }
-  }
-  // Compatibilidade com cortes criados antes da 1.200.54: procura o irmão
-  // geométrico que compartilha toda a face do corte e encosta exatamente nele.
-  const axes=['x','y','z'];
-  const candidates=[];
-  for(const sibling of root.cells){
-    if(sibling.id===cell.id)continue;
-    for(const axis of axes){
-      if(!spaceCellSameTangents(cell,sibling,axis)||!spaceCellsTouchOnAxis(cell,sibling,axis))continue;
-      const merged=spaceCellUnionBounds(cell,sibling);
-      const mergedFixed={};
-      for(const a of axes)if(cell.fixedAxes?.[a]&&sibling.fixedAxes?.[a])mergedFixed[a]=true;
-      candidates.push({root,cell,sibling,removeCells:[cell,sibling],merged:{id:uid('cell'),hidden:false,fixedAxes:mergedFixed,...merged},axis,fixedBand:null,exact:false});
-    }
-  }
-  if(!candidates.length)return null;
-  // O irmão verdadeiro tende a produzir o maior vão unido no eixo do corte.
-  candidates.sort((A,B)=>{
-    const as=cellAxisMax(A.merged,A.axis)-cellAxisMin(A.merged,A.axis);
-    const bs=cellAxisMax(B.merged,B.axis)-cellAxisMin(B.merged,B.axis);
-    return bs-as;
-  });
-  const plan=candidates[0];
-  // Se o corte antigo era fixo, remove a faixa persistente correspondente à
-  // célula que estava marcada como fixa naquele eixo.
-  const rb=rootBounds(root),rootMin=boxAxisMin(rb,plan.axis);
-  const fixedCell=cell.fixedAxes?.[plan.axis]?cell:(plan.sibling.fixedAxes?.[plan.axis]?plan.sibling:null);
-  if(fixedCell)plan.fixedBand=[cellAxisMin(fixedCell,plan.axis)-rootMin,cellAxisMax(fixedCell,plan.axis)-rootMin];
-  return plan;
-}
-function objectFullyInsideSpaceCell(obj,root,cell,tol=SPACE_CELL_DELETE_TOL){
-  if(!obj||!root||!cell)return false;
-  if(obj.userData?.spaceRootId&&obj.userData.spaceRootId!==root.id)return false;
-  const b=getBounds(obj);
-  return b.minX>=cell.minX-tol&&b.maxX<=cell.maxX+tol
-      && b.minY>=cell.minY-tol&&b.maxY<=cell.maxY+tol
-      && b.minZ>=cell.minZ-tol&&b.maxZ<=cell.maxZ+tol;
-}
-function spaceCellDeleteContents(root,cell){
-  const doomed=objects.filter(o=>objectFullyInsideSpaceCell(o,root,cell));
-  if(!doomed.length)return 0;
-  removeHardwareLinkedToObjects(doomed);
-  for(const o of doomed){
-    const i=objects.indexOf(o);if(i>=0)objects.splice(i,1);
-    if(selected===o)selected=null;
-    disposeObject(o);
-  }
-  return doomed.length;
-}
-function openDeleteSelectedSpaceCellDialog(){
-  const rootId=selectedSpaceCell?.rootId,cellId=selectedSpaceCell?.cellId;
-  const root=rootId?getSpaceRoot(rootId):null,cell=rootId&&cellId?getSpaceCell(rootId,cellId):null;
-  if(!root||!cell){toast('Selecione o subespaço que deseja desfazer');return false;}
-  if((root.cells||[]).length<=1){toast('Este é o espaço principal · não há corte para desfazer');return false;}
-  const plan=findDeleteSpaceCellPlan(root,cell);
-  if(!plan){toast('Não foi possível identificar o corte irmão deste espaço');return false;}
-  const doomed=objects.filter(o=>objectFullyInsideSpaceCell(o,root,cell));
-  const before=cellSize(cell),after=cellSize(plan.merged);
-  pendingDeleteSpaceCell={rootId:root.id,cellId:cell.id,plan};
-  $('deleteSpaceCellText').innerHTML=
-    `Você selecionou <strong>${escapeHtml(spaceCellLabel(root,cell))}</strong> · `+
-    `L ${mm(before.width)} × P ${mm(before.depth)} × A ${mm(before.height)} mm.<br><br>`+
-    `Ao confirmar, este corte será desfeito e o vão unido volta para `+
-    `<strong>L ${mm(after.width)} × P ${mm(after.depth)} × A ${mm(after.height)} mm</strong>.`+
-    (doomed.length?`<br><br><strong>${doomed.length} peça(s)</strong> que estão somente dentro deste subespaço também serão apagadas.`:'')+
-    `<br><br>O móvel principal <strong>não será apagado</strong>.`;
-  $('deleteSpaceCellDialog').style.display='flex';
-  return true;
-}
-function closeDeleteSelectedSpaceCellDialog(){
-  pendingDeleteSpaceCell=null;
-  if($('deleteSpaceCellDialog'))$('deleteSpaceCellDialog').style.display='none';
-}
-function confirmDeleteSelectedSpaceCell(){
-  const p=pendingDeleteSpaceCell;if(!p)return false;
-  const root=getSpaceRoot(p.rootId),cell=getSpaceCell(p.rootId,p.cellId);
-  if(!root||!cell){closeDeleteSelectedSpaceCellDialog();toast('O espaço mudou antes da confirmação');return false;}
-  const plan=findDeleteSpaceCellPlan(root,cell);
-  if(!plan){closeDeleteSelectedSpaceCellDialog();toast('Não foi possível desfazer este corte');return false;}
-  historyMuted=true;
-  let removed=0;
-  try{
-    removed=spaceCellDeleteContents(root,cell);
-    if(plan.axis&&plan.fixedBand)removeExactFixedBand(root,plan.axis,plan.fixedBand);
-    const ids=new Set(plan.removeCells.map(c=>c.id));
-    const indexes=root.cells.map((c,i)=>ids.has(c.id)?i:-1).filter(i=>i>=0);
-    const insertAt=indexes.length?Math.min(...indexes):root.cells.length;
-    root.cells=root.cells.filter(c=>!ids.has(c.id));
-    root.cells.splice(Math.min(insertAt,root.cells.length),0,plan.merged);
-    renderSpaces();renderMachiningVisuals();
-    selectSpaceCellByIds(root.id,plan.merged.id,{showMenu:true});
-    updateMeasureBadge();
-  }finally{historyMuted=false;}
-  closeDeleteSelectedSpaceCellDialog();
-  commitHistory();
-  const sz=cellSize(plan.merged);
-  toast(`Corte desfeito · espaço voltou para L ${mm(sz.width)} × P ${mm(sz.depth)} × A ${mm(sz.height)} mm${removed?` · ${removed} peça(s) removida(s)`:''}`);
   return true;
 }
 
@@ -17036,10 +16981,6 @@ $('bottomSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(
 $('toggleSpaceBtn').onclick=()=>{toggleActiveSpaceVisibility();$('spaceMoreDialog').style.display='none';};
 $('hideSelectedSpaceBtn').onclick=()=>toggleActiveSpaceVisibility();
 $('deleteSelectedSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
-$('deleteSpaceCellBtn').onclick=()=>openDeleteSelectedSpaceCellDialog();
-$('cancelDeleteSpaceCell').onclick=()=>closeDeleteSelectedSpaceCellDialog();
-$('confirmDeleteSpaceCell').onclick=()=>confirmDeleteSelectedSpaceCell();
-$('deleteSpaceCellDialog').addEventListener('pointerdown',e=>{if(e.target===$('deleteSpaceCellDialog'))closeDeleteSelectedSpaceCellDialog();});
 $('showHiddenSpacesMoreBtn').onclick=()=>{showAllHiddenSpaces();$('spaceMoreDialog').style.display='none';};
 $('toggleDoorsBtn').onclick=()=>{toggleDoorsForActiveSpace();};
 $('newAdjacentSpaceBtn').onclick=()=>{if(visualMode)setVisualMode(false,{notify:false,frame:false});const root=activeSpaceRoot();$('spaceMoreDialog').style.display='none';openNewSpaceDialog(root);};
@@ -18259,6 +18200,7 @@ function designLabGenericBackLayer(){
   el.classList.remove('show','open');el.style.display='none';return true;
 }
 async function designLabHandleBackCascade(){
+  if(typeof quickDockSubmenuVisible==='function'&&quickDockSubmenuVisible()){closeQuickDockSubmenu();return 'closed';}
   if(typeof hardwareCopyState!=='undefined'&&hardwareCopyState.active){closeCopyHardwareTool(false);return 'closed';}
   if(typeof shapeCopyState!=='undefined'&&shapeCopyState.active){closeCopyShapeTool(false);return 'closed';}
   if(curved3DPreviewActive||designLabBackElementVisible('curved3DPreviewBar')){returnCurvedStructurePreview({reopen:true});return 'closed';}
@@ -18289,7 +18231,6 @@ async function designLabHandleBackCascade(){
     ['toolDockEditDialog','toolDockEditCancel'],
     ['quickDockConfigDialog','quickDockCancel'],
     ['productionDialog','closeProductionDialog'],
-    ['deleteSpaceCellDialog','cancelDeleteSpaceCell'],
     ['spaceMoreDialog','closeSpaceMore'],
     ['adminDialog','closeAdminDialog'],
     ['appSettingsDialog','appSettingsClose'],
@@ -19695,33 +19636,5 @@ window.designLabProductionSuite={
   autosave:()=>dlCommitProjectAutosave({reason:'Autosave solicitado',force:true})
 };
 
-// 1.200.55 · barra inferior configurável.
+// 1.200.56 · a barra inferior nasce depois que o catálogo recebeu Produção/Montagem.
 try{initQuickDock();}catch(err){console.warn('Barra rápida:',err);}
-
-
-// 1.200.54 · Delete físico do computador segue a seleção do CAD.
-function designLabKeyboardEditableTarget(el){
-  if(!el)return false;
-  const tag=String(el.tagName||'').toLowerCase();
-  return tag==='input'||tag==='textarea'||tag==='select'||!!el.isContentEditable;
-}
-function designLabBlockingDialogOpen(){
-  return ['deleteSpaceCellDialog','newSpaceDialog','editSpaceDialog','cutSpaceDialog','createPiecesDialog','drawerSystemDialog','libraryDialog','machiningDialog','hardwareBuilderDialog','partsListDialog','curvedStructureDialog','shapeDialog','productionDialog','adminDialog','quickDockConfigDialog']
-    .some(id=>{const el=$(id);return el&&getComputedStyle(el).display!=='none';});
-}
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Delete'||e.ctrlKey||e.metaKey||e.altKey)return;
-  if(designLabKeyboardEditableTarget(e.target)||designLabBlockingDialogOpen())return;
-  if(selected&&selected.userData?.kind!=='cylinder'){
-    e.preventDefault();deleteSelectedFromInspector();return;
-  }
-  if(selectedSpaceCell){
-    const root=getSpaceRoot(selectedSpaceCell.rootId);
-    e.preventDefault();
-    if(root&&(root.cells||[]).length>1)openDeleteSelectedSpaceCellDialog();
-    else deleteSelectedSpaceRoot();
-    return;
-  }
-  if(activeSpaceRootId){e.preventDefault();deleteSelectedSpaceRoot();}
-},true);
-
