@@ -170,7 +170,7 @@
   #toolDockEditActions { display:flex; gap:7px; margin-top:11px; justify-content:flex-end; }
 
 
-  /* 1.200.59 · visual da 1.200.56 preservado; submenu flutuante com ícones vetoriais */
+  /* 1.200.59 · visual da 1.200.56 preservado; submenus apenas flutuam acima */
   #quickDock{
     position:fixed;z-index:45;left:50%;transform:translateX(-50%);
     bottom:calc(8px + env(safe-area-inset-bottom));width:min(540px,calc(100vw - 16px));
@@ -215,15 +215,12 @@
   .quickDockSubTool:active{transform:scale(.96);background:#3b454a!important}
   .quickDockSubIcon{font-size:19px;line-height:1;display:grid;place-items:center;height:29px}
   .quickDockSubText{width:100%;font-size:7px;line-height:1.05;font-weight:850;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-  .quickSubPieceIcon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
-  .quickSubPieceIcon svg{display:block;width:100%;height:100%;overflow:visible}
-  .quickPieceWire{fill:none;stroke:#d7e0e5;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;opacity:.82}
-  .quickPieceWireTop{opacity:.94}
-  .quickPieceFace{fill:#168fe0;stroke:#69d4ff;stroke-width:1.55;stroke-linejoin:round;opacity:.96}
-  .quickPieceFaceFront{fill:#1a9be8}.quickPieceFaceBack{fill:#0e79c8}
-  .quickDockSubTool.holding{background:#394951!important;transform:scale(.97);box-shadow:inset 0 0 0 1px rgba(105,212,255,.4)!important}
-  .quickDockSubTool.holding .quickSubPieceIcon{transform:scale(.94);filter:drop-shadow(0 0 5px rgba(41,178,241,.45))}
-  @media(max-width:430px){.quickDockSubTool{min-height:61px}.quickSubPieceIcon{width:35px;height:35px}.quickDockSubText{font-size:6.4px}#quickDockSubmenu{padding:6px 5px}}
+  .quickSubPieceIconSvg{width:40px;height:36px;display:grid;place-items:center;flex:0 0 auto}
+  .quickSubPieceIconSvg svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+  .quickSubPieceIconSvg .quickPieceFace{stroke:#8fe1ff;stroke-width:1.25;stroke-linejoin:round}
+  .quickSubPieceIconSvg .quickPieceWire{fill:none;stroke:#c5d0d5;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}
+  .quickSubPieceIconSvg .quickPieceAccent{fill:none;stroke:#e7f7ff;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+  @media(max-width:430px){.quickDockSubTool{min-height:58px}.quickSubPieceIconSvg{width:36px;height:32px}.quickDockSubText{font-size:6.4px}#quickDockSubmenu{padding:6px 5px}}
   body.project-home-active #quickDock,body.presentation-active #quickDock,body.visualization-only #quickDock,
   body.project-home-active #quickDockConfigDialog,body.presentation-active #quickDockConfigDialog,body.visualization-only #quickDockConfigDialog,body.project-home-active #quickDockSubmenu,body.presentation-active #quickDockSubmenu,body.visualization-only #quickDockSubmenu{display:none!important}
 
