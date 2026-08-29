@@ -510,3 +510,62 @@ html[data-app-theme="light"] .authStatus{
 html[data-app-theme="light"] .authActions .secondary{
   background:#eef3f5 !important;color:#24343c !important;border-color:#d6e0e4 !important;
 }
+
+/* ========================================================================== 
+   1.200.63 · COMPRA PREMIUM / PIX MANUAL
+   ========================================================================== */
+.authBannedPanel #authPremiumBuy{
+  margin-bottom:7px;background:linear-gradient(135deg,#19a979,#257bea);border-color:transparent;
+  color:#fff;font-weight:950;box-shadow:0 8px 24px rgba(37,123,234,.22);
+}
+.premiumPurchaseDialog{
+  position:fixed;inset:0;z-index:4100;display:none;align-items:center;justify-content:center;
+  padding:16px;background:rgba(4,8,11,.68);backdrop-filter:blur(8px);overflow:auto;
+}
+.premiumPurchaseDialog.show{display:flex}
+.premiumPurchaseCard{
+  width:min(430px,100%);padding:16px;border:1px solid #3a4348;border-radius:18px;
+  background:#181c1e;color:#f2f6f8;box-shadow:0 24px 80px rgba(0,0,0,.5);
+}
+.premiumPurchaseHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.premiumPurchaseHead strong{display:block;font-size:18px}
+.premiumPurchaseHead span{display:block;margin-top:3px;color:#8f9ca3;font-size:9px}
+.premiumPurchaseHead button{width:38px;min-width:38px;height:38px;padding:0;border-radius:10px}
+.premiumPurchaseLoading,.premiumPurchaseStatus{
+  padding:10px;border:1px solid #363f43;border-radius:10px;background:#111517;color:#9ca9af;font-size:10px;line-height:1.45;
+}
+.premiumPurchaseStatus{margin-top:9px;min-height:0}
+.premiumPurchaseStatus:empty{display:none}
+.premiumPurchaseStatus.good{border-color:rgba(52,208,88,.34);background:rgba(52,208,88,.06);color:#78dd92}
+.premiumPurchaseStatus.warn{border-color:rgba(255,177,73,.35);background:rgba(255,177,73,.06);color:#ffc16e}
+.premiumPurchaseStatus.error{border-color:rgba(224,69,58,.4);background:rgba(224,69,58,.06);color:#ff9189}
+.premiumPurchaseOffer{text-align:center;margin:3px 0 10px}
+.premiumPurchaseOffer span,.premiumPurchaseOffer small{display:block;color:#96a3aa;font-size:9px}
+.premiumPurchaseOffer strong{display:block;margin:3px 0;font-size:25px;color:#66dfa0}
+.premiumPixQr{width:min(260px,78vw);aspect-ratio:1;margin:0 auto 11px;padding:8px;border-radius:13px;background:#fff;box-sizing:border-box}
+.premiumPixQr svg{display:block;width:100%;height:100%}
+.premiumPixCopyLabel{display:block;color:#99a6ad;font-size:9px;font-weight:850}
+.premiumPixCopyLabel textarea{
+  width:100%;margin-top:5px;resize:none;box-sizing:border-box;padding:9px;border:1px solid #3d474c;border-radius:9px;
+  background:#0f1315;color:#dce5e9;font:8px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all;
+}
+.premiumPurchaseContent>button{width:100%;margin-top:7px;min-height:42px}
+.premiumPaidBtn{background:#1a9e68!important}
+.premiumPurchaseHelp{margin:9px 2px 0;color:#7f8d94;font-size:8px;line-height:1.5;text-align:center}
+.adminPaymentSettingsCard{margin-top:10px}
+.adminPaymentSettingsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px}
+.adminPaymentSettingsGrid label{color:#9da7ad;font-size:9px;font-weight:800}
+.adminPaymentSettingsGrid input,.adminPaymentSettingsGrid select{
+  width:100%;margin-top:5px;padding:10px;border:1px solid #41484c;border-radius:9px;background:#101214;color:#fff;box-sizing:border-box;
+}
+#adminSavePaymentSettingsBtn{width:100%}
+.adminPaymentReported{margin-top:7px;padding:7px;border-radius:8px;background:rgba(52,208,88,.08);color:#78db91;font-size:8px;font-weight:800}
+@media(max-width:700px){.adminPaymentSettingsGrid{grid-template-columns:1fr}}
+
+html[data-app-theme="light"] .premiumPurchaseDialog{background:rgba(35,50,58,.36)}
+html[data-app-theme="light"] .premiumPurchaseCard{background:#fff;color:#18272f;border-color:#d8e3e7;box-shadow:0 24px 70px rgba(37,57,67,.22)}
+html[data-app-theme="light"] .premiumPurchaseHead span,html[data-app-theme="light"] .premiumPurchaseOffer span,html[data-app-theme="light"] .premiumPurchaseOffer small,html[data-app-theme="light"] .premiumPurchaseHelp{color:#6f8088}
+html[data-app-theme="light"] .premiumPurchaseLoading,html[data-app-theme="light"] .premiumPurchaseStatus{background:#f7fafb;border-color:#dbe5e9;color:#61747d}
+html[data-app-theme="light"] .premiumPixCopyLabel{color:#60727b}
+html[data-app-theme="light"] .premiumPixCopyLabel textarea{background:#f6f9fa;color:#26373f;border-color:#d7e1e5}
+html[data-app-theme="light"] .adminPaymentSettingsGrid input,html[data-app-theme="light"] .adminPaymentSettingsGrid select{background:#fff;color:#24343c;border-color:#d7e1e5}
