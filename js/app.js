@@ -1,6 +1,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { qrSvg } from './qr-local.js';
 
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
@@ -103,14 +104,101 @@ function ensurePremiumAccessPanel(){
   panel=document.createElement('div');
   panel.id='authPremiumPanel';
   panel.className='authBannedPanel';
-  panel.innerHTML=`<strong id="authPremiumTitle">Premium necessário</strong><p id="authPremiumMessage">Verificando sua assinatura…</p><button id="authPremiumRetry" class="secondary" type="button">↻ Verificar acesso</button><button id="authPremiumLogout" class="secondary" type="button">Sair desta conta</button>`;
+  panel.innerHTML=`<strong id="authPremiumTitle">Premium necessário</strong><p id="authPremiumMessage">Verificando sua assinatura…</p><button id="authPremiumBuy" type="button">💎 Comprar Premium</button><button id="authPremiumRetry" class="secondary" type="button">↻ Verificar acesso</button><button id="authPremiumLogout" class="secondary" type="button">Sair desta conta</button>`;
   const body=document.querySelector('#authGate .authBody');
   if(body){const status=$('authStatus');status?body.insertBefore(panel,status):body.appendChild(panel);}
+  $('authPremiumBuy')?.addEventListener('click',()=>openPremiumPurchase());
   $('authPremiumRetry')?.addEventListener('click',()=>verifyPremiumWorkspaceAccess({message:'Acesso Premium confirmado.'}));
   $('authPremiumLogout')?.addEventListener('click',()=>logoutOnlineIdentity());
   return panel;
 }
 function hidePremiumAccessPanel(){ $('authPremiumPanel')?.classList.remove('show'); }
+
+// ============================================================================
+// 1.200.63 · COMPRA PREMIUM — PIX MANUAL / PROVIDER-READY
+// ============================================================================
+let premiumPurchaseState={payment:null,busy:false};
+function premiumMoney(cents){return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function premiumPurchaseSetStatus(message='',tone=''){
+  const el=$('premiumPurchaseStatus');if(!el)return;
+  el.textContent=message;el.className='premiumPurchaseStatus'+(tone?` ${tone}`:'');
+}
+function closePremiumPurchase(){
+  const dlg=$('premiumPurchaseDialog');if(dlg){dlg.classList.remove('show');dlg.setAttribute('aria-hidden','true');}
+}
+function renderPremiumPurchase(payment){
+  if(!payment)return;
+  premiumPurchaseState.payment=payment;
+  $('premiumPurchaseLoading').style.display='none';
+  $('premiumPurchaseContent').style.display='block';
+  $('premiumPurchasePrice').textContent=premiumMoney(payment.amount_cents);
+  $('premiumPurchaseDays').textContent=`${Number(payment.days_purchased||30)} dias de acesso Premium`;
+  $('premiumPixCode').value=String(payment.pix_copy_paste||'');
+  try{$('premiumPixQr').innerHTML=qrSvg(payment.pix_copy_paste,{size:260,margin:4,errorLevel:'M'});}
+  catch(err){$('premiumPixQr').innerHTML='<div style="padding:20px;color:#a33;text-align:center">Não foi possível montar o QR Code.</div>';console.error('QR PIX:',err);}
+  const status=String(payment.status||'pending');
+  if(payment.reported_paid)premiumPurchaseSetStatus('Pagamento informado. Aguardando conferência do administrador.','warn');
+  else if(status==='paid')premiumPurchaseSetStatus('Pagamento aprovado. Liberando o Premium…','good');
+  else premiumPurchaseSetStatus('Escaneie o QR Code ou copie o código PIX. Depois toque em “Já fiz o pagamento”.','');
+}
+async function openPremiumPurchase(){
+  if(!currentIdentityUser){setAuthStatus('Entre na conta antes de comprar o Premium.','warn');return;}
+  const dlg=$('premiumPurchaseDialog');if(!dlg)return;
+  dlg.classList.add('show');dlg.setAttribute('aria-hidden','false');
+  $('premiumPurchaseLoading').style.display='block';
+  $('premiumPurchaseContent').style.display='none';
+  $('premiumPurchaseLoading').textContent='Gerando seu PIX…';
+  premiumPurchaseSetStatus('');
+  premiumPurchaseState.payment=null;
+  try{
+    const data=await cloudApiFetch('/payments/pix',{method:'POST',body:{},timeoutMs:20000});
+    renderPremiumPurchase(data?.payment);
+  }catch(err){
+    console.error('Comprar Premium:',err);
+    $('premiumPurchaseLoading').textContent=err?.data?.error==='pix_not_configured'
+      ?'O PIX ainda não foi configurado pelo administrador.'
+      :(err.message||'Não foi possível gerar o PIX agora.');
+    premiumPurchaseSetStatus('Você pode fechar esta janela e tentar novamente depois.','error');
+  }
+}
+async function copyPremiumPix(){
+  const code=String($('premiumPixCode')?.value||'');if(!code)return;
+  try{
+    if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(code);
+    else{const ta=$('premiumPixCode');ta.focus();ta.select();document.execCommand('copy');}
+    premiumPurchaseSetStatus('Código PIX copiado.','good');
+  }catch{premiumPurchaseSetStatus('Não foi possível copiar automaticamente. Selecione o código e copie manualmente.','error');}
+}
+async function markPremiumPaymentPaid(){
+  const payment=premiumPurchaseState.payment;if(!payment?.id||premiumPurchaseState.busy)return;
+  premiumPurchaseState.busy=true;
+  premiumPurchaseSetStatus('Registrando que você fez o pagamento…');
+  try{
+    const data=await cloudApiFetch(`/payments/${encodeURIComponent(payment.id)}/paid`,{method:'POST',body:{},timeoutMs:15000});
+    payment.status=data?.status||'pending';payment.reported_paid=!!data?.reported_paid;
+    renderPremiumPurchase(payment);
+  }catch(err){premiumPurchaseSetStatus(err.message||'Não foi possível registrar o pagamento.','error');}
+  finally{premiumPurchaseState.busy=false;}
+}
+async function verifyPremiumPayment(){
+  const payment=premiumPurchaseState.payment;if(!payment?.id||premiumPurchaseState.busy)return;
+  premiumPurchaseState.busy=true;premiumPurchaseSetStatus('Verificando pagamento e acesso Premium…');
+  try{
+    const data=await cloudApiFetch(`/payments/${encodeURIComponent(payment.id)}`,{timeoutMs:15000});
+    if(data?.payment?.status==='paid'||data?.subscription?.premium_active){
+      premiumPurchaseSetStatus('Pagamento aprovado. Premium liberado!','good');
+      setTimeout(()=>closePremiumPurchase(),350);
+      await verifyPremiumWorkspaceAccess({message:'Premium liberado. Bem-vindo!'});
+    }else if(data?.payment?.status==='rejected'){
+      payment.status='rejected';premiumPurchaseSetStatus('Este pagamento foi rejeitado. Gere um novo PIX ou fale com o suporte.','error');
+    }else{
+      payment.status=data?.payment?.status||payment.status;payment.reported_paid=!!data?.payment?.reported_paid;
+      premiumPurchaseSetStatus(payment.reported_paid?'Ainda aguardando a conferência do administrador.':'Pagamento ainda não aprovado.','warn');
+    }
+  }catch(err){premiumPurchaseSetStatus(err.message||'Não foi possível verificar o pagamento.','error');}
+  finally{premiumPurchaseState.busy=false;}
+}
+
 function stopPremiumAccessWatch(){
   clearTimeout(premiumAccessExpiryTimer);premiumAccessExpiryTimer=null;
   clearInterval(premiumAccessRecheckTimer);premiumAccessRecheckTimer=null;
@@ -178,6 +266,7 @@ async function verifyPremiumWorkspaceAccess({message='Conta conectada.',backgrou
   }
   if(!premiumWorkspaceAllowed(data)){showPremiumAccessRequired(data?.subscription||null);return false;}
   hidePremiumAccessPanel();
+  closePremiumPurchase();
   $('authMainActions')?.classList.remove('hidden');
   $('authGate')?.classList.add('hidden');
   setAuthStatus(message,'good');
@@ -583,10 +672,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.61';
+  return tm?.[1]||'1.200.63';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.61-r1';
+const DESIGNLAB_JS_BUILD='1.200.63-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -984,7 +1073,7 @@ async function initDesignLabServiceWorker(){
 }
 
 
-let adminPanelState={tab:'users',stats:null,users:[],payments:[],settings:{free_trial_days:15},search:'',paymentStatus:''};
+let adminPanelState={tab:'users',stats:null,users:[],payments:[],settings:{free_trial_days:15,premium_price_cents:2999,premium_days:30,payment_provider:'manual_pix',pix_key:'',pix_receiver_name:'',pix_receiver_city:''},search:'',paymentStatus:''};
 
 function adminAllowed(){
   return !!(cloudAccountState.ok && cloudAccountState.user?.role==='admin' && !cloudAccountState.user?.banned);
@@ -1062,20 +1151,23 @@ function renderAdminUsers(){
 }
 function renderAdminPayments(){
   const box=$('adminPaymentsList'),rows=adminPanelState.payments||[];
-  if(!rows.length){box.innerHTML='<div class="adminEmpty">Nenhum pagamento encontrado. Quando adicionarmos a compra de dias, eles aparecerão aqui.</div>';return;}
+  if(!rows.length){box.innerHTML='<div class="adminEmpty">Nenhum pagamento encontrado.</div>';return;}
   box.innerHTML=rows.map(p=>{
-    const pending=p.status==='pending';
+    const review=p.status==='pending';
+    const statusLabel=p.status==='pending'&&Number(p.reported_paid)?'AGUARDANDO CONFERÊNCIA':String(p.status||'').toUpperCase();
+    const badgeClass=p.status==='paid'?'premium':review?'pending':'';
     return `<article class="adminPaymentCard" data-admin-payment="${escapeHtml(p.id)}">
       <div class="adminPaymentTop">
         <div><strong>${escapeHtml(p.name||p.email||'Usuário')}</strong><small>${escapeHtml(p.email||'')} · ${escapeHtml(p.id)}</small></div>
-        <div class="adminBadges"><span class="adminBadge ${p.status==='pending'?'pending':p.status==='paid'?'premium':''}">${escapeHtml(String(p.status||'').toUpperCase())}</span></div>
+        <div class="adminBadges"><span class="adminBadge ${badgeClass}">${escapeHtml(statusLabel)}</span></div>
       </div>
       <div class="adminMeta">
         <div><strong>Valor</strong>${escapeHtml(adminMoney(p.amount_cents||0))}</div>
         <div><strong>Dias</strong>${Number(p.days_purchased||0)}</div>
         <div><strong>Criado</strong>${escapeHtml(adminDate(p.created_at))}</div>
       </div>
-      ${pending?`<div class="adminActions"><button data-admin-payment-action="approve">✓ Aprovar pagamento</button><button class="danger" data-admin-payment-action="reject">Rejeitar</button></div>`:''}
+      ${p.status==='pending'&&Number(p.reported_paid)?'<div class="adminPaymentReported">✓ O usuário informou que já realizou o PIX.</div>':''}
+      ${review?`<div class="adminActions"><button data-admin-payment-action="approve">✓ Aprovar pagamento</button><button class="danger" data-admin-payment-action="reject">Rejeitar</button></div>`:''}
     </article>`;
   }).join('');
 }
@@ -1084,37 +1176,44 @@ function renderAdminSettings(){
   const s=adminPanelState.settings||{};
   const days=Math.max(0,Number(s.free_trial_days??15)||0);
   $('adminFreeTrialDays').value=days;
-  $('adminTrialSettingsInfo').textContent=
-    days>0
-      ? `Novas contas recebem ${days} dia(s) de Premium grátis. O período começa na data de criação da conta no Netlify.`
-      : 'Teste grátis desativado. Novas contas começam diretamente no plano Free.';
+  $('adminTrialSettingsInfo').textContent=days>0
+    ? `Novas contas recebem ${days} dia(s) de Premium grátis. O período começa na data de criação da conta no Netlify.`
+    : 'Teste grátis desativado. Novas contas começam diretamente no plano Free.';
+  if($('adminPremiumPrice'))$('adminPremiumPrice').value=(Math.max(100,Number(s.premium_price_cents??2999)||2999)/100).toFixed(2);
+  if($('adminPremiumDays'))$('adminPremiumDays').value=Math.max(1,Number(s.premium_days??30)||30);
+  if($('adminPaymentProvider'))$('adminPaymentProvider').value=String(s.payment_provider||'manual_pix');
+  if($('adminPixKey'))$('adminPixKey').value=String(s.pix_key||'');
+  if($('adminPixReceiverName'))$('adminPixReceiverName').value=String(s.pix_receiver_name||'');
+  if($('adminPixReceiverCity'))$('adminPixReceiverCity').value=String(s.pix_receiver_city||'');
+  if($('adminPaymentSettingsInfo')){
+    const configured=!!(String(s.pix_key||'').trim()&&String(s.pix_receiver_name||'').trim()&&String(s.pix_receiver_city||'').trim());
+    $('adminPaymentSettingsInfo').textContent=configured
+      ? `PIX configurado · ${adminMoney(s.premium_price_cents||2999)} por ${Number(s.premium_days||30)} dias. Compra manual ativa.`
+      : 'PIX ainda incompleto. Informe a mesma chave, nome do recebedor e cidade usados no Contas Fácil.';
+  }
 }
 async function loadAdminSettings(){
   const d=await cloudApiFetch('/admin/settings');
-  adminPanelState.settings=d?.settings||{free_trial_days:15};
+  adminPanelState.settings=d?.settings||adminPanelState.settings;
   renderAdminSettings();
 }
 async function saveAdminSettings(){
-  const raw=Number($('adminFreeTrialDays').value);
-  const days=Math.max(0,Math.min(365,Math.trunc(Number.isFinite(raw)?raw:15)));
-  $('adminFreeTrialDays').value=days;
-  adminSetStatus('Salvando configuração do teste grátis…');
+  const trialRaw=Number($('adminFreeTrialDays')?.value),trialDays=Math.max(0,Math.min(365,Math.trunc(Number.isFinite(trialRaw)?trialRaw:15)));
+  const priceRaw=Number($('adminPremiumPrice')?.value),priceCents=Math.max(100,Math.min(999900,Math.round((Number.isFinite(priceRaw)?priceRaw:29.99)*100)));
+  const premiumDays=Math.max(1,Math.min(3650,Math.trunc(Number($('adminPremiumDays')?.value)||30)));
+  const body={
+    free_trial_days:trialDays,premium_price_cents:priceCents,premium_days:premiumDays,
+    payment_provider:String($('adminPaymentProvider')?.value||'manual_pix'),
+    pix_key:String($('adminPixKey')?.value||'').trim(),
+    pix_receiver_name:String($('adminPixReceiverName')?.value||'').trim(),
+    pix_receiver_city:String($('adminPixReceiverCity')?.value||'').trim()
+  };
+  adminSetStatus('Salvando teste grátis, Premium e PIX…');
   try{
-    const d=await cloudApiFetch('/admin/settings',{
-      method:'POST',
-      body:{free_trial_days:days}
-    });
-    adminPanelState.settings=d?.settings||{free_trial_days:days};
-    renderAdminSettings();
-    adminSetStatus(
-      days>0
-        ? `Teste grátis configurado em ${days} dia(s) para novas contas.`
-        : 'Teste grátis desativado para novas contas.',
-      'good'
-    );
-  }catch(err){
-    adminSetStatus(err.message||'Não foi possível salvar a configuração.','error');
-  }
+    const d=await cloudApiFetch('/admin/settings',{method:'POST',body});
+    adminPanelState.settings=d?.settings||body;renderAdminSettings();
+    adminSetStatus('Configurações do Premium e PIX salvas.','good');
+  }catch(err){adminSetStatus(err.message||'Não foi possível salvar as configurações.','error');}
 }
 
 async function loadAdminStats(){const d=await cloudApiFetch('/admin/stats');adminPanelState.stats=d?.stats||{};renderAdminStats();}
@@ -3323,10 +3422,10 @@ const container = $('canvas-container');
 // 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
-const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV1';
+const DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY='designLabAppThemeLightDefaultV2';
 let designLabAppTheme='light';
 try{
-  // 1.200.61: instalações antigas podiam carregar para sempre o `dark` salvo
+  // 1.200.62: instalações antigas podiam carregar para sempre o `dark` salvo
   // quando o tema escuro ainda era o padrão. Fazemos UMA migração para o
   // Clássico claro. Depois dela, qualquer escolha manual do usuário é respeitada.
   if(localStorage.getItem(DESIGNLAB_APP_THEME_LIGHT_MIGRATION_KEY)!=='1'){
@@ -18280,6 +18379,12 @@ $('adminUsersTabBtn').onclick=async()=>{adminSetTab('users');await refreshAdminP
 $('adminPaymentsTabBtn').onclick=async()=>{adminSetTab('payments');await refreshAdminPanel();};
 $('adminSettingsTabBtn').onclick=async()=>{adminSetTab('settings');await refreshAdminPanel();};
 $('adminSaveSettingsBtn').onclick=saveAdminSettings;
+$('adminSavePaymentSettingsBtn').onclick=saveAdminSettings;
+$('premiumPurchaseClose').onclick=closePremiumPurchase;
+$('premiumPurchaseDialog').addEventListener('pointerdown',e=>{if(e.target===$('premiumPurchaseDialog'))closePremiumPurchase();});
+$('premiumPixCopyBtn').onclick=copyPremiumPix;
+$('premiumPixPaidBtn').onclick=markPremiumPaymentPaid;
+$('premiumPixVerifyBtn').onclick=verifyPremiumPayment;
 $('adminRefreshBtn').onclick=refreshAdminPanel;
 $('adminUserSearchBtn').onclick=async()=>{adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();};
 $('adminUserSearch').addEventListener('keydown',async e=>{if(e.key==='Enter'){e.preventDefault();adminPanelState.search=$('adminUserSearch').value.trim();await loadAdminUsers();}});
