@@ -495,10 +495,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.58';
+  return tm?.[1]||'1.200.59';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.58-r1';
+const DESIGNLAB_JS_BUILD='1.200.59-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2625,7 +2625,7 @@ function runDockTool(key){
 }
 
 // ============================================================================
-// 1.200.58 · BARRA INFERIOR VISUAL 1.200.56 + SUBMENUS FLUTUANTES
+// 1.200.59 · BARRA 1.200.56 + SUBMENUS FLUTUANTES + PEÇAS DE UM TOQUE
 // ============================================================================
 const QUICK_DOCK_PREFS_KEY='designLabQuickDockV2';
 const QUICK_DOCK_LEGACY_PREFS_KEY='designLabQuickDockV1';
@@ -2745,7 +2745,7 @@ function ensureQuickDockSubmenu(){
   p=document.createElement('div');p.id='quickDockSubmenu';p.setAttribute('role','menu');p.setAttribute('aria-label','Submenu de atalhos');
   const h=document.createElement('div');h.className='quickDockSubmenuHeader';
   const title=document.createElement('b');title.id='quickDockSubmenuTitle';
-  const hint=document.createElement('span');hint.textContent='toque em uma opção';h.append(title,hint);
+  const hint=document.createElement('span');hint.textContent='toque cria · segure para opções';h.append(title,hint);
   const tools=document.createElement('div');tools.id='quickDockSubmenuTools';
   // 1.200.58: o submenu fica fora do flex da barra. Assim a barra conserva
   // exatamente as dimensões/visual da 1.200.56 e o submenu apenas flutua acima.
@@ -2756,11 +2756,39 @@ function closeQuickDockSubmenu(){
   quickDockSubmenuKey=null;
   document.querySelectorAll('#quickDockTools .quickDockTool.submenu-open').forEach(b=>b.classList.remove('submenu-open'));
 }
+function quickDockPieceSvg(kind){
+  // 1.200.59 · ícones vetoriais próprios. Nada de imagem raster/"quadrado azul" improvisado:
+  // cada peça usa o mesmo cubo isométrico e destaca exatamente a face correspondente.
+  const faces={
+    left:'<polygon class="quickPieceFace" points="8,18 31,30 31,56 8,44"/>',
+    right:'<polygon class="quickPieceFace" points="31,30 56,18 56,44 31,56"/>',
+    base:'<polygon class="quickPieceFace" points="8,44 31,56 56,44 31,32"/>',
+    top:'<polygon class="quickPieceFace" points="8,18 31,6 56,18 31,30"/>',
+    front:'<polygon class="quickPieceFace quickPieceFaceFront" points="14,23 36,31 36,53 14,45"/>',
+    back:'<polygon class="quickPieceFace quickPieceFaceBack" points="28,12 50,21 50,43 28,34"/>',
+    shelf:'<polygon class="quickPieceFace" points="8,33 31,45 56,33 31,22"/>',
+    division:'<polygon class="quickPieceFace" points="27,9 36,14 36,50 27,45"/>'
+  };
+  return `<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+    <g class="quickPieceWire">
+      <path d="M31 6 8 18v26l23 12 25-12V18L31 6Z"/>
+      <path d="M8 18 31 30 56 18M31 6v24M31 30v26"/>
+    </g>
+    ${faces[kind]||''}
+    <g class="quickPieceWire quickPieceWireTop">
+      <path d="M31 6 8 18v26l23 12 25-12V18L31 6Z"/>
+      <path d="M8 18 31 30 56 18M31 6v24M31 30v26"/>
+    </g>
+  </svg>`;
+}
 function quickDockPieceIcon(kind){
-  const w=document.createElement('span');w.className=`quickSubPieceIcon quickSubPiece-${kind}`;
-  const face=document.createElement('i');w.appendChild(face);return w;
+  const w=document.createElement('span');
+  w.className=`quickSubPieceIcon quickSubPiece-${kind}`;
+  w.innerHTML=quickDockPieceSvg(kind);
+  return w;
 }
 function quickDockOpenPieceType(type){
+  // Segurar = fluxo completo, com todas as opções/configurações já existentes.
   closeQuickDockSubmenu();
   if(!dockEnsureSpace(true))return;
   closeToolDockBeforeMenu();
@@ -2769,9 +2797,62 @@ function quickDockOpenPieceType(type){
   const b=document.querySelector(`[data-piece-type="${type}"]`);
   if(b)selectPieceCreateTypeButton(b);
 }
+function quickDockCreatePieceDirect(type){
+  // Toque simples = cria imediatamente usando os valores rápidos atuais/salvos.
+  // O diálogo não chega a abrir, por isso o fluxo fica realmente de um toque.
+  closeQuickDockSubmenu();
+  if(!dockEnsureSpace(true))return false;
+  const b=document.querySelector(`[data-piece-type="${type}"]`);
+  if(b)selectPieceCreateTypeButton(b);else pieceCreateType=type||'left';
+  try{
+    const root=selectedSpaceCell?getSpaceRoot(selectedSpaceCell.rootId):null;
+    if(root)applySavedPieceThickness(root);
+    updateCreatePiecesUI();
+    if(createPiecesInSelectedCell()){
+      savePieceThicknessPreference({silent:true});
+      return true;
+    }
+  }catch(err){
+    console.error('Criar peça rápida:',err);
+    toast('Erro ao criar peça: '+(err?.message||err));
+  }
+  return false;
+}
+const QUICK_PIECE_HOLD_MS=520;
+function bindQuickDockPieceGesture(button,item){
+  let timer=null,held=false,startX=0,startY=0,pointerId=null;
+  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}button.classList.remove('holding');};
+  button.addEventListener('pointerdown',e=>{
+    if(e.button!=null&&e.button!==0)return;
+    e.stopPropagation();held=false;pointerId=e.pointerId;startX=e.clientX;startY=e.clientY;
+    button.classList.add('holding');
+    timer=setTimeout(()=>{
+      timer=null;held=true;button.classList.remove('holding');
+      try{navigator.vibrate?.(18);}catch{}
+      quickDockOpenPieceType(item.pieceType);
+    },QUICK_PIECE_HOLD_MS);
+  });
+  button.addEventListener('pointermove',e=>{
+    if(pointerId!==e.pointerId)return;
+    if(Math.hypot(e.clientX-startX,e.clientY-startY)>14)clear();
+  });
+  button.addEventListener('pointerup',e=>{
+    if(pointerId!==e.pointerId)return;
+    e.stopPropagation();const wasHeld=held;clear();pointerId=null;
+    if(!wasHeld)quickDockCreatePieceDirect(item.pieceType);
+  });
+  button.addEventListener('pointercancel',()=>{clear();pointerId=null;held=false;});
+  button.addEventListener('contextmenu',e=>e.preventDefault());
+  // Enter/Espaço continuam acessíveis como criação direta.
+  button.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&!e.repeat){e.preventDefault();quickDockCreatePieceDirect(item.pieceType);}
+  });
+  // Evita o click sintético posterior ao pointerup disparar outra ação.
+  button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});
+}
 function runQuickDockSubItem(item){
   if(!item)return;
-  if(item.pieceType){quickDockOpenPieceType(item.pieceType);return;}
+  if(item.pieceType){quickDockCreatePieceDirect(item.pieceType);return;}
   closeQuickDockSubmenu();
   if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}
   if(item.tool)runDockTool(item.tool);
@@ -2789,7 +2870,15 @@ function openQuickDockSubmenu(key,anchor=null){
     const icon=item.pieceIcon?quickDockPieceIcon(item.pieceIcon):document.createElement('span');
     if(!item.pieceIcon){icon.className='quickDockSubIcon';icon.textContent=item.icon||'•';}
     const txt=document.createElement('span');txt.className='quickDockSubText';txt.textContent=item.label;
-    b.append(icon,txt);b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});box.appendChild(b);
+    b.append(icon,txt);
+    if(item.pieceType){
+      b.title=`${item.label} · toque cria direto · segure para opções`;
+      b.setAttribute('aria-label',`${item.label}. Toque para criar. Segure para abrir opções.`);
+      bindQuickDockPieceGesture(b,item);
+    }else{
+      b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});
+    }
+    box.appendChild(b);
   });
   p.classList.add('show');
   document.querySelectorAll('#quickDockTools .quickDockTool').forEach(b=>b.classList.toggle('submenu-open',b===anchor));
