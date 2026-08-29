@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.56",
+  "version": "1.200.57",
   "required": false,
-  "message": "Barra rápida com 2 páginas: até 10 atalhos configuráveis e botão discreto de troca.",
-  "released_at": "2026-08-28T18:42:00-03:00",
-  "build": "1.200.56-r1"
+  "message": "Atalhos com submenus em cascata: Peças abre 8 tipos, Usinagem abre todas as operações e há submenus opcionais de Espaço e Vistas.",
+  "released_at": "2026-08-28T22:29:00-03:00",
+  "build": "1.200.57-r1"
 }
