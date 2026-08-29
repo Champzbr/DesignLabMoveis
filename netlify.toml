@@ -1,4 +1,4 @@
-# DesignLabMoveis 1.200.30 — site estático + Android TWA
+# DesignLabMoveis 1.200.64 — site estático + Android TWA
 [build]
   publish = "."
 
@@ -7,10 +7,6 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-[[headers]]
-  for = "/designlabmoveis-*.html"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
   for = "/sw.js"
