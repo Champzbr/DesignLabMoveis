@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.67-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.68-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.67-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.68-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.67';
+  return tm?.[1]||'1.200.68';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.67-r1';
+const DESIGNLAB_JS_BUILD='1.200.68-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3454,7 +3454,7 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
-  // 1.200.67: valores escuros herdados de versões antigas são ignorados.
+  // 1.200.68: valores escuros herdados de versões antigas são ignorados.
   // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
@@ -5301,7 +5301,7 @@ function deleteSelectedSpaceRoot(){
 }
 
 // ============================================================================
-// 1.200.67 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
+// 1.200.68 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
 // ============================================================================
 function cellContainsObjectCompletely(cell,o,tol=.0015){
   if(!cell||!o)return false;
@@ -18715,7 +18715,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.67';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.68';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -18873,7 +18873,7 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // 1.200.67: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // 1.200.68: não fabrica histórico ao retomar. Apenas garante que a entrada
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
