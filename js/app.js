@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.66-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.67-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.66-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.67-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.66';
+  return tm?.[1]||'1.200.67';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.66-r1';
+const DESIGNLAB_JS_BUILD='1.200.67-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1362,7 +1362,8 @@ const CLOUD_PREFERENCES_EXACT_KEYS=new Set([
 ]);
 const CLOUD_PREFERENCES_DYNAMIC_PREFIXES=[
   'designlab-cut-space-prefs-v134:',
-  'designlab-piece-thickness-v135:'
+  'designlab-piece-thickness-v135:',
+  'designlab-piece-create-prefs-v120067:'
 ];
 let cloudPreferencesApplying=false;
 let cloudPreferencesSaveTimer=null;
@@ -2767,6 +2768,7 @@ function runDockTool(key){
   else if(key==='aspireFurniture'){if(dockEnsureSpace(false))exportSelectedAspireDxf();}
   else if(key==='aspireProject')exportProjectAspireZip();
   else if(key==='deleteSpace'){if(dockEnsureSpace(false)){closeToolDockBeforeMenu();deleteSelectedSpaceRoot();}}
+  else if(key==='deleteSpaceCell'){if(dockEnsureSpace(true)){closeToolDockBeforeMenu();openDeleteSelectedSpaceCellDialog();}}
 
   else if(key==='front')dockView('front');
   else if(key==='back')dockView('back');
@@ -2848,6 +2850,22 @@ function quickDockToolActive(key){
 }
 
 const QUICK_DOCK_SUBMENUS={
+  deleteSelected:{
+    title:'Apagar',kind:'delete',items:[
+      {label:'Apagar móvel',icon:'🗑',tool:'deleteSpace'},
+      {label:'Apagar espaço',icon:'🧩',tool:'deleteSpaceCell'}
+    ]
+  },
+  cutSpace:{
+    title:'Cortar espaço',kind:'cut',items:[
+      {label:'Esquerda',cutSide:'left',pieceIcon:'left'},
+      {label:'Direita',cutSide:'right',pieceIcon:'right'},
+      {label:'Em cima',cutSide:'top',pieceIcon:'top'},
+      {label:'Em baixo',cutSide:'bottom',pieceIcon:'base'},
+      {label:'Frente',cutSide:'front',pieceIcon:'front'},
+      {label:'Fundo',cutSide:'back',pieceIcon:'back'}
+    ]
+  },
   createPieces:{
     title:'Criar peças',kind:'pieces',items:[
       {label:'Lat. esq.',pieceType:'left',pieceIcon:'left'},
@@ -2978,9 +2996,44 @@ function bindQuickDockPieceSubTool(button,item){
   // Teclado/acessibilidade: Enter/Espaço equivalem ao toque simples.
   button.addEventListener('click',e=>{if(e.detail===0){e.stopPropagation();quickDockDirectCreatePieceType(item.pieceType);}});
 }
+function quickDockPrepareCutSide(side){
+  if(!dockEnsureSpace(true))return false;
+  closeToolDockBeforeMenu();
+  applyCutSpacePrefs();
+  cutSide=side;
+  document.querySelectorAll('[data-cut-side]').forEach(b=>b.classList.toggle('active',b.dataset.cutSide===cutSide));
+  updateCutPreview();
+  return true;
+}
+function quickDockOpenCutSide(side){
+  closeQuickDockSubmenu();
+  if(quickDockPrepareCutSide(side))$('cutSpaceDialog').style.display='flex';
+}
+function quickDockDirectCutSide(side){
+  closeQuickDockSubmenu();
+  if(!quickDockPrepareCutSide(side))return;
+  const amount=parseDecimalInput($('cutAmount')?.value);
+  const fixed=!!$('cutFixed')?.checked;
+  if(cutSelectedSpace(side,m(amount),fixed))toast(`${cutSideName(side)} · corte aplicado`);
+}
+function bindQuickDockCutSubTool(button,item){
+  let holdTimer=0,longPress=false;
+  const clear=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=0;}};
+  button.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.stopPropagation();longPress=false;clear();
+    holdTimer=setTimeout(()=>{holdTimer=0;longPress=true;quickDockOpenCutSide(item.cutSide);},520);
+  });
+  button.addEventListener('pointerup',e=>{e.stopPropagation();const wasLong=longPress;clear();if(!wasLong)quickDockDirectCutSide(item.cutSide);longPress=false;});
+  button.addEventListener('pointercancel',()=>{clear();longPress=false;});
+  button.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')clear();});
+  button.addEventListener('contextmenu',e=>e.preventDefault());
+  button.addEventListener('click',e=>{if(e.detail===0){e.stopPropagation();quickDockDirectCutSide(item.cutSide);}});
+}
 function runQuickDockSubItem(item){
   if(!item)return;
   if(item.pieceType){quickDockDirectCreatePieceType(item.pieceType);return;}
+  if(item.cutSide){quickDockDirectCutSide(item.cutSide);return;}
   closeQuickDockSubmenu();
   if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}
   if(item.tool)runDockTool(item.tool);
@@ -2991,7 +3044,8 @@ function openQuickDockSubmenu(key,anchor=null){
   if(quickDockSubmenuKey===key&&p.classList.contains('show')){closeQuickDockSubmenu();return true;}
   quickDockSubmenuKey=key;
   const title=$('quickDockSubmenuTitle');if(title)title.textContent=def.title;
-  const hint=$('quickDockSubmenuHint');if(hint)hint.textContent=def.kind==='pieces'?'toque cria · segure para opções':'toque em uma opção';
+  const hint=$('quickDockSubmenuHint');if(hint)hint.textContent=def.kind==='pieces'?'toque cria · segure para opções':def.kind==='cut'?'toque corta · segure para medida/opções':'toque em uma opção';
+  p.dataset.kind=def.kind||'';
   const box=$('quickDockSubmenuTools');if(!box)return false;
   box.innerHTML='';box.style.setProperty('--quick-sub-count',String(Math.max(1,Math.min(8,def.items.length))));
   def.items.forEach(item=>{
@@ -3003,6 +3057,9 @@ function openQuickDockSubmenu(key,anchor=null){
     if(item.pieceType){
       b.title=`${item.label} · toque cria · segure para opções`;
       bindQuickDockPieceSubTool(b,item);
+    }else if(item.cutSide){
+      b.title=`${item.label} · toque corta · segure para medida/opções`;
+      bindQuickDockCutSubTool(b,item);
     }else{
       b.addEventListener('click',e=>{e.stopPropagation();runQuickDockSubItem(item);});
     }
@@ -3397,7 +3454,7 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
-  // 1.200.66: valores escuros herdados de versões antigas são ignorados.
+  // 1.200.67: valores escuros herdados de versões antigas são ignorados.
   // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
@@ -4810,7 +4867,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
 }
 function createSpaceFromState(data){
   const legacyWholeHidden=!!data.spaceHidden;
-  const root={id:data.id||uid('space'),name:data.name||'Espaço',width:data.width,depth:data.depth,height:data.height,x:data.x||0,yBase:data.yBase||0,z:data.z||0,defaultMaterialId:data.defaultMaterialId||null,doorsHidden:!!data.doorsHidden,spaceHidden:false,fixedBands:{x:(data.fixedBands?.x||[]).map(v=>[...v]),y:(data.fixedBands?.y||[]).map(v=>[...v]),z:(data.fixedBands?.z||[]).map(v=>[...v])},cells:(data.cells||[]).map(c=>({...c,id:c.id||uid('cell'),hidden:!!c.hidden||legacyWholeHidden,fixedAxes:{...(c.fixedAxes||{})}}))};
+  const root={id:data.id||uid('space'),name:data.name||'Espaço',width:data.width,depth:data.depth,height:data.height,x:data.x||0,yBase:data.yBase||0,z:data.z||0,defaultMaterialId:data.defaultMaterialId||null,doorsHidden:!!data.doorsHidden,spaceHidden:false,fixedBands:{x:(data.fixedBands?.x||[]).map(v=>[...v]),y:(data.fixedBands?.y||[]).map(v=>[...v]),z:(data.fixedBands?.z||[]).map(v=>[...v])},cells:(data.cells||[]).map(c=>({...c,id:c.id||uid('cell'),hidden:!!c.hidden||legacyWholeHidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null}))};
   if(!root.cells.length) root.cells=[{id:uid('cell'),hidden:legacyWholeHidden,fixedAxes:{},minX:root.x-root.width/2,maxX:root.x+root.width/2,minY:root.yBase,maxY:root.yBase+root.height,minZ:root.z-root.depth/2,maxZ:root.z+root.depth/2}];
   spaceRoots.push(root); return root;
 }
@@ -4879,6 +4936,12 @@ function cutSelectedSpace(side,amountM,isFixed=false){
     return false;
   }
   const a={...cell,id:uid('cell')}, b={...cell,id:uid('cell')}; let cutCell=a;
+  const manualCutId=uid('cut');
+  const inheritedManualCut=cell.manualCut?JSON.parse(JSON.stringify(cell.manualCut)):null;
+  const cutAxis=(side==='left'||side==='right')?'x':((side==='front'||side==='back')?'z':'y');
+  const manualCut={id:manualCutId,axis:cutAxis,side,parentBounds:cellBox(cell),parentMeta:inheritedManualCut,isFixed:!!isFixed};
+  a.manualCut=JSON.parse(JSON.stringify(manualCut));
+  b.manualCut=JSON.parse(JSON.stringify(manualCut));
   if(side==='left'){ const p=cell.minX+amountM; a.maxX=p; b.minX=p; cutCell=a; }
   if(side==='right'){ const p=cell.maxX-amountM; a.minX=p; b.maxX=p; cutCell=a; }
   if(side==='bottom'){ const p=cell.minY+amountM; a.maxY=p; b.minY=p; cutCell=a; }
@@ -5233,6 +5296,106 @@ function deleteSelectedSpaceRoot(){
     ? `“${root.name}” apagado · ${linked.length} peça(s) removida(s)`
     : `“${root.name}” apagado`
   );
+
+  return true;
+}
+
+// ============================================================================
+// 1.200.67 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
+// ============================================================================
+function cellContainsObjectCompletely(cell,o,tol=.0015){
+  if(!cell||!o)return false;
+  const b=getBounds(o);
+  return b.minX>=cell.minX-tol&&b.maxX<=cell.maxX+tol&&
+         b.minY>=cell.minY-tol&&b.maxY<=cell.maxY+tol&&
+         b.minZ>=cell.minZ-tol&&b.maxZ<=cell.maxZ+tol;
+}
+function manualCutSibling(root,cell){
+  const meta=cell?.manualCut;
+  if(meta?.id){
+    const sibling=(root.cells||[]).find(c=>c!==cell&&c.manualCut?.id===meta.id);
+    if(sibling)return {sibling,axis:meta.axis||null,meta};
+  }
+  const tol=Math.max(SPACE_HEAL_TOL*4,.0025),candidates=[];
+  for(const axis of ['x','y','z']){
+    for(const other of (root.cells||[])){
+      if(other===cell||!sameCellTangents(cell,other,axis,tol))continue;
+      const touches=almostSpace(cellAxisMax(cell,axis),cellAxisMin(other,axis),tol)||almostSpace(cellAxisMax(other,axis),cellAxisMin(cell,axis),tol);
+      if(!touches)continue;
+      const cs=cellSize(cell),os=cellSize(other);
+      const volume=os.width*os.depth*os.height;
+      candidates.push({sibling:other,axis,meta:null,volume});
+    }
+  }
+  candidates.sort((a,b)=>b.volume-a.volume);
+  return candidates[0]||null;
+}
+function removeFixedBandForDeletedCell(root,cell,axis){
+  if(!root||!cell||!axis||!cell.fixedAxes?.[axis])return;
+  const rb=rootBounds(root),rootMin=boxAxisMin(rb,axis);
+  const a=cellAxisMin(cell,axis)-rootMin,z=cellAxisMax(cell,axis)-rootMin;
+  const tol=.003;
+  root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
+  root.fixedBands[axis]=(root.fixedBands[axis]||[]).filter(([s,e])=>!(Math.abs(Number(s)-a)<=tol&&Math.abs(Number(e)-z)<=tol));
+}
+function selectedSpaceCellDeletePreview(){
+  if(!selectedSpaceCell)return null;
+  const root=getSpaceRoot(selectedSpaceCell.rootId),cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId);
+  if(!root||!cell)return null;
+  if((root.cells||[]).length<=1)return {root,cell,error:'Este é o espaço principal. Não existe corte para desfazer.'};
+  const pair=manualCutSibling(root,cell);
+  if(!pair)return {root,cell,error:'Não encontrei a divisão irmã para recompor este vão.'};
+  const inside=objects.filter(o=>cellContainsObjectCompletely(cell,o));
+  return {root,cell,...pair,inside};
+}
+function openDeleteSelectedSpaceCellDialog(){
+  const p=selectedSpaceCellDeletePreview();
+  if(!p){toast('Selecione o espaço que deseja apagar');return false;}
+  if(p.error){toast(p.error);return false;}
+  const sz=cellSize(p.cell),after=mergedCellFromPair(p.cell,p.sibling,p.axis),asz=cellSize(after);
+  const count=p.inside.length;
+  $('deleteSpaceCellText').innerHTML=
+    `<strong>Espaço selecionado:</strong> ${nice(mm(sz.width))} × ${nice(mm(sz.depth))} × ${nice(mm(sz.height))} mm.<br>`+
+    `O corte será desfeito e o vão voltará para <strong>${nice(mm(asz.width))} × ${nice(mm(asz.depth))} × ${nice(mm(asz.height))} mm</strong>.`+
+    (count?`<br><strong>${count} peça(s)</strong> totalmente dentro do espaço selecionado também serão apagadas.`:'');
+  $('deleteSpaceCellDialog').style.display='flex';
+  return true;
+}
+function deleteSelectedSpaceCell(){
+  const p=selectedSpaceCellDeletePreview();
+  if(!p||p.error){toast(p?.error||'Selecione um espaço dividido');return false;}
+  const {root,cell,sibling,axis,meta}=p;
+  // Tudo que pertence inteiramente ao subespaço removido é apagado. Peças que
+  // atravessam outros vãos (ex.: chapéu geral) são preservadas.
+  const inside=objects.filter(o=>cellContainsObjectCompletely(cell,o));
+  const drawerIds=new Set();
+  for(const o of inside)if(o.userData?.drawerSetId)drawerIds.add(o.userData.drawerSetId);
+  for(const id of drawerIds)removeDrawerSet(id,{commit:false});
+  const stillInside=objects.filter(o=>cellContainsObjectCompletely(cell,o));
+  removeHardwareLinkedToObjects(stillInside);
+  for(const o of [...stillInside]){
+    const i=objects.indexOf(o);if(i>=0)objects.splice(i,1);
+    if(selected===o)selected=null;
+    disposeObject(o);
+  }
+  removeFixedBandForDeletedCell(root,cell,axis);
+  removeFixedBandForDeletedCell(root,sibling,axis);
+  const merged=meta?.parentBounds
+    ? {id:uid('cell'),hidden:false,fixedAxes:{...(meta.parentMeta?.fixedAxes||{})},manualCut:meta.parentMeta?JSON.parse(JSON.stringify(meta.parentMeta)):null,...meta.parentBounds}
+    : mergedCellFromPair(cell,sibling,axis);
+  if(!meta?.parentBounds){
+    merged.manualCut=cell.manualCut?.parentMeta?JSON.parse(JSON.stringify(cell.manualCut.parentMeta)):null;
+  }
+  const ia=root.cells.indexOf(cell),ib=root.cells.indexOf(sibling);
+  if(ia<0||ib<0){toast('A divisão mudou. Selecione novamente.');return false;}
+  for(const idx of [ia,ib].sort((a,b)=>b-a))root.cells.splice(idx,1);
+  root.cells.push(merged);
+  $('deleteSpaceCellDialog').style.display='none';
+  $('spaceActions').style.display='none';
+  renderSpaces();renderMachiningVisuals();
+  selectSpaceCellByIds(root.id,merged.id,{showMenu:false});
+  updateMeasureBadge();commitHistory();
+  toast(`Espaço apagado · corte desfeito${stillInside.length?` · ${stillInside.length} peça(s) removida(s)`:''}`);
   return true;
 }
 
@@ -7083,7 +7246,7 @@ function captureGuides(){
     end:line.userData.end.toArray()
   }));
 }
-function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
+function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null,minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
 function captureState(){ return { version:'1.200.18', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
@@ -8759,6 +8922,43 @@ function applySavedPieceThickness(root){
   $('pieceThickness').dataset.savedValue=String(value);
 }
 
+const PIECE_CREATE_PREFS_KEY='designlab-piece-create-prefs-v120067';
+function pieceCreatePrefsStorageKey(type=pieceCreateType){
+  const root=selectedCellInfo()?.root||activeSpaceRoot();
+  return `${PIECE_CREATE_PREFS_KEY}:${pieceThicknessOwnerKey()}:${pieceThicknessMaterialKey(root)}:${type||'left'}`;
+}
+function capturePieceCreatePrefs(type=pieceCreateType){
+  const val=id=>String($(id)?.value??'');
+  return {
+    type,
+    thickness:val('pieceThickness'),frontInset:val('pieceFrontInset'),backInset:val('pieceBackInset'),
+    position:val('piecePosition'),count:val('pieceCount'),divisionMeasure:val('pieceDivisionMeasure'),divisionSide:val('pieceDivisionSide'),
+    savedAt:new Date().toISOString()
+  };
+}
+function savePieceCreateConfig(){
+  try{
+    const cfg=capturePieceCreatePrefs(pieceCreateType);
+    const t=parseDecimalInput(cfg.thickness);
+    if(!Number.isFinite(t)||t<1){toast('Confira a espessura antes de salvar');return false;}
+    cfg.thickness=String(t);
+    localStorage.setItem(pieceCreatePrefsStorageKey(pieceCreateType),JSON.stringify(cfg));
+    savePieceThicknessPreference({silent:true});
+    if(pieceCreateType==='doors')saveDoorCreateConfig({silent:true});
+    toast(`Configuração de ${pieceTypeName(pieceCreateType)} salva`);
+    return true;
+  }catch(err){console.error('Salvar configuração de peça:',err);toast('Não foi possível salvar esta configuração');return false;}
+}
+function applyPieceCreateConfig(type=pieceCreateType){
+  let cfg=null;
+  try{cfg=JSON.parse(localStorage.getItem(pieceCreatePrefsStorageKey(type))||'null');}catch{}
+  if(!cfg||typeof cfg!=='object')return false;
+  const set=(id,v)=>{if($(id)&&v!==undefined&&v!==null)$(id).value=String(v);};
+  set('pieceThickness',cfg.thickness);set('pieceFrontInset',cfg.frontInset);set('pieceBackInset',cfg.backInset);
+  set('piecePosition',cfg.position);set('pieceCount',cfg.count);set('pieceDivisionMeasure',cfg.divisionMeasure);set('pieceDivisionSide',cfg.divisionSide);
+  if(type==='doors')applyDoorCreateConfig();
+  return true;
+}
 
 // ---------- Criar peças dentro da divisão ----------
 let pieceCreateType='left';
@@ -8766,10 +8966,11 @@ let pieceTypeLastClickButton=null;
 let pieceTypeLastClickAt=0;
 let pieceTypeQuickCreateBusy=false;
 const PIECE_TYPE_DOUBLE_CLICK_MS=520;
-function selectPieceCreateTypeButton(button){
+function selectPieceCreateTypeButton(button,{loadSaved=true}={}){
   if(!button)return;
   pieceCreateType=button.dataset.pieceType||'left';
   document.querySelectorAll('[data-piece-type]').forEach(x=>x.classList.toggle('active',x===button));
+  if(loadSaved)applyPieceCreateConfig(pieceCreateType);
   updateCreatePiecesUI();
 }
 function quickCreatePieceFromTypeButton(button){
@@ -8796,7 +8997,7 @@ function pieceDivisionLayoutMm(widthM,thicknessM){
   const free=total-thickness;
   if(!(free>0))return {ok:false,total,thickness,gap1:0,gap2:0,message:'A espessura da divisão ocupa toda a largura.'};
 
-  let measure=Number($('pieceDivisionMeasure')?.value);
+  let measure=parseDecimalInput($('pieceDivisionMeasure')?.value);
   if(!Number.isFinite(measure)||measure<0)measure=0;
   const side=$('pieceDivisionSide')?.value==='gap2'?'gap2':'gap1';
 
@@ -8881,17 +9082,17 @@ function applyDoorCreateConfig(cfg=readDoorCreateConfig()){
   updateDoorCreationVisibility();
   return true;
 }
-function saveDoorCreateConfig(){
-  if(pieceCreateType!=='doors'){toast('Selecione Portas para salvar esta configuração');return false;}
+function saveDoorCreateConfig({silent=false}={}){
+  if(pieceCreateType!=='doors'){if(!silent)toast('Selecione Portas para salvar esta configuração');return false;}
   try{
     const cfg=captureDoorCreateConfig();
     localStorage.setItem(DOOR_CREATE_CONFIG_KEY,JSON.stringify(cfg));
     savePieceThicknessPreference({silent:true});
-    toast('Configuração de portas salva · será carregada nas próximas criações');
+    if(!silent)toast('Configuração de portas salva · será carregada nas próximas criações');
     return true;
   }catch(err){
     console.error('Salvar configuração de portas:',err);
-    toast('Não foi possível salvar a configuração de portas');
+    if(!silent)toast('Não foi possível salvar a configuração de portas');
     return false;
   }
 }
@@ -9073,7 +9274,6 @@ function setSelectedDoorHingeSide(side){
 
 function updateDoorCreationVisibility(){
   const isDoors=pieceCreateType==='doors';
-  $('saveDoorCreateConfig')?.classList.toggle('hiddenField',!isDoors);
   const handleType=String($('doorHandleType')?.value||'none');
   $('doorHandleSizeLabel')?.classList.toggle('hiddenField',!isDoors||handleType==='none');
   $('doorCavaPositionLabel')?.classList.toggle('hiddenField',!isDoors||handleType!=='cava');
@@ -9085,8 +9285,8 @@ function updateDoorCreationVisibility(){
 
 function updateCreatePiecesUI(){
   const info=selectedCellInfo(); if(!info)return;
-  const s=info.size, t=Math.max(.001,m($('pieceThickness').value)||.018);
-  const front=Math.max(0,m($('pieceFrontInset').value)||0), back=Math.max(0,m($('pieceBackInset').value)||0);
+  const s=info.size, t=Math.max(.001,m(parseDecimalInput($('pieceThickness').value))||.018);
+  const front=Math.max(0,m(parseDecimalInput($('pieceFrontInset').value))||0), back=Math.max(0,m(parseDecimalInput($('pieceBackInset').value))||0);
   const usableDepth=Math.max(.001,s.depth-front-back);
   const isShelf=pieceCreateType==='shelf', isMulti=pieceCreateType==='shelves';
   const isDepthPiece=pieceCreateType==='back'||pieceCreateType==='front';
@@ -9126,7 +9326,7 @@ function updateCreatePiecesUI(){
       ? `${dc.hingeCount} dobradiça(s) por porta · copo Ø${nice(dc.cupDiameter)} mm · ${dc.mountEnabled?`placa: linha ${nice(dc.mountFrontOffset)} mm da frente / ${nice(dc.mountSpacing)} mm entre furos`:'somente furo na porta'}`
       : 'Furação de dobradiça desativada';
   } else if(isShelf){
-    let rawPos=Number($('piecePosition').value);
+    let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
 
     // 1.100.2: zero significa CENTRALIZAR.
@@ -9195,7 +9395,7 @@ function pieceFitsWholeAxis(pieceSize,cellSizeM){
 function createPiecesInSelectedCell(){
   const info=selectedCellInfo(); if(!info){toast('Selecione uma divisão');return false;}
   const root=info.root, c={...info.cell}, s=info.size;
-  const t=m($('pieceThickness').value),front=m($('pieceFrontInset').value),back=m($('pieceBackInset').value);
+  const t=m(parseDecimalInput($('pieceThickness').value)),front=m(parseDecimalInput($('pieceFrontInset').value)),back=m(parseDecimalInput($('pieceBackInset').value));
   if(![t,front,back].every(Number.isFinite)||t<.001||front<0||back<0){toast('Confira as medidas');return false;}
   const depth=s.depth-front-back;
   if(depth<.001){toast('Os recuos ultrapassam a profundidade');return false;}
@@ -9321,7 +9521,7 @@ function createPiecesInSelectedCell(){
         createBox({...common,width:s.width,height:s.height,x:info.center.x,yBase:c.minY,z,name:'Prateleira'},false);
         createdCount=1;
       } else {
-      let rawPos=Number($('piecePosition').value);
+      let rawPos=parseDecimalInput($('piecePosition').value);
       if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
 
       const freeH=Math.max(0,s.height-t);
@@ -9383,7 +9583,7 @@ function createPiecesInSelectedCell(){
     const d=pieceDivisionLayoutMm(s.width,t);
     toast(`Divisão criada · Vão 1 ${nice(d.gap1)} mm · Vão 2 ${nice(d.gap2)} mm`);
   }
-  else if(pieceCreateType==='shelf' && Number($('piecePosition').value)<=0){
+  else if(pieceCreateType==='shelf' && parseDecimalInput($('piecePosition').value)<=0){
     toast('Prateleira criada no centro · espessura descontada do vão');
   }
   else toast(createdCount>1 ? `${createdCount} prateleiras criadas · espaço dividido` : (filledWhole ? 'Peça criada · corte preenchido' : 'Peça criada · espaço dividido automaticamente'));
@@ -17046,7 +17246,7 @@ function cutSideName(side){
 }
 function updateCutPreview(){
   const info=selectedCellInfo(); if(!info)return;
-  const raw=Number($('cutAmount').value);
+  const raw=parseDecimalInput($('cutAmount').value);
   const total=(cutSide==='left'||cutSide==='right') ? mm(info.size.width)
              : (cutSide==='front'||cutSide==='back') ? mm(info.size.depth)
              : mm(info.size.height);
@@ -17081,7 +17281,7 @@ $('cancelCut').onclick=()=>{$('cutSpaceDialog').style.display='none';};
 $('saveCutConfig').onclick=saveCutSpacePrefs;
 document.querySelectorAll('[data-cut-side]').forEach(b=>b.onclick=()=>{cutSide=b.dataset.cutSide;document.querySelectorAll('[data-cut-side]').forEach(x=>x.classList.toggle('active',x===b));updateCutPreview();});
 $('cutAmount').addEventListener('input',updateCutPreview); $('cutFixed').addEventListener('change',updateCutPreview);
-$('confirmCut').onclick=()=>{const fixed=$('cutFixed').checked;if(cutSelectedSpace(cutSide,m($('cutAmount').value),fixed)) {$('cutSpaceDialog').style.display='none';toast(fixed?'Espaço dividido · faixa fixa':'Espaço dividido · faixa solta');}};
+$('confirmCut').onclick=()=>{const fixed=$('cutFixed').checked,amount=parseDecimalInput($('cutAmount').value);if(cutSelectedSpace(cutSide,m(amount),fixed)) {$('cutSpaceDialog').style.display='none';toast(fixed?'Espaço dividido · faixa fixa':'Espaço dividido · faixa solta');}};
 // v61 · Móvel curvo: 3 referências fixas + extras equilibrados somente nos trechos retos.
 // Ao reduzir o raio, evita manter uma nervura incompatível de configuração antiga.
 function normalizeCurvedRadiusInputs(){
@@ -17131,13 +17331,12 @@ $('createPiecesBtn').onclick=()=>{
   $('doorCreateHingeHoles').checked=true; $('doorHingeCount').value='auto'; $('doorHingeSide').value='auto';
   $('doorHingeCupDiameter').value=35; $('doorHingeCupDepth').value=12; $('doorHingeCupEdge').value=22.5; $('doorHingeEdgeY').value=100;
   $('doorCreateSideHoles').checked=true; $('doorMountFrontOffset').value=37; $('doorMountSpacing').value=32; $('doorMountDiameter').value=5; $('doorMountDepth').value=12;
-  // Se o usuário já salvou um padrão de portas, restaura todas as medidas,
-  // puxador/cava e furação antes de abrir o diálogo.
-  applyDoorCreateConfig();
+  // Restaura o padrão salvo da peça atual (inclusive espessuras decimais como 18,5).
+  applyPieceCreateConfig(pieceCreateType);
   $('createPiecesDialog').style.display='flex';
   try{ updateCreatePiecesUI(); }catch(err){ console.error('Criar peças:',err); toast('Erro ao abrir Criar peças: '+(err.message||err)); }
 };
-$('saveDoorCreateConfig').onclick=saveDoorCreateConfig;
+$('savePieceCreateConfig').onclick=savePieceCreateConfig;
 $('cancelCreatePieces').onclick=()=>{$('createPiecesDialog').style.display='none';pieceTypeLastClickButton=null;pieceTypeLastClickAt=0;};
 $('createPiecesDialog').addEventListener('pointerdown',e=>{if(e.target===$('createPiecesDialog')) $('createPiecesDialog').style.display='none';});
 document.querySelectorAll('[data-piece-type]').forEach(b=>{
@@ -17213,6 +17412,10 @@ $('bottomSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(
 $('toggleSpaceBtn').onclick=()=>{toggleActiveSpaceVisibility();$('spaceMoreDialog').style.display='none';};
 $('hideSelectedSpaceBtn').onclick=()=>toggleActiveSpaceVisibility();
 $('deleteSelectedSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
+$('deleteSpaceCellBtn').onclick=openDeleteSelectedSpaceCellDialog;
+$('cancelDeleteSpaceCell').onclick=()=>{$('deleteSpaceCellDialog').style.display='none';};
+$('confirmDeleteSpaceCell').onclick=deleteSelectedSpaceCell;
+$('deleteSpaceCellDialog').addEventListener('pointerdown',e=>{if(e.target===$('deleteSpaceCellDialog'))$('deleteSpaceCellDialog').style.display='none';});
 $('showHiddenSpacesMoreBtn').onclick=()=>{showAllHiddenSpaces();$('spaceMoreDialog').style.display='none';};
 $('toggleDoorsBtn').onclick=()=>{toggleDoorsForActiveSpace();};
 $('newAdjacentSpaceBtn').onclick=()=>{if(visualMode)setVisualMode(false,{notify:false,frame:false});const root=activeSpaceRoot();$('spaceMoreDialog').style.display='none';openNewSpaceDialog(root);};
@@ -18462,6 +18665,7 @@ async function designLabHandleBackCascade(){
     ['curvedStructureDialog','cancelCurvedStructure'],
     ['drawerSystemDialog','cancelDrawerSystem'],
     ['createPiecesDialog','cancelCreatePieces'],
+    ['deleteSpaceCellDialog','cancelDeleteSpaceCell'],
     ['cutSpaceDialog','cancelCut'],
     ['newSpaceDialog','cancelSpace'],
     ['editSpaceDialog','cancelEditSpace'],
@@ -18511,7 +18715,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.66';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.67';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -18669,7 +18873,7 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // 1.200.66: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // 1.200.67: não fabrica histórico ao retomar. Apenas garante que a entrada
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
