@@ -445,3 +445,11 @@
 .shapeCopyBarText{display:grid;gap:3px;min-width:0}.shapeCopyBarText strong{font-size:13px}.shapeCopyBarText span{font-size:11px;color:var(--muted);line-height:1.35}
 .shapeCopyBarActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.shapeCopyBar button{min-height:38px;padding:8px 12px;border-radius:10px}
 @media(max-width:620px){.shapeCopyBar{align-items:stretch;flex-direction:column;bottom:calc(10px + env(safe-area-inset-bottom))}.shapeCopyBarActions{display:grid;grid-template-columns:1fr 1fr 1fr}.shapeCopyBar button{padding:8px 6px;font-size:11px}}
+
+
+/* 1.200.67 · submenus rápidos sem alterar a barra principal */
+#quickDockSubmenu[data-kind="delete"]{width:min(300px,calc(100vw - 24px))}
+#quickDockSubmenu[data-kind="delete"] #quickDockSubmenuTools{grid-template-columns:repeat(2,minmax(0,1fr))}
+#quickDockSubmenu[data-kind="cut"]{width:min(520px,calc(100vw - 12px))}
+#quickDockSubmenu[data-kind="cut"] #quickDockSubmenuTools{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:430px){#quickDockSubmenu[data-kind="cut"] .quickDockSubText{font-size:6.2px}}
