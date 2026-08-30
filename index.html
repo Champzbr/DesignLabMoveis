@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.65-r1">
+<meta name="designlab-build" content="1.200.66-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.65-r1';
+  const BUILD='1.200.66-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -20,23 +20,21 @@
 <script id="designLabThemeBootstrap">
 (function(){
   'use strict';
+  const THEME_KEY='designLabAppThemeV2';
+  const USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';
+  let theme='light';
   try{
-    const THEME_KEY='designLabAppThemeV2';
-    const USER_CHOICE_KEY='designLabAppThemeUserChoiceV1';
-    // 1.200.65: o antigo THEME_KEY podia conter `dark` herdado de versões em
-    // que o escuro era padrão. Isso não significa que o usuário escolheu escuro.
-    // A partir daqui somente uma escolha EXPLÍCITA feita no seletor novo pode
-    // ativar o modo escuro. Instalações antigas entram no Clássico claro.
+    // 1.200.66: tema da Home nasce CLARO. Nenhuma chave de versões antigas
+    // pode ativar o escuro. Só uma escolha feita no seletor desta geração (V2)
+    // habilita o modo escuro. Isso elimina instalações antigas presas no dark.
     const explicit=localStorage.getItem(USER_CHOICE_KEY);
-    const theme=explicit==='dark'?'dark':'light';
-    localStorage.setItem(THEME_KEY,theme); // compatibilidade com builds antigos
-    document.documentElement.dataset.appTheme=theme;
-    if(theme==='light'){
-      document.documentElement.style.colorScheme='only light';
-      document.documentElement.style.backgroundColor='#f4f7f9';
-    }
-  }catch(_){
-    document.documentElement.dataset.appTheme='light';
+    theme=explicit==='dark'?'dark':'light';
+    localStorage.setItem(THEME_KEY,theme); // compatibilidade com código antigo
+  }catch(_){ theme='light'; }
+  document.documentElement.dataset.appTheme=theme;
+  document.documentElement.classList.toggle('designlab-dark-enabled',theme==='dark');
+  document.documentElement.classList.toggle('designlab-light-default',theme!=='dark');
+  if(theme!=='dark'){
     document.documentElement.style.colorScheme='only light';
     document.documentElement.style.backgroundColor='#f4f7f9';
   }
@@ -45,7 +43,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.65: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.66: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -63,148 +61,22 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.65 · VOLTAR ANDROID SEM DEPENDER DO SERVIDOR
-  const KEY='__designLabBackFenceStableV1';
-  const MAX_LEVEL=3;
-  let restoring=false;
-  let rebuilding=false;
-  let completedGesture=false;
-  let closeWatcher=null;
-
-  // 1.200.65 · CAMINHO PRINCIPAL PARA O VOLTAR NO ANDROID/CHROME NOVO.
-  // CloseWatcher foi criado justamente para receber o gesto de fechar da
-  // plataforma (Voltar no Android / Esc). Ele não depende de sincronização,
-  // Service Worker, URL especial ou de fabricar histórico no carregamento.
-  function dispatchPlatformBack(){
-    const run=window.__designLabRunBackCascade;
-    if(typeof run==='function')run();
-    else window.__designLabPendingBack=Math.min(4,(Number(window.__designLabPendingBack)||0)+1);
-  }
-  function installCloseWatcher(){
-    if(typeof window.CloseWatcher!=='function')return false;
-    try{
-      try{closeWatcher?.destroy?.();}catch(_){ }
-      closeWatcher=new window.CloseWatcher();
-      closeWatcher.addEventListener('cancel',ev=>{
-        // Quando cancel é cancelável, consumimos o gesto e mantemos o mesmo
-        // watcher vivo para o próximo Voltar.
-        if(!ev.cancelable)return;
-        ev.preventDefault();
-        dispatchPlatformBack();
-      });
-      closeWatcher.addEventListener('close',()=>{
-        // Em implementações nas quais cancel não é cancelável, close é o ponto
-        // em que o gesto foi consumido. Recriamos o watcher para o próximo.
-        dispatchPlatformBack();
-        setTimeout(installCloseWatcher,0);
-      },{once:true});
-      return true;
-    }catch(err){console.warn('DesignLab · CloseWatcher indisponível:',err);return false;}
-  }
-  installCloseWatcher();
-
-  function legacyOwns(st){
-    if(!st||typeof st!=='object')return false;
-    return Object.keys(st).some(k=>/^__designLabBackFenceV\d+$/i.test(k));
-  }
-  function owns(st=window.history.state||{}){
-    return !!(st&&typeof st==='object'&&(st[KEY]===true||legacyOwns(st)||st.__designLabInternalHistory===true));
-  }
-  function levelOf(st=window.history.state||{}){
-    const n=Number(st?.level);
-    return Number.isFinite(n)?Math.max(0,Math.min(MAX_LEVEL,n)):0;
-  }
-  function state(kind,level){
-    const st=Object.assign({},window.history.state||{});
-    st[KEY]=true;st.kind=kind;st.level=level;st.version='1.200.65';
+  // 1.200.66 · NAVEGAÇÃO REAL DO PWA.
+  // Não fabricamos uma pilha no carregamento. O Chrome pode ignorar estados
+  // criados sem gesto do usuário. Apenas marcamos a entrada atual como HOME.
+  // A entrada HOME-GUARD e a WORKSPACE serão criadas dentro do toque real que
+  // abre o projeto, o que faz o botão Voltar do Android enxergar histórico real.
+  const KEY='__designLabRouteV2';
+  function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
+  function make(route,extra={}){
+    const st=Object.assign({},window.history.state||{},extra);
+    st[KEY]=route;st.__designLabRouteVersion='1.200.66';
     return st;
   }
-  function hasRealActivation(){
-    try{return completedGesture||navigator.userActivation?.isActive===true||navigator.userActivation?.hasBeenActive===true;}catch{return completedGesture;}
-  }
-  function normalizeCurrent(){
-    if(!owns())return false;
-    try{window.history.replaceState(state(window.history.state?.kind||'guard',levelOf()),'',location.href);return true;}catch{return false;}
-  }
-  function rebuildTrustedFence(){
-    if(closeWatcher)return true;
-    if(rebuilding)return true;
-    if(!hasRealActivation()&&!owns())return false;
-    rebuilding=true;
-    try{
-      if(owns()&&levelOf()>=MAX_LEVEL){normalizeCurrent();return true;}
-      window.history.replaceState(state('anchor',0),'',location.href);
-      for(let i=1;i<=MAX_LEVEL;i++)window.history.pushState(state(`guard${i}`,i),'',location.href);
-      return true;
-    }catch(err){console.warn('DesignLab · não foi possível armar o Voltar:',err);return false;}
-    finally{rebuilding=false;}
-  }
-  function ensure(requestTrusted=false){
-    if(closeWatcher)return true;
-    if(owns()){normalizeCurrent();return true;}
-    if(requestTrusted&&hasRealActivation())return rebuildTrustedFence();
-    return false;
-  }
-  function armFromCompletedGesture(ev){
-    if(ev?.isTrusted===false)return;
-    completedGesture=true;
-    if(!closeWatcher)rebuildTrustedFence();
-  }
-
-  // Não montamos a pilha no começo do toque. O Chrome Android considera com
-  // muito mais consistência o gesto completo (pointerup/click).
-  window.addEventListener('pointerup',armFromCompletedGesture,{capture:true,passive:true});
-  window.addEventListener('touchend',armFromCompletedGesture,{capture:true,passive:true});
-  window.addEventListener('click',armFromCompletedGesture,{capture:true,passive:true});
-  window.addEventListener('keydown',ev=>{if(ev?.isTrusted===false||ev.key==='Escape')return;armFromCompletedGesture(ev);},{capture:true});
-
-  function restoreTop(st){
-    const steps=Math.max(0,MAX_LEVEL-levelOf(st));
-    if(!steps)return;
-    restoring=true;
-    setTimeout(()=>{
-      try{window.history.go(steps);}catch(_){restoring=false;}
-      setTimeout(()=>{restoring=false;},220);
-    },0);
-  }
-  window.addEventListener('popstate',()=>{
-    const st=window.history.state||{};
-    if(restoring){restoring=false;return;}
-    if(!owns(st))return;
-    normalizeCurrent();
-    const run=window.__designLabRunBackCascade;
-    if(typeof run==='function')run();
-    else window.__designLabPendingBack=Math.min(4,(Number(window.__designLabPendingBack)||0)+1);
-    restoreTop(window.history.state||st);
-  },{capture:true});
-
-  try{
-    if(window.navigation?.addEventListener){
-      window.navigation.addEventListener('navigate',ev=>{
-        if(ev.navigationType!=='traverse'||!ev.cancelable)return;
-        const dest=ev.destination?.url||'';
-        let sameApp=false;try{sameApp=new URL(dest,location.href).origin===location.origin;}catch{}
-        if(sameApp)return;
-        ev.preventDefault();
-        const run=window.__designLabRunBackCascade;
-        if(typeof run==='function')run();
-        else window.__designLabPendingBack=Math.min(4,(Number(window.__designLabPendingBack)||0)+1);
-      },{capture:true});
-    }
-  }catch(_){ }
-
-  // Uma cerca antiga válida é preservada, inclusive após atualizar a versão.
-  if(owns())normalizeCurrent();
-  else if(hasRealActivation())rebuildTrustedFence();
-
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState!=='visible')return;
-    installCloseWatcher();
-    if(!closeWatcher){if(owns())normalizeCurrent();else if(hasRealActivation())rebuildTrustedFence();}
-  },{capture:true});
-  window.addEventListener('pageshow',()=>{installCloseWatcher();if(!closeWatcher){if(owns())normalizeCurrent();else if(hasRealActivation())rebuildTrustedFence();}},{capture:true});
-
-  window.__DL_BACK_BOOTSTRAP={ensure,arm:armFromCompletedGesture,rebuild:rebuildTrustedFence,ensureCloseWatcher:installCloseWatcher,owns,isArmed:()=>owns()&&levelOf()>=MAX_LEVEL,level:()=>levelOf(),stableKey:KEY};
+  function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
+  function push(route,extra={}){try{window.history.pushState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
+  if(!kind())replace('home-root');
+  window.__DL_ROUTE_BOOTSTRAP={key:KEY,kind,replace,push,make};
 })();
 </script>
 <link rel="manifest" href="/manifest.json">
@@ -231,17 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.65 - Login estável + Premium PIX</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.65-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.65-r1">
+<title>DesignLabMoveis 1.200.66 - Home clara + Voltar Android</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.66-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.66-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -253,7 +126,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.65</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.66</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -375,7 +248,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.65</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.66</span>
         </div>
       </div>
 
@@ -672,7 +545,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.65</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.66</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -698,7 +571,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.65</strong>
+        <strong id="updateCurrentVersion">1.200.66</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -741,7 +614,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.65 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.66 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1626,7 +1499,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.65</span>
+      <span class="cutPlanBadge">1.200.66</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2561,7 +2434,7 @@
   </div>
 </div>
 
-<!-- 1.200.65 · barra original preservada + submenus flutuantes -->
+<!-- 1.200.66 · barra original preservada + submenus flutuantes -->
 <div id="quickDock" aria-label="Barra de atalhos rápidos do CAD">
   <div id="quickDockTools"></div>
   <button id="quickDockSwap" class="secondary" type="button" aria-label="Trocar página de atalhos" title="Trocar atalhos">⇄</button>
@@ -2594,6 +2467,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.65-r1"></script>
+<script type="module" src="js/app.js?v=1.200.66-r1"></script>
 </body>
 </html>

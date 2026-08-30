@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.65",
+  "version": "1.200.66",
   "required": false,
-  "message": "Correção de tema e Voltar Android: instalações antigas entram no Clássico claro salvo quando não existe escolha explícita; CloseWatcher passa a tratar o Voltar da plataforma sem depender de sincronização, com History API apenas como fallback.",
-  "released_at": "2026-08-29T17:52:00-03:00",
-  "build": "1.200.65-r1"
+  "message": "Home clara reforçada com CSS novo carregado por último e tema escuro somente por escolha explícita V2. Voltar Android refeito com histórico real criado no gesto que abre o projeto, sem depender de sincronização ou CloseWatcher.",
+  "released_at": "2026-08-29T22:21:00-03:00",
+  "build": "1.200.66-r1"
 }
