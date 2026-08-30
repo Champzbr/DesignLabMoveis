@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.67",
+  "version": "1.200.68",
   "required": false,
-  "message": "Submenus rápidos de Apagar e Corte, Apagar espaço selecionado corrigido, configurações de peças salváveis por tipo e espessuras decimais como 18,5 mm preservadas.",
-  "released_at": "2026-08-30T12:09:00-03:00",
-  "build": "1.200.67-r1"
+  "message": "Corrige o texto invisível na Biblioteca de modelos e impede o tema claro da Home de vazar para o editor/CAD escuro.",
+  "released_at": "2026-08-30T13:05:00-03:00",
+  "build": "1.200.68-r1"
 }
