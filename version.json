@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.66",
+  "version": "1.200.67",
   "required": false,
-  "message": "Home clara reforçada com CSS novo carregado por último e tema escuro somente por escolha explícita V2. Voltar Android refeito com histórico real criado no gesto que abre o projeto, sem depender de sincronização ou CloseWatcher.",
-  "released_at": "2026-08-29T22:21:00-03:00",
-  "build": "1.200.66-r1"
+  "message": "Submenus rápidos de Apagar e Corte, Apagar espaço selecionado corrigido, configurações de peças salváveis por tipo e espessuras decimais como 18,5 mm preservadas.",
+  "released_at": "2026-08-30T12:09:00-03:00",
+  "build": "1.200.67-r1"
 }
