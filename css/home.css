@@ -344,7 +344,6 @@ html[data-app-theme="light"]{
   background:#f4f7f9 !important;
   forced-color-adjust:none !important;
 }
-html[data-app-theme="light"] body,
 html[data-app-theme="light"] body.project-home-active{
   background:#f4f7f9 !important;
   color:#17242c !important;
@@ -609,7 +608,7 @@ html[data-app-theme="light"] .homeBottomNav button.active .navIcon{
    o próprio DesignLab escolheu explicitamente o tema claro. */
 @media (display-mode: standalone){
   html[data-app-theme="light"],
-  html[data-app-theme="light"] body,
+  html[data-app-theme="light"] body.project-home-active,
   html[data-app-theme="light"] #projectHome{
     color-scheme:only light !important;
     forced-color-adjust:none !important;
