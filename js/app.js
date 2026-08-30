@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.65-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.66-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.65-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.66-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.65';
+  return tm?.[1]||'1.200.66';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.65-r1';
+const DESIGNLAB_JS_BUILD='1.200.66-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2136,17 +2136,14 @@ async function loadProjectRecord(record,{useDraft=false,presentation=true}={}){
     if(!restored&&objects.length)frameFurnitureVisual();
     $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   }
-  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();}catch(_){ }
-  setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 function enterProjectEditor(){
+  if(typeof designLabRouteEnterWorkspace==='function')designLabRouteEnterWorkspace('editor');
   document.body.classList.remove('presentation-active','project-home-active');
   $('projectHome').style.display='none';
   applyProjectPresentationScene(false);
   $('hintText').textContent='Modo Projeto · selecione peças ou divisões para editar';
   updateProjectChrome();
-  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();}catch(_){ }
-  setTimeout(()=>{if(typeof designLabArmBackGuard==='function')designLabArmBackGuard();},0);
 }
 async function renderProjectHome(){
   const cards=$('projectCards');if(!cards)return;
@@ -2204,7 +2201,7 @@ async function renderProjectHome(){
   updateProjectChrome();
   updateIdentityChrome();
 }
-async function showProjectHome(){
+async function showProjectHome({fromHistory=false}={}){
   if(typeof closeCopyHardwareTool==='function')closeCopyHardwareTool(false);
   if(typeof closeCopyShapeTool==='function')closeCopyShapeTool(false);
   await projectAutosaveNow();
@@ -2215,6 +2212,7 @@ async function showProjectHome(){
   $('projectMenuPanel').classList.remove('show');
   $('projectCardMenu').classList.remove('show');
   await renderProjectHome();
+  if(!fromHistory&&typeof designLabRouteMarkHomeTop==='function')designLabRouteMarkHomeTop();
 }
 function openProjectMetaDialog(mode='new',record=currentProjectRecord){
   projectMetaMode=mode;
@@ -2251,6 +2249,7 @@ function readProjectMeta(){
   return {name,client:String($('projectMetaClient').value||'').trim(),environment:String($('projectMetaEnvironment').value||'').trim()};
 }
 async function createNewProject(meta){
+  if(typeof designLabRouteEnterWorkspace==='function')designLabRouteEnterWorkspace('editor');
   await projectAutosaveNow();
   const owner=projectCurrentOwnerId();
   if(!owner){toast('Entre na sua conta para criar um projeto');return;}
@@ -2430,6 +2429,7 @@ async function importProjectFile(file){
   toast('Projeto importado para sua conta');
 }
 async function requestOpenProject(id,{presentation=true}={}){
+  if(typeof designLabRouteEnterWorkspace==='function')designLabRouteEnterWorkspace(presentation?'presentation':'editor');
   await projectAutosaveNow();
   const rec=await projectDbGet(id);
   if(!rec||!projectBelongsToCurrentOwner(rec))return;
@@ -3389,7 +3389,7 @@ const container = $('canvas-container');
 // 1.200.48 · APARÊNCIA DO APLICATIVO
 // ============================================================================
 const DESIGNLAB_APP_THEME_KEY='designLabAppThemeV2';
-const DESIGNLAB_APP_THEME_USER_CHOICE_KEY='designLabAppThemeUserChoiceV1';
+const DESIGNLAB_APP_THEME_USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';
 let designLabAppTheme='light';
 try{
   // 1.200.65: `dark` gravado por builds antigos não vale como escolha do usuário.
@@ -3397,6 +3397,8 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
+  // 1.200.66: valores escuros herdados de versões antigas são ignorados.
+  // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
 }catch{}
@@ -3410,6 +3412,8 @@ function applyDesignLabAppTheme(theme,{persist=true,notify=false}={}){
   designLabAppTheme=theme==='dark'?'dark':'light';
   document.documentElement.dataset.appTheme=designLabAppTheme;
   document.body.dataset.appTheme=designLabAppTheme;
+  document.documentElement.classList.toggle('designlab-dark-enabled',designLabAppTheme==='dark');
+  document.documentElement.classList.toggle('designlab-light-default',designLabAppTheme!=='dark');
 
   // 1.200.53 · APK/TWA: o modo claro precisa ser claro de verdade.
   // Alguns Androids aplicam escurecimento algorítmico ao conteúdo da TWA.
@@ -18267,6 +18271,7 @@ $('cardMenuExport').onclick=async()=>{const id=projectCardMenuId;closeProjectCar
 $('cardMenuDelete').onclick=async()=>{const id=projectCardMenuId;if(id)await deleteProjectById(id);};
 $('projectFileInput').addEventListener('change',async e=>{
   const file=e.target.files?.[0];if(!file)return;
+  if(typeof designLabRouteEnterWorkspace==='function')designLabRouteEnterWorkspace('presentation');
   try{await importProjectFile(file);}catch(err){toast(err.message||'Arquivo de projeto inválido');}
   e.target.value='';
 });
@@ -18489,72 +18494,141 @@ async function designLabHandleBackCascade(){
   if(designLabAuthBack())return 'closed';
 
   if(!document.body.classList.contains('project-home-active')&&currentProjectId){
-    await showProjectHome();
+    await showProjectHome({fromHistory:true});
     return 'home';
   }
   return 'root';
 }
 
 let designLabHandlingPopState=false;
-function designLabInstallBackFence({trusted=false}={}){
-  try{
-    const boot=window.__DL_BACK_BOOTSTRAP;
-    if(boot?.ensure)return boot.ensure(!!trusted);
-    // Fallback para navegador sem o bootstrap novo. Só criamos a cerca quando
-    // houver gesto confiável, para o Chrome Android não classificar a entrada
-    // como histórico artificial e ignorá-la no Back.
-    if(!trusted)return false;
-    const st=window.history.state||{};
-    if(!st.__designLabInternalHistory){
-      window.history.replaceState({__designLabInternalHistory:true,kind:'anchor',level:0,version:'1.200.65'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard1',level:1,version:'1.200.65'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard2',level:2,version:'1.200.65'},'',location.href);
-      window.history.pushState({__designLabInternalHistory:true,kind:'guard3',level:3,version:'1.200.65'},'',location.href);
-    }
-    return true;
-  }catch(err){console.warn('Proteção do botão Voltar indisponível:',err);return false;}
+const DESIGNLAB_ROUTE_KEY='__designLabRouteV2';
+const DESIGNLAB_WORKSPACE_ROUTES=new Set(['workspace','presentation','editor']);
+let designLabRouteRestoringForward=false;
+let designLabRoutePopBusy=false;
+
+function designLabRouteKind(st=window.history.state||{}){
+  return String(st?.[DESIGNLAB_ROUTE_KEY]||window.__DL_ROUTE_BOOTSTRAP?.kind?.(st)||'');
 }
-function designLabPushBackGuard(){return designLabInstallBackFence({trusted:true});}
-function designLabArmBackGuard(){
-  // 1.200.48: não depende mais de _bootFresh. Faz uma cerca best-effort já na
-  // abertura e o bootstrap do <head> a reconstrói novamente no primeiro gesto.
-  return designLabInstallBackFence({trusted:true});
+function designLabRouteState(kind,extra={}){
+  const st=Object.assign({},window.history.state||{},extra);
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.66';
+  return st;
 }
-function designLabRunNativeBackCascade(){
-  if(designLabHandlingPopState)return;
+function designLabRouteReplace(kind,extra={}){
+  try{window.history.replaceState(designLabRouteState(kind,extra),'',location.href);return true;}
+  catch(err){console.warn('Rota DesignLab replace:',err);return false;}
+}
+function designLabRoutePush(kind,extra={}){
+  try{window.history.pushState(designLabRouteState(kind,extra),'',location.href);return true;}
+  catch(err){console.warn('Rota DesignLab push:',err);return false;}
+}
+function designLabRouteEnsureHomeRoot(){
+  if(!designLabRouteKind())designLabRouteReplace('home-root');
+}
+function designLabRouteEnsureHomeGuard(){
+  let cur=designLabRouteKind();
+  if(cur==='home-guard')return true;
+  if(cur==='home-root'||!cur){
+    if(!cur)designLabRouteReplace('home-root');
+    return designLabRoutePush('home-guard',{armedBy:'user'});
+  }
+  return false;
+}
+function designLabRouteEnterWorkspace(kind='editor'){
+  kind=kind==='presentation'?'presentation':'editor';
+  let cur=designLabRouteKind();
+  // O guard e a workspace são criados no MESMO clique que abre o projeto.
+  // Assim são entradas reais/ativadas, não histórico artificial de boot.
+  if(cur==='home-root'||!cur){
+    if(!cur)designLabRouteReplace('home-root');
+    designLabRoutePush('home-guard',{armedBy:'open-project'});
+    cur='home-guard';
+  }
+  if(cur==='home-guard')return designLabRoutePush(kind,{projectId:currentProjectId||null});
+  if(DESIGNLAB_WORKSPACE_ROUTES.has(cur))return designLabRouteReplace(kind,{projectId:currentProjectId||null});
+  designLabRouteReplace('home-guard');
+  return designLabRoutePush(kind,{projectId:currentProjectId||null});
+}
+function designLabRouteMarkHomeTop(){
+  const cur=designLabRouteKind();
+  if(cur==='home-root'||cur==='home-guard')return true;
+  // Ao tocar em Projetos/Voltar visualmente, reaproveita a entrada atual como
+  // guard. A home-root confiável continua logo atrás, impedindo saída acidental.
+  return designLabRouteReplace('home-guard',{projectId:null});
+}
+function designLabRouteArmFromGesture(ev){
+  if(ev?.isTrusted===false)return;
+  const atHome=document.body.classList.contains('project-home-active');
+  if(!atHome)return;
+  const cur=designLabRouteKind();
+  if(cur==='home-root'||!cur)designLabRouteEnsureHomeGuard();
+}
+// pointerup ocorre antes do click dos cartões. Portanto o HOME-GUARD já existe
+// quando requestOpenProject() adiciona a WORKSPACE no próprio clique real.
+window.addEventListener('pointerup',designLabRouteArmFromGesture,{capture:true,passive:true});
+window.addEventListener('touchend',designLabRouteArmFromGesture,{capture:true,passive:true});
+window.addEventListener('click',designLabRouteArmFromGesture,{capture:true,passive:true});
+window.addEventListener('keydown',ev=>{if(ev.key!=='Escape')designLabRouteArmFromGesture(ev);},{capture:true});
+
+designLabRouteEnsureHomeRoot();
+
+async function designLabRunNativeBackCascade(){
+  if(designLabHandlingPopState)return 'busy';
   designLabHandlingPopState=true;
-  Promise.resolve(designLabHandleBackCascade())
-    .catch(err=>console.warn('Voltar DesignLab:',err))
-    .finally(()=>{
-      designLabHandlingPopState=false;
-      // No Chrome/TWA novo o bootstrap restaura a mesma entrada confiável com
-      // history.forward(). Não fazemos pushState aqui, pois esse callback já
-      // ocorre fora do gesto do usuário e o Android poderia ignorar esse state.
-      if(!window.__DL_BACK_BOOTSTRAP)designLabPushBackGuard();
-    });
+  try{return await designLabHandleBackCascade();}
+  catch(err){console.warn('Voltar DesignLab:',err);return 'root';}
+  finally{designLabHandlingPopState=false;}
 }
-// O bootstrap do <head> chama esta função a cada popstate.
 window.__designLabRunBackCascade=designLabRunNativeBackCascade;
-if(!window.__DL_BACK_BOOTSTRAP){
-  window.addEventListener('popstate',()=>{designLabInstallBackFence({trusted:true});designLabRunNativeBackCascade();},{capture:true});
-}else{
-  designLabArmBackGuard();
-  const pending=Math.min(3,Number(window.__designLabPendingBack)||0);
-  window.__designLabPendingBack=0;
-  if(pending)setTimeout(()=>designLabRunNativeBackCascade(),0);
-}
-// Wrappers Android/Capacitor/Cordova. Nesse evento o histórico não precisa ser
-// percorrido: cancelamos o evento nativo e executamos a mesma cascata.
+
+window.addEventListener('popstate',async ev=>{
+  if(designLabRouteRestoringForward){
+    designLabRouteRestoringForward=false;
+    return;
+  }
+  if(designLabRoutePopBusy)return;
+  const dest=designLabRouteKind(ev.state||{});
+  if(DESIGNLAB_WORKSPACE_ROUTES.has(dest))return; // history.forward() restaurou workspace.
+  if(dest!=='home-root'&&dest!=='home-guard')return;
+
+  designLabRoutePopBusy=true;
+  try{
+    const wasHome=document.body.classList.contains('project-home-active');
+    const result=await designLabRunNativeBackCascade();
+    if(result==='closed'&&(!wasHome||dest==='home-root')){
+      // Workspace: restaura a entrada WORKSPACE para continuar no projeto.
+      // Home: só restaura quando caímos no home-root, preservando o guard.
+      designLabRouteRestoringForward=true;
+      try{window.history.forward();}catch(_){designLabRouteRestoringForward=false;}
+      setTimeout(()=>{designLabRouteRestoringForward=false;},700);
+    }else if(result==='root'&&dest==='home-root'){
+      // Já estamos na Home. Consumimos o Back retornando ao HOME-GUARD criado
+      // pelo primeiro gesto real do usuário. Assim o PWA não fecha.
+      designLabRouteRestoringForward=true;
+      try{window.history.forward();}catch(_){designLabRouteRestoringForward=false;}
+      setTimeout(()=>{designLabRouteRestoringForward=false;},700);
+    }
+    // result==='home': o usuário veio da workspace; permanece nesta entrada Home.
+  }finally{designLabRoutePopBusy=false;}
+},{capture:true});
+
+// Wrappers Android/Capacitor/Cordova que emitem backbutton em vez de history.
 document.addEventListener('backbutton',e=>{
   e.preventDefault?.();e.stopPropagation?.();
-  designLabRunNativeBackCascade();
+  designLabRunNativeBackCascade().catch(()=>{});
 },{capture:true});
-// Tecla Esc no PC segue a MESMA cascata e ajuda a testar todos os menus.
+// Esc no PC segue a mesma cascata sem alterar o histórico do navegador.
 window.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.defaultPrevented)return;
   const t=e.target;if(t&&['INPUT','TEXTAREA','SELECT'].includes(t.tagName))return;
-  e.preventDefault();designLabPushBackGuard();designLabHandleBackCascade().catch(()=>{}).finally(()=>designLabPushBackGuard());
+  e.preventDefault();designLabRunNativeBackCascade().catch(()=>{});
 },{capture:true});
+
+// Compatibilidade com chamadas antigas espalhadas pelo app. Não criam mais
+// histórico sintético; o guard é armado pelos gestos reais acima.
+function designLabInstallBackFence(){return true;}
+function designLabPushBackGuard(){return true;}
+function designLabArmBackGuard(){return true;}
 
 installOutsideMenuClose();
 
@@ -18595,21 +18669,19 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // Ao retomar o PWA, a pilha nativa pode ter sido descartada pelo Android.
-    // Recria a cerca imediatamente; o próximo toque ainda reforça dentro do gesto.
-    try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
-    designLabArmBackGuard();
+    // 1.200.66: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // atual continue identificada; guard/workspace foram criados por gesto real.
+    if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
   }
 });
 window.addEventListener('pageshow',()=>{
-  try{window.__DL_BACK_BOOTSTRAP?.ensureCloseWatcher?.();window.__DL_BACK_BOOTSTRAP?.rebuild?.();}catch(_){}
-  designLabArmBackGuard();
+  if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
   checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
 });
 
 // Início limpo e frontal. O CAD inicializa normalmente por baixo da tela de projetos.
-designLabArmBackGuard();
+if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
 setFrontWorldView();
 history=[stateString()]; historyIndex=0;
 initToolDock();
