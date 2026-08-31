@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.68",
+  "version": "1.200.69",
   "required": false,
-  "message": "Corrige o texto invisível na Biblioteca de modelos e impede o tema claro da Home de vazar para o editor/CAD escuro.",
-  "released_at": "2026-08-30T13:05:00-03:00",
-  "build": "1.200.68-r1"
+  "message": "Adiciona a ferramenta Painel ripado: selecione uma peça, informe largura do ripado e vão, escolha o sentido e o app substitui o painel por peças reais separadas para lista, etiquetas e plano de corte.",
+  "released_at": "2026-08-31T15:00:00-03:00",
+  "build": "1.200.69-r1"
 }
