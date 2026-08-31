@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.70",
+  "version": "1.200.71",
   "required": false,
-  "message": "Corrige a ferramenta Painel ripado para aparecer diretamente dentro da janela Usinagem, junto de Furo, Rasgo, Ferragens e Forma.",
-  "released_at": "2026-08-31T15:20:00-03:00",
-  "build": "1.200.70-r1"
+  "message": "Permite afastamento negativo na criação de espaços e adiciona posição manual X/Y/Z, com coordenadas visíveis e editáveis para posicionamento exato.",
+  "released_at": "2026-08-31T16:24:00-03:00",
+  "build": "1.200.71-r1"
 }
