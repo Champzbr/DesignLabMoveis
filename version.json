@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.69",
+  "version": "1.200.70",
   "required": false,
-  "message": "Adiciona a ferramenta Painel ripado: selecione uma peça, informe largura do ripado e vão, escolha o sentido e o app substitui o painel por peças reais separadas para lista, etiquetas e plano de corte.",
-  "released_at": "2026-08-31T15:00:00-03:00",
-  "build": "1.200.69-r1"
+  "message": "Corrige a ferramenta Painel ripado para aparecer diretamente dentro da janela Usinagem, junto de Furo, Rasgo, Ferragens e Forma.",
+  "released_at": "2026-08-31T15:20:00-03:00",
+  "build": "1.200.70-r1"
 }

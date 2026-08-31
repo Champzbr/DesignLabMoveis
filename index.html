@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.69-r1">
+<meta name="designlab-build" content="1.200.70-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.69-r1';
+  const BUILD='1.200.70-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -24,7 +24,7 @@
   const USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';
   let theme='light';
   try{
-    // 1.200.69: tema da Home nasce CLARO. Nenhuma chave de versões antigas
+    // 1.200.70: tema da Home nasce CLARO. Nenhuma chave de versões antigas
     // pode ativar o escuro. Só uma escolha feita no seletor desta geração (V2)
     // habilita o modo escuro. Isso elimina instalações antigas presas no dark.
     const explicit=localStorage.getItem(USER_CHOICE_KEY);
@@ -43,7 +43,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.69: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.70: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -61,7 +61,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.69 · NAVEGAÇÃO REAL DO PWA.
+  // 1.200.70 · NAVEGAÇÃO REAL DO PWA.
   // Não fabricamos uma pilha no carregamento. O Chrome pode ignorar estados
   // criados sem gesto do usuário. Apenas marcamos a entrada atual como HOME.
   // A entrada HOME-GUARD e a WORKSPACE serão criadas dentro do toque real que
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.200.69';
+    st[KEY]=route;st.__designLabRouteVersion='1.200.70';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.69 - Painel ripado</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.69-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.69-r1">
+<title>DesignLabMoveis 1.200.70 - Painel ripado visível</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.70-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.70-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -126,7 +126,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.69</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.70</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -248,7 +248,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.69</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.70</span>
         </div>
       </div>
 
@@ -545,7 +545,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.69</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.70</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -571,7 +571,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.69</strong>
+        <strong id="updateCurrentVersion">1.200.70</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -614,7 +614,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.69 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.70 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1161,6 +1161,7 @@
       <button class="secondary" data-machining-type="groove">▭ Rasgo</button>
       <button class="secondary" data-machining-type="hardware">⚙ Ferragens</button>
       <button class="secondary" data-machining-type="shape">◜ Forma</button>
+      <button class="secondary machiningRipadoBtn" data-machining-type="slattedPanel">▥ Painel ripado</button>
     </div>
     <div id="machiningStandardArea">
     <div class="machiningPresetBox">
@@ -1529,7 +1530,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.69</span>
+      <span class="cutPlanBadge">1.200.70</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2464,7 +2465,7 @@
   </div>
 </div>
 
-<!-- 1.200.69 · barra original preservada + submenus flutuantes -->
+<!-- 1.200.70 · barra original preservada + submenus flutuantes -->
 <div id="quickDock" aria-label="Barra de atalhos rápidos do CAD">
   <div id="quickDockTools"></div>
   <button id="quickDockSwap" class="secondary" type="button" aria-label="Trocar página de atalhos" title="Trocar atalhos">⇄</button>
@@ -2497,6 +2498,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.69-r1"></script>
+<script type="module" src="js/app.js?v=1.200.70-r1"></script>
 </body>
 </html>
