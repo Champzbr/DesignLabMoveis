@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.71",
+  "version": "1.200.72",
   "required": false,
-  "message": "Permite afastamento negativo na criação de espaços e adiciona posição manual X/Y/Z, com coordenadas visíveis e editáveis para posicionamento exato.",
-  "released_at": "2026-08-31T16:24:00-03:00",
-  "build": "1.200.71-r1"
+  "message": "Adiciona posição X/Y/Z também em Editar espaço, permitindo mover o espaço completo com todas as divisões e peças vinculadas sem desmontar o móvel.",
+  "released_at": "2026-08-31T17:16:00-03:00",
+  "build": "1.200.72-r1"
 }
