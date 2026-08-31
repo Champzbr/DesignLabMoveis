@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.70-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.71-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.70-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.71-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.70';
+  return tm?.[1]||'1.200.71';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.70-r1';
+const DESIGNLAB_JS_BUILD='1.200.71-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3457,7 +3457,7 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
-  // 1.200.70: valores escuros herdados de versões antigas são ignorados.
+  // 1.200.71: valores escuros herdados de versões antigas são ignorados.
   // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
@@ -5304,7 +5304,7 @@ function deleteSelectedSpaceRoot(){
 }
 
 // ============================================================================
-// 1.200.70 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
+// 1.200.71 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
 // ============================================================================
 function cellContainsObjectCompletely(cell,o,tol=.0015){
   if(!cell||!o)return false;
@@ -11307,7 +11307,7 @@ function saveCurrentFurnitureToLibrary(){
 }
 
 
-// ---------- 1.200.70 · Painel ripado paramétrico ----------
+// ---------- 1.200.71 · Painel ripado paramétrico ----------
 let slattedPanelOwner=null;
 function slattedPanelEligible(o){
   if(!o)return {ok:false,message:'Selecione uma peça primeiro'};
@@ -17188,11 +17188,16 @@ function setSpaceCreatePrefs(){
   if(!$('rememberSpaceConfig')?.checked){ localStorage.removeItem(SPACE_PREFS_KEY); return; }
   const ref=currentNewSpaceReference();
   const vertical=newSpaceRelation==='top'||newSpaceRelation==='bottom';
-  const manualFloor=vertical&&ref ? mm(ref.yBase) : (Number($('spaceBaseY').value)||0);
+  const manualMode=!!$('spaceManualPosition')?.checked;
+  const manualFloor=manualMode
+    ? (Number($('spacePosY')?.value)||0)
+    : (vertical&&ref ? mm(ref.yBase) : (Number($('spaceBaseY').value)||0));
+  const rawGap=Number($('spaceGap').value);
   const payload={
     width:Number($('spaceW').value)||1000, depth:Number($('spaceD').value)||600, height:Number($('spaceH').value)||900,
-    // Nunca grava como preferência a altura negativa calculada por uma relação "Embaixo".
-    floor:Math.max(0,manualFloor), gap:Math.max(0,Number($('spaceGap').value)||0), relation:newSpaceRelation,
+    // O afastamento pode ser negativo: isso permite avançar/sobrepor o novo espaço.
+    floor:Math.max(0,manualFloor), gap:Number.isFinite(rawGap)?rawGap:0, relation:newSpaceRelation,
+    manualPosition:manualMode,
     defaultMaterialId:$('spaceDefaultMaterial')?.value||null
   };
   localStorage.setItem(SPACE_PREFS_KEY,JSON.stringify(payload));
@@ -17218,12 +17223,24 @@ function setNewSpaceRelation(rel){
   document.querySelectorAll('[data-space-relation]').forEach(b=>b.classList.toggle('active',b.dataset.spaceRelation===newSpaceRelation));
   updateNewSpacePreview();
 }
-function proposedSpacePlacement(){
-  const w=m($('spaceW').value),d=m($('spaceD').value),h=m($('spaceH').value),rawFloor=m($('spaceBaseY').value),gap=Math.max(0,m($('spaceGap').value)||0);
+function proposedSpacePlacement({ignoreManual=false}={}){
+  const w=m($('spaceW').value),d=m($('spaceD').value),h=m($('spaceH').value),rawFloor=m($('spaceBaseY').value);
+  const gapRaw=m($('spaceGap').value),gap=Number.isFinite(gapRaw)?gapRaw:0;
   if(![w,d,h,rawFloor,gap].every(Number.isFinite)||w<=0||d<=0||h<=0)return null;
+
+  // Posição manual usa coordenadas amigáveis ao marceneiro/CAD:
+  // X = canto esquerdo, Y = base, Z = canto traseiro.
+  // Internamente o espaço continua armazenando X/Z pelo centro.
+  const manual=!!$('spaceManualPosition')?.checked&&!ignoreManual;
+  if(manual){
+    const posX=m($('spacePosX').value),posY=m($('spacePosY').value),posZ=m($('spacePosZ').value);
+    if(![posX,posY,posZ].every(Number.isFinite))return null;
+    return {x:posX+w/2,yBase:posY,z:posZ+d/2,w,d,h,gap,ref:currentNewSpaceReference(),belowGround:posY<0,manual:true,userX:posX,userY:posY,userZ:posZ};
+  }
+
   const floor=Math.max(0,rawFloor);
   const ref=currentNewSpaceReference();
-  if(!ref){ return {x:w/2,yBase:floor,z:d/2,w,d,h,gap,ref:null,belowGround:false}; }
+  if(!ref){ return {x:w/2,yBase:floor,z:d/2,w,d,h,gap,ref:null,belowGround:false,manual:false,userX:0,userY:floor,userZ:0}; }
   const refMinX=ref.x-ref.width/2, refMaxX=ref.x+ref.width/2, refMinZ=ref.z-ref.depth/2, refMaxZ=ref.z+ref.depth/2;
   let x=refMinX+w/2, z=refMinZ+d/2, yBase=floor;
   if(newSpaceRelation==='right') x=refMaxX+gap+w/2;
@@ -17232,36 +17249,66 @@ function proposedSpacePlacement(){
   else if(newSpaceRelation==='back') z=refMinZ-gap-d/2;
   else if(newSpaceRelation==='top') yBase=ref.yBase+ref.height+gap;
   else if(newSpaceRelation==='bottom') yBase=ref.yBase-h-gap;
-  return {x,yBase,z,w,d,h,gap,ref,belowGround:yBase<0};
+  return {x,yBase,z,w,d,h,gap,ref,belowGround:yBase<0,manual:false,userX:x-w/2,userY:yBase,userZ:z-d/2};
+}
+function setNewSpaceManualPosition(enabled,{seed=true}={}){
+  const cb=$('spaceManualPosition');
+  if(cb)cb.checked=!!enabled;
+  if(enabled&&seed){
+    const auto=proposedSpacePlacement({ignoreManual:true});
+    if(auto){
+      $('spacePosX').value=nice(mm(auto.x-auto.w/2));
+      $('spacePosY').value=nice(mm(auto.yBase));
+      $('spacePosZ').value=nice(mm(auto.z-auto.d/2));
+    }
+  }
+  ['spacePosX','spacePosY','spacePosZ'].forEach(id=>{const el=$(id);if(el)el.readOnly=!enabled;});
+  updateNewSpacePreview();
 }
 function updateNewSpacePreview(){
   const p=proposedSpacePlacement(), out=$('spaceCreatePreview'); if(!out)return;
   const ref=currentNewSpaceReference();
   const vertical=newSpaceRelation==='top'||newSpaceRelation==='bottom';
+  const manual=!!$('spaceManualPosition')?.checked;
   if($('spaceBaseY')){
-    $('spaceBaseY').readOnly=!!(ref&&vertical);
-    if(ref&&vertical&&p) $('spaceBaseY').value=mm(p.yBase);
+    $('spaceBaseY').readOnly=manual||!!(ref&&vertical);
+    if(p&&(manual||(ref&&vertical))) $('spaceBaseY').value=nice(mm(p.yBase));
   }
   if(!p){out.textContent='Confira as medidas do novo espaço.';return;}
+
+  // Fora do modo manual, os campos X/Y/Z funcionam como marcador da posição
+  // calculada. Ao marcar a opção, passam a ser editáveis e controlam o espaço.
+  if(!manual){
+    $('spacePosX').value=nice(mm(p.x-p.w/2));
+    $('spacePosY').value=nice(mm(p.yBase));
+    $('spacePosZ').value=nice(mm(p.z-p.d/2));
+  }
   if(p.belowGround){
-    out.innerHTML=`<strong style="color:#ff665c">Não cabe abaixo sem atravessar o chão.</strong><br>Escolha outra referência, reduza a altura/afastamento ou use outra posição.`;
+    out.innerHTML=`<strong style="color:#ff665c">A posição Y deixaria o espaço abaixo do chão.</strong><br>Use Y igual ou maior que 0, ou ajuste a referência/afastamento.`;
+    return;
+  }
+  const coords=`X <strong>${nice(mm(p.x-p.w/2))}</strong> · Y <strong>${nice(mm(p.yBase))}</strong> · Z <strong>${nice(mm(p.z-p.d/2))}</strong> mm`;
+  if(manual){
+    out.innerHTML=`Novo espaço: <strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong><br><strong>Posição manual</strong> · ${coords}<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
     return;
   }
   if(!ref){
-    out.innerHTML=`<strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong> · primeiro espaço · base a <strong>${mm(p.yBase)} mm</strong> do chão<br>Referência horizontal: canto traseiro esquerdo em X/Z = 0<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
+    out.innerHTML=`<strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong> · primeiro espaço · base a <strong>${mm(p.yBase)} mm</strong> do chão<br>${coords}<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
     return;
   }
-  out.innerHTML=`Novo espaço: <strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong><br>Referência: <strong>${ref.name}</strong> · ${relationLabel(newSpaceRelation)} · afastamento ${mm(p.gap)} mm<br>Altura do chão resultante: <strong>${mm(p.yBase)} mm</strong><br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
+  out.innerHTML=`Novo espaço: <strong>${escapeHtml($('spaceName').value.trim()||'Espaço')}</strong><br>Referência: <strong>${ref.name}</strong> · ${relationLabel(newSpaceRelation)} · afastamento ${nice(mm(p.gap))} mm<br>${coords}<br>🧱 Material padrão: <strong>${escapeHtml(productionMaterialById($('spaceDefaultMaterial').value)?.name||'sem padrão')}</strong>`;
 }
 function openNewSpaceDialog(preferredRoot=null){
   const prefs=getSpaceCreatePrefs();
   if(prefs){
     $('spaceW').value=prefs.width??1000; $('spaceD').value=prefs.depth??600; $('spaceH').value=prefs.height??900;
-    $('spaceBaseY').value=Math.max(0,Number(prefs.floor)||0); $('spaceGap').value=prefs.gap??0; newSpaceRelation=prefs.relation||'right';
+    $('spaceBaseY').value=Math.max(0,Number(prefs.floor)||0); $('spaceGap').value=Number.isFinite(Number(prefs.gap))?Number(prefs.gap):0; newSpaceRelation=prefs.relation||'right';
     $('rememberSpaceConfig').checked=true;
+    $('spaceManualPosition').checked=!!prefs.manualPosition;
   }else{
     $('spaceW').value=1000; $('spaceD').value=600; $('spaceH').value=900; $('spaceBaseY').value=0;
     $('spaceGap').value=0; $('rememberSpaceConfig').checked=false; newSpaceRelation='right';
+    $('spaceManualPosition').checked=false;
   }
   const hasRef=spaceRoots.length>0;
   $('spaceReferenceBlock').style.display=hasRef?'block':'none';
@@ -17289,7 +17336,10 @@ function openNewSpaceDialog(preferredRoot=null){
   $('spaceName').value='Espaço '+(spaceRoots.length+1);
   document.querySelectorAll('[data-space-relation]').forEach(b=>b.classList.toggle('active',b.dataset.spaceRelation===newSpaceRelation));
   $('newSpaceDialog').style.display='flex';
-  updateNewSpacePreview();
+  // Sempre parte da posição automática atual. Se a preferência manual estiver
+  // ligada, essa posição vira o ponto inicial editável, sem reaproveitar uma
+  // coordenada antiga que poderia sobrepor outro móvel por acidente.
+  setNewSpaceManualPosition(!!$('spaceManualPosition').checked,{seed:true});
 }
 
 
@@ -17379,9 +17429,10 @@ function updateCutPreview(){
     : `${cutSideName(cutSide)}: ${a} mm + restante ${Math.max(0,total-a)} mm · ${fixed?'FIXO (não redimensiona)':'SOLTO (pode redimensionar)'} · externo continua ${total} mm`;
 }
 $('cancelSpace').onclick=()=>{$('newSpaceDialog').style.display='none';};
-$('spaceReference').addEventListener('change',()=>{newSpaceReferenceId=$('spaceReference').value||null;const ref=currentNewSpaceReference();if(ref && !(newSpaceRelation==='top'||newSpaceRelation==='bottom')) $('spaceBaseY').value=mm(ref.yBase);updateNewSpacePreview();});
+$('spaceReference').addEventListener('change',()=>{newSpaceReferenceId=$('spaceReference').value||null;const ref=currentNewSpaceReference();if(ref && !(newSpaceRelation==='top'||newSpaceRelation==='bottom')&&!$('spaceManualPosition')?.checked) $('spaceBaseY').value=mm(ref.yBase);updateNewSpacePreview();});
 document.querySelectorAll('[data-space-relation]').forEach(b=>b.addEventListener('click',()=>setNewSpaceRelation(b.dataset.spaceRelation)));
-['spaceName','spaceW','spaceD','spaceH','spaceBaseY','spaceGap'].forEach(id=>$(id).addEventListener('input',updateNewSpacePreview));
+$('spaceManualPosition').addEventListener('change',()=>setNewSpaceManualPosition($('spaceManualPosition').checked,{seed:true}));
+['spaceName','spaceW','spaceD','spaceH','spaceBaseY','spaceGap','spacePosX','spacePosY','spacePosZ'].forEach(id=>$(id).addEventListener('input',updateNewSpacePreview));
 $('spaceDefaultMaterial').addEventListener('change',()=>{updateSpaceMaterialPreview();updateNewSpacePreview();});
 $('confirmSpace').onclick=()=>{
   const p=proposedSpacePlacement(); if(!p||p.w<.002||p.d<.002||p.h<.002){toast('Confira as medidas do espaço');return;}
@@ -18836,7 +18887,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.70';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.71';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -18994,7 +19045,7 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // 1.200.70: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // 1.200.71: não fabrica histórico ao retomar. Apenas garante que a entrada
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
