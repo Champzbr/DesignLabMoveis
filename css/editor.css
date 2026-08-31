@@ -350,15 +350,15 @@
   .spaceMoreGrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
   .spaceMoreGrid button { width:100%; min-height:44px; }
 
-  #newSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #deleteSpaceCellDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog, #adminDialog {
+  #newSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #deleteSpaceCellDialog, #slattedPanelDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog, #adminDialog {
     position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.68); display:none;
     align-items:center; justify-content:center; padding:16px; touch-action:auto;
   }
-  #newSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #deleteSpaceCellDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card, #adminDialog .card {
+  #newSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #deleteSpaceCellDialog .card, #slattedPanelDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card, #adminDialog .card {
     width:min(430px,100%); max-height:82%; overflow:auto; background:#222; border-radius:16px;
     padding:14px; box-shadow:0 12px 35px rgba(0,0,0,.52); border:1px solid rgba(255,255,255,.08);
   }
-  #newSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #deleteSpaceCellDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3, #adminDialog h3 { margin:0 0 5px; font-size:16px; }
+  #newSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #deleteSpaceCellDialog h3, #slattedPanelDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3, #adminDialog h3 { margin:0 0 5px; font-size:16px; }
   .dialogHelp { margin:0 0 11px; color:var(--muted); font-size:11px; line-height:1.35; }
   .spaceFields { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
   .spaceFields.two { grid-template-columns:1fr 1fr; }
@@ -453,3 +453,18 @@
 #quickDockSubmenu[data-kind="cut"]{width:min(520px,calc(100vw - 12px))}
 #quickDockSubmenu[data-kind="cut"] #quickDockSubmenuTools{grid-template-columns:repeat(6,minmax(0,1fr))}
 @media(max-width:430px){#quickDockSubmenu[data-kind="cut"] .quickDockSubText{font-size:6.2px}}
+
+
+/* 1.200.69 · Painel ripado */
+.slattedPanelPreview{
+  height:150px;margin-top:12px;border:1px solid #3d4449;border-radius:12px;background:#111820;overflow:hidden;
+  display:flex;align-items:stretch;justify-content:center;padding:10px;gap:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.slattedPanelPreview.vertical{flex-direction:row;align-items:stretch}.slattedPanelPreview.horizontal{flex-direction:column;align-items:stretch}
+.slattedPanelPreview .slatDemo{background:#c99b62;border:1px solid rgba(255,255,255,.18);border-radius:2px;flex:0 0 auto}
+.slattedPanelPreview.vertical .slatDemo{height:100%}.slattedPanelPreview.horizontal .slatDemo{width:100%}
+.slattedPanelSummary{margin-top:8px;padding:9px 10px;border-radius:10px;background:#121619;border:1px solid #31404a;color:#bfe9ff;font-size:11px;line-height:1.45;font-weight:750}.slattedPanelSummary.error{color:#ffb3b3;border-color:#6b3434;background:#211414}
+.slattedPanelWarning{margin-top:9px;padding:9px 10px;border-radius:10px;background:#201b10;border:1px solid #5b4920;color:#f2d98a;font-size:10px;line-height:1.4}
+.slattedPanelWarning strong,.slattedPanelWarning span{display:block}.slattedPanelWarning span{margin-top:3px;color:#cfc4a5}
+#quickDockSubmenu[data-kind="machining"]{width:min(520px,calc(100vw - 12px))}
+#quickDockSubmenu[data-kind="machining"] #quickDockSubmenuTools{grid-template-columns:repeat(4,minmax(0,1fr))}
