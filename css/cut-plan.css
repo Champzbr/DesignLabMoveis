@@ -98,6 +98,7 @@
   .machiningTypeGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin:9px 0; }
   .machiningTypeGrid button { width:100%; }
   .machiningTypeGrid button.active { background:var(--green); color:#071b0c; }
+  .machiningTypeGrid .machiningRipadoBtn { grid-column:1 / -1; }
   .machiningPreview { margin:9px 0; padding:9px 10px; border-radius:10px; background:#111; border:1px solid #3b3b3b; color:var(--cyan); font-size:11px; line-height:1.4; }
   .machiningList { display:grid; gap:7px; margin-top:8px; }
   .machiningItem { display:grid; grid-template-columns:1fr auto; gap:7px; align-items:center; padding:8px 9px; border-radius:10px; background:#171717; border:1px solid #393939; }
