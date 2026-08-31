@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.68-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.69-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.68-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.69-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.68';
+  return tm?.[1]||'1.200.69';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.68-r1';
+const DESIGNLAB_JS_BUILD='1.200.69-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -2552,6 +2552,7 @@ const TOOL_DOCK_CATALOG=[
   {group:'Peça / Usinagem',key:'hardware',label:'⚙ Ferragens',desc:'Aplicar/criar ferragens inteligentes'},
   {group:'Peça / Usinagem',key:'copyHardware',label:'⧉ Copiar Ferragens',desc:'Copiar todas as ferragens de uma peça para várias peças em lote'},
   {group:'Peça / Usinagem',key:'shape',label:'◜ Forma',desc:'Alterar o contorno externo da peça'},
+  {group:'Peça / Usinagem',key:'slattedPanel',label:'▥ Painel ripado',desc:'Transformar a peça selecionada em ripados com largura e vão configuráveis'},
   {group:'Peça / Usinagem',key:'copyShape',label:'⧉ Copiar Forma',desc:'Copiar a Forma de uma peça para várias peças de uma vez'},
   {group:'Peça / Usinagem',key:'machining',label:'🛠 Usinagens',desc:'Abrir lista e editor de usinagens'},
   {group:'Peça / Usinagem',key:'duplicate',label:'⧉ Duplicar peça',desc:'Duplicar a peça selecionada'},
@@ -2749,6 +2750,7 @@ function runDockTool(key){
   else if(key==='hardware'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog('hardware');}}
   else if(key==='copyHardware'){closeToolDockBeforeMenu();openCopyHardwareTool();}
   else if(key==='shape'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openShapeDialog();}}
+  else if(key==='slattedPanel'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openSlattedPanelDialog();}}
   else if(key==='copyShape'){closeToolDockBeforeMenu();openCopyShapeTool();}
   else if(key==='machining'){if(dockEnsurePiece()){closeToolDockBeforeMenu();openMachiningDialog((selected?.userData?.machining||[])[0]?.type||'hole');}}
   else if(key==='duplicate'){if(dockEnsurePiece())duplicateSelected();}
@@ -2827,7 +2829,7 @@ function saveQuickDockConfig(){
 function quickDockPresentation(key){
   const map={
     deleteSelected:['🗑','Apagar'],space:['＋','Espaço'],createPieces:['▰','Peças'],hardware:['⚙','Ferragens'],select:['⌖','Selecionar'],
-    move:['✥','Mover'],tape:['📏','Trena'],hole:['●','Furo'],groove:['▱','Rasgo'],shape:['◜','Forma'],copyShape:['⧉','C. Forma'],
+    move:['✥','Mover'],tape:['📏','Trena'],hole:['●','Furo'],groove:['▱','Rasgo'],shape:['◜','Forma'],slattedPanel:['▥','Ripado'],copyShape:['⧉','C. Forma'],
     copyHardware:['⧉','C. Ferr.'],machining:['🛠','Usinagem'],cutSpace:['✂','Corte'],drawers:['▤','Gavetas'],library:['▦','Biblioteca'],
     editSpace:['✎','Editar'],deleteSpaceCell:['🧩','Unir vão'],undo:['↶','Desfazer'],redo:['↷','Refazer'],xray:['◈','Raio-X'],
     toggleHardwareVisibility:['🔩','Ferragens'],toggleMachiningVisibility:['🟣','Usinagens'],materials:['🎨','Materiais'],layout:['📐','Layout'],
@@ -2884,6 +2886,7 @@ const QUICK_DOCK_SUBMENUS={
       {label:'Rasgo',icon:'▱',tool:'groove'},
       {label:'Ferragens',icon:'⚙',tool:'hardware'},
       {label:'Forma',icon:'◜',tool:'shape'},
+      {label:'Ripado',icon:'▥',tool:'slattedPanel'},
       {label:'C. Forma',icon:'⧉',tool:'copyShape'},
       {label:'C. Ferr.',icon:'⧉',tool:'copyHardware'},
       {label:'Gerenciar',icon:'🛠',tool:'machining'},
@@ -3454,7 +3457,7 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
-  // 1.200.68: valores escuros herdados de versões antigas são ignorados.
+  // 1.200.69: valores escuros herdados de versões antigas são ignorados.
   // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
@@ -5301,7 +5304,7 @@ function deleteSelectedSpaceRoot(){
 }
 
 // ============================================================================
-// 1.200.68 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
+// 1.200.69 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
 // ============================================================================
 function cellContainsObjectCompletely(cell,o,tol=.0015){
   if(!cell||!o)return false;
@@ -11303,6 +11306,123 @@ function saveCurrentFurnitureToLibrary(){
   importLibraryTemplate(captureFurniture(root),name,folder.id);
 }
 
+
+// ---------- 1.200.69 · Painel ripado paramétrico ----------
+let slattedPanelOwner=null;
+function slattedPanelEligible(o){
+  if(!o)return {ok:false,message:'Selecione uma peça primeiro'};
+  const u=o.userData||{};
+  if(u.kind==='cylinder'||u.kind==='hardware-visual')return {ok:false,message:'Painel ripado disponível para peças retangulares'};
+  if(u.kind==='curved-panel'||u.curvedRole)return {ok:false,message:'Peças curvas continuam sendo editadas pela ferramenta Móvel curvo'};
+  if(u.drawerSetId)return {ok:false,message:'Peças de gaveta paramétrica devem ser editadas pela ferramenta Gavetas / corrediças'};
+  const ti=pieceThicknessInfo(o);if(!ti||!(ti.faceW>0&&ti.faceH>0&&ti.thickness>0))return {ok:false,message:'Não foi possível ler as medidas desta peça'};
+  return {ok:true,ti};
+}
+function slattedPanelReadConfig(){
+  const width=parseDecimalInput($('slattedPanelSlatWidth')?.value),gap=parseDecimalInput($('slattedPanelGap')?.value);
+  return {width,gap,direction:$('slattedPanelDirection')?.value==='horizontal'?'horizontal':'vertical',align:['start','end'].includes($('slattedPanelAlign')?.value)?$('slattedPanelAlign').value:'center'};
+}
+function slattedPanelLayoutFor(o,cfg=slattedPanelReadConfig()){
+  const check=slattedPanelEligible(o);if(!check.ok)throw new Error(check.message);
+  const ti=check.ti,w=Number(cfg.width),gap=Number(cfg.gap);
+  if(!(w>0))throw new Error('A largura do ripado deve ser maior que zero');
+  if(!(gap>=0))throw new Error('O vão não pode ser negativo');
+  const run=cfg.direction==='horizontal'?ti.faceH:ti.faceW;
+  const span=cfg.direction==='horizontal'?ti.faceW:ti.faceH;
+  if(w>run+.001)throw new Error(`O ripado de ${nice(w)} mm é maior que a área disponível de ${nice(run)} mm`);
+  const step=w+gap;if(!(step>0))throw new Error('Confira as medidas do ripado e do vão');
+  const count=Math.floor((run+gap+.000001)/step);
+  if(count<1)throw new Error('Não cabe nenhum ripado nesta peça');
+  if(count>500)throw new Error('A configuração criaria peças demais. Aumente a largura ou o vão.');
+  const used=count*w+Math.max(0,count-1)*gap;
+  const leftover=Math.max(0,run-used);
+  const before=cfg.align==='start'?0:cfg.align==='end'?leftover:leftover/2;
+  const after=leftover-before;
+  return {ti,run,span,count,used,leftover,before,after,step};
+}
+function renderSlattedPanelPreview(){
+  const owner=slattedPanelOwner&&objects.includes(slattedPanelOwner)?slattedPanelOwner:selected;
+  const preview=$('slattedPanelPreview'),summary=$('slattedPanelSummary');if(!preview||!summary)return;
+  preview.innerHTML='';
+  try{
+    const cfg=slattedPanelReadConfig(),lay=slattedPanelLayoutFor(owner,cfg),vertical=cfg.direction==='vertical';
+    preview.classList.toggle('vertical',vertical);preview.classList.toggle('horizontal',!vertical);
+    const maxBars=Math.min(lay.count,18),scale=Math.min(4,Math.max(.15,320/Math.max(1,lay.run)));
+    const before=document.createElement('span');before.style.flex=`0 0 ${Math.max(1,lay.before*scale)}px`;preview.appendChild(before);
+    for(let i=0;i<maxBars;i++){
+      const bar=document.createElement('span');bar.className='slatDemo';
+      if(vertical)bar.style.width=`${Math.max(3,cfg.width*scale)}px`;else bar.style.height=`${Math.max(3,cfg.width*scale)}px`;
+      preview.appendChild(bar);
+      if(i<maxBars-1){const g=document.createElement('span');if(vertical)g.style.width=`${Math.max(1,cfg.gap*scale)}px`;else g.style.height=`${Math.max(1,cfg.gap*scale)}px`;g.style.flex='0 0 auto';preview.appendChild(g);}
+    }
+    if(lay.count>maxBars){const more=document.createElement('span');more.textContent=`+${lay.count-maxBars}`;more.style.cssText='align-self:center;color:#9fd9ff;font-size:10px;font-weight:900;padding:3px';preview.appendChild(more);}
+    const after=document.createElement('span');after.style.flex=`0 0 ${Math.max(1,lay.after*scale)}px`;preview.appendChild(after);
+    summary.textContent=`${lay.count} peça(s) · ripado ${nice(cfg.width)} mm · vão ${nice(cfg.gap)} mm · comprimento ${nice(lay.span)} mm · espessura ${nice(lay.ti.thickness)} mm · sobra ${nice(lay.before)} / ${nice(lay.after)} mm nas bordas.`;
+    summary.classList.remove('error');
+  }catch(err){preview.className='slattedPanelPreview';summary.textContent=err.message||'Confira as medidas';summary.classList.add('error');}
+}
+function openSlattedPanelDialog(){
+  if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  const check=slattedPanelEligible(selected);if(!check.ok){toast(check.message);return false;}
+  slattedPanelOwner=selected;
+  const ti=check.ti,u=selected.userData||{};
+  $('slattedPanelPartInfo').textContent=`${u.name||'Peça'} · área ${nice(ti.faceW)} × ${nice(ti.faceH)} mm · espessura ${nice(ti.thickness)} mm. O padrão será criado dentro exatamente desta área.`;
+  const last=(()=>{try{return JSON.parse(localStorage.getItem('designLabSlattedPanelPrefsV1')||'null')}catch{return null}})();
+  $('slattedPanelSlatWidth').value=Number(last?.width)>0?String(roundMmNumber(last.width,3)):'30';
+  $('slattedPanelGap').value=Number(last?.gap)>=0?String(roundMmNumber(last.gap,3)):'15';
+  $('slattedPanelDirection').value=last?.direction==='horizontal'?'horizontal':'vertical';
+  $('slattedPanelAlign').value=['start','end'].includes(last?.align)?last.align:'center';
+  $('slattedPanelDialog').style.display='flex';renderSlattedPanelPreview();return true;
+}
+function closeSlattedPanelDialog(){
+  $('slattedPanelDialog').style.display='none';slattedPanelOwner=null;
+}
+function createSlattedPanel(){
+  const source=slattedPanelOwner&&objects.includes(slattedPanelOwner)?slattedPanelOwner:selected;
+  try{
+    const cfg=slattedPanelReadConfig(),lay=slattedPanelLayoutFor(source,cfg),u=source.userData||{};
+    const hasDetails=(u.machining?.length||0)+(u.forms?.length||0)+(u.doorConfig?1:0);
+    if(hasDetails&&!window.confirm('Esta peça possui Forma, usinagem ou configuração de porta. Ao transformar em painel ripado, esses detalhes da peça original não serão copiados para os ripados. Continuar?'))return;
+    try{localStorage.setItem('designLabSlattedPanelPrefsV1',JSON.stringify(cfg));}catch{}
+
+    const sourcePos=source.position.clone(),sourceRot={x:source.rotation.x,y:source.rotation.y,z:source.rotation.z};
+    const tAxis=lay.ti.thicknessAxis,uAxis=lay.ti.uAxis,vAxis=lay.ti.vAxis;
+    const distributionAxis=cfg.direction==='horizontal'?vAxis:uAxis;
+    const distributionVector=pieceLocalAxisVector(source,distributionAxis);
+    const baseName=String(u.name||'Painel').replace(/^Ripado\s*·\s*/i,'').trim()||'Painel';
+    const partName=`Ripado · ${baseName}`;
+    const common={
+      kind:'panel',name:partName,materialType:u.materialType||'MDF',baseColor:u.baseColor??COLORS.panel,
+      materialId:u.materialId||null,materialCode:u.materialCode||'',materialGrain:!!u.materialGrain,materialGrainRotation:normalizePieceGrainRotation(u.materialGrainRotation),materialCoreColor:u.materialCoreColor||null,
+      edgeBands:{},labelMeta:u.labelMeta?productionClone(u.labelMeta):null,spaceRootId:u.spaceRootId||null,machining:[],forms:[],rotationX:sourceRot.x,rotationY:sourceRot.y,rotationZ:sourceRot.z,excludeFromCutList:!!u.excludeFromCutList,
+      spaceCutting:false,spaceCutParentBounds:null
+    };
+
+    // A malha original sai, mas a divisão paramétrica do espaço permanece. Assim o
+    // ripado substitui a peça visual/fabricável sem "desfazer" o vão onde ela nasceu.
+    selectObject(null);
+    const srcIndex=objects.indexOf(source);if(srcIndex>=0)objects.splice(srcIndex,1);disposeObject(source);
+
+    const made=[];
+    for(let i=0;i<lay.count;i++){
+      const localOffset=-lay.run/2+lay.before+cfg.width/2+i*lay.step;
+      const center=sourcePos.clone().addScaledVector(distributionVector,m(localOffset));
+      const dims={x:lay.ti.dims.x,y:lay.ti.dims.y,z:lay.ti.dims.z};
+      if(cfg.direction==='vertical'){dims[uAxis]=cfg.width;dims[vAxis]=lay.span;}
+      else{dims[vAxis]=cfg.width;dims[uAxis]=lay.span;}
+      dims[tAxis]=lay.ti.thickness;
+      const slat=createBox({...common,width:m(dims.x),depth:m(dims.z),height:m(dims.y),x:center.x,yBase:center.y-m(dims.y)/2,z:center.z},false);
+      slat.position.copy(center);slat.updateMatrixWorld(true);made.push(slat);
+    }
+    if(made.length)selectObject(made[0]);
+    closeSlattedPanelDialog();renderMachiningVisuals();updateMeasureBadge();commitHistory();
+    toast(`Painel ripado criado · ${made.length} peça(s) de ${nice(cfg.width)} mm · vão ${nice(cfg.gap)} mm`);
+  }catch(err){toast(err.message||'Não foi possível criar o painel ripado');renderSlattedPanelPreview();}
+}
+['slattedPanelSlatWidth','slattedPanelGap','slattedPanelDirection','slattedPanelAlign'].forEach(id=>$(id)?.addEventListener('input',renderSlattedPanelPreview));
+$('cancelSlattedPanel')?.addEventListener('click',closeSlattedPanelDialog);
+$('createSlattedPanel')?.addEventListener('click',createSlattedPanel);
+$('slattedPanelDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('slattedPanelDialog'))closeSlattedPanelDialog();});
 
 // ---------- Usinagem de peças: furos e rasgos ----------
 let machiningType='hole';
@@ -18661,6 +18781,7 @@ async function designLabHandleBackCascade(){
     ['partsListDialog','closePartsList'],
     ['hardwareBuilderDialog','cancelHardwareBuilder'],
     ['shapeDialog','cancelShape'],
+    ['slattedPanelDialog','cancelSlattedPanel'],
     ['machiningDialog','cancelMachining'],
     ['curvedStructureDialog','cancelCurvedStructure'],
     ['drawerSystemDialog','cancelDrawerSystem'],
@@ -18715,7 +18836,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.68';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.69';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -18873,7 +18994,7 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // 1.200.68: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // 1.200.69: não fabrica histórico ao retomar. Apenas garante que a entrada
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
