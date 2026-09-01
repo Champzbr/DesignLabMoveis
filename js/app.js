@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.71-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.73-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.71-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.73-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.71';
+  return tm?.[1]||'1.200.73';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.71-r1';
+const DESIGNLAB_JS_BUILD='1.200.73-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3457,7 +3457,7 @@ try{
   // Assim uma instalação antiga não fica eternamente escura enquanto site/novo
   // aparelho entram claros. Depois da primeira escolha manual, ela é respeitada.
   const explicit=localStorage.getItem(DESIGNLAB_APP_THEME_USER_CHOICE_KEY);
-  // 1.200.71: valores escuros herdados de versões antigas são ignorados.
+  // 1.200.73: valores escuros herdados de versões antigas são ignorados.
   // Somente a escolha V2 feita pelo próprio usuário pode ativar o escuro.
   designLabAppTheme=explicit==='dark'?'dark':'light';
   localStorage.setItem(DESIGNLAB_APP_THEME_KEY,designLabAppTheme);
@@ -5304,7 +5304,7 @@ function deleteSelectedSpaceRoot(){
 }
 
 // ============================================================================
-// 1.200.71 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
+// 1.200.73 · APAGAR ESPAÇO SELECIONADO = DESFAZER SOMENTE A DIVISÃO/CORTE
 // ============================================================================
 function cellContainsObjectCompletely(cell,o,tol=.0015){
   if(!cell||!o)return false;
@@ -11307,7 +11307,7 @@ function saveCurrentFurnitureToLibrary(){
 }
 
 
-// ---------- 1.200.71 · Painel ripado paramétrico ----------
+// ---------- 1.200.73 · Painel ripado paramétrico ----------
 let slattedPanelOwner=null;
 function slattedPanelEligible(o){
   if(!o)return {ok:false,message:'Selecione uma peça primeiro'};
@@ -17134,15 +17134,79 @@ function setTool(mode){
 function updateEditSpacePreview(){
   const root=activeSpaceRoot(); const out=$('editSpacePreview'); if(!root||!out)return;
   const w=Number($('editSpaceW').value)||0,d=Number($('editSpaceD').value)||0,h=Number($('editSpaceH').value)||0;
+  const px=Number($('editSpacePosX')?.value),py=Number($('editSpacePosY')?.value),pz=Number($('editSpacePosZ')?.value);
+  const rb=rootBounds(root);
   const dx=w-mm(root.width), dd=d-mm(root.depth), dh=h-mm(root.height);
   const fixedCount=['x','y','z'].reduce((n,a)=>n+(root.fixedBands?.[a]?.length||0),0);
   const fmt=v=>(v>=0?'+':'')+nice(v);
-  out.innerHTML=`Atual: <strong>${nice(mm(root.width))} × ${nice(mm(root.depth))} × ${nice(mm(root.height))} mm</strong><br>Novo: <strong>${nice(w)} × ${nice(d)} × ${nice(h)} mm</strong> · Δ L ${fmt(dx)} · P ${fmt(dd)} · A ${fmt(dh)} mm${fixedCount?`<br>🔒 ${fixedCount} faixa(s) fixa(s) serão preservadas.`:''}`;
+  const validPos=[px,py,pz].every(Number.isFinite);
+  const posNow=`X ${nice(mm(rb.minX))} · Y ${nice(mm(rb.minY))} · Z ${nice(mm(rb.minZ))} mm`;
+  const posNew=validPos?`X ${nice(px)} · Y ${nice(py)} · Z ${nice(pz)} mm`:'confira X / Y / Z';
+  out.innerHTML=`Atual: <strong>${nice(mm(root.width))} × ${nice(mm(root.depth))} × ${nice(mm(root.height))} mm</strong><br>Novo: <strong>${nice(w)} × ${nice(d)} × ${nice(h)} mm</strong> · Δ L ${fmt(dx)} · P ${fmt(dd)} · A ${fmt(dh)} mm<br>Posição atual: <strong>${posNow}</strong><br>Nova posição: <strong>${posNew}</strong>${fixedCount?`<br>🔒 ${fixedCount} faixa(s) fixa(s) serão preservadas.`:''}`;
+}
+function objectInsideRootBounds(obj,b,tol=.003){
+  if(!obj||!b)return false;
+  const a=getBounds(obj);
+  return a.minX>=b.minX-tol && a.maxX<=b.maxX+tol &&
+         a.minY>=b.minY-tol && a.maxY<=b.maxY+tol &&
+         a.minZ>=b.minZ-tol && a.maxZ<=b.maxZ+tol;
+}
+function collectSpaceLinkedObjects(root,bounds=null){
+  if(!root)return [];
+  const b=bounds||rootBounds(root);
+  return objects.filter(o=>o?.userData?.spaceRootId===root.id || objectInsideRootBounds(o,b));
+}
+function translateSpaceObjectMetadata(o,dx,dy,dz){
+  const u=o?.userData||{};
+  const pb=u.spaceCutParentBounds;
+  if(pb&&['minX','maxX','minY','maxY','minZ','maxZ'].every(k=>Number.isFinite(Number(pb[k])))){
+    pb.minX=Number(pb.minX)+dx;pb.maxX=Number(pb.maxX)+dx;
+    pb.minY=Number(pb.minY)+dy;pb.maxY=Number(pb.maxY)+dy;
+    pb.minZ=Number(pb.minZ)+dz;pb.maxZ=Number(pb.maxZ)+dz;
+  }
+  if(Number.isFinite(Number(u.curvedTargetX)))u.curvedTargetX=Number(u.curvedTargetX)+dx;
+  if(Number.isFinite(Number(u.curvedTargetZ)))u.curvedTargetZ=Number(u.curvedTargetZ)+dz;
+}
+function moveSpaceRootToPosition(root,{leftX,yBase,backZ,linkedObjects=null}={}){
+  if(!root)throw new Error('Espaço não encontrado');
+  leftX=Number(leftX);yBase=Number(yBase);backZ=Number(backZ);
+  if(![leftX,yBase,backZ].every(Number.isFinite))throw new Error('Confira a posição X / Y / Z');
+  if(yBase<0)throw new Error('A posição Y não pode ficar abaixo do chão');
+
+  const b=rootBounds(root);
+  const dx=leftX-b.minX,dy=yBase-b.minY,dz=backZ-b.minZ;
+
+  // Une as peças capturadas ANTES do redimensionamento às peças que continuam
+  // ligadas ao espaço depois dele. Isso também cobre projetos antigos em que
+  // algumas peças ainda não possuem spaceRootId.
+  const linkedSet=new Set();
+  if(Array.isArray(linkedObjects))for(const o of linkedObjects)if(objects.includes(o))linkedSet.add(o);
+  for(const o of collectSpaceLinkedObjects(root,b))linkedSet.add(o);
+
+  // Posição absoluta: X é a esquerda, Y é a base e Z é o fundo/traseiro.
+  // Não usamos += aqui; assim projetos antigos com valores serializados de
+  // forma diferente não conseguem transformar a soma em concatenação/string.
+  root.x=leftX+Number(root.width)/2;
+  root.yBase=yBase;
+  root.z=backZ+Number(root.depth)/2;
+
+  for(const c of root.cells||[]){
+    c.minX=Number(c.minX)+dx;c.maxX=Number(c.maxX)+dx;
+    c.minY=Number(c.minY)+dy;c.maxY=Number(c.maxY)+dy;
+    c.minZ=Number(c.minZ)+dz;c.maxZ=Number(c.maxZ)+dz;
+  }
+  for(const o of linkedSet){
+    o.position.set(Number(o.position.x)+dx,Number(o.position.y)+dy,Number(o.position.z)+dz);
+    translateSpaceObjectMetadata(o,dx,dy,dz);
+  }
+  return {dx,dy,dz,count:linkedSet.size};
 }
 function openEditSpaceDialog(){
   const root=activeSpaceRoot(); if(!root){toast('Selecione um espaço');return;}
-  $('editSpaceName').value=root.name||'Espaço'; $('editSpaceW').value=mm(root.width); $('editSpaceD').value=mm(root.depth); $('editSpaceH').value=mm(root.height); $('editSpaceBaseY').value=mm(root.yBase);
-  $('editSpaceInfo').textContent=`${root.name} · altere o tamanho externo sem apagar ${objects.filter(o=>o.userData?.spaceRootId===root.id || objectInsideSpaceRoot(o,root)).length} peça(s).`;
+  const rb=rootBounds(root);
+  $('editSpaceName').value=root.name||'Espaço'; $('editSpaceW').value=mm(root.width); $('editSpaceD').value=mm(root.depth); $('editSpaceH').value=mm(root.height); $('editSpaceBaseY').value=nice(mm(root.yBase));
+  $('editSpacePosX').value=nice(mm(rb.minX)); $('editSpacePosY').value=nice(mm(rb.minY)); $('editSpacePosZ').value=nice(mm(rb.minZ));
+  $('editSpaceInfo').textContent=`${root.name} · altere tamanho e posição sem apagar ${objects.filter(o=>o.userData?.spaceRootId===root.id || objectInsideSpaceRoot(o,root)).length} peça(s).`;
 
   fillSpaceMaterialSelect($('editSpaceDefaultMaterial'),root.defaultMaterialId||'',{allowNone:true});
   $('editSpaceDefaultMaterial').value=root.defaultMaterialId||'';
@@ -17151,14 +17215,39 @@ function openEditSpaceDialog(){
 
   updateEditSpacePreview(); $('editSpaceDialog').style.display='flex';
 }
-['editSpaceW','editSpaceD','editSpaceH','editSpaceBaseY'].forEach(id=>$(id)?.addEventListener('input',updateEditSpacePreview));
+['editSpaceW','editSpaceD','editSpaceH','editSpacePosX','editSpacePosZ'].forEach(id=>$(id)?.addEventListener('input',updateEditSpacePreview));
+$('editSpaceBaseY')?.addEventListener('input',()=>{if($('editSpacePosY'))$('editSpacePosY').value=$('editSpaceBaseY').value;updateEditSpacePreview();});
+$('editSpacePosY')?.addEventListener('input',()=>{if($('editSpaceBaseY'))$('editSpaceBaseY').value=$('editSpacePosY').value;updateEditSpacePreview();});
 $('editSpaceDefaultMaterial').addEventListener('change',updateEditSpaceMaterialPreview);
 $('cancelEditSpace').onclick=()=>{$('editSpaceDialog').style.display='none';};
 $('editSpaceDialog').addEventListener('pointerdown',e=>{if(e.target===$('editSpaceDialog'))$('editSpaceDialog').style.display='none';});
 $('confirmEditSpace').onclick=()=>{
   const root=activeSpaceRoot(); if(!root){toast('Espaço não encontrado');$('editSpaceDialog').style.display='none';return;}
   try{
-    resizeSpaceRoot(root,{width:m($('editSpaceW').value),depth:m($('editSpaceD').value),height:m($('editSpaceH').value),yBase:m($('editSpaceBaseY').value),name:$('editSpaceName').value});
+    const targetX=m($('editSpacePosX').value),targetY=m($('editSpacePosY').value),targetZ=m($('editSpacePosZ').value);
+    if(![targetX,targetY,targetZ].every(Number.isFinite))throw new Error('Confira a posição X / Y / Z');
+    if(targetY<0)throw new Error('A posição Y não pode ficar abaixo do chão');
+
+    // Captura o conjunto do móvel ANTES de qualquer alteração. O redimensionamento
+    // é feito na posição atual; em seguida X/Y/Z deslocam o espaço inteiro como
+    // um bloco. Essa ordem evita o caso em que a mensagem dizia "atualizado",
+    // mas a posição acabava permanecendo visualmente no mesmo lugar.
+    const beforeBounds=rootBounds(root);
+    const linkedBefore=collectSpaceLinkedObjects(root,beforeBounds);
+    resizeSpaceRoot(root,{
+      width:m($('editSpaceW').value),
+      depth:m($('editSpaceD').value),
+      height:m($('editSpaceH').value),
+      yBase:beforeBounds.minY,
+      name:$('editSpaceName').value
+    });
+    const moved=moveSpaceRootToPosition(root,{leftX:targetX,yBase:targetY,backZ:targetZ,linkedObjects:linkedBefore});
+
+    // Confirma pelos dados reais do espaço que a posição pedida foi aplicada.
+    const check=rootBounds(root),eps=.0005; // 0,5 mm
+    if(Math.abs(check.minX-targetX)>eps || Math.abs(check.minY-targetY)>eps || Math.abs(check.minZ-targetZ)>eps){
+      throw new Error('A posição X / Y / Z não foi aplicada corretamente');
+    }
 
     const materialId=$('editSpaceDefaultMaterial').value||null;
     root.defaultMaterialId=materialId;
@@ -17169,11 +17258,12 @@ $('confirmEditSpace').onclick=()=>{
       applied=applySpaceMaterialToExistingPieces(root,mat).changed;
     }
 
-    renderSpaces();
+    renderSpaces();applyDoorVisibility(root);renderMachiningVisuals();updateMeasureBadge();
     commitHistory(); $('editSpaceDialog').style.display='none';
+    const rb=rootBounds(root);
     toast(applied
       ? `Espaço atualizado · material aplicado em ${applied} peça(s)`
-      : `Espaço atualizado · ${mm(root.width)} × ${mm(root.depth)} × ${mm(root.height)} mm`);
+      : `Espaço movido · X ${nice(mm(rb.minX))} · Y ${nice(mm(rb.minY))} · Z ${nice(mm(rb.minZ))} mm`);
   }catch(err){toast(err.message||'Não foi possível editar o espaço');}
 };
 
@@ -18887,7 +18977,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.71';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.73';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -19045,7 +19135,7 @@ window.addEventListener('offline',updateCacheStatusUI);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden')return;
   if(document.visibilityState==='visible'){
-    // 1.200.71: não fabrica histórico ao retomar. Apenas garante que a entrada
+    // 1.200.73: não fabrica histórico ao retomar. Apenas garante que a entrada
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
