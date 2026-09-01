@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.74",
+  "version": "1.200.76",
   "required": false,
-  "message": "Menu Apagar agora inclui Apagar peça selecionada.",
-  "released_at": "2026-08-31T17:26:00-03:00",
-  "build": "1.200.74-r1"
+  "message": "Atalhos discretos para ocultar/mostrar portas, frentes de gaveta e volumes dos espaços.",
+  "released_at": "2026-09-01T12:45:00-03:00",
+  "build": "1.200.76-r1"
 }
