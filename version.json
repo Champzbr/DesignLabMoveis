@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.76",
+  "version": "1.200.77",
   "required": false,
-  "message": "Atalhos discretos para ocultar/mostrar portas, frentes de gaveta e volumes dos espaços.",
-  "released_at": "2026-09-01T12:45:00-03:00",
-  "build": "1.200.76-r1"
+  "message": "Correção de inicialização: o app volta a carregar pelo js/app.js com cache-busting, sem depender de um segundo arquivo JS versionado.",
+  "released_at": "2026-09-01T15:00:00-03:00",
+  "build": "1.200.77-r1"
 }
