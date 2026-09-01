@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.74-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.76-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.74-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.76-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.74';
+  return tm?.[1]||'1.200.76';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.74-r1';
+const DESIGNLAB_JS_BUILD='1.200.76-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3517,6 +3517,13 @@ let xray3DEnabled=false;
 // Na 1.200.37 a grade passou a iniciar ligada e acessava visualMode ainda em TDZ,
 // interrompendo o módulo antes de initOnlineIdentity().
 let visualMode=false;
+// 1.200.75 · atalho visual global para esconder portas e frentes de gaveta.
+// É somente uma preferência da vista atual: não altera o projeto nem o estado
+// individual "Ocultar portas" de cada espaço.
+let quickFrontFacesHidden=false;
+// 1.200.76 · atalho visual global para esconder/mostrar os volumes dos espaços.
+// Afeta somente a visualização/seleção dos espaços; peças do móvel continuam visíveis.
+let quickSpacesHidden=false;
 
 try{
   const saved=localStorage.getItem(CAD_BACKGROUND_KEY);
@@ -3650,6 +3657,7 @@ grid.position.y=.001;
 scene.add(grid);
 applyCadBackground(cadBackgroundMode,{persist:false});
 applyCadGridVisibility(cadGridVisible,{persist:false});
+syncQuickFrontVisibilityButton();
 
 // Eixos globais estilo CAD.
 // X = vermelho, Y(vertical interno) = azul, Z = amarelo.
@@ -3766,11 +3774,12 @@ function applyVisualSceneState(){
   }
   if(typeof spacePickMeshes!=='undefined'){
     for(const mesh of spacePickMeshes){
-      mesh.visible=!visualMode;
-      if(mesh.userData?.spaceEdges) mesh.userData.spaceEdges.visible=!visualMode;
+      const showSpaces=!visualMode&&!quickSpacesHidden;
+      mesh.visible=showSpaces;
+      if(mesh.userData?.spaceEdges) mesh.userData.spaceEdges.visible=showSpaces;
     }
   }
-  if(typeof spaceRoots!=='undefined'){ for(const root of spaceRoots){ if(root.group)root.group.visible=!visualMode; } }
+  if(typeof spaceRoots!=='undefined'){ for(const root of spaceRoots){ if(root.group)root.group.visible=!visualMode&&!quickSpacesHidden; } }
   if(typeof constructionGuides!=='undefined'){ for(const g of constructionGuides)g.visible=!visualMode; }
   if(typeof guideX!=='undefined'){ guideX.visible=false; guideY.visible=false; guideZ.visible=false; }
   if(typeof inferenceLines!=='undefined'){ Object.values(inferenceLines).forEach(l=>l.visible=false); }
@@ -4632,7 +4641,7 @@ function updateSpaceSelectionVisuals(){
 function renderSpaces(){
   disposeSpaceMeshes();
   for(const root of spaceRoots){
-    const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; scene.add(group);
+    const group=new THREE.Group(); group.userData.isSpaceRoot=true; root.group=group; group.visible=!visualMode&&!quickSpacesHidden; scene.add(group);
 
     // 1.100.96: o espaço criado originalmente continua sendo o espaço PRINCIPAL.
     // Os cortes são apenas subdivisões independentes dentro dele. O contorno
@@ -4683,23 +4692,73 @@ function renderSpaces(){
 }
 function referenceMeshes(exclude=null){ return [...objects,...spacePickMeshes].filter(o=>o!==exclude && o.visible!==false); }
 function isDoorObject(o){
-  return !!o && (/^Porta\s/i.test(String(o.userData?.name||'')) || o.userData?.drawerRole==='drawer-front');
+  if(!o)return false;
+  const u=o.userData||{},name=String(u.name||'');
+  return !!u.doorConfig || /^Porta(?:\s|$)/i.test(name) || u.drawerRole==='drawer-front' || /^Frente de gaveta(?:\s|$)/i.test(name);
 }
 function doorObjectsForRoot(rootId){
   return objects.filter(o=>o.userData?.spaceRootId===rootId && isDoorObject(o));
 }
+function doorObjectShouldBeVisible(o,root=null){
+  if(!isDoorObject(o))return o?.visible!==false;
+  root=root || (o.userData?.spaceRootId?getSpaceRoot(o.userData.spaceRootId):null);
+  return !quickFrontFacesHidden && !(root?.doorsHidden);
+}
+function syncQuickFrontVisibilityButton(){
+  const btn=$('cadFrontQuickToggle');if(!btn)return;
+  btn.classList.toggle('active',!!quickFrontFacesHidden);
+  btn.setAttribute('aria-pressed',quickFrontFacesHidden?'true':'false');
+  btn.textContent=quickFrontFacesHidden?'◩ Mostrar portas/frentes':'◫ Ocultar portas/frentes';
+  btn.title=quickFrontFacesHidden?'Mostrar portas e frentes de gaveta':'Ocultar portas e frentes de gaveta';
+}
 function applyDoorVisibility(root){
   if(!root) return;
-  const visible=!root.doorsHidden;
   for(const o of doorObjectsForRoot(root.id)){
+    const visible=doorObjectShouldBeVisible(o,root);
     o.visible=visible;
     o.userData.hiddenByDoors=!visible;
   }
-  if(selected && selected.userData?.spaceRootId===root.id && isDoorObject(selected) && !visible){
+  if(selected && selected.userData?.spaceRootId===root.id && isDoorObject(selected) && selected.visible===false){
     restoreBaseColor(selected); selected=null; $('inspector').style.display='none';
   }
 }
-function applyAllDoorVisibility(){ for(const root of spaceRoots) applyDoorVisibility(root); }
+function applyAllDoorVisibility(){
+  for(const root of spaceRoots)applyDoorVisibility(root);
+  // Também cobre uma porta/frente importada que ainda não esteja vinculada a um espaço.
+  for(const o of objects){
+    if(!isDoorObject(o)||o.userData?.spaceRootId)continue;
+    const visible=doorObjectShouldBeVisible(o,null);
+    o.visible=visible;o.userData.hiddenByDoors=!visible;
+    if(selected===o&&!visible){restoreBaseColor(o);selected=null;$('inspector').style.display='none';}
+  }
+  syncQuickFrontVisibilityButton();
+}
+function applyQuickFrontVisibility(hidden,{notify=false}={}){
+  quickFrontFacesHidden=!!hidden;
+  applyAllDoorVisibility();
+  if(typeof renderMachiningVisuals==='function')renderMachiningVisuals();
+  if(notify)toast(quickFrontFacesHidden?'Portas e frentes de gaveta ocultadas':'Portas e frentes de gaveta exibidas');
+}
+function syncQuickSpaceVisibilityButton(){
+  const btn=$('cadSpaceQuickToggle');if(!btn)return;
+  btn.classList.toggle('active',!!quickSpacesHidden);
+  btn.setAttribute('aria-pressed',quickSpacesHidden?'true':'false');
+  btn.textContent=quickSpacesHidden?'▰ Mostrar espaços':'▱ Ocultar espaços';
+  btn.title=quickSpacesHidden?'Mostrar os volumes dos espaços':'Ocultar os volumes dos espaços';
+}
+function applyQuickSpaceVisibility(hidden,{notify=false}={}){
+  quickSpacesHidden=!!hidden;
+  const showSpaces=!quickSpacesHidden&&!visualMode;
+  for(const root of spaceRoots){
+    if(root.group)root.group.visible=showSpaces;
+  }
+  for(const mesh of spacePickMeshes){
+    mesh.visible=showSpaces;
+    if(mesh.userData?.spaceEdges)mesh.userData.spaceEdges.visible=showSpaces;
+  }
+  syncQuickSpaceVisibilityButton();
+  if(notify)toast(quickSpacesHidden?'Espaços ocultados':'Espaços exibidos');
+}
 function updateDoorsToggleButton(root=null){
   const btn=$('toggleDoorsBtn'); if(!btn) return;
   root=root || (selectedSpaceCell ? getSpaceRoot(selectedSpaceCell.rootId) : null);
@@ -5451,6 +5510,13 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
   visualEdges.userData.isVisualEdge=true; visualEdges.visible=true; visualEdges.renderOrder=xray3DActive()?88:12;
   mesh.add(visualEdges); mesh.userData.visualEdges=visualEdges;
   scene.add(mesh); objects.push(mesh);
+  // 1.200.75: se a visualização rápida de frentes estiver oculta, qualquer
+  // porta/frente de gaveta criada enquanto ela estiver ativa já nasce escondida.
+  if(isDoorObject(mesh)){
+    const doorRoot=mesh.userData?.spaceRootId?getSpaceRoot(mesh.userData.spaceRootId):null;
+    mesh.visible=doorObjectShouldBeVisible(mesh,doorRoot);
+    mesh.userData.hiddenByDoors=!mesh.visible;
+  }
   if(mesh.userData.forms.length) rebuildFormGeometry(mesh);
   restoreBaseColor(mesh);
   selectObject(mesh);
@@ -18707,6 +18773,9 @@ $('cadGridVisibleSetting').addEventListener('change',e=>{
   applyCadGridVisibility(e.target.checked,{persist:true,notify:true});
 });
 $('cadGridQuickToggle')?.addEventListener('click',()=>applyCadGridVisibility(!cadGridVisible,{persist:true,notify:true}));
+$('cadFrontQuickToggle')?.addEventListener('click',()=>applyQuickFrontVisibility(!quickFrontFacesHidden,{notify:true}));
+$('cadSpaceQuickToggle')?.addEventListener('click',()=>applyQuickSpaceVisibility(!quickSpacesHidden,{notify:true}));
+syncQuickSpaceVisibilityButton();
 $('cadXrayVisibleSetting').addEventListener('change',e=>{
   applyXray3D(e.target.checked,{persist:true,notify:true});
 });
@@ -18978,7 +19047,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.74';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.76';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
