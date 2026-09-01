@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.72",
+  "version": "1.200.73",
   "required": false,
-  "message": "Adiciona posição X/Y/Z também em Editar espaço, permitindo mover o espaço completo com todas as divisões e peças vinculadas sem desmontar o móvel.",
-  "released_at": "2026-08-31T17:16:00-03:00",
-  "build": "1.200.72-r1"
+  "message": "Corrige a edição da posição X/Y/Z do espaço: agora o espaço inteiro e suas peças são realmente deslocados, com validação da posição aplicada e cache-bust do JavaScript.",
+  "released_at": "2026-08-31T17:26:00-03:00",
+  "build": "1.200.73-r1"
 }
