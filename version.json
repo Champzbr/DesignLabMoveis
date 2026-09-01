@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.73",
+  "version": "1.200.74",
   "required": false,
-  "message": "Corrige a edição da posição X/Y/Z do espaço: agora o espaço inteiro e suas peças são realmente deslocados, com validação da posição aplicada e cache-bust do JavaScript.",
+  "message": "Menu Apagar agora inclui Apagar peça selecionada.",
   "released_at": "2026-08-31T17:26:00-03:00",
-  "build": "1.200.73-r1"
+  "build": "1.200.74-r1"
 }
