@@ -483,3 +483,11 @@
 }
 .pieceMaterialSyncChoice input{width:18px;height:18px;margin:0;accent-color:#2d7dfa;flex:0 0 auto}
 .pieceMaterialApplyBtn{width:100%;min-height:42px;margin-top:8px;font-weight:900}
+
+/* 1.200.95 · busca de material e catálogo sem duplicação por espessura */
+.pieceMaterialSearch{
+  width:100%;min-height:41px;margin:0 0 7px;padding:8px 11px;border:1px solid #484d50;border-radius:9px;
+  background:#0e1112;color:#fff;font-size:11px;font-weight:750;outline:none;
+}
+.pieceMaterialSearch::placeholder{color:#778188;font-weight:650}
+.pieceMaterialSearch:focus{border-color:#2d7dfa;box-shadow:0 0 0 2px rgba(45,125,250,.12)}
