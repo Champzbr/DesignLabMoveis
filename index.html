@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.94-r1">
+<meta name="designlab-build" content="1.200.95-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.94-r1';
+  const BUILD='1.200.95-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -24,7 +24,7 @@
   const USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';
   let theme='light';
   try{
-    // 1.200.94: tema da Home nasce CLARO. Nenhuma chave de versões antigas
+    // 1.200.95: tema da Home nasce CLARO. Nenhuma chave de versões antigas
     // pode ativar o escuro. Só uma escolha feita no seletor desta geração (V2)
     // habilita o modo escuro. Isso elimina instalações antigas presas no dark.
     const explicit=localStorage.getItem(USER_CHOICE_KEY);
@@ -43,7 +43,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.94: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.95: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -61,7 +61,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.94 · NAVEGAÇÃO REAL DO PWA.
+  // 1.200.95 · NAVEGAÇÃO REAL DO PWA.
   // Não fabricamos uma pilha no carregamento. O Chrome pode ignorar estados
   // criados sem gesto do usuário. Apenas marcamos a entrada atual como HOME.
   // A entrada HOME-GUARD e a WORKSPACE serão criadas dentro do toque real que
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.200.94';
+    st[KEY]=route;st.__designLabRouteVersion='1.200.95';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.94 - Materiais padrão e troca por peça</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.94-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.94-r1">
+<title>DesignLabMoveis 1.200.95 - Materiais compactos e busca</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.95-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.95-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -126,7 +126,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.94</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.95</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -248,7 +248,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.94</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.95</span>
         </div>
       </div>
 
@@ -545,7 +545,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.94</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.95</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -571,7 +571,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.94</strong>
+        <strong id="updateCurrentVersion">1.200.95</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -614,7 +614,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.94 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.95 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -684,6 +684,7 @@
       <strong>Material da peça</strong>
       <span>troca só a peça selecionada</span>
     </div>
+    <input id="pieceMaterialSearch" class="pieceMaterialSearch" type="search" autocomplete="off" placeholder="Buscar material..." aria-label="Buscar material">
     <select id="pieceMaterialSelect" class="pieceMaterialSelect" aria-label="Material da peça">
       <option value="">Sem material definido</option>
     </select>
@@ -691,7 +692,7 @@
       <input id="pieceMaterialSyncBands" type="checkbox" checked>
       <span>Combinar as fitas que já estão aplicadas com o novo material</span>
     </label>
-    <div id="pieceMaterialInfo" class="pieceConfigHelp">Escolha um material padrão ou personalizado.</div>
+    <div id="pieceMaterialInfo" class="pieceConfigHelp">Escolha o material. A espessura será sempre a espessura atual da peça.</div>
     <button id="pieceMaterialApply" type="button" class="pieceMaterialApplyBtn">Aplicar material nesta peça</button>
   </div>
 
@@ -981,7 +982,7 @@
 <div id="productionDialog">
   <div class="card">
     <h3>🎨 Materiais / fitas de borda</h3>
-    <p class="dialogHelp">O app já inclui materiais e fitas padrão de fábrica. Você também pode criar personalizados, aplicar na peça selecionada e marcar exatamente quais bordas recebem fita.</p>
+    <p class="dialogHelp">O app já inclui materiais e fitas padrão de fábrica sem duplicar por espessura. A espessura vem da própria peça. Você também pode criar personalizados e marcar exatamente quais bordas recebem fita.</p>
 
     <div class="productionSection">
       <div class="productionSectionHead">
@@ -991,8 +992,8 @@
 
       <div class="productionFields">
         <label>Material salvo<select id="productionMaterialSelect"></select></label>
-        <label>Nome<input id="productionMaterialName" placeholder="Ex.: MDF Branco TX 18"></label>
-        <label>Código / referência<input id="productionMaterialCode" placeholder="Ex.: BR-TX18"></label>
+        <label>Nome<input id="productionMaterialName" placeholder="Ex.: Branco TX"></label>
+        <label>Código / referência<input id="productionMaterialCode" placeholder="Ex.: BR-TX"></label>
         <label>Espessura nominal (mm)<input id="productionMaterialThickness" type="text" inputmode="decimal" value="18" autocomplete="off"></label>
         <label>Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
         <label>Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="100" step="1"></label>
@@ -1022,7 +1023,7 @@
     <div class="productionSection">
       <div class="productionSectionHead">
         <strong>Tipos de fita de borda</strong>
-        <span>Padrões de 6, 15 e 18 mm já vêm no app; crie outros e reutilize em qualquer lado</span>
+        <span>Uma fita padrão por acabamento; a largura acompanha a espessura da peça</span>
       </div>
 
       <div class="productionFields">
@@ -1550,7 +1551,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.94</span>
+      <span class="cutPlanBadge">1.200.95</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2548,7 +2549,7 @@
   </div>
 </div>
 
-<!-- 1.200.94 · barra original preservada + submenus flutuantes -->
+<!-- 1.200.95 · barra original preservada + submenus flutuantes -->
 <div id="quickDock" aria-label="Barra de atalhos rápidos do CAD">
   <div id="quickDockTools"></div>
   <button id="quickDockSwap" class="secondary" type="button" aria-label="Trocar página de atalhos" title="Trocar atalhos">⇄</button>
@@ -2581,6 +2582,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.94-r1"></script>
+<script type="module" src="js/app.js?v=1.200.95-r1"></script>
 </body>
 </html>

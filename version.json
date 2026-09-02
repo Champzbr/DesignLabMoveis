@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.94",
+  "version": "1.200.95",
   "required": false,
-  "message": "Materiais padrão embutidos no app: MDFs 6/15/18 mm, madeiras maciças, lâminas naturais e fitas compatíveis de 6/15/18 mm. A Configuração da peça agora permite trocar o material diretamente.",
-  "released_at": "2026-09-02T16:27:00-03:00",
-  "build": "1.200.94-r1"
+  "message": "Materiais padrão compactados: uma entrada por acabamento, busca rápida na Configuração da peça e espessura sempre herdada da própria peça. Fitas padrão também acompanham automaticamente a espessura.",
+  "released_at": "2026-09-02T17:05:00-03:00",
+  "build": "1.200.95-r1"
 }
