@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.94-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.95-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.94-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.95-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -689,7 +689,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.200.84';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.94-r1';
+const DESIGNLAB_JS_BUILD='1.200.95-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -4285,13 +4285,12 @@ function toast(text){
 // ============================================================================
 // 1.100.16 · PRODUÇÃO: MATERIAIS, FITAS E BASE PARA ETIQUETAS
 // ============================================================================
-const PRODUCTION_SCHEMA_VERSION=3;
+const PRODUCTION_SCHEMA_VERSION=4;
 
-// 1.200.94 · CATÁLOGO PADRÃO DO APLICATIVO
-// Fica embutido no app (não depende de Worker/servidor) e é mesclado em projetos antigos.
-// MDFs usam as três bitolas pedidas: 6, 15 e 18 mm. Madeiras maciças também
-// recebem estas bitolas como presets editáveis. Lâminas naturais são cadastradas
-// com 0,6 mm e podem ser ajustadas pelo usuário.
+// 1.200.95 · CATÁLOGO PADRÃO COM UMA ENTRADA POR MATERIAL
+// A espessura NÃO faz mais parte do cadastro dos padrões de fábrica. Branco TX,
+// Carvalho, Freijó etc. aparecem uma única vez; a espessura efetiva é sempre a
+// espessura geométrica da peça (6, 15, 18, 18,5, 25 mm ou qualquer outra).
 const FACTORY_MATERIAL_PATTERNS=[
   {key:'branco-tx',name:'Branco TX',category:'MDF · Cores básicas',code:'BRTX',grain:false,color:'#f2f2ed',coreColor:'#c8a977'},
   {key:'maxi-branco',name:'Maxi Branco',category:'MDF · Cores básicas',code:'MBR',grain:false,color:'#fafaf7',coreColor:'#c8a977'},
@@ -4324,46 +4323,50 @@ const FACTORY_VENEERS=[
   {key:'tauari',name:'Tauari',code:'TAU',color:'#c4a274'},
   {key:'nogueira',name:'Nogueira',code:'NOGU',color:'#704933'}
 ];
-function factoryMaterialId(kind,key,t){
-  if(kind==='mdf'&&key==='branco-tx'&&Number(t)===18)return 'mat-mdf-branco-18';
-  if(kind==='mdf'&&key==='branco-tx'&&Number(t)===6)return 'mat-mdf-branco-6';
-  return `mat-factory-${kind}-${key}-${String(t).replace('.','_')}`;
-}
+function factoryMaterialId(kind,key){return `mat-factory-${kind}-${key}`;}
+function factoryBandId(kind,key){return `band-factory-${kind}-${key}`;}
 function factoryBandFamily(kind,key){return `${kind}-${key}`;}
+function canonicalFactoryMaterialId(id){
+  const s=String(id||'');if(!s)return '';
+  if(s==='mat-mdf-branco-18'||s==='mat-mdf-branco-6')return factoryMaterialId('mdf','branco-tx');
+  for(const [kind,list] of [['mdf',FACTORY_MATERIAL_PATTERNS],['wood',FACTORY_SOLID_WOODS],['veneer',FACTORY_VENEERS]]){
+    for(const p of list){const canonical=factoryMaterialId(kind,p.key);if(s===canonical||s.startsWith(canonical+'-'))return canonical;}
+  }
+  return s;
+}
+function canonicalFactoryBandId(id){
+  const s=String(id||'');if(!s)return '';
+  for(const [kind,list] of [['mdf',FACTORY_MATERIAL_PATTERNS],['wood',FACTORY_SOLID_WOODS],['veneer',FACTORY_VENEERS]]){
+    for(const p of list){const canonical=factoryBandId(kind,p.key);if(s===canonical||s.startsWith(canonical+'-'))return canonical;}
+  }
+  return s;
+}
 function buildFactoryProductionCatalog(){
   const materials=[],edgeBands=[];
-  for(const p of FACTORY_MATERIAL_PATTERNS){
-    for(const t of [6,15,18]) materials.push({
-      id:factoryMaterialId('mdf',p.key,t),name:`MDF ${p.name} ${t} mm`,code:`MDF-${p.code}${t}`,
-      category:p.category,pattern:p.name,family:factoryBandFamily('mdf',p.key),factory:true,
-      thickness:t,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.coreColor,grain:!!p.grain
-    });
-  }
-  for(const p of FACTORY_SOLID_WOODS){
-    for(const t of [6,15,18]) materials.push({
-      id:factoryMaterialId('wood',p.key,t),name:`Madeira maciça ${p.name} ${t} mm`,code:`MAC-${p.code}${t}`,
-      category:'Madeira maciça',pattern:p.name,family:factoryBandFamily('wood',p.key),factory:true,
-      thickness:t,sheetWidth:3000,sheetHeight:600,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
-    });
-  }
-  for(const p of FACTORY_VENEERS){
-    materials.push({
-      id:factoryMaterialId('veneer',p.key,.6),name:`Lâmina natural ${p.name} 0,6 mm`,code:`LAM-${p.code}06`,
-      category:'Lâmina natural',pattern:p.name,family:factoryBandFamily('veneer',p.key),factory:true,
-      thickness:.6,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
-    });
-  }
+  for(const p of FACTORY_MATERIAL_PATTERNS)materials.push({
+    id:factoryMaterialId('mdf',p.key),name:p.name,code:`MDF-${p.code}`,
+    category:p.category,pattern:p.name,family:factoryBandFamily('mdf',p.key),factory:true,flexibleThickness:true,
+    thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.coreColor,grain:!!p.grain
+  });
+  for(const p of FACTORY_SOLID_WOODS)materials.push({
+    id:factoryMaterialId('wood',p.key),name:`Madeira maciça ${p.name}`,code:`MAC-${p.code}`,
+    category:'Madeira maciça',pattern:p.name,family:factoryBandFamily('wood',p.key),factory:true,flexibleThickness:true,
+    thickness:18,sheetWidth:3000,sheetHeight:600,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+  });
+  for(const p of FACTORY_VENEERS)materials.push({
+    id:factoryMaterialId('veneer',p.key),name:`Lâmina ${p.name}`,code:`LAM-${p.code}`,
+    category:'Lâmina natural',pattern:p.name,family:factoryBandFamily('veneer',p.key),factory:true,flexibleThickness:true,
+    thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+  });
   const bandFamilies=[];
   for(const p of FACTORY_MATERIAL_PATTERNS)bandFamilies.push({kind:'mdf',key:p.key,name:p.name,category:p.category,color:p.color,code:p.code});
-  for(const p of FACTORY_SOLID_WOODS)bandFamilies.push({kind:'wood',key:p.key,name:`Madeira ${p.name}`,category:'Fitas · Madeira maciça',color:p.color,code:`MAC-${p.code}`});
-  for(const p of FACTORY_VENEERS)bandFamilies.push({kind:'veneer',key:p.key,name:`Lâmina ${p.name}`,category:'Fitas · Lâmina natural',color:p.color,code:`LAM-${p.code}`});
-  for(const p of bandFamilies){
-    for(const width of [6,15,18]) edgeBands.push({
-      id:`band-factory-${p.kind}-${p.key}-${width}`,name:`Fita ${p.name} ${width} mm`,code:`F-${p.code}${width}`,
-      category:p.category.replace(/^MDF · /,'Fitas · MDF · '),family:factoryBandFamily(p.kind,p.key),factory:true,
-      thickness:.45,width,color:p.color
-    });
-  }
+  for(const p of FACTORY_SOLID_WOODS)bandFamilies.push({kind:'wood',key:p.key,name:p.name,category:'Fitas · Madeira maciça',color:p.color,code:`MAC-${p.code}`});
+  for(const p of FACTORY_VENEERS)bandFamilies.push({kind:'veneer',key:p.key,name:p.name,category:'Fitas · Lâmina natural',color:p.color,code:`LAM-${p.code}`});
+  for(const p of bandFamilies)edgeBands.push({
+    id:factoryBandId(p.kind,p.key),name:`Fita ${p.name}`,code:`F-${p.code}`,
+    category:p.category.replace(/^MDF · /,'Fitas · MDF · '),family:factoryBandFamily(p.kind,p.key),factory:true,dynamicWidth:true,
+    thickness:.45,width:18,color:p.color
+  });
   return {materials,edgeBands};
 }
 const FACTORY_PRODUCTION_CATALOG=buildFactoryProductionCatalog();
@@ -4411,7 +4414,8 @@ function normalizeProductionMaterial(m){
     category:String(m.category||'Personalizados').trim()||'Personalizados',
     pattern:String(m.pattern||'').trim(),
     family:String(m.family||'').trim(),
-    factory:!!m.factory
+    factory:!!m.factory,
+    flexibleThickness:!!m.flexibleThickness
   };
 }
 function normalizeProductionBand(b){
@@ -4426,13 +4430,18 @@ function normalizeProductionBand(b){
     color:productionColor(b.color,'#f5f5f2'),
     category:String(b.category||'Fitas personalizadas').trim()||'Fitas personalizadas',
     family:String(b.family||'').trim(),
-    factory:!!b.factory
+    factory:!!b.factory,
+    dynamicWidth:!!b.dynamicWidth
   };
 }
 function ensureFactoryProductionCatalog(){
   if(!projectProduction)projectProduction={version:PRODUCTION_SCHEMA_VERSION,materials:[],edgeBands:[],labelTemplate:defaultProjectProduction().labelTemplate};
   projectProduction.materials=Array.isArray(projectProduction.materials)?projectProduction.materials:[];
   projectProduction.edgeBands=Array.isArray(projectProduction.edgeBands)?projectProduction.edgeBands:[];
+  // Remove as antigas cópias 6/15/18 dos padrões de fábrica. Materiais personalizados
+  // continuam intocados; somente os registros factory são consolidados.
+  projectProduction.materials=projectProduction.materials.filter(x=>!x?.factory||canonicalFactoryMaterialId(x.id)===x.id);
+  projectProduction.edgeBands=projectProduction.edgeBands.filter(x=>!x?.factory||canonicalFactoryBandId(x.id)===x.id);
   for(const rec of FACTORY_PRODUCTION_CATALOG.materials){
     const existing=projectProduction.materials.find(x=>x.id===rec.id);
     if(existing)Object.assign(existing,normalizeProductionMaterial(rec));
@@ -4479,11 +4488,31 @@ function captureProductionState(){
     labelTemplate:projectProduction.labelTemplate
   });
 }
-function productionMaterialById(id){return projectProduction.materials.find(x=>x.id===id)||null;}
-function productionBandById(id){return projectProduction.edgeBands.find(x=>x.id===id)||null;}
+function productionMaterialById(id){
+  const wanted=String(id||'');
+  return projectProduction.materials.find(x=>x.id===wanted)||projectProduction.materials.find(x=>x.id===canonicalFactoryMaterialId(wanted))||null;
+}
+function productionBandById(id){
+  const wanted=String(id||'');
+  return projectProduction.edgeBands.find(x=>x.id===wanted)||projectProduction.edgeBands.find(x=>x.id===canonicalFactoryBandId(wanted))||null;
+}
+function productionMaterialUsesPieceThickness(m){return !!m?.flexibleThickness;}
+function productionMaterialEffectiveThickness(m,o=null){
+  if(!m)return 0;
+  if(productionMaterialUsesPieceThickness(m)){
+    const ti=o?pieceThicknessInfo(o):null;
+    if(ti?.thickness>0)return Number(ti.thickness);
+  }
+  return Number(m.thickness)||18;
+}
 function productionBandSnapshot(id){
   const b=productionBandById(id);
   return b?productionClone(b):null;
+}
+function productionBandSnapshotForPiece(id,o=selected){
+  const b=productionBandSnapshot(id);if(!b)return null;
+  if(b.dynamicWidth){const ti=o?pieceThicknessInfo(o):null;if(ti?.thickness>0)b.width=Number(ti.thickness);}
+  return b;
 }
 function normalizePieceEdgeBands(v){
   const out={};
@@ -4494,8 +4523,15 @@ function normalizePieceEdgeBands(v){
       const b=productionBandSnapshot(rec);
       if(b)out[key]=b;
     }else{
-      const b=normalizeProductionBand(rec);
-      if(b)out[key]=b;
+      let b=normalizeProductionBand(rec);
+      if(!b)continue;
+      const factory=productionBandById(b.id);
+      if(factory?.factory){
+        const width=Number(b.width)||Number(factory.width)||18;
+        b=productionClone(factory);
+        if(b.dynamicWidth)b.width=width;
+      }
+      out[key]=b;
     }
   }
   return out;
@@ -4614,7 +4650,7 @@ function applySpaceDefaultMaterialToObject(o,rootOrId,{requireThicknessMatch=tru
   if(!root||!mat)return false;
   if(o.userData?.kind==='hardware-visual'||o.userData?.kind==='cylinder'||o.userData?.excludeFromCutList)return false;
 
-  if(requireThicknessMatch){
+  if(requireThicknessMatch&&!productionMaterialUsesPieceThickness(mat)){
     const ti=pieceThicknessInfo(o);
     if(ti&&Math.abs(Number(ti.thickness)-Number(mat.thickness))>.25)return false;
   }
@@ -4643,7 +4679,7 @@ function applySpaceMaterialToExistingPieces(root,material){
 }
 function spaceMaterialText(rootOrId){
   const m=spaceDefaultMaterial(rootOrId);
-  return m?`${m.name}${m.code?` · ${m.code}`:''} · ${nice(m.thickness)} mm · chapa ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)}${m.grain?` · veio no ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`:'Sem material padrão';
+  return m?`${m.name}${m.code?` · ${m.code}`:''}${productionMaterialUsesPieceThickness(m)?' · espessura pela peça':` · ${nice(m.thickness)} mm`} · chapa ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)}${m.grain?` · veio no ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`:'Sem material padrão';
 }
 
 
@@ -4852,7 +4888,7 @@ function hasIndividuallyHiddenSpaces(){
 }
 function syncQuickSpaceVisibilityButton(){
   const btn=$('cadSpaceQuickToggle');if(!btn)return;
-  // 1.200.94: se QUALQUER divisão foi ocultada individualmente, o botão geral
+  // 1.200.95: se QUALQUER divisão foi ocultada individualmente, o botão geral
   // já vira "Mostrar espaços". Ao mostrar, todos os espaços do projeto voltam.
   const hasHidden=!!quickSpacesHidden || hasIndividuallyHiddenSpaces();
   btn.classList.toggle('active',hasHidden);
@@ -4906,7 +4942,7 @@ function hideQuickSelectedSpace(){
   return true;
 }
 
-// 1.200.94 · botão Configuração é o único caminho rápido para abrir a configuração.
+// 1.200.95 · botão Configuração é o único caminho rápido para abrir a configuração.
 // Espaço selecionado abre o menu completo (Corte, Peças, Biblioteca etc.);
 // peça selecionada abre o inspetor/configuração da própria peça.
 function openQuickSelectedConfiguration(){
@@ -5081,7 +5117,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
   // O chão do projeto é Y=0. Espaços de mobiliário nunca nascem abaixo dele.
   yBase=Math.max(0,Number(yBase)||0);
-  const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:defaultMaterialId||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
+  const root={id:uid('space'),name,width,depth,height,x,yBase,z,defaultMaterialId:canonicalFactoryMaterialId(defaultMaterialId)||null,doorsHidden:false,spaceHidden:false,fixedBands:{x:[],y:[],z:[]},cells:[{id:uid('cell'),hidden:false,fixedAxes:{},minX:x-width/2,maxX:x+width/2,minY:yBase,maxY:yBase+height,minZ:z-depth/2,maxZ:z+depth/2}]};
   spaceRoots.push(root); renderSpaces();
   // 1.100.96: criar o espaço principal apenas o seleciona. O menu nunca abre
   // automaticamente; toque e segure o espaço para abrir as opções.
@@ -5092,7 +5128,7 @@ function createSpace({width=1,depth=.6,height=.9,x=0,yBase=0,z=0,name='Espaço',
 }
 function createSpaceFromState(data){
   const legacyWholeHidden=!!data.spaceHidden;
-  const root={id:data.id||uid('space'),name:data.name||'Espaço',width:data.width,depth:data.depth,height:data.height,x:data.x||0,yBase:data.yBase||0,z:data.z||0,defaultMaterialId:data.defaultMaterialId||null,doorsHidden:!!data.doorsHidden,spaceHidden:false,fixedBands:{x:(data.fixedBands?.x||[]).map(v=>[...v]),y:(data.fixedBands?.y||[]).map(v=>[...v]),z:(data.fixedBands?.z||[]).map(v=>[...v])},cells:(data.cells||[]).map(c=>({...c,id:c.id||uid('cell'),hidden:!!c.hidden||legacyWholeHidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null}))};
+  const root={id:data.id||uid('space'),name:data.name||'Espaço',width:data.width,depth:data.depth,height:data.height,x:data.x||0,yBase:data.yBase||0,z:data.z||0,defaultMaterialId:canonicalFactoryMaterialId(data.defaultMaterialId)||null,doorsHidden:!!data.doorsHidden,spaceHidden:false,fixedBands:{x:(data.fixedBands?.x||[]).map(v=>[...v]),y:(data.fixedBands?.y||[]).map(v=>[...v]),z:(data.fixedBands?.z||[]).map(v=>[...v])},cells:(data.cells||[]).map(c=>({...c,id:c.id||uid('cell'),hidden:!!c.hidden||legacyWholeHidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null}))};
   if(!root.cells.length) root.cells=[{id:uid('cell'),hidden:legacyWholeHidden,fixedAxes:{},minX:root.x-root.width/2,maxX:root.x+root.width/2,minY:root.yBase,maxY:root.yBase+root.height,minZ:root.z-root.depth/2,maxZ:root.z+root.depth/2}];
   spaceRoots.push(root); return root;
 }
@@ -5293,7 +5329,7 @@ function verticalDivisionNominalThicknessM(obj){
 
   // Projetos antigos: recupera a espessura nominal pelo material da peça.
   const material=productionMaterialById(obj.userData?.materialId);
-  const mt=Number(material?.thickness);
+  const mt=productionMaterialUsesPieceThickness(material)?NaN:Number(material?.thickness);
   if(Number.isFinite(mt)&&mt>.1)return m(mt);
 
   // Último fallback: espessura atual da peça.
@@ -5690,6 +5726,18 @@ function deleteSelectedSpaceCell(){
 }
 
 function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null, manualGeometryDelta=null, pieceSavedConfig=null}={}, doHistory=true){
+  // 1.200.95 · migra automaticamente IDs antigos (Branco TX 6/15/18 etc.)
+  // para o cadastro único do material, preservando a espessura da própria peça.
+  const canonicalMaterialId=canonicalFactoryMaterialId(materialId);
+  const canonicalMaterial=productionMaterialById(canonicalMaterialId);
+  if(canonicalMaterial?.factory){
+    materialId=canonicalMaterial.id;
+    materialType=canonicalMaterial.name;
+    materialCode=canonicalMaterial.code||'';
+    materialGrain=!!canonicalMaterial.grain;
+    materialCoreColor=canonicalMaterial.coreColor||null;
+    baseColor=productionColorInt(canonicalMaterial.color,baseColor);
+  }else materialId=canonicalMaterialId||materialId;
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
   const mats=makeMaterials(baseColor,6);
   const mesh=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),mats);
@@ -5724,7 +5772,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     // permite devolver somente a espessura da peça ao vão correto ao apagá-la,
     // sem misturar com divisões vizinhas do mesmo espaço.
     spaceCutParentBounds:spaceCutParentBounds?JSON.parse(JSON.stringify(spaceCutParentBounds)):null,
-    // 1.200.94 · ajustes manuais da configuração da peça ficam separados da
+    // 1.200.95 · ajustes manuais da configuração da peça ficam separados da
     // geometria paramétrica. Assim Biblioteca/redimensionamento recalculam a
     // peça-base e reaplicam exatamente os mesmos milímetros/posição depois.
     manualGeometryDelta:manualGeometryDelta?JSON.parse(JSON.stringify(manualGeometryDelta)):null,
@@ -6581,7 +6629,7 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.200.94: um clique apenas seleciona.
+    // 1.200.95: um clique apenas seleciona.
     // A configuração abre somente pelo botão ⚙ Configuração.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
@@ -6631,7 +6679,7 @@ function createPieceNamePreset(){
   savePieceNameCustomPresets(list);if(input)input.value='';refreshPieceNamePresetSelect(name);applyPieceNamePreset(name);
 }
 
-// 1.200.94 · troca rápida de material diretamente na configuração da peça.
+// 1.200.95 · troca rápida de material com busca e uma entrada por padrão.
 function pieceMaterialBandFor(material,actualThickness){
   if(!material?.family)return null;
   const candidates=projectProduction.edgeBands.filter(b=>b.family===material.family);
@@ -6639,38 +6687,43 @@ function pieceMaterialBandFor(material,actualThickness){
   const target=Number(actualThickness)||18;
   return candidates.slice().sort((a,b)=>Math.abs(Number(a.width)-target)-Math.abs(Number(b.width)-target))[0]||null;
 }
-function fillPieceMaterialSelect(currentId=''){
+function materialSearchText(m){
+  return `${m?.name||''} ${m?.code||''} ${m?.category||''} ${m?.pattern||''}`.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+}
+function fillPieceMaterialSelect(currentId='',query=null){
   const sel=$('pieceMaterialSelect');if(!sel)return;
-  const old=currentId||sel.value||'';
+  const old=canonicalFactoryMaterialId(currentId||sel.value||'');
+  const q=String(query??$('pieceMaterialSearch')?.value??'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
   sel.innerHTML='<option value="">Sem material definido</option>';
   const groups=new Map();
   for(const m of projectProduction.materials){
+    if(q&&!materialSearchText(m).includes(q))continue;
     const label=m.category||'Personalizados';
     if(!groups.has(label))groups.set(label,[]);
     groups.get(label).push(m);
   }
+  let count=0;
   for(const [label,list] of groups){
     const g=document.createElement('optgroup');g.label=label;
     list.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR',{numeric:true})).forEach(m=>{
-      const op=document.createElement('option');op.value=m.id;
-      op.textContent=`${m.name}${m.code?` · ${m.code}`:''}`;
-      g.appendChild(op);
+      const op=document.createElement('option');op.value=m.id;op.textContent=m.name;g.appendChild(op);count++;
     });
     sel.appendChild(g);
   }
+  if(q&&!count){const op=document.createElement('option');op.disabled=true;op.textContent='Nenhum material encontrado';sel.appendChild(op);}
   if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
   updatePieceMaterialQuickInfo();
 }
 function updatePieceMaterialQuickInfo(){
   const info=$('pieceMaterialInfo'),sel=$('pieceMaterialSelect');if(!info||!sel)return;
   const material=productionMaterialById(sel.value);
-  if(!material){info.textContent='Escolha um material. A geometria da peça não muda automaticamente.';return;}
+  if(!material){info.textContent='Escolha um material. A espessura usada será sempre a espessura atual da peça.';return;}
   const ti=selected?pieceThicknessInfo(selected):null,actual=ti?.thickness||0;
-  const mismatch=selected&&Math.abs(Number(material.thickness)-Number(actual))>.2;
+  const mismatch=selected&&!productionMaterialUsesPieceThickness(material)&&Math.abs(Number(material.thickness)-Number(actual))>.2;
   const band=pieceMaterialBandFor(material,actual);
-  info.innerHTML=`<strong>${escapeHtml(material.name)}</strong> · chapa ${nice(material.sheetWidth)} × ${nice(material.sheetHeight)} mm${material.grain?' · com veio':''}`+
-    `${mismatch?`<br><span style="color:#ffbd68">⚠ Peça atual: ${nice(actual)} mm · material: ${nice(material.thickness)} mm. A espessura geométrica será mantida.</span>`:''}`+
-    `${band?`<br>Fita compatível: <strong>${escapeHtml(band.name)}</strong>`:''}`;
+  info.innerHTML=`<strong>${escapeHtml(material.name)}</strong> · espessura desta peça: <strong>${nice(actual)} mm</strong> · chapa ${nice(material.sheetWidth)} × ${nice(material.sheetHeight)} mm${material.grain?' · com veio':''}`+
+    `${mismatch?`<br><span style="color:#ffbd68">⚠ Material personalizado cadastrado com ${nice(material.thickness)} mm; a geometria da peça será mantida em ${nice(actual)} mm.</span>`:''}`+
+    `${band?`<br>Fita compatível: <strong>${escapeHtml(band.name)}</strong> · largura ${nice(actual)} mm`:''}`;
 }
 function applySelectedPieceMaterialFromInspector(){
   if(!productionSelectedIsPiece()){toast('Selecione uma peça para trocar o material');return;}
@@ -6684,7 +6737,7 @@ function applySelectedPieceMaterialFromInspector(){
     const replacement=pieceMaterialBandFor(material,actual);
     if(replacement){
       for(const key of ['uMin','uMax','vMin','vMax']){
-        if(current[key]){current[key]=productionClone(replacement);synced++;}
+        if(current[key]){current[key]=productionBandSnapshotForPiece(replacement.id,selected);synced++;}
       }
       selected.userData.edgeBands=current;
       restoreBaseColor(selected);
@@ -6692,13 +6745,14 @@ function applySelectedPieceMaterialFromInspector(){
     }
   }
   updateInspector();productionRefreshSelectedPiece();commitHistory();
-  const mismatch=Math.abs(Number(material.thickness)-Number(actual))>.2;
-  toast(`${material.name} aplicado${synced?` · ${synced} fita(s) combinadas`:''}${mismatch?' · espessura da peça mantida':''}`);
+  const mismatch=!productionMaterialUsesPieceThickness(material)&&Math.abs(Number(material.thickness)-Number(actual))>.2;
+  toast(`${material.name} aplicado · ${nice(actual)} mm${synced?` · ${synced} fita(s) combinadas`:''}${mismatch?' · espessura da peça mantida':''}`);
 }
 
 function openPieceInspector(mesh=selected){
   if(!mesh)return;
   if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive())return;
+  if($('pieceMaterialSearch'))$('pieceMaterialSearch').value='';
   if(mesh!==selected)selectObject(mesh);
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
   cancelDuplicateConfirmation?.();
@@ -6775,7 +6829,7 @@ function updateInspector(){
   }
   if(hasGrain)$('objectType').textContent += grainRot===90?' · VEIO 90°':' · VEIO 0°';
 
-  // 1.200.94: os campos relativos são uma configuração persistente da peça.
+  // 1.200.95: os campos relativos são uma configuração persistente da peça.
   // Ao reabrir, mostramos exatamente os valores salvos em vez de zerá-los.
   loadPieceRelativeInputs(selected);
 }
@@ -7662,7 +7716,7 @@ function captureGuides(){
     end:line.userData.end.toArray()
   }));
 }
-function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:r.defaultMaterialId||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null,minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
+function captureSpaces(){ return spaceRoots.map(r=>({id:r.id,name:r.name,width:r.width,depth:r.depth,height:r.height,x:r.x,yBase:r.yBase,z:r.z,defaultMaterialId:canonicalFactoryMaterialId(r.defaultMaterialId)||null,doorsHidden:!!r.doorsHidden,spaceHidden:false,fixedBands:{x:(r.fixedBands?.x||[]).map(v=>[...v]),y:(r.fixedBands?.y||[]).map(v=>[...v]),z:(r.fixedBands?.z||[]).map(v=>[...v])},cells:r.cells.map(c=>({id:c.id,hidden:!!c.hidden,fixedAxes:{...(c.fixedAxes||{})},manualCut:c.manualCut?JSON.parse(JSON.stringify(c.manualCut)):null,minX:c.minX,maxX:c.maxX,minY:c.minY,maxY:c.maxY,minZ:c.minZ,maxZ:c.maxZ}))})); }
 function captureState(){ return { version:'1.200.18', objects:captureObjects(), guides:captureGuides(), spaces:captureSpaces(), production:captureProductionState() }; }
 function stateString(){ return JSON.stringify(captureState()); }
 function commitHistory(){
@@ -7784,7 +7838,7 @@ function redo(){ if(historyIndex>=history.length-1){toast('Nada para refazer');r
 // 1.100.32 · AJUSTES RELATIVOS / POR FACE
 // ============================================================================
 
-// 1.200.94 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
+// 1.200.95 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
 // ----------------------------------------------------
 // manualGeometryDelta guarda o efeito geométrico LÍQUIDO de tudo que o usuário
 // alterou pela configuração da peça. É propositalmente independente do tamanho
@@ -8654,7 +8708,7 @@ function axisVector(axis){
   return axis==='x'?new THREE.Vector3(1,0,0):axis==='y'?new THREE.Vector3(0,1,0):new THREE.Vector3(0,0,1);
 }
 
-// 1.200.94 · INTERAÇÃO SIMPLES DO CAD:
+// 1.200.95 · INTERAÇÃO SIMPLES DO CAD:
 // PEÇAS e ESPAÇOS: toque/clique somente seleciona.
 // Duplo toque e toque segurado não abrem mais nada; use o botão ⚙ Configuração.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
@@ -8829,7 +8883,7 @@ function beginPick(){
     resetLinkedDoubleTap();
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
-      // 1.200.94: toque, duplo toque e toque segurado apenas SELECIONAM.
+      // 1.200.95: toque, duplo toque e toque segurado apenas SELECIONAM.
       // A configuração agora abre exclusivamente pelo botão ⚙ Configuração.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       dragMode=null; controls.enabled=true; return;
@@ -8851,7 +8905,7 @@ function beginPick(){
     toast('Use Selecionar, Mover ou as ações do espaço');
     dragMode=null; controls.enabled=true; return;
   }
-  // 1.200.94: removidos duplo toque e toque segurado do CAD.
+  // 1.200.95: removidos duplo toque e toque segurado do CAD.
   // Um toque apenas seleciona; qualquer configuração abre pelo botão fixo no canto.
   if(toolMode==='select'){
     cancelSpaceLongPress();
@@ -9088,7 +9142,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{
   beginPick();
 });
 
-// 1.200.94: duplo clique não executa ação no CAD; apenas evita o comportamento nativo do navegador.
+// 1.200.95: duplo clique não executa ação no CAD; apenas evita o comportamento nativo do navegador.
 if(desktopCadNavigation){
   renderer.domElement.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button===1){
@@ -9301,7 +9355,7 @@ function pieceThicknessStorageKey(root){
 }
 function readPieceThicknessPreference(root){
   const material=spaceDefaultMaterial(root);
-  const materialThickness=Number(material?.thickness);
+  const materialThickness=productionMaterialUsesPieceThickness(material)?NaN:Number(material?.thickness);
   const fallback=Number.isFinite(materialThickness)&&materialThickness>0?materialThickness:18;
 
   try{
@@ -11916,7 +11970,7 @@ function placeCustomTemplate(item,info){
       for(const originalPart of item.parts){
         const p=libraryRemapPartCellRefs(originalPart,info.root.id,topology.cellIdMap,fallbackCellId);
         const pInfo=libraryInfoForPart(info,p);
-        // 1.200.94: mapeia a geometria PARAMÉTRICA original e só depois
+        // 1.200.95: mapeia a geometria PARAMÉTRICA original e só depois
         // reaplica os ajustes manuais salvos (faces, posição e medidas exatas).
         const geom=pieceMappedGeometryWithManualDelta(p,mapX,mapY,mapZ);
         createLibraryTemplatePart(p,pInfo,geom);
@@ -12474,7 +12528,13 @@ function productionLoadMaterialFields(){
   if(!m)return;
   $('productionMaterialName').value=m.name;
   $('productionMaterialCode').value=m.code||'';
-  $('productionMaterialThickness').value=nice(m.thickness);
+  const tInput=$('productionMaterialThickness');
+  if(tInput){
+    const ti=selected?pieceThicknessInfo(selected):null;
+    tInput.value=nice(productionMaterialUsesPieceThickness(m)?(ti?.thickness||18):m.thickness);
+    tInput.disabled=!!m.flexibleThickness;
+    tInput.title=m.flexibleThickness?'Padrão do aplicativo: usa automaticamente a espessura da peça.':'';
+  }
   $('productionMaterialSheetWidth').value=nice(m.sheetWidth||2750);
   $('productionMaterialSheetHeight').value=nice(m.sheetHeight||1850);
   $('productionMaterialGrainDirection').value=m.grainDirection==='width'?'width':'length';
@@ -12488,7 +12548,13 @@ function productionLoadBandFields(){
   $('productionBandName').value=b.name;
   $('productionBandCode').value=b.code||'';
   $('productionBandThickness').value=nice(b.thickness);
-  $('productionBandWidth').value=nice(b.width);
+  const wInput=$('productionBandWidth');
+  if(wInput){
+    const ti=selected?pieceThicknessInfo(selected):null;
+    wInput.value=nice(b.dynamicWidth?(ti?.thickness||18):b.width);
+    wInput.disabled=!!b.dynamicWidth;
+    wInput.title=b.dynamicWidth?'Fita padrão: a largura acompanha automaticamente a espessura da peça.':'';
+  }
   $('productionBandColor').value=productionColor(b.color,'#f5f5f2');
 }
 function productionRefreshCatalogSelects(){
@@ -12525,7 +12591,7 @@ function productionRefreshSelectedPiece(){
   const u=selected.userData,ti=pieceThicknessInfo(selected),defs=pieceEdgeDisplayDefinitions(selected);
   const material=productionMaterialById(u.materialId);
   const actualT=ti?.thickness||0;
-  const mismatch=material&&Math.abs(Number(material.thickness)-actualT)>.2;
+  const mismatch=material&&!productionMaterialUsesPieceThickness(material)&&Math.abs(Number(material.thickness)-actualT)>.2;
 
   info.innerHTML=
     `<strong>${escapeHtml(u.name||'Peça')}</strong> · ${nice(ti?.faceW||0)} × ${nice(ti?.faceH||0)} × ${nice(actualT)} mm`+
@@ -12729,6 +12795,8 @@ function labelsSaveHtml(){
 
 function productionNewMaterial(){
   $('productionMaterialSelect').value='';
+  $('productionMaterialThickness').disabled=false;
+  $('productionMaterialThickness').title='';
   $('productionMaterialName').value='';
   $('productionMaterialCode').value='';
   $('productionMaterialThickness').value=18;
@@ -12811,11 +12879,13 @@ function productionApplyMaterial(){
   updateInspector();productionRefreshSelectedPiece();commitHistory();
 
   const ti=pieceThicknessInfo(selected);
-  const mismatch=Math.abs(Number(m.thickness)-(ti?.thickness||0))>.2;
-  toast(mismatch?`Material aplicado · atenção: peça ${nice(ti?.thickness||0)} mm / material ${nice(m.thickness)} mm`:'Material aplicado à peça');
+  const mismatch=!productionMaterialUsesPieceThickness(m)&&Math.abs(Number(m.thickness)-(ti?.thickness||0))>.2;
+  toast(mismatch?`Material aplicado · atenção: peça ${nice(ti?.thickness||0)} mm / material ${nice(m.thickness)} mm`:`Material aplicado · ${nice(ti?.thickness||0)} mm`);
 }
 function productionNewBand(){
   $('productionBandSelect').value='';
+  $('productionBandWidth').disabled=false;
+  $('productionBandWidth').title='';
   $('productionBandName').value='';
   $('productionBandCode').value='';
   $('productionBandThickness').value='0,45';
@@ -12882,7 +12952,7 @@ function productionAssignEdge(key,bandId){
   const bands=normalizePieceEdgeBands(selected.userData?.edgeBands||{});
   if(!bandId)delete bands[key];
   else{
-    const snap=productionBandSnapshot(bandId);
+    const snap=productionBandSnapshotForPiece(bandId,selected);
     if(snap)bands[key]=snap;
   }
   selected.userData.edgeBands=bands;
@@ -12903,7 +12973,7 @@ function productionClearSelectedBands(){
 
 function fillSpaceMaterialSelect(select,preferredId=null,{allowNone=true}={}){
   if(!select)return;
-  const old=preferredId??select.value;
+  const old=canonicalFactoryMaterialId(preferredId??select.value);
   select.innerHTML='';
   if(allowNone){
     const none=document.createElement('option');
@@ -12914,15 +12984,15 @@ function fillSpaceMaterialSelect(select,preferredId=null,{allowNone=true}={}){
   for(const m of projectProduction.materials){
     const op=document.createElement('option');
     op.value=m.id;
-    op.textContent=`${m.name}${m.code?` · ${m.code}`:''} · ${nice(m.thickness)} mm · ${nice(m.sheetWidth||2750)}×${nice(m.sheetHeight||1850)}${m.grain?` · veio ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`;
+    op.textContent=`${m.name}${m.code?` · ${m.code}`:''} · ${nice(m.sheetWidth||2750)}×${nice(m.sheetHeight||1850)}${m.grain?` · veio ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`;
     select.appendChild(op);
   }
   if(old&&[...select.options].some(o=>o.value===old))select.value=old;
   else if(!allowNone&&select.options.length)select.selectedIndex=0;
 }
 function preferredDefaultMaterialId(){
-  const preferred=projectProduction.materials.find(m=>m.id==='mat-mdf-branco-18')
-    || projectProduction.materials.find(m=>Math.abs(Number(m.thickness)-18)<.2)
+  const preferred=projectProduction.materials.find(m=>m.id===factoryMaterialId('mdf','branco-tx'))
+    || projectProduction.materials.find(m=>m.category?.startsWith('MDF'))
     || projectProduction.materials[0];
   return preferred?.id||'';
 }
@@ -12945,7 +13015,7 @@ function updateSpaceMaterialPreview(){
   if(!out||!sel)return;
   const m=productionMaterialById(sel.value);
   out.innerHTML=m
-    ? `Novas peças de <strong>${nice(m.thickness)} mm</strong> criadas neste espaço recebem automaticamente <strong>${escapeHtml(m.name)}</strong>. Chapa: <strong>${nice(m.sheetWidth||2750)} × ${nice(m.sheetHeight||1850)} mm</strong>${m.grain?` · veio no <strong>${m.grainDirection==='width'?'sentido da largura':'sentido do comprimento'}</strong>`:''}.`
+    ? `${productionMaterialUsesPieceThickness(m)?'Cada peça mantém a <strong>espessura que você definir nela</strong> e recebe automaticamente':`Novas peças de <strong>${nice(m.thickness)} mm</strong> recebem automaticamente`} <strong>${escapeHtml(m.name)}</strong>. Chapa: <strong>${nice(m.sheetWidth||2750)} × ${nice(m.sheetHeight||1850)} mm</strong>${m.grain?` · veio no <strong>${m.grainDirection==='width'?'sentido da largura':'sentido do comprimento'}</strong>`:''}.`
     : 'Sem padrão: as novas peças continuam com o material genérico até você aplicar um material manualmente.';
 }
 function updateEditSpaceMaterialPreview(){
@@ -12955,7 +13025,7 @@ function updateEditSpaceMaterialPreview(){
   const apply=$('editSpaceApplyMaterialExisting');
   if(apply)apply.disabled=!m;
   out.innerHTML=m
-    ? `Padrão escolhido: <strong>${escapeHtml(m.name)}</strong> · ${nice(m.thickness)} mm${m.code?` · ${escapeHtml(m.code)}`:''}.`
+    ? `Padrão escolhido: <strong>${escapeHtml(m.name)}</strong>${productionMaterialUsesPieceThickness(m)?' · espessura de cada peça preservada':` · ${nice(m.thickness)} mm`}${m.code?` · ${escapeHtml(m.code)}`:''}.`
     : 'Este espaço ficará sem material padrão. Peças já existentes não serão alteradas.';
 }
 
@@ -19675,6 +19745,7 @@ $('deletePieceInspectorBtn').onclick=deleteSelectedFromInspector;
 $('doorHingeLeftInspectorBtn').onclick=()=>setSelectedDoorHingeSide('left');
 $('doorHingeRightInspectorBtn').onclick=()=>setSelectedDoorHingeSide('right');
 $('partNameInput').addEventListener('change',()=>{if(selected){selected.userData.name=$('partNameInput').value.trim()||'Peça';updateInspector();commitHistory();}});
+$('pieceMaterialSearch')?.addEventListener('input',()=>fillPieceMaterialSelect(selected?.userData?.materialId||'',$('pieceMaterialSearch').value));
 $('pieceMaterialSelect')?.addEventListener('change',updatePieceMaterialQuickInfo);
 $('pieceMaterialApply')?.addEventListener('click',applySelectedPieceMaterialFromInspector);
 $('pieceDoNotProduce').addEventListener('change',e=>setSelectedPieceDoNotProduce(e.target.checked));
@@ -20294,7 +20365,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.94';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.95';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -21425,7 +21496,7 @@ async function checkProjectReadyForProduction({render=true}={}){
 
   const thicknessMismatch=pieces.filter(o=>{
     const mat=productionMaterialById(o.userData?.materialId),ti=pieceThicknessInfo(o);if(!mat||!ti)return false;
-    return Math.abs(Number(mat.thickness)-Number(ti.thickness))>.31;
+    return !productionMaterialUsesPieceThickness(mat)&&Math.abs(Number(mat.thickness)-Number(ti.thickness))>.31;
   });
   if(thicknessMismatch.length)issues.push(dlProdIssue('error','Espessura diferente do material',`${thicknessMismatch.length} peça(s) têm espessura geométrica diferente da chapa cadastrada.`,thicknessMismatch));
 
