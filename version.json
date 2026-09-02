@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.89",
+  "version": "1.200.90",
   "required": false,
-  "message": "Biblioteca paramétrica corrigida: usa fixedBands como fonte de verdade, desconta somente as faixas realmente travadas e divide o restante igualmente entre os vãos soltos. Ignora fixedAxes herdado quando existe banda fixa salva.",
-  "released_at": "2026-09-02T13:55:00-03:00",
-  "build": "1.200.89-r1"
+  "message": "Biblioteca paramétrica: reconstrói as faixas realmente travadas diretamente da árvore de cortes (manualCut), desconta somente essas medidas e divide o restante igualmente entre os vãos soltos. Inclui diagnóstico do comprimento ao inserir.",
+  "released_at": "2026-09-02T14:10:00-03:00",
+  "build": "1.200.90-r1"
 }
