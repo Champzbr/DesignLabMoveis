@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.93-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.94-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.93-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.94-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -689,7 +689,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.200.84';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.93-r1';
+const DESIGNLAB_JS_BUILD='1.200.94-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -4285,21 +4285,94 @@ function toast(text){
 // ============================================================================
 // 1.100.16 · PRODUÇÃO: MATERIAIS, FITAS E BASE PARA ETIQUETAS
 // ============================================================================
-const PRODUCTION_SCHEMA_VERSION=2;
+const PRODUCTION_SCHEMA_VERSION=3;
+
+// 1.200.94 · CATÁLOGO PADRÃO DO APLICATIVO
+// Fica embutido no app (não depende de Worker/servidor) e é mesclado em projetos antigos.
+// MDFs usam as três bitolas pedidas: 6, 15 e 18 mm. Madeiras maciças também
+// recebem estas bitolas como presets editáveis. Lâminas naturais são cadastradas
+// com 0,6 mm e podem ser ajustadas pelo usuário.
+const FACTORY_MATERIAL_PATTERNS=[
+  {key:'branco-tx',name:'Branco TX',category:'MDF · Cores básicas',code:'BRTX',grain:false,color:'#f2f2ed',coreColor:'#c8a977'},
+  {key:'maxi-branco',name:'Maxi Branco',category:'MDF · Cores básicas',code:'MBR',grain:false,color:'#fafaf7',coreColor:'#c8a977'},
+  {key:'preto-tx',name:'Preto TX',category:'MDF · Cores básicas',code:'PTX',grain:false,color:'#202224',coreColor:'#b89263'},
+  {key:'grafite',name:'Grafite',category:'MDF · Cores básicas',code:'GRA',grain:false,color:'#53565a',coreColor:'#b89263'},
+  {key:'cinza',name:'Cinza',category:'MDF · Cores básicas',code:'CIN',grain:false,color:'#9b9d9d',coreColor:'#b89263'},
+  {key:'areia',name:'Areia',category:'MDF · Cores básicas',code:'ARE',grain:false,color:'#c7b9a0',coreColor:'#b89263'},
+  {key:'nuvem',name:'Nuvem',category:'MDF · Cores básicas',code:'NUV',grain:false,color:'#d9d8d2',coreColor:'#b89263'},
+  {key:'brisa',name:'Brisa',category:'MDF · Cores básicas',code:'BRI',grain:false,color:'#c9d2ce',coreColor:'#b89263'},
+  {key:'lume',name:'Lume',category:'MDF · Cores básicas',code:'LUM',grain:false,color:'#d6c9ae',coreColor:'#b89263'},
+  {key:'carvalho-natural',name:'Carvalho Natural',category:'MDF · Madeirados',code:'CAR-NAT',grain:true,color:'#b58d5f',coreColor:'#b89263'},
+  {key:'freijo',name:'Freijó',category:'MDF · Madeirados',code:'FRE',grain:true,color:'#bc915f',coreColor:'#b89263'},
+  {key:'tauari',name:'Tauari',category:'MDF · Madeirados',code:'TAU',grain:true,color:'#c5a477',coreColor:'#b89263'},
+  {key:'savana',name:'Savana',category:'MDF · Madeirados',code:'SAV',grain:true,color:'#9f764d',coreColor:'#b89263'},
+  {key:'nogal',name:'Nogal',category:'MDF · Madeirados',code:'NOG',grain:true,color:'#765039',coreColor:'#b89263'},
+  {key:'nogueira',name:'Nogueira',category:'MDF · Madeirados',code:'NOGU',grain:true,color:'#704933',coreColor:'#b89263'},
+  {key:'carvalho',name:'Carvalho',category:'MDF · Madeirados',code:'CAR',grain:true,color:'#aa7d50',coreColor:'#b89263'}
+];
+const FACTORY_SOLID_WOODS=[
+  {key:'carvalho',name:'Carvalho',code:'CAR',color:'#a97b50'},
+  {key:'freijo',name:'Freijó',code:'FRE',color:'#b88d5d'},
+  {key:'tauari',name:'Tauari',code:'TAU',color:'#c4a274'},
+  {key:'nogueira',name:'Nogueira',code:'NOGU',color:'#704933'},
+  {key:'jequitiba',name:'Jequitibá',code:'JEQ',color:'#b88758'},
+  {key:'pinus',name:'Pinus',code:'PIN',color:'#d1b37e'}
+];
+const FACTORY_VENEERS=[
+  {key:'carvalho',name:'Carvalho',code:'CAR',color:'#a97b50'},
+  {key:'freijo',name:'Freijó',code:'FRE',color:'#b88d5d'},
+  {key:'tauari',name:'Tauari',code:'TAU',color:'#c4a274'},
+  {key:'nogueira',name:'Nogueira',code:'NOGU',color:'#704933'}
+];
+function factoryMaterialId(kind,key,t){
+  if(kind==='mdf'&&key==='branco-tx'&&Number(t)===18)return 'mat-mdf-branco-18';
+  if(kind==='mdf'&&key==='branco-tx'&&Number(t)===6)return 'mat-mdf-branco-6';
+  return `mat-factory-${kind}-${key}-${String(t).replace('.','_')}`;
+}
+function factoryBandFamily(kind,key){return `${kind}-${key}`;}
+function buildFactoryProductionCatalog(){
+  const materials=[],edgeBands=[];
+  for(const p of FACTORY_MATERIAL_PATTERNS){
+    for(const t of [6,15,18]) materials.push({
+      id:factoryMaterialId('mdf',p.key,t),name:`MDF ${p.name} ${t} mm`,code:`MDF-${p.code}${t}`,
+      category:p.category,pattern:p.name,family:factoryBandFamily('mdf',p.key),factory:true,
+      thickness:t,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.coreColor,grain:!!p.grain
+    });
+  }
+  for(const p of FACTORY_SOLID_WOODS){
+    for(const t of [6,15,18]) materials.push({
+      id:factoryMaterialId('wood',p.key,t),name:`Madeira maciça ${p.name} ${t} mm`,code:`MAC-${p.code}${t}`,
+      category:'Madeira maciça',pattern:p.name,family:factoryBandFamily('wood',p.key),factory:true,
+      thickness:t,sheetWidth:3000,sheetHeight:600,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+    });
+  }
+  for(const p of FACTORY_VENEERS){
+    materials.push({
+      id:factoryMaterialId('veneer',p.key,.6),name:`Lâmina natural ${p.name} 0,6 mm`,code:`LAM-${p.code}06`,
+      category:'Lâmina natural',pattern:p.name,family:factoryBandFamily('veneer',p.key),factory:true,
+      thickness:.6,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+    });
+  }
+  const bandFamilies=[];
+  for(const p of FACTORY_MATERIAL_PATTERNS)bandFamilies.push({kind:'mdf',key:p.key,name:p.name,category:p.category,color:p.color,code:p.code});
+  for(const p of FACTORY_SOLID_WOODS)bandFamilies.push({kind:'wood',key:p.key,name:`Madeira ${p.name}`,category:'Fitas · Madeira maciça',color:p.color,code:`MAC-${p.code}`});
+  for(const p of FACTORY_VENEERS)bandFamilies.push({kind:'veneer',key:p.key,name:`Lâmina ${p.name}`,category:'Fitas · Lâmina natural',color:p.color,code:`LAM-${p.code}`});
+  for(const p of bandFamilies){
+    for(const width of [6,15,18]) edgeBands.push({
+      id:`band-factory-${p.kind}-${p.key}-${width}`,name:`Fita ${p.name} ${width} mm`,code:`F-${p.code}${width}`,
+      category:p.category.replace(/^MDF · /,'Fitas · MDF · '),family:factoryBandFamily(p.kind,p.key),factory:true,
+      thickness:.45,width,color:p.color
+    });
+  }
+  return {materials,edgeBands};
+}
+const FACTORY_PRODUCTION_CATALOG=buildFactoryProductionCatalog();
 
 function defaultProjectProduction(){
   return {
     version:PRODUCTION_SCHEMA_VERSION,
-    materials:[
-      {id:'mat-mdf-branco-18',name:'MDF Branco 18 mm',code:'MDF-BR18',thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#e7e1d4',coreColor:'#c6a77b',grain:false},
-      {id:'mat-mdf-madeirado-18',name:'MDF Madeirado 18 mm',code:'MDF-MAD18',thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#b88955',coreColor:'#b99665',grain:true},
-      {id:'mat-mdf-branco-6',name:'MDF Branco 6 mm',code:'MDF-BR6',thickness:6,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:'#efede7',coreColor:'#c6a77b',grain:false}
-    ],
-    edgeBands:[
-      {id:'band-branca-045',name:'Fita branca 0,45 mm',code:'FB-045',thickness:.45,width:22,color:'#f5f5f2'},
-      {id:'band-madeirada-045',name:'Fita madeirada 0,45 mm',code:'FM-045',thickness:.45,width:22,color:'#b88955'},
-      {id:'band-preta-045',name:'Fita preta 0,45 mm',code:'FP-045',thickness:.45,width:22,color:'#202020'}
-    ],
+    materials:FACTORY_PRODUCTION_CATALOG.materials.map(x=>({...x})),
+    edgeBands:FACTORY_PRODUCTION_CATALOG.edgeBands.map(x=>({...x})),
     labelTemplate:{
       version:1,
       configurableLater:true,
@@ -4334,7 +4407,11 @@ function normalizeProductionMaterial(m){
     grainDirection:m.grainDirection==='width'?'width':'length',
     color:productionColor(m.color,'#d8c5a4'),
     coreColor:productionColor(m.coreColor,'#c6a77b'),
-    grain:!!m.grain
+    grain:!!m.grain,
+    category:String(m.category||'Personalizados').trim()||'Personalizados',
+    pattern:String(m.pattern||'').trim(),
+    family:String(m.family||'').trim(),
+    factory:!!m.factory
   };
 }
 function normalizeProductionBand(b){
@@ -4346,8 +4423,27 @@ function normalizeProductionBand(b){
     code:String(b.code||'').trim(),
     thickness:Number.isFinite(thickness)&&thickness>0?thickness:.45,
     width:Number.isFinite(width)&&width>0?width:22,
-    color:productionColor(b.color,'#f5f5f2')
+    color:productionColor(b.color,'#f5f5f2'),
+    category:String(b.category||'Fitas personalizadas').trim()||'Fitas personalizadas',
+    family:String(b.family||'').trim(),
+    factory:!!b.factory
   };
+}
+function ensureFactoryProductionCatalog(){
+  if(!projectProduction)projectProduction={version:PRODUCTION_SCHEMA_VERSION,materials:[],edgeBands:[],labelTemplate:defaultProjectProduction().labelTemplate};
+  projectProduction.materials=Array.isArray(projectProduction.materials)?projectProduction.materials:[];
+  projectProduction.edgeBands=Array.isArray(projectProduction.edgeBands)?projectProduction.edgeBands:[];
+  for(const rec of FACTORY_PRODUCTION_CATALOG.materials){
+    const existing=projectProduction.materials.find(x=>x.id===rec.id);
+    if(existing)Object.assign(existing,normalizeProductionMaterial(rec));
+    else projectProduction.materials.push(normalizeProductionMaterial(rec));
+  }
+  for(const rec of FACTORY_PRODUCTION_CATALOG.edgeBands){
+    const existing=projectProduction.edgeBands.find(x=>x.id===rec.id);
+    if(existing)Object.assign(existing,normalizeProductionBand(rec));
+    else projectProduction.edgeBands.push(normalizeProductionBand(rec));
+  }
+  projectProduction.version=PRODUCTION_SCHEMA_VERSION;
 }
 function setProjectProductionState(raw){
   if(!raw){
@@ -4360,6 +4456,9 @@ function setProjectProductionState(raw){
     edgeBands:Array.isArray(raw.edgeBands)?raw.edgeBands.map(normalizeProductionBand).filter(Boolean):[],
     labelTemplate:raw.labelTemplate?productionClone(raw.labelTemplate):defaultProjectProduction().labelTemplate
   };
+  // Projetos antigos ganham automaticamente os padrões de fábrica sem perder
+  // materiais e fitas personalizados que já estavam salvos.
+  ensureFactoryProductionCatalog();
 }
 function mergeProjectProductionState(raw){
   if(!raw)return;
@@ -4372,7 +4471,14 @@ function mergeProjectProductionState(raw){
     if(!projectProduction.edgeBands.some(x=>x.id===b.id))projectProduction.edgeBands.push(b);
   }
 }
-function captureProductionState(){return productionClone(projectProduction);}
+function captureProductionState(){
+  return productionClone({
+    version:PRODUCTION_SCHEMA_VERSION,
+    materials:projectProduction.materials.filter(x=>!x.factory),
+    edgeBands:projectProduction.edgeBands.filter(x=>!x.factory),
+    labelTemplate:projectProduction.labelTemplate
+  });
+}
 function productionMaterialById(id){return projectProduction.materials.find(x=>x.id===id)||null;}
 function productionBandById(id){return projectProduction.edgeBands.find(x=>x.id===id)||null;}
 function productionBandSnapshot(id){
@@ -4746,7 +4852,7 @@ function hasIndividuallyHiddenSpaces(){
 }
 function syncQuickSpaceVisibilityButton(){
   const btn=$('cadSpaceQuickToggle');if(!btn)return;
-  // 1.200.93: se QUALQUER divisão foi ocultada individualmente, o botão geral
+  // 1.200.94: se QUALQUER divisão foi ocultada individualmente, o botão geral
   // já vira "Mostrar espaços". Ao mostrar, todos os espaços do projeto voltam.
   const hasHidden=!!quickSpacesHidden || hasIndividuallyHiddenSpaces();
   btn.classList.toggle('active',hasHidden);
@@ -4800,7 +4906,7 @@ function hideQuickSelectedSpace(){
   return true;
 }
 
-// 1.200.93 · botão Configuração é o único caminho rápido para abrir a configuração.
+// 1.200.94 · botão Configuração é o único caminho rápido para abrir a configuração.
 // Espaço selecionado abre o menu completo (Corte, Peças, Biblioteca etc.);
 // peça selecionada abre o inspetor/configuração da própria peça.
 function openQuickSelectedConfiguration(){
@@ -5618,7 +5724,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     // permite devolver somente a espessura da peça ao vão correto ao apagá-la,
     // sem misturar com divisões vizinhas do mesmo espaço.
     spaceCutParentBounds:spaceCutParentBounds?JSON.parse(JSON.stringify(spaceCutParentBounds)):null,
-    // 1.200.93 · ajustes manuais da configuração da peça ficam separados da
+    // 1.200.94 · ajustes manuais da configuração da peça ficam separados da
     // geometria paramétrica. Assim Biblioteca/redimensionamento recalculam a
     // peça-base e reaplicam exatamente os mesmos milímetros/posição depois.
     manualGeometryDelta:manualGeometryDelta?JSON.parse(JSON.stringify(manualGeometryDelta)):null,
@@ -6475,8 +6581,8 @@ function selectObject(mesh){
     else restoreBaseColor(selected);
     updateInspector();
 
-    // 1.100.96: um clique apenas seleciona.
-    // A configuração abre ao clicar/tocar e SEGURAR a mesma peça.
+    // 1.200.94: um clique apenas seleciona.
+    // A configuração abre somente pelo botão ⚙ Configuração.
     cancelDuplicateConfirmation?.();
     $('inspector').classList.add('compact');
     $('inspector').style.display='none';
@@ -6525,6 +6631,71 @@ function createPieceNamePreset(){
   savePieceNameCustomPresets(list);if(input)input.value='';refreshPieceNamePresetSelect(name);applyPieceNamePreset(name);
 }
 
+// 1.200.94 · troca rápida de material diretamente na configuração da peça.
+function pieceMaterialBandFor(material,actualThickness){
+  if(!material?.family)return null;
+  const candidates=projectProduction.edgeBands.filter(b=>b.family===material.family);
+  if(!candidates.length)return null;
+  const target=Number(actualThickness)||18;
+  return candidates.slice().sort((a,b)=>Math.abs(Number(a.width)-target)-Math.abs(Number(b.width)-target))[0]||null;
+}
+function fillPieceMaterialSelect(currentId=''){
+  const sel=$('pieceMaterialSelect');if(!sel)return;
+  const old=currentId||sel.value||'';
+  sel.innerHTML='<option value="">Sem material definido</option>';
+  const groups=new Map();
+  for(const m of projectProduction.materials){
+    const label=m.category||'Personalizados';
+    if(!groups.has(label))groups.set(label,[]);
+    groups.get(label).push(m);
+  }
+  for(const [label,list] of groups){
+    const g=document.createElement('optgroup');g.label=label;
+    list.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR',{numeric:true})).forEach(m=>{
+      const op=document.createElement('option');op.value=m.id;
+      op.textContent=`${m.name}${m.code?` · ${m.code}`:''}`;
+      g.appendChild(op);
+    });
+    sel.appendChild(g);
+  }
+  if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
+  updatePieceMaterialQuickInfo();
+}
+function updatePieceMaterialQuickInfo(){
+  const info=$('pieceMaterialInfo'),sel=$('pieceMaterialSelect');if(!info||!sel)return;
+  const material=productionMaterialById(sel.value);
+  if(!material){info.textContent='Escolha um material. A geometria da peça não muda automaticamente.';return;}
+  const ti=selected?pieceThicknessInfo(selected):null,actual=ti?.thickness||0;
+  const mismatch=selected&&Math.abs(Number(material.thickness)-Number(actual))>.2;
+  const band=pieceMaterialBandFor(material,actual);
+  info.innerHTML=`<strong>${escapeHtml(material.name)}</strong> · chapa ${nice(material.sheetWidth)} × ${nice(material.sheetHeight)} mm${material.grain?' · com veio':''}`+
+    `${mismatch?`<br><span style="color:#ffbd68">⚠ Peça atual: ${nice(actual)} mm · material: ${nice(material.thickness)} mm. A espessura geométrica será mantida.</span>`:''}`+
+    `${band?`<br>Fita compatível: <strong>${escapeHtml(band.name)}</strong>`:''}`;
+}
+function applySelectedPieceMaterialFromInspector(){
+  if(!productionSelectedIsPiece()){toast('Selecione uma peça para trocar o material');return;}
+  const material=productionMaterialById($('pieceMaterialSelect')?.value);
+  if(!material){toast('Escolha um material');return;}
+  const ti=pieceThicknessInfo(selected),actual=ti?.thickness||0;
+  productionApplyMaterialRecordToObject(selected,material,{keepSelection:true});
+  let synced=0;
+  if($('pieceMaterialSyncBands')?.checked){
+    const current=normalizePieceEdgeBands(selected.userData?.edgeBands||{});
+    const replacement=pieceMaterialBandFor(material,actual);
+    if(replacement){
+      for(const key of ['uMin','uMax','vMin','vMax']){
+        if(current[key]){current[key]=productionClone(replacement);synced++;}
+      }
+      selected.userData.edgeBands=current;
+      restoreBaseColor(selected);
+      if(!visualMode)setAllFaces(selected,COLORS.selected);
+    }
+  }
+  updateInspector();productionRefreshSelectedPiece();commitHistory();
+  const mismatch=Math.abs(Number(material.thickness)-Number(actual))>.2;
+  toast(`${material.name} aplicado${synced?` · ${synced} fita(s) combinadas`:''}${mismatch?' · espessura da peça mantida':''}`);
+}
+
 function openPieceInspector(mesh=selected){
   if(!mesh)return;
   if(typeof designLabVisualizationOnlyActive==='function'&&designLabVisualizationOnlyActive())return;
@@ -6551,6 +6722,7 @@ function updateInspector(){
     : (u.kind==='cylinder' ? 'Cilindro' : `Cubo${matTxt}${bandCount?` · ${bandCount} fita(s)`:''}${machineCount?` · ${machineCount} usinagem(ns)`:''}`);
   $('partNameInput').value=u.name || '';
   refreshPieceNamePresetSelect(u.name||'');
+  fillPieceMaterialSelect(u.materialId||'');
   $('dimW').value=mm(u.width); $('dimD').value=mm(u.depth); $('dimH').value=mm(u.height);
   $('posX').value=mm(selected.position.x);
   $('posY').value=mm(selected.position.y-u.height/2);
@@ -6603,7 +6775,7 @@ function updateInspector(){
   }
   if(hasGrain)$('objectType').textContent += grainRot===90?' · VEIO 90°':' · VEIO 0°';
 
-  // 1.200.93: os campos relativos são uma configuração persistente da peça.
+  // 1.200.94: os campos relativos são uma configuração persistente da peça.
   // Ao reabrir, mostramos exatamente os valores salvos em vez de zerá-los.
   loadPieceRelativeInputs(selected);
 }
@@ -7612,7 +7784,7 @@ function redo(){ if(historyIndex>=history.length-1){toast('Nada para refazer');r
 // 1.100.32 · AJUSTES RELATIVOS / POR FACE
 // ============================================================================
 
-// 1.200.93 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
+// 1.200.94 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
 // ----------------------------------------------------
 // manualGeometryDelta guarda o efeito geométrico LÍQUIDO de tudo que o usuário
 // alterou pela configuração da peça. É propositalmente independente do tamanho
@@ -8482,7 +8654,7 @@ function axisVector(axis){
   return axis==='x'?new THREE.Vector3(1,0,0):axis==='y'?new THREE.Vector3(0,1,0):new THREE.Vector3(0,0,1);
 }
 
-// 1.200.93 · INTERAÇÃO SIMPLES DO CAD:
+// 1.200.94 · INTERAÇÃO SIMPLES DO CAD:
 // PEÇAS e ESPAÇOS: toque/clique somente seleciona.
 // Duplo toque e toque segurado não abrem mais nada; use o botão ⚙ Configuração.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
@@ -8657,7 +8829,7 @@ function beginPick(){
     resetLinkedDoubleTap();
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
-      // 1.200.93: toque, duplo toque e toque segurado apenas SELECIONAM.
+      // 1.200.94: toque, duplo toque e toque segurado apenas SELECIONAM.
       // A configuração agora abre exclusivamente pelo botão ⚙ Configuração.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
       dragMode=null; controls.enabled=true; return;
@@ -8679,7 +8851,7 @@ function beginPick(){
     toast('Use Selecionar, Mover ou as ações do espaço');
     dragMode=null; controls.enabled=true; return;
   }
-  // 1.200.93: removidos duplo toque e toque segurado do CAD.
+  // 1.200.94: removidos duplo toque e toque segurado do CAD.
   // Um toque apenas seleciona; qualquer configuração abre pelo botão fixo no canto.
   if(toolMode==='select'){
     cancelSpaceLongPress();
@@ -8916,7 +9088,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{
   beginPick();
 });
 
-// 1.200.93: duplo clique não executa ação no CAD; apenas evita o comportamento nativo do navegador.
+// 1.200.94: duplo clique não executa ação no CAD; apenas evita o comportamento nativo do navegador.
 if(desktopCadNavigation){
   renderer.domElement.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button===1){
@@ -11744,7 +11916,7 @@ function placeCustomTemplate(item,info){
       for(const originalPart of item.parts){
         const p=libraryRemapPartCellRefs(originalPart,info.root.id,topology.cellIdMap,fallbackCellId);
         const pInfo=libraryInfoForPart(info,p);
-        // 1.200.93: mapeia a geometria PARAMÉTRICA original e só depois
+        // 1.200.94: mapeia a geometria PARAMÉTRICA original e só depois
         // reaplica os ajustes manuais salvos (faces, posição e medidas exatas).
         const geom=pieceMappedGeometryWithManualDelta(p,mapX,mapY,mapZ);
         createLibraryTemplatePart(p,pInfo,geom);
@@ -12271,15 +12443,26 @@ function machiningHasNegativeRef(op){return ['x','y','z'].some(a=>machiningRawCo
 
 // ---------- Interface de materiais / fitas ----------
 function productionFillSelect(select,items,emptyText){
+  if(!select)return;
   const old=select.value;
   select.innerHTML='';
   const none=document.createElement('option');
   none.value='';none.textContent=emptyText;select.appendChild(none);
+  const groups=new Map();
   for(const item of items){
-    const op=document.createElement('option');
-    op.value=item.id;
-    op.textContent=item.code?`${item.name} · ${item.code}`:item.name;
-    select.appendChild(op);
+    const label=item.category|| (item.factory?'Padrões do aplicativo':'Personalizados');
+    if(!groups.has(label))groups.set(label,[]);
+    groups.get(label).push(item);
+  }
+  for(const [label,list] of groups){
+    const g=document.createElement('optgroup');g.label=label;
+    list.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'pt-BR',{numeric:true})).forEach(item=>{
+      const op=document.createElement('option');
+      op.value=item.id;
+      op.textContent=item.code?`${item.name} · ${item.code}`:item.name;
+      g.appendChild(op);
+    });
+    select.appendChild(g);
   }
   if([...select.options].some(o=>o.value===old))select.value=old;
 }
@@ -12309,6 +12492,7 @@ function productionLoadBandFields(){
   $('productionBandColor').value=productionColor(b.color,'#f5f5f2');
 }
 function productionRefreshCatalogSelects(){
+  ensureFactoryProductionCatalog();
   productionFillSelect($('productionMaterialSelect'),projectProduction.materials,'＋ Novo / selecione material');
   productionFillSelect($('productionBandSelect'),projectProduction.edgeBands,'＋ Nova / selecione fita');
   for(const id of ['productionEdgeUMin','productionEdgeUMax','productionEdgeVMin','productionEdgeVMax']){
@@ -12321,6 +12505,7 @@ function productionRefreshCatalogSelects(){
     if([...sel.options].some(o=>o.value===old))sel.value=old;
   }
   refreshSpaceMaterialSelects();
+  if($('pieceMaterialSelect'))fillPieceMaterialSelect(selected?.userData?.materialId||'');
 }
 function productionRefreshSelectedPiece(){
   const ok=productionSelectedIsPiece();
@@ -12565,6 +12750,8 @@ function productionSaveMaterial(){
 
   const selectedId=$('productionMaterialSelect').value;
   let m=selectedId?productionMaterialById(selectedId):null;
+  const editingFactory=!!m?.factory;
+  if(editingFactory)m=null;
   const data=normalizeProductionMaterial({
     id:m?.id||uid('mat'),
     name,
@@ -12575,7 +12762,8 @@ function productionSaveMaterial(){
     grainDirection:$('productionMaterialGrainDirection').value==='width'?'width':'length',
     color:$('productionMaterialColor').value,
     coreColor:$('productionMaterialCoreColor').value,
-    grain:$('productionMaterialGrain').checked
+    grain:$('productionMaterialGrain').checked,
+    category:m?.category||'Personalizados',pattern:m?.pattern||'',family:m?.family||'',factory:false
   });
 
   if(m)Object.assign(m,data);
@@ -12598,10 +12786,11 @@ function productionSaveMaterial(){
   productionLoadMaterialFields();
   productionRefreshSelectedPiece();
   commitHistory();
-  toast(selectedId?'Material atualizado':'Material salvo no projeto');
+  toast(editingFactory?'Material padrão copiado como personalizado':(selectedId?'Material atualizado':'Material salvo no projeto'));
 }
 function productionDeleteMaterial(){
   const id=$('productionMaterialSelect').value,m=productionMaterialById(id);if(!m)return;
+  if(m.factory){toast('Este é um material padrão do aplicativo · crie um personalizado se quiser outra variação');return;}
   if(!window.confirm(`Excluir o material “${m.name}” da biblioteca do projeto? As peças mantêm o nome/cor atuais, mas deixam de ficar vinculadas ao cadastro.`))return;
   projectProduction.materials=projectProduction.materials.filter(x=>x.id!==id);
   for(const o of objects){
@@ -12642,9 +12831,12 @@ function productionSaveBand(){
 
   const selectedId=$('productionBandSelect').value;
   let b=selectedId?productionBandById(selectedId):null;
+  const editingFactory=!!b?.factory;
+  if(editingFactory)b=null;
   const data=normalizeProductionBand({
     id:b?.id||uid('band'),name,code:$('productionBandCode').value,
-    thickness,width,color:$('productionBandColor').value
+    thickness,width,color:$('productionBandColor').value,
+    category:b?.category||'Fitas personalizadas',family:b?.family||'',factory:false
   });
   if(b)Object.assign(b,data);
   else{b=data;projectProduction.edgeBands.push(b);}
@@ -12665,10 +12857,11 @@ function productionSaveBand(){
   productionLoadBandFields();
   productionRefreshSelectedPiece();
   commitHistory();
-  toast(selectedId?'Fita atualizada':'Fita salva no projeto');
+  toast(editingFactory?'Fita padrão copiada como personalizada':(selectedId?'Fita atualizada':'Fita salva no projeto'));
 }
 function productionDeleteBand(){
   const id=$('productionBandSelect').value,b=productionBandById(id);if(!b)return;
+  if(b.factory){toast('Esta é uma fita padrão do aplicativo · crie uma personalizada se precisar');return;}
   if(!window.confirm(`Excluir a fita “${b.name}”? As aplicações desta fita serão removidas das peças.`))return;
 
   projectProduction.edgeBands=projectProduction.edgeBands.filter(x=>x.id!==id);
@@ -19482,6 +19675,8 @@ $('deletePieceInspectorBtn').onclick=deleteSelectedFromInspector;
 $('doorHingeLeftInspectorBtn').onclick=()=>setSelectedDoorHingeSide('left');
 $('doorHingeRightInspectorBtn').onclick=()=>setSelectedDoorHingeSide('right');
 $('partNameInput').addEventListener('change',()=>{if(selected){selected.userData.name=$('partNameInput').value.trim()||'Peça';updateInspector();commitHistory();}});
+$('pieceMaterialSelect')?.addEventListener('change',updatePieceMaterialQuickInfo);
+$('pieceMaterialApply')?.addEventListener('click',applySelectedPieceMaterialFromInspector);
 $('pieceDoNotProduce').addEventListener('change',e=>setSelectedPieceDoNotProduce(e.target.checked));
 $('rotatePieceGrainBtn').onclick=rotateSelectedPieceGrain;
 
@@ -20099,7 +20294,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.93';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.94';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
