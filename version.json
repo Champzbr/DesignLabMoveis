@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.78",
+  "version": "1.200.80",
   "required": false,
-  "message": "Editar espaço selecionado por toque longo: ajuste da medida do vão e travado/solto. Corrige também materiais e fitas com medidas decimais como 18,5 mm.",
-  "released_at": "2026-09-02T09:15:00-03:00",
-  "build": "1.200.78-r1"
+  "message": "Corte de espaço com quantidade de vãos: usando medida 0, 1 mantém inteiro, 2 divide ao meio, 3 divide em três e assim por diante até 50 vãos iguais. Mantém o corte manual por medida e o travamento dos vãos.",
+  "released_at": "2026-09-02T10:45:00-03:00",
+  "build": "1.200.80-r1"
 }
