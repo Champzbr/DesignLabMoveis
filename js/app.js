@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.78-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.80-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.78-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.80-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.78';
+  return tm?.[1]||'1.200.80';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.78-r1';
+const DESIGNLAB_JS_BUILD='1.200.80-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3018,7 +3018,9 @@ function quickDockDirectCutSide(side){
   if(!quickDockPrepareCutSide(side))return;
   const amount=parseDecimalInput($('cutAmount')?.value);
   const fixed=!!$('cutFixed')?.checked;
-  if(cutSelectedSpace(side,m(amount),fixed))toast(`${cutSideName(side)} · corte aplicado`);
+  const count=cutSpaceCountValue();
+  const res=applySelectedSpaceCut(side,m(amount),fixed,count);
+  if(res.ok)toast(res.noCut?`${cutSideName(side)} · 1 vão, sem corte`:(Number(amount)===0?`${cutSideName(side)} · ${res.count} vãos iguais`:`${cutSideName(side)} · corte aplicado`));
 }
 function bindQuickDockCutSubTool(button,item){
   let holdTimer=0,longPress=false;
@@ -3521,7 +3523,7 @@ let visualMode=false;
 // É somente uma preferência da vista atual: não altera o projeto nem o estado
 // individual "Ocultar portas" de cada espaço.
 let quickFrontFacesHidden=false;
-// 1.200.78 · atalho visual global para esconder/mostrar os volumes dos espaços.
+// 1.200.80 · atalho visual global para esconder/mostrar os volumes dos espaços.
 // Afeta somente a visualização/seleção dos espaços; peças do móvel continuam visíveis.
 let quickSpacesHidden=false;
 
@@ -4978,6 +4980,57 @@ function setFrontWorldView(){
   perspectiveCamera.up.set(0,1,0);
   perspectiveCamera.position.set(3.4,2.8,4.8);
   controls.target.set(0,.8,0); perspectiveCamera.lookAt(controls.target); controls.update(); remember3DView();
+}
+
+// 1.200.80 · divisão automática do vão em N partes iguais quando a medida = 0.
+// A divisão é gravada como uma sequência de cortes reais, preservando a árvore
+// manualCut usada para editar vãos antigos/descendentes e para histórico.
+function divideSelectedSpaceEvenly(side,count,isFixed=false){
+  if(!selectedSpaceCell)return {ok:false};
+  const root=getSpaceRoot(selectedSpaceCell.rootId),cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId);
+  if(!root||!cell)return {ok:false};
+  count=Math.round(Number(count));
+  if(!Number.isFinite(count)||count<1||count>50){toast('Quantidade de vãos: use de 1 a 50');return {ok:false};}
+  if(count===1)return {ok:true,noCut:true,count:1};
+
+  const axis=(side==='left'||side==='right')?'x':((side==='front'||side==='back')?'z':'y');
+  const minK=axis==='x'?'minX':axis==='y'?'minY':'minZ';
+  const maxK=axis==='x'?'maxX':axis==='y'?'maxY':'maxZ';
+  const lowSide=side==='left'||side==='bottom'||side==='back';
+  const originalMin=Number(cell[minK]),originalMax=Number(cell[maxK]);
+  const total=originalMax-originalMin;
+  if(!(total>.001*count)){toast(`Não há espaço suficiente para ${count} vãos`);return {ok:false};}
+
+  const made=[];
+  let remainder={...cell,id:uid('cell'),fixedAxes:{...(cell.fixedAxes||{})},manualCut:cell.manualCut?JSON.parse(JSON.stringify(cell.manualCut)):null};
+  let firstSlice=null;
+  for(let i=1;i<count;i++){
+    const parentBounds=cellBox(remainder);
+    const inherited=remainder.manualCut?JSON.parse(JSON.stringify(remainder.manualCut)):null;
+    const manualCut={id:uid('cut'),axis,side,parentBounds,parentMeta:inherited,isFixed:!!isFixed,equalDivisionCount:count,equalDivisionIndex:i};
+    const slice={...remainder,id:uid('cell'),fixedAxes:{...(remainder.fixedAxes||{})},manualCut:JSON.parse(JSON.stringify(manualCut))};
+    const next={...remainder,id:uid('cell'),fixedAxes:{...(remainder.fixedAxes||{})},manualCut:JSON.parse(JSON.stringify(manualCut))};
+    const boundary=lowSide
+      ? originalMin+total*(i/count)
+      : originalMax-total*(i/count);
+    if(lowSide){slice[maxK]=boundary;next[minK]=boundary;}
+    else{slice[minK]=boundary;next[maxK]=boundary;}
+    if(isFixed){slice.fixedAxes={...(slice.fixedAxes||{}),[axis]:true};addFixedBandForCell(root,slice,axis);}
+    made.push(slice);if(!firstSlice)firstSlice=slice;remainder=next;
+  }
+  made.push(remainder);
+  const idx=root.cells.findIndex(c=>c.id===cell.id);
+  if(idx<0)return {ok:false};
+  root.cells.splice(idx,1,...made);
+  renderSpaces();
+  selectSpaceCellByIds(root.id,(firstSlice||made[0]).id);
+  commitHistory();
+  return {ok:true,noCut:false,count,eachMm:mm(total/count)};
+}
+function applySelectedSpaceCut(side,amountM,isFixed=false,count=2){
+  if(Number.isFinite(amountM)&&Math.abs(amountM)<.0000001)return divideSelectedSpaceEvenly(side,count,isFixed);
+  const ok=cutSelectedSpace(side,amountM,isFixed);
+  return {ok:!!ok,noCut:false,count:ok?2:0};
 }
 
 function cutSelectedSpace(side,amountM,isFixed=false){
@@ -17269,12 +17322,13 @@ function moveSpaceRootToPosition(root,{leftX,yBase,backZ,linkedObjects=null}={})
   return {dx,dy,dz,count:linkedSet.size};
 }
 // ============================================================================
-// 1.200.78 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
+// 1.200.80 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
 // ============================================================================
 // O espaço principal continua sendo editado por openEditSpaceDialog(). Para uma
 // divisão interna, ajustamos apenas a fronteira compartilhada com o vão vizinho:
 // o tamanho externo do móvel não muda e o vizinho absorve a diferença.
 let editSelectedSpaceContext=null;
+let editSelectedSpaceRelations=null;
 function axisCellMinKey(axis){return axis==='x'?'minX':axis==='y'?'minY':'minZ';}
 function axisCellMaxKey(axis){return axis==='x'?'maxX':axis==='y'?'maxY':'maxZ';}
 function axisObjectDimKey(axis){return axis==='x'?'width':axis==='y'?'height':'depth';}
@@ -17319,15 +17373,125 @@ function addFixedBandForCell(root,cell,axis){
   root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
   root.fixedBands[axis]=mergeIntervals([...(root.fixedBands[axis]||[]),[Number(cell[minK])-rootMin,Number(cell[maxK])-rootMin]]);
 }
-function selectedCellEditPair(root,cell){
-  const rel=manualCutSibling(root,cell);
-  if(!rel?.sibling||!rel.axis)return null;
-  const axis=rel.axis,sibling=rel.sibling,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis),tol=.003;
-  const low=Math.abs(Number(cell[maxK])-Number(sibling[minK]))<=tol;
-  const high=Math.abs(Number(sibling[maxK])-Number(cell[minK]))<=tol;
-  if(!low&&!high)return null;
-  const parent=boxUnionForCells(cell,sibling);
-  return {root,cell,sibling,axis,selectedLow:low,parent,oldBoundary:low?Number(cell[maxK]):Number(cell[minK])};
+function cellWithinEditParent(c,parent,tol=.003){
+  if(!c||!parent)return false;
+  return Number(c.minX)>=Number(parent.minX)-tol&&Number(c.maxX)<=Number(parent.maxX)+tol&&
+         Number(c.minY)>=Number(parent.minY)-tol&&Number(c.maxY)<=Number(parent.maxY)+tol&&
+         Number(c.minZ)>=Number(parent.minZ)-tol&&Number(c.maxZ)<=Number(parent.maxZ)+tol;
+}
+function cellTangentWithin(inner,outer,axis,tol=.003){
+  for(const a of tangentAxesForSpace(axis)){
+    if(cellAxisMin(inner,a)<cellAxisMin(outer,a)-tol||cellAxisMax(inner,a)>cellAxisMax(outer,a)+tol)return false;
+  }
+  return true;
+}
+function cellTangentOverlapArea(a,b,axis){
+  const [u,v]=tangentAxesForSpace(axis);
+  const du=Math.max(0,Math.min(cellAxisMax(a,u),cellAxisMax(b,u))-Math.max(cellAxisMin(a,u),cellAxisMin(b,u)));
+  const dv=Math.max(0,Math.min(cellAxisMax(a,v),cellAxisMax(b,v))-Math.max(cellAxisMin(a,v),cellAxisMin(b,v)));
+  return du*dv;
+}
+function cellTangentFaceArea(c,axis){
+  const [u,v]=tangentAxesForSpace(axis);
+  return Math.max(.000000001,(cellAxisMax(c,u)-cellAxisMin(c,u))*(cellAxisMax(c,v)-cellAxisMin(c,v)));
+}
+function selectedLowFromCutSide(side,axis){
+  if(axis==='x')return side==='left';
+  if(axis==='y')return side==='bottom';
+  return side==='back';
+}
+function manualCutMetaChain(cell){
+  const out=[];let m=cell?.manualCut||null,guard=0;
+  while(m&&guard++<16){out.push(m);m=m.parentMeta||null;}
+  return out;
+}
+function setManualCutFixedInChain(cell,cutId,fixed){
+  if(!cell||!cutId)return;
+  let m=cell.manualCut||null,guard=0;
+  while(m&&guard++<16){
+    if(m.id===cutId)m.isFixed=!!fixed;
+    m=m.parentMeta||null;
+  }
+}
+function remapManualCutBoundsInChain(cell,axis,parentMin,parentMax,mapAxis){
+  if(!cell)return;
+  const minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis),tol=.0005;
+  let meta=cell.manualCut||null,guard=0;
+  while(meta&&guard++<16){
+    const b=meta.parentBounds;
+    if(b&&Number.isFinite(Number(b[minK]))&&Number.isFinite(Number(b[maxK]))){
+      const a=Number(b[minK]),z=Number(b[maxK]);
+      if(a>=parentMin-tol&&a<=parentMax+tol)b[minK]=mapAxis(a);
+      if(z>=parentMin-tol&&z<=parentMax+tol)b[maxK]=mapAxis(z);
+    }
+    meta=meta.parentMeta||null;
+  }
+}
+function selectedCellEditContextFromMeta(root,cell,meta){
+  if(!meta?.axis||!meta?.parentBounds)return null;
+  const axis=meta.axis,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis),tol=.003;
+  const parent={...meta.parentBounds};
+  if(!cellWithinEditParent(cell,parent,tol))return null;
+  const selectedLow=selectedLowFromCutSide(meta.side,axis);
+  const oldBoundary=selectedLow?Number(cell[maxK]):Number(cell[minK]);
+  const affected=(root.cells||[]).filter(c=>cellWithinEditParent(c,parent,tol));
+  if(affected.length<2)return null;
+  const adjacent=affected.filter(c=>c!==cell&&cellTangentWithin(c,cell,axis,tol)&&
+    (selectedLow?Math.abs(Number(c[minK])-oldBoundary)<=tol:Math.abs(Number(c[maxK])-oldBoundary)<=tol));
+  const coverage=adjacent.reduce((n,c)=>n+cellTangentOverlapArea(cell,c,axis),0)/cellTangentFaceArea(cell,axis);
+  if(coverage<.90)return null;
+  return {root,cell,axis,selectedLow,parent,oldBoundary,affectedCells:affected,cutId:meta.id||null,source:'metadata'};
+}
+function legacySelectedCellAxisContext(root,cell,axis){
+  const rb=rootBounds(root),minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis),tol=.003;
+  const rootMin=Number(rb[minK]),rootMax=Number(rb[maxK]);
+  const options=[];
+  for(const selectedLow of [true,false]){
+    const boundary=selectedLow?Number(cell[maxK]):Number(cell[minK]);
+    if(selectedLow&&Math.abs(boundary-rootMax)<=tol)continue;
+    if(!selectedLow&&Math.abs(boundary-rootMin)<=tol)continue;
+    const adjacent=(root.cells||[]).filter(c=>c!==cell&&cellTangentWithin(c,cell,axis,tol)&&
+      (selectedLow?Math.abs(Number(c[minK])-boundary)<=tol:Math.abs(Number(c[maxK])-boundary)<=tol));
+    const coverage=adjacent.reduce((n,c)=>n+cellTangentOverlapArea(cell,c,axis),0)/cellTangentFaceArea(cell,axis);
+    if(coverage<.90)continue;
+    const opposite=(root.cells||[]).filter(c=>c!==cell&&cellTangentWithin(c,cell,axis,tol)&&
+      (selectedLow?Number(c[minK])>=boundary-tol:Number(c[maxK])<=boundary+tol));
+    if(!opposite.length)continue;
+    const parent={...cellBox(cell)};
+    if(selectedLow)parent[maxK]=Math.max(...opposite.map(c=>Number(c[maxK])),Number(cell[maxK]));
+    else parent[minK]=Math.min(...opposite.map(c=>Number(c[minK])),Number(cell[minK]));
+    const affected=[cell,...opposite.filter(c=>cellWithinEditParent(c,parent,tol))];
+    const oppositeLen=selectedLow?Number(parent[maxK])-boundary:boundary-Number(parent[minK]);
+    if(!(oppositeLen>.001))continue;
+    options.push({root,cell,axis,selectedLow,parent,oldBoundary:boundary,affectedCells:affected,cutId:null,source:'legacy',coverage,oppositeLen});
+  }
+  // Quando os dois lados são possíveis, prefere crescer no sentido positivo
+  // (direita / cima / frente), mantendo o canto mínimo do vão no lugar.
+  options.sort((a,b)=>(b.coverage-a.coverage)||((b.selectedLow?1:0)-(a.selectedLow?1:0))||(a.oppositeLen-b.oppositeLen));
+  return options[0]||null;
+}
+function selectedCellEditRelations(root,cell){
+  // Projetos novos possuem a árvore manualCut. O irmão original pode ter sido
+  // recortado depois; por isso reunimos TODOS os descendentes dentro do pai.
+  for(const meta of manualCutMetaChain(cell)){
+    const ctx=selectedCellEditContextFromMeta(root,cell,meta);
+    if(ctx)return {[ctx.axis]:ctx,preferred:ctx.axis};
+  }
+  // Projetos antigos (como os criados antes desta ferramenta) não guardavam a
+  // árvore do corte. Reconstruímos geometricamente os vizinhos por eixo.
+  const out={};
+  for(const axis of ['x','y','z']){
+    const ctx=legacySelectedCellAxisContext(root,cell,axis);
+    if(ctx)out[axis]=ctx;
+  }
+  const axes=['y','x','z'].filter(a=>out[a]);
+  if(axes.length)out.preferred=axes[0];
+  return out;
+}
+function selectedCellEditPair(root,cell,axisWanted=null){
+  const rels=selectedCellEditRelations(root,cell);
+  const axis=(axisWanted&&rels[axisWanted])?axisWanted:rels.preferred;
+  return axis?rels[axis]:null;
 }
 function cellEditFormatInput(v){
   const n=Number(v);return Number.isFinite(n)?nice(n):'';
@@ -17336,12 +17500,28 @@ function updateEditSelectedSpacePreview(){
   const ctx=editSelectedSpaceContext,box=$('editSelectedSpacePreview');if(!ctx||!box)return;
   const field=$(axisSpaceFieldId(ctx.axis));
   const target=parseDecimalInput(field?.value),parentLen=mm(Number(ctx.parent[axisCellMaxKey(ctx.axis)])-Number(ctx.parent[axisCellMinKey(ctx.axis)]));
-  const siblingNow=mm(Number(ctx.sibling[axisCellMaxKey(ctx.axis)])-Number(ctx.sibling[axisCellMinKey(ctx.axis)]));
+  const siblingNow=Math.max(0,parentLen-mm(Number(ctx.cell[axisCellMaxKey(ctx.axis)])-Number(ctx.cell[axisCellMinKey(ctx.axis)])));
   const current=mm(Number(ctx.cell[axisCellMaxKey(ctx.axis)])-Number(ctx.cell[axisCellMinKey(ctx.axis)]));
   const newSibling=Number.isFinite(target)?parentLen-target:NaN;
   const fixed=!!$('editSelectedSpaceFixed')?.checked;
   box.innerHTML=`Atual: <b>${nice(current)} mm</b> em ${axisSpaceName(ctx.axis)} · ${ctx.cell.fixedAxes?.[ctx.axis]?'🔒 travado':'🔓 solto'}<br>`+
     (Number.isFinite(target)?`Novo: <b>${nice(target)} mm</b> · vizinho ${nice(newSibling)} mm · ${fixed?'🔒 ficará travado':'🔓 ficará solto'}`:`Digite uma medida válida. Vão vizinho atual: ${nice(siblingNow)} mm.`);
+}
+function applyEditSelectedSpaceAxis(axis){
+  const rels=editSelectedSpaceRelations;if(!rels)return false;
+  const ctx=rels[axis]||rels[rels.preferred];if(!ctx)return false;
+  editSelectedSpaceContext=ctx;
+  const cell=ctx.cell,sz=cellSize(cell);
+  for(const a of ['x','y','z']){
+    const f=$(axisSpaceFieldId(a));if(f)f.readOnly=a!==ctx.axis;
+  }
+  const axisSel=$('editSelectedSpaceAxis');if(axisSel)axisSel.value=ctx.axis;
+  $('editSelectedSpaceFixed').checked=!!cell.fixedAxes?.[ctx.axis];
+  const inherited=['x','y','z'].filter(a=>a!==ctx.axis&&cell.fixedAxes?.[a]).map(a=>a.toUpperCase());
+  $('editSelectedSpaceMeasureHelp').textContent=`Edite ${axisSpaceName(ctx.axis)}. As outras duas medidas ficam somente como referência. O espaço vizinho absorve a diferença.`;
+  $('editSelectedSpaceFixedHelp').textContent=`Marcado: ${axisShortName(ctx.axis)} deste vão permanece fixa quando o móvel/modelo for redimensionado. Desmarcado: ela fica solta e absorve a diferença.${inherited.length?` Outros travamentos continuam ativos: ${inherited.join(', ')}.`:''}`;
+  updateEditSelectedSpacePreview();
+  return true;
 }
 function openEditSelectedSpaceDialog(){
   if(!selectedSpaceCell){toast('Selecione um espaço/vão');return;}
@@ -17351,22 +17531,21 @@ function openEditSelectedSpaceDialog(){
     toast('Este é o espaço principal · abrindo edição do móvel inteiro');
     openEditSpaceDialog();return;
   }
-  const ctx=selectedCellEditPair(root,cell);
-  if(!ctx){toast('Não encontrei a divisória vizinha deste espaço');return;}
-  editSelectedSpaceContext=ctx;
+  const rels=selectedCellEditRelations(root,cell);
+  const axes=['x','y','z'].filter(a=>rels[a]);
+  if(!axes.length){toast('Não encontrei uma borda interna ajustável neste espaço');return;}
+  editSelectedSpaceRelations=rels;
   const sz=cellSize(cell);
   $('editSelectedSpaceW').value=cellEditFormatInput(mm(sz.width));
   $('editSelectedSpaceD').value=cellEditFormatInput(mm(sz.depth));
   $('editSelectedSpaceH').value=cellEditFormatInput(mm(sz.height));
-  for(const a of ['x','y','z']){
-    const f=$(axisSpaceFieldId(a));if(f)f.readOnly=a!==ctx.axis;
+  const axisSel=$('editSelectedSpaceAxis');
+  if(axisSel){
+    axisSel.innerHTML=axes.map(a=>`<option value="${a}">${axisShortName(a)}</option>`).join('');
+    axisSel.closest('label').style.display=axes.length>1?'block':'none';
   }
-  $('editSelectedSpaceFixed').checked=!!cell.fixedAxes?.[ctx.axis];
-  const inherited=['x','y','z'].filter(a=>a!==ctx.axis&&cell.fixedAxes?.[a]).map(a=>a.toUpperCase());
   $('editSelectedSpaceInfo').textContent=`${root.name} · espaço selecionado: L ${nice(mm(sz.width))} × P ${nice(mm(sz.depth))} × A ${nice(mm(sz.height))} mm.`;
-  $('editSelectedSpaceMeasureHelp').textContent=`Edite ${axisSpaceName(ctx.axis)}. As outras duas medidas ficam somente como referência porque este vão é separado do vizinho por esse eixo.`;
-  $('editSelectedSpaceFixedHelp').textContent=`Marcado: ${axisShortName(ctx.axis)} deste vão permanece fixa quando o móvel/modelo for redimensionado. Desmarcado: ela fica solta e absorve a diferença.${inherited.length?` Outros travamentos herdados continuam ativos: ${inherited.join(', ')}.`:''}`;
-  updateEditSelectedSpacePreview();
+  applyEditSelectedSpaceAxis(rels.preferred||axes[0]);
   $('spaceActions').style.display='none';
   $('editSelectedSpaceDialog').style.display='flex';
 }
@@ -17380,23 +17559,31 @@ function setObjectAxisBoundsForCellEdit(o,axis,newMin,newMax,oldDimsMm){
   updateAutoMachiningAfterPieceResize(o);sanitizeMachiningForPiece(o);
 }
 function resizeSelectedSpaceCell(ctx,targetMm,fixed){
-  const {root,cell,sibling,axis,selectedLow,parent}=ctx,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis);
+  const {root,cell,axis,selectedLow,parent}=ctx,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis);
   const parentMin=Number(parent[minK]),parentMax=Number(parent[maxK]),parentLen=parentMax-parentMin,target=m(targetMm);
   if(!Number.isFinite(target)||target<.001||target>parentLen-.001)throw new Error(`Use uma medida entre 1 e ${nice(Math.max(1,mm(parentLen)-1))} mm`);
-  const oldBoundary=selectedLow?Number(cell[maxK]):Number(cell[minK]);
+  const oldBoundary=Number(ctx.oldBoundary ?? (selectedLow?cell[maxK]:cell[minK]));
   const newBoundary=selectedLow?parentMin+target:parentMax-target;
   const oldCellMin=Number(cell[minK]),oldCellMax=Number(cell[maxK]),wasFixed=!!cell.fixedAxes?.[axis];
 
-  // Retira a faixa fixa antiga antes de mudar seu tamanho; intervalos vizinhos
-  // permanecem preservados mesmo quando haviam sido unidos pelo mergeIntervals().
-  if(wasFixed)subtractFixedBand(root,axis,oldCellMin,oldCellMax);
-
-  const spanLow=Math.max(.000001,oldBoundary-parentMin),spanHigh=Math.max(.000001,parentMax-oldBoundary);
+  // A medida selecionada pode ser alterada mesmo se já estava travada. Tiramos
+  // somente o travamento antigo dela; os demais vãos fixos continuam protegidos.
+  if(wasFixed){
+    subtractFixedBand(root,axis,oldCellMin,oldCellMax);
+    cell.fixedAxes={...(cell.fixedAxes||{})};delete cell.fixedAxes[axis];
+  }
+  const fixedIntervals=fixedIntervalsFromSpace(root,axis);
+  const lowMapper=makeFixedAxisMapper(parentMin,oldBoundary,parentMin,newBoundary,fixedIntervals);
+  const highMapper=makeFixedAxisMapper(oldBoundary,parentMax,newBoundary,parentMax,fixedIntervals);
   const mapAxis=v=>{
     v=Number(v);if(!Number.isFinite(v)||v<parentMin-.0005||v>parentMax+.0005)return v;
-    if(v<=oldBoundary)return parentMin+(v-parentMin)*(newBoundary-parentMin)/spanLow;
-    return newBoundary+(v-oldBoundary)*(parentMax-newBoundary)/spanHigh;
+    return v<=oldBoundary?lowMapper(v):highMapper(v);
   };
+
+  // Guarda as faixas persistentes antes de mover a geometria. Assim um vão
+  // travado do lado vizinho mantém exatamente 18,5 / 150 / etc. em vez de escalar.
+  const rb=rootBounds(root),rootMin=axis==='x'?rb.minX:axis==='y'?rb.minY:rb.minZ;
+  const persistentAbs=(root.fixedBands?.[axis]||[]).map(([a,b])=>[rootMin+Number(a),rootMin+Number(b)]);
 
   // Captura as peças pertencentes a esta região antes de mover a fronteira.
   const linked=objects.filter(o=>(o.userData?.spaceRootId===root.id||objectInsideSpaceRoot(o,root))&&objectTouchesCellEditParent(o,parent,axis));
@@ -17405,9 +17592,23 @@ function resizeSelectedSpaceCell(ctx,targetMm,fixed){
     return {o,min:Number(b[minK]),max:Number(b[maxK]),oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000},verticalDivider:axis==='x'&&isVerticalDivisionPiece(o,root)};
   });
 
-  // Muda somente a divisória compartilhada entre o vão selecionado e o vizinho.
-  if(selectedLow){cell[maxK]=newBoundary;sibling[minK]=newBoundary;}
-  else{cell[minK]=newBoundary;sibling[maxK]=newBoundary;}
+  // 1.200.80: o "vizinho" pode ter sido cortado novamente em 2, 3 ou mais
+  // vãos. Remapeamos TODOS os descendentes do mesmo bloco, não apenas um irmão.
+  const affected=(ctx.affectedCells?.length?ctx.affectedCells:[cell]).filter(c=>(root.cells||[]).includes(c));
+  for(const c of affected){
+    const a=Number(c[minK]),z=Number(c[maxK]);
+    c[minK]=mapAxis(a);c[maxK]=mapAxis(z);
+    remapManualCutBoundsInChain(c,axis,parentMin,parentMax,mapAxis);
+  }
+
+  // Move as faixas persistentes que pertencem ao trecho editado. Fora dele,
+  // nada muda. Divisórias estruturais serão refinadas logo abaixo.
+  root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
+  root.fixedBands[axis]=mergeIntervals(persistentAbs.map(([a,b])=>{
+    const na=(a>=parentMin-.0005&&a<=parentMax+.0005)?mapAxis(a):a;
+    const nb=(b>=parentMin-.0005&&b<=parentMax+.0005)?mapAxis(b):b;
+    return [Math.min(na,nb)-rootMin,Math.max(na,nb)-rootMin];
+  }));
 
   const delta=newBoundary-oldBoundary;
   for(const st of states){
@@ -17429,8 +17630,11 @@ function resizeSelectedSpaceCell(ctx,targetMm,fixed){
   cell.fixedAxes={...(cell.fixedAxes||{})};
   if(fixed)cell.fixedAxes[axis]=true;else delete cell.fixedAxes[axis];
   if(fixed)addFixedBandForCell(root,cell,axis);
-  if(cell.manualCut)cell.manualCut.isFixed=!!fixed;
-  if(sibling.manualCut&&cell.manualCut?.id&&sibling.manualCut.id===cell.manualCut.id)sibling.manualCut.isFixed=!!fixed;
+  if(ctx.cutId){
+    for(const c of affected)setManualCutFixedInChain(c,ctx.cutId,fixed);
+  }else if(cell.manualCut){
+    cell.manualCut.isFixed=!!fixed;
+  }
 
   rebuildDrawerSetsForRoot(root);
   renderSpaces();applyDoorVisibility(root);renderMachiningVisuals();
@@ -17439,9 +17643,10 @@ function resizeSelectedSpaceCell(ctx,targetMm,fixed){
   return {axis,targetMm,boundaryDeltaMm:mm(delta)};
 }
 function closeEditSelectedSpaceDialog(){
-  $('editSelectedSpaceDialog').style.display='none';editSelectedSpaceContext=null;
+  $('editSelectedSpaceDialog').style.display='none';editSelectedSpaceContext=null;editSelectedSpaceRelations=null;
 }
 for(const id of ['editSelectedSpaceW','editSelectedSpaceD','editSelectedSpaceH'])$(id)?.addEventListener('input',updateEditSelectedSpacePreview);
+$('editSelectedSpaceAxis')?.addEventListener('change',e=>applyEditSelectedSpaceAxis(e.target.value));
 $('editSelectedSpaceFixed')?.addEventListener('change',updateEditSelectedSpacePreview);
 $('cancelEditSelectedSpace')?.addEventListener('click',closeEditSelectedSpaceDialog);
 $('editSelectedSpaceDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('editSelectedSpaceDialog'))closeEditSelectedSpaceDialog();});
@@ -17701,7 +17906,7 @@ function cutSpacePrefsStorageKey(){
   return `${CUT_SPACE_PREFS_KEY}:${owner}`;
 }
 function defaultCutSpacePrefs(){
-  return {amount:18,side:'left',fixed:false};
+  return {amount:18,side:'left',fixed:false,count:2};
 }
 function loadCutSpacePrefs(){
   const fallback=defaultCutSpacePrefs();
@@ -17710,10 +17915,12 @@ function loadCutSpacePrefs(){
     if(!raw)return fallback;
     const amount=Number(raw.amount);
     const sides=['left','right','top','bottom','front','back'];
+    const count=Math.round(Number(raw.count));
     return {
       amount:Number.isFinite(amount)&&amount>=0?amount:fallback.amount,
       side:sides.includes(raw.side)?raw.side:fallback.side,
-      fixed:!!raw.fixed
+      fixed:!!raw.fixed,
+      count:Number.isFinite(count)&&count>=1&&count<=50?count:fallback.count
     };
   }catch{
     return fallback;
@@ -17723,25 +17930,40 @@ function applyCutSpacePrefs(){
   const p=loadCutSpacePrefs();
   cutSide=p.side;
   $('cutAmount').value=nice(p.amount);
+  if($('cutCount'))$('cutCount').value=String(p.count||2);
   $('cutFixed').checked=!!p.fixed;
   document.querySelectorAll('[data-cut-side]').forEach(
     b=>b.classList.toggle('active',b.dataset.cutSide===cutSide)
   );
   $('cutSavedInfo').innerHTML=
-    `Configuração carregada: <strong>${nice(p.amount)} mm · ${cutSideName(p.side)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
+    `Configuração carregada: <strong>${nice(p.amount)} mm · ${Number(p.amount)===0?`${p.count||2} vão(s) iguais · `:''}${cutSideName(p.side)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
   updateCutPreview();
+}
+function cutSpaceCountValue({strict=false}={}){
+  const raw=String($('cutCount')?.value??'2').trim();
+  const n=Number(raw.replace(',','.'));
+  if(!Number.isFinite(n)||Math.round(n)!==n||n<1||n>50){
+    if(strict)return null;
+    return 2;
+  }
+  return Math.round(n);
 }
 function saveCutSpacePrefs(){
   const amount=Number(String($('cutAmount').value||'').replace(',','.'));
+  const count=cutSpaceCountValue({strict:true});
   if(!Number.isFinite(amount)||amount<0){
     toast('Confira a medida antes de salvar');
     return;
   }
-  const p={amount,side:cutSide,fixed:!!$('cutFixed').checked};
+  if(count===null){
+    toast('Quantidade de vãos: use um número inteiro entre 1 e 50');
+    return;
+  }
+  const p={amount,side:cutSide,fixed:!!$('cutFixed').checked,count};
   try{
     localStorage.setItem(cutSpacePrefsStorageKey(),JSON.stringify(p));
     $('cutSavedInfo').innerHTML=
-      `Salvo para esta conta: <strong>${nice(amount)} mm · ${cutSideName(cutSide)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
+      `Salvo para esta conta: <strong>${nice(amount)} mm · ${amount===0?`${count} vão(s) iguais · `:''}${cutSideName(cutSide)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
     toast('Configuração do corte salva');
   }catch{
     toast('Não foi possível salvar a configuração');
@@ -17764,13 +17986,21 @@ function updateCutPreview(){
   const total=(cutSide==='left'||cutSide==='right') ? mm(info.size.width)
              : (cutSide==='front'||cutSide==='back') ? mm(info.size.depth)
              : mm(info.size.height);
-  const middle=Number.isFinite(raw)&&Math.abs(raw)<.0000001;
-  const a=middle?total/2:(Number.isFinite(raw)?raw:0);
+  const equalMode=Number.isFinite(raw)&&Math.abs(raw)<.0000001;
+  const count=cutSpaceCountValue();
+  const a=Number.isFinite(raw)?raw:0;
   const fixed=$('cutFixed')?.checked;
   $('cutSideLabel').value=cutSideName(cutSide);
-  $('cutPreview').textContent=middle
-    ? `${cutSideName(cutSide)}: 0 = DIVIDIR NO MEIO · ${nice(a)} mm + ${nice(total-a)} mm · ${fixed?'FIXO (não redimensiona)':'SOLTO (pode redimensionar)'} · externo continua ${total} mm`
-    : `${cutSideName(cutSide)}: ${a} mm + restante ${Math.max(0,total-a)} mm · ${fixed?'FIXO (não redimensiona)':'SOLTO (pode redimensionar)'} · externo continua ${total} mm`;
+  if(equalMode){
+    if(count===1){
+      $('cutPreview').textContent=`${cutSideName(cutSide)}: 1 vão = MANTER INTEIRO · nenhum corte · ${nice(total)} mm`;
+      return;
+    }
+    const each=total/count;
+    $('cutPreview').textContent=`${cutSideName(cutSide)}: 0 = DIVIDIR EM ${count} VÃOS IGUAIS · ${count} × ${nice(each)} mm · ${fixed?'faixas criadas FIXAS':'vãos SOLTOS'} · externo continua ${nice(total)} mm`;
+    return;
+  }
+  $('cutPreview').textContent=`${cutSideName(cutSide)}: ${nice(a)} mm + restante ${nice(Math.max(0,total-a))} mm · ${fixed?'FIXO (não redimensiona)':'SOLTO (pode redimensionar)'} · externo continua ${nice(total)} mm · quantidade de vãos é usada quando a medida = 0`;
 }
 $('cancelSpace').onclick=()=>{$('newSpaceDialog').style.display='none';};
 $('spaceReference').addEventListener('change',()=>{newSpaceReferenceId=$('spaceReference').value||null;const ref=currentNewSpaceReference();if(ref && !(newSpaceRelation==='top'||newSpaceRelation==='bottom')&&!$('spaceManualPosition')?.checked) $('spaceBaseY').value=mm(ref.yBase);updateNewSpacePreview();});
@@ -17795,8 +18025,17 @@ $('cutSpaceBtn').onclick=()=>{
 $('cancelCut').onclick=()=>{$('cutSpaceDialog').style.display='none';};
 $('saveCutConfig').onclick=saveCutSpacePrefs;
 document.querySelectorAll('[data-cut-side]').forEach(b=>b.onclick=()=>{cutSide=b.dataset.cutSide;document.querySelectorAll('[data-cut-side]').forEach(x=>x.classList.toggle('active',x===b));updateCutPreview();});
-$('cutAmount').addEventListener('input',updateCutPreview); $('cutFixed').addEventListener('change',updateCutPreview);
-$('confirmCut').onclick=()=>{const fixed=$('cutFixed').checked,amount=parseDecimalInput($('cutAmount').value);if(cutSelectedSpace(cutSide,m(amount),fixed)) {$('cutSpaceDialog').style.display='none';toast(fixed?'Espaço dividido · faixa fixa':'Espaço dividido · faixa solta');}};
+$('cutAmount').addEventListener('input',updateCutPreview); $('cutCount')?.addEventListener('input',updateCutPreview); $('cutFixed').addEventListener('change',updateCutPreview);
+$('cutCount')?.addEventListener('blur',()=>{const n=cutSpaceCountValue();$('cutCount').value=String(n);updateCutPreview();});
+$('confirmCut').onclick=()=>{
+  const fixed=$('cutFixed').checked,amount=parseDecimalInput($('cutAmount').value),count=cutSpaceCountValue({strict:true});
+  if(count===null){toast('Quantidade de vãos: use um número inteiro entre 1 e 50');return;}
+  const res=applySelectedSpaceCut(cutSide,m(amount),fixed,count);
+  if(res.ok){
+    $('cutSpaceDialog').style.display='none';
+    toast(res.noCut?'1 vão · espaço mantido inteiro':(Number(amount)===0?`Espaço dividido em ${res.count} vãos iguais${fixed?' · faixas fixas':' · vãos soltos'}`:(fixed?'Espaço dividido · faixa fixa':'Espaço dividido · faixa solta')));
+  }
+};
 // v61 · Móvel curvo: 3 referências fixas + extras equilibrados somente nos trechos retos.
 // Ao reduzir o raio, evita manter uma nervura incompatível de configuração antiga.
 function normalizeCurvedRadiusInputs(){
@@ -19235,7 +19474,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.78';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.80';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
