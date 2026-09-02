@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.77-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.78-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.77-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.78-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.77';
+  return tm?.[1]||'1.200.78';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.77-r1';
+const DESIGNLAB_JS_BUILD='1.200.78-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3521,7 +3521,7 @@ let visualMode=false;
 // É somente uma preferência da vista atual: não altera o projeto nem o estado
 // individual "Ocultar portas" de cada espaço.
 let quickFrontFacesHidden=false;
-// 1.200.77 · atalho visual global para esconder/mostrar os volumes dos espaços.
+// 1.200.78 · atalho visual global para esconder/mostrar os volumes dos espaços.
 // Afeta somente a visualização/seleção dos espaços; peças do móvel continuam visíveis.
 let quickSpacesHidden=false;
 
@@ -4321,7 +4321,7 @@ function productionColorInt(v,fallback=COLORS.panel){
 }
 function normalizeProductionMaterial(m){
   if(!m)return null;
-  const thickness=Number(m.thickness),sheetWidth=Number(m.sheetWidth),sheetHeight=Number(m.sheetHeight);
+  const thickness=parseDecimalInput(m.thickness),sheetWidth=parseDecimalInput(m.sheetWidth),sheetHeight=parseDecimalInput(m.sheetHeight);
   return {
     id:String(m.id||uid('mat')),
     name:String(m.name||'Material').trim()||'Material',
@@ -4337,7 +4337,7 @@ function normalizeProductionMaterial(m){
 }
 function normalizeProductionBand(b){
   if(!b)return null;
-  const thickness=Number(b.thickness),width=Number(b.width);
+  const thickness=parseDecimalInput(b.thickness),width=parseDecimalInput(b.width);
   return {
     id:String(b.id||uid('band')),
     name:String(b.name||'Fita de borda').trim()||'Fita de borda',
@@ -4849,7 +4849,7 @@ function showAllHiddenSpaces(){
   toast(count===1 ? 'Divisão oculta exibida' : `${count} divisões ocultas exibidas`);
 }
 function setSpaceActionCellMode(hasCell){
-  for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn','deleteSelectedSpaceBtn']){
+  for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn','editSelectedSpaceBtn','deleteSelectedSpaceBtn']){
     const b=$(id);if(b)b.disabled=!hasCell;
   }
 }
@@ -11881,8 +11881,8 @@ function productionNewMaterial(){
 }
 function productionSaveMaterial(){
   const name=String($('productionMaterialName').value||'').trim();
-  const thickness=Number($('productionMaterialThickness').value);
-  const sheetWidth=Number($('productionMaterialSheetWidth').value),sheetHeight=Number($('productionMaterialSheetHeight').value);
+  const thickness=parseDecimalInput($('productionMaterialThickness').value);
+  const sheetWidth=parseDecimalInput($('productionMaterialSheetWidth').value),sheetHeight=parseDecimalInput($('productionMaterialSheetHeight').value);
   if(!name){toast('Digite o nome do material');return;}
   if(!Number.isFinite(thickness)||thickness<=0){toast('Confira a espessura do material');return;}
   if(!Number.isFinite(sheetWidth)||sheetWidth<100||!Number.isFinite(sheetHeight)||sheetHeight<100){toast('Confira o tamanho da chapa');return;}
@@ -11953,14 +11953,14 @@ function productionNewBand(){
   $('productionBandSelect').value='';
   $('productionBandName').value='';
   $('productionBandCode').value='';
-  $('productionBandThickness').value=.45;
+  $('productionBandThickness').value='0,45';
   $('productionBandWidth').value=22;
   $('productionBandColor').value='#f5f5f2';
   $('productionBandName').focus();
 }
 function productionSaveBand(){
   const name=String($('productionBandName').value||'').trim();
-  const thickness=Number($('productionBandThickness').value),width=Number($('productionBandWidth').value);
+  const thickness=parseDecimalInput($('productionBandThickness').value),width=parseDecimalInput($('productionBandWidth').value);
   if(!name){toast('Digite o nome da fita');return;}
   if(!(thickness>0&&width>0)){toast('Confira espessura e largura da fita');return;}
 
@@ -17268,6 +17268,193 @@ function moveSpaceRootToPosition(root,{leftX,yBase,backZ,linkedObjects=null}={})
   }
   return {dx,dy,dz,count:linkedSet.size};
 }
+// ============================================================================
+// 1.200.78 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
+// ============================================================================
+// O espaço principal continua sendo editado por openEditSpaceDialog(). Para uma
+// divisão interna, ajustamos apenas a fronteira compartilhada com o vão vizinho:
+// o tamanho externo do móvel não muda e o vizinho absorve a diferença.
+let editSelectedSpaceContext=null;
+function axisCellMinKey(axis){return axis==='x'?'minX':axis==='y'?'minY':'minZ';}
+function axisCellMaxKey(axis){return axis==='x'?'maxX':axis==='y'?'maxY':'maxZ';}
+function axisObjectDimKey(axis){return axis==='x'?'width':axis==='y'?'height':'depth';}
+function axisSpaceFieldId(axis){return axis==='x'?'editSelectedSpaceW':axis==='y'?'editSelectedSpaceH':'editSelectedSpaceD';}
+function axisSpaceName(axis){return axis==='x'?'largura (X)':axis==='y'?'altura (Y)':'profundidade (Z)';}
+function axisShortName(axis){return axis==='x'?'Largura':axis==='y'?'Altura':'Profundidade';}
+function boxUnionForCells(a,b){
+  return {minX:Math.min(a.minX,b.minX),maxX:Math.max(a.maxX,b.maxX),minY:Math.min(a.minY,b.minY),maxY:Math.max(a.maxY,b.maxY),minZ:Math.min(a.minZ,b.minZ),maxZ:Math.max(a.maxZ,b.maxZ)};
+}
+function objectTouchesCellEditParent(o,parent,axis,tol=.003){
+  if(!o||!parent)return false;
+  const b=getBounds(o);
+  const tangents=axis==='x'
+    ? b.maxY>=parent.minY-tol&&b.minY<=parent.maxY+tol&&b.maxZ>=parent.minZ-tol&&b.minZ<=parent.maxZ+tol
+    : axis==='y'
+      ? b.maxX>=parent.minX-tol&&b.minX<=parent.maxX+tol&&b.maxZ>=parent.minZ-tol&&b.minZ<=parent.maxZ+tol
+      : b.maxX>=parent.minX-tol&&b.minX<=parent.maxX+tol&&b.maxY>=parent.minY-tol&&b.minY<=parent.maxY+tol;
+  if(!tangents)return false;
+  const minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis);
+  return b[maxK]>=parent[minK]-tol&&b[minK]<=parent[maxK]+tol;
+}
+function subtractFixedBand(root,axis,absA,absB){
+  if(!root)return;
+  const rb=rootBounds(root),rootMin=axis==='x'?rb.minX:axis==='y'?rb.minY:rb.minZ;
+  let a=Math.min(absA,absB)-rootMin,b=Math.max(absA,absB)-rootMin;
+  if(!(b>a))return;
+  const eps=.0006,out=[];
+  root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
+  for(const raw of root.fixedBands[axis]||[]){
+    let s=Math.min(Number(raw[0]),Number(raw[1])),e=Math.max(Number(raw[0]),Number(raw[1]));
+    if(!Number.isFinite(s)||!Number.isFinite(e)||e<=s)continue;
+    if(e<=a+eps||s>=b-eps){out.push([s,e]);continue;}
+    if(s<a-eps)out.push([s,a]);
+    if(e>b+eps)out.push([b,e]);
+  }
+  root.fixedBands[axis]=mergeIntervals(out);
+}
+function addFixedBandForCell(root,cell,axis){
+  if(!root||!cell)return;
+  const rb=rootBounds(root),rootMin=axis==='x'?rb.minX:axis==='y'?rb.minY:rb.minZ;
+  const minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis);
+  root.fixedBands=root.fixedBands||{x:[],y:[],z:[]};
+  root.fixedBands[axis]=mergeIntervals([...(root.fixedBands[axis]||[]),[Number(cell[minK])-rootMin,Number(cell[maxK])-rootMin]]);
+}
+function selectedCellEditPair(root,cell){
+  const rel=manualCutSibling(root,cell);
+  if(!rel?.sibling||!rel.axis)return null;
+  const axis=rel.axis,sibling=rel.sibling,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis),tol=.003;
+  const low=Math.abs(Number(cell[maxK])-Number(sibling[minK]))<=tol;
+  const high=Math.abs(Number(sibling[maxK])-Number(cell[minK]))<=tol;
+  if(!low&&!high)return null;
+  const parent=boxUnionForCells(cell,sibling);
+  return {root,cell,sibling,axis,selectedLow:low,parent,oldBoundary:low?Number(cell[maxK]):Number(cell[minK])};
+}
+function cellEditFormatInput(v){
+  const n=Number(v);return Number.isFinite(n)?nice(n):'';
+}
+function updateEditSelectedSpacePreview(){
+  const ctx=editSelectedSpaceContext,box=$('editSelectedSpacePreview');if(!ctx||!box)return;
+  const field=$(axisSpaceFieldId(ctx.axis));
+  const target=parseDecimalInput(field?.value),parentLen=mm(Number(ctx.parent[axisCellMaxKey(ctx.axis)])-Number(ctx.parent[axisCellMinKey(ctx.axis)]));
+  const siblingNow=mm(Number(ctx.sibling[axisCellMaxKey(ctx.axis)])-Number(ctx.sibling[axisCellMinKey(ctx.axis)]));
+  const current=mm(Number(ctx.cell[axisCellMaxKey(ctx.axis)])-Number(ctx.cell[axisCellMinKey(ctx.axis)]));
+  const newSibling=Number.isFinite(target)?parentLen-target:NaN;
+  const fixed=!!$('editSelectedSpaceFixed')?.checked;
+  box.innerHTML=`Atual: <b>${nice(current)} mm</b> em ${axisSpaceName(ctx.axis)} · ${ctx.cell.fixedAxes?.[ctx.axis]?'🔒 travado':'🔓 solto'}<br>`+
+    (Number.isFinite(target)?`Novo: <b>${nice(target)} mm</b> · vizinho ${nice(newSibling)} mm · ${fixed?'🔒 ficará travado':'🔓 ficará solto'}`:`Digite uma medida válida. Vão vizinho atual: ${nice(siblingNow)} mm.`);
+}
+function openEditSelectedSpaceDialog(){
+  if(!selectedSpaceCell){toast('Selecione um espaço/vão');return;}
+  const root=getSpaceRoot(selectedSpaceCell.rootId),cell=getSpaceCell(selectedSpaceCell.rootId,selectedSpaceCell.cellId);
+  if(!root||!cell){toast('Espaço selecionado não encontrado');return;}
+  if((root.cells||[]).length<=1){
+    toast('Este é o espaço principal · abrindo edição do móvel inteiro');
+    openEditSpaceDialog();return;
+  }
+  const ctx=selectedCellEditPair(root,cell);
+  if(!ctx){toast('Não encontrei a divisória vizinha deste espaço');return;}
+  editSelectedSpaceContext=ctx;
+  const sz=cellSize(cell);
+  $('editSelectedSpaceW').value=cellEditFormatInput(mm(sz.width));
+  $('editSelectedSpaceD').value=cellEditFormatInput(mm(sz.depth));
+  $('editSelectedSpaceH').value=cellEditFormatInput(mm(sz.height));
+  for(const a of ['x','y','z']){
+    const f=$(axisSpaceFieldId(a));if(f)f.readOnly=a!==ctx.axis;
+  }
+  $('editSelectedSpaceFixed').checked=!!cell.fixedAxes?.[ctx.axis];
+  const inherited=['x','y','z'].filter(a=>a!==ctx.axis&&cell.fixedAxes?.[a]).map(a=>a.toUpperCase());
+  $('editSelectedSpaceInfo').textContent=`${root.name} · espaço selecionado: L ${nice(mm(sz.width))} × P ${nice(mm(sz.depth))} × A ${nice(mm(sz.height))} mm.`;
+  $('editSelectedSpaceMeasureHelp').textContent=`Edite ${axisSpaceName(ctx.axis)}. As outras duas medidas ficam somente como referência porque este vão é separado do vizinho por esse eixo.`;
+  $('editSelectedSpaceFixedHelp').textContent=`Marcado: ${axisShortName(ctx.axis)} deste vão permanece fixa quando o móvel/modelo for redimensionado. Desmarcado: ela fica solta e absorve a diferença.${inherited.length?` Outros travamentos herdados continuam ativos: ${inherited.join(', ')}.`:''}`;
+  updateEditSelectedSpacePreview();
+  $('spaceActions').style.display='none';
+  $('editSelectedSpaceDialog').style.display='flex';
+}
+function setObjectAxisBoundsForCellEdit(o,axis,newMin,newMax,oldDimsMm){
+  const u=o.userData||{},dimK=axisObjectDimKey(axis),newDim=Math.max(.001,Math.abs(newMax-newMin));
+  u[dimK]=newDim;
+  const newDims={x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000};
+  remapMachiningForPieceResize(o,oldDimsMm,newDims);
+  if(Array.isArray(u.forms)&&u.forms.length){o.scale.set(1,1,1);rebuildFormGeometry(o);}else o.scale.set(Number(u.width),Number(u.height),Number(u.depth));
+  o.position[axis]=(newMin+newMax)/2;
+  updateAutoMachiningAfterPieceResize(o);sanitizeMachiningForPiece(o);
+}
+function resizeSelectedSpaceCell(ctx,targetMm,fixed){
+  const {root,cell,sibling,axis,selectedLow,parent}=ctx,minK=axisCellMinKey(axis),maxK=axisCellMaxKey(axis);
+  const parentMin=Number(parent[minK]),parentMax=Number(parent[maxK]),parentLen=parentMax-parentMin,target=m(targetMm);
+  if(!Number.isFinite(target)||target<.001||target>parentLen-.001)throw new Error(`Use uma medida entre 1 e ${nice(Math.max(1,mm(parentLen)-1))} mm`);
+  const oldBoundary=selectedLow?Number(cell[maxK]):Number(cell[minK]);
+  const newBoundary=selectedLow?parentMin+target:parentMax-target;
+  const oldCellMin=Number(cell[minK]),oldCellMax=Number(cell[maxK]),wasFixed=!!cell.fixedAxes?.[axis];
+
+  // Retira a faixa fixa antiga antes de mudar seu tamanho; intervalos vizinhos
+  // permanecem preservados mesmo quando haviam sido unidos pelo mergeIntervals().
+  if(wasFixed)subtractFixedBand(root,axis,oldCellMin,oldCellMax);
+
+  const spanLow=Math.max(.000001,oldBoundary-parentMin),spanHigh=Math.max(.000001,parentMax-oldBoundary);
+  const mapAxis=v=>{
+    v=Number(v);if(!Number.isFinite(v)||v<parentMin-.0005||v>parentMax+.0005)return v;
+    if(v<=oldBoundary)return parentMin+(v-parentMin)*(newBoundary-parentMin)/spanLow;
+    return newBoundary+(v-oldBoundary)*(parentMax-newBoundary)/spanHigh;
+  };
+
+  // Captura as peças pertencentes a esta região antes de mover a fronteira.
+  const linked=objects.filter(o=>(o.userData?.spaceRootId===root.id||objectInsideSpaceRoot(o,root))&&objectTouchesCellEditParent(o,parent,axis));
+  const states=linked.map(o=>{
+    const u=o.userData||{},b=getBounds(o);
+    return {o,min:Number(b[minK]),max:Number(b[maxK]),oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000},verticalDivider:axis==='x'&&isVerticalDivisionPiece(o,root)};
+  });
+
+  // Muda somente a divisória compartilhada entre o vão selecionado e o vizinho.
+  if(selectedLow){cell[maxK]=newBoundary;sibling[minK]=newBoundary;}
+  else{cell[minK]=newBoundary;sibling[maxK]=newBoundary;}
+
+  const delta=newBoundary-oldBoundary;
+  for(const st of states){
+    const o=st.o,u=o.userData||{},axisDim=Number(u[axisObjectDimKey(axis)])||Math.max(.001,st.max-st.min);
+    const crosses=st.min<oldBoundary+.0008&&st.max>oldBoundary-.0008;
+    const boundaryPiece=crosses&&axisDim<=.12;
+    if(boundaryPiece){
+      // Divisória/prateleira estrutural na linha do corte: desloca inteira sem
+      // deformar a espessura. Isso mantém MDF 18/18,5 mm exatamente como está.
+      if(st.verticalDivider)subtractFixedBand(root,'x',st.min,st.max);
+      o.position[axis]=Number(o.position[axis])+delta;
+      if(st.verticalDivider)registerVerticalDivisionFixedBand(root,o.position.x-axisDim/2,o.position.x+axisDim/2);
+      continue;
+    }
+    const n0=mapAxis(st.min),n1=mapAxis(st.max);
+    setObjectAxisBoundsForCellEdit(o,axis,Math.min(n0,n1),Math.max(n0,n1),st.oldDimsMm);
+  }
+
+  cell.fixedAxes={...(cell.fixedAxes||{})};
+  if(fixed)cell.fixedAxes[axis]=true;else delete cell.fixedAxes[axis];
+  if(fixed)addFixedBandForCell(root,cell,axis);
+  if(cell.manualCut)cell.manualCut.isFixed=!!fixed;
+  if(sibling.manualCut&&cell.manualCut?.id&&sibling.manualCut.id===cell.manualCut.id)sibling.manualCut.isFixed=!!fixed;
+
+  rebuildDrawerSetsForRoot(root);
+  renderSpaces();applyDoorVisibility(root);renderMachiningVisuals();
+  selectSpaceCellByIds(root.id,cell.id,{showMenu:false});updateMeasureBadge();
+  commitHistory();
+  return {axis,targetMm,boundaryDeltaMm:mm(delta)};
+}
+function closeEditSelectedSpaceDialog(){
+  $('editSelectedSpaceDialog').style.display='none';editSelectedSpaceContext=null;
+}
+for(const id of ['editSelectedSpaceW','editSelectedSpaceD','editSelectedSpaceH'])$(id)?.addEventListener('input',updateEditSelectedSpacePreview);
+$('editSelectedSpaceFixed')?.addEventListener('change',updateEditSelectedSpacePreview);
+$('cancelEditSelectedSpace')?.addEventListener('click',closeEditSelectedSpaceDialog);
+$('editSelectedSpaceDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('editSelectedSpaceDialog'))closeEditSelectedSpaceDialog();});
+$('confirmEditSelectedSpace')?.addEventListener('click',()=>{
+  const ctx=editSelectedSpaceContext;if(!ctx){closeEditSelectedSpaceDialog();return;}
+  try{
+    const field=$(axisSpaceFieldId(ctx.axis)),target=parseDecimalInput(field?.value);
+    const res=resizeSelectedSpaceCell(ctx,target,!!$('editSelectedSpaceFixed')?.checked);
+    closeEditSelectedSpaceDialog();
+    toast(`Espaço atualizado · ${axisShortName(res.axis)} ${nice(res.targetMm)} mm · ${$('editSelectedSpaceFixed')?.checked?'travado':'solto'}`);
+  }catch(err){toast(err.message||'Não foi possível editar o espaço selecionado');}
+});
+
 function openEditSpaceDialog(){
   const root=activeSpaceRoot(); if(!root){toast('Selecione um espaço');return;}
   const rb=rootBounds(root);
@@ -17726,6 +17913,7 @@ $('cancelDrawerSystem').onclick=()=>{$('drawerSystemDialog').style.display='none
 $('drawerSystemDialog').addEventListener('pointerdown',e=>{if(e.target===$('drawerSystemDialog')){$('drawerSystemDialog').style.display='none';drawerEditingSetId=null;drawerTargetRootId=null;drawerTargetCellId=null;}});
 
 $('openLibraryBtn').onclick=()=>{if(visualMode)setVisualMode(false,{notify:false,frame:false});if(!selectedSpaceCell)return;openLibraryRoot();};
+$('editSelectedSpaceBtn').onclick=()=>{if(visualMode)setVisualMode(false,{notify:false,frame:false});openEditSelectedSpaceDialog();};
 $('closeLibrary').onclick=()=>{$('libraryDialog').style.display='none';activeLibraryFolderId=null;};
 $('spaceMoreBtn').onclick=()=>{const info=selectedCellInfo();const root=info?.root||activeSpaceRoot();if(!root){toast('Selecione um espaço');return;}const s=info?.size||{width:root.width,depth:root.depth,height:root.height};$('spaceMoreInfo').textContent=`${root.name} · L ${mm(s.width)} · P ${mm(s.depth)} · A ${mm(s.height)} mm${info?'':' · móvel completo'}`;$('spaceMoreDialog').style.display='flex';};
 $('closeSpaceMore').onclick=()=>{$('spaceMoreDialog').style.display='none';};
@@ -19047,7 +19235,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.77';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.78';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
