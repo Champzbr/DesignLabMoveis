@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.93",
+  "version": "1.200.94",
   "required": false,
-  "message": "Seleção mais segura no CAD: duplo toque e toque segurado não abrem mais configurações. Use o botão Configuração. Novo botão Ocultar selecionado acima da Grade; o botão Mostrar espaços agora restaura todos os espaços e divisões do projeto.",
-  "released_at": "2026-09-02T14:55:00-03:00",
-  "build": "1.200.93-r1"
+  "message": "Materiais padrão embutidos no app: MDFs 6/15/18 mm, madeiras maciças, lâminas naturais e fitas compatíveis de 6/15/18 mm. A Configuração da peça agora permite trocar o material diretamente.",
+  "released_at": "2026-09-02T16:27:00-03:00",
+  "build": "1.200.94-r1"
 }
