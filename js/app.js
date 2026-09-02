@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.84-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.85-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.84-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.85-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -689,7 +689,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.200.84';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.84-r1';
+const DESIGNLAB_JS_BUILD='1.200.85-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3523,7 +3523,7 @@ let visualMode=false;
 // É somente uma preferência da vista atual: não altera o projeto nem o estado
 // individual "Ocultar portas" de cada espaço.
 let quickFrontFacesHidden=false;
-// 1.200.84 · atalho visual global para esconder/mostrar os volumes dos espaços.
+// 1.200.85 · atalho visual global para esconder/mostrar os volumes dos espaços.
 // Afeta somente a visualização/seleção dos espaços; peças do móvel continuam visíveis.
 let quickSpacesHidden=false;
 
@@ -4982,7 +4982,7 @@ function setFrontWorldView(){
   controls.target.set(0,.8,0); perspectiveCamera.lookAt(controls.target); controls.update(); remember3DView();
 }
 
-// 1.200.84 · divisão automática do vão em N partes iguais quando a medida = 0.
+// 1.200.85 · divisão automática do vão em N partes iguais quando a medida = 0.
 // A divisão é gravada como uma sequência de cortes reais, preservando a árvore
 // manualCut usada para editar vãos antigos/descendentes e para histórico.
 function divideSelectedSpaceEvenly(side,count,isFixed=false){
@@ -5288,7 +5288,7 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   const src=rootBounds(root);
   const dst={minX:src.minX,maxX:src.minX+width,minY:yBase,maxY:yBase+height,minZ:src.minZ,maxZ:src.minZ+depth};
   const fixedX=fixedIntervalsFromSpace(root,'x'), fixedY=fixedIntervalsFromSpace(root,'y'), fixedZ=fixedIntervalsFromSpace(root,'z');
-  // 1.200.84: no redimensionamento do móvel inteiro, os vãos SOLTOS
+  // 1.200.85: no redimensionamento do móvel inteiro, os vãos SOLTOS
   // recebem partes iguais do espaço livre; faixas travadas preservam milímetros.
   const structuralX=structuralFixedIntervalsFromRoot(root,'x',src);
   const structuralY=structuralFixedIntervalsFromRoot(root,'y',src);
@@ -11006,7 +11006,7 @@ function fixedIntervalsFromSpace(space,axis){
   return mergeIntervals([...persistent,...fromCells]);
 }
 
-// 1.200.84 · Uma peça estrutural criada dentro do espaço (lateral, base,
+// 1.200.85 · Uma peça estrutural criada dentro do espaço (lateral, base,
 // chapéu, divisão, prateleira, frente/fundo etc.) ocupa uma faixa física que
 // também deve manter a espessura nominal durante o redimensionamento. Em
 // versões anteriores, somente fixedBands/cell.fixedAxes entravam no cálculo;
@@ -11069,7 +11069,7 @@ function makeFixedAxisMapper(srcMin,srcMax,dstMin,dstMax,fixedIntervals){
   };
 }
 
-// 1.200.84 · Ao redimensionar o móvel inteiro, faixas travadas continuam com
+// 1.200.85 · Ao redimensionar o móvel inteiro, faixas travadas continuam com
 // a medida exata e TODOS os vãos soltos entre elas passam a dividir igualmente
 // o espaço que sobrar. O mapper antigo acima continua sendo usado pelo editor
 // pontual de um único vão, onde preservar a geometria local é mais seguro.
@@ -11116,7 +11116,7 @@ function makeBalancedFixedAxisMapper(srcMin,srcMax,dstMin,dstMax,fixedIntervals)
   };
 }
 
-// 1.200.84 · O balanceamento precisa respeitar os CORTES REAIS, não apenas
+// 1.200.85 · O balanceamento precisa respeitar os CORTES REAIS, não apenas
 // as faixas fixas. Dois vãos soltos podem encostar na mesma coordenada de corte
 // (com uma peça divisória sobre essa linha) e, nesse caso, o mapper antigo via
 // tudo como um único trecho solto e preservava a proporção antiga. Aqui cada
@@ -11132,7 +11132,61 @@ function makeBalancedSpaceAxisMapper(space,axis,srcMin,srcMax,dstMin,dstMax,extr
   const fixed=mergeIntervals([...fixedIntervalsFromSpace(space,axis),...(extraFixedIntervals||[])]
     .map(([a,b])=>[Math.max(srcMin,Number(a)),Math.min(srcMax,Number(b))])
     .filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b)&&b>a+1e-9));
+  const tol=1e-7;
 
+  // 1.200.85 · REGRA PRINCIPAL
+  // O que define os vãos iguais são as FAIXAS FÍSICAS/TRAVADAS (laterais,
+  // divisões, base/chapéu, prateleiras etc.), e não cada borda de toda célula.
+  // A versão 1.200.84 misturava bordas de cortes de outros eixos. Assim um
+  // único vão visual podia ser quebrado internamente em 2 ou 3 segmentos e
+  // recebia 2 ou 3 "cotas" do espaço livre, ficando maior que os outros.
+  // Aqui montamos primeiro apenas: fixo / vão / fixo / vão ...
+  const physical=[];
+  let cursor=srcMin;
+  for(const [a,b] of fixed){
+    if(a>cursor+tol)physical.push({kind:'free',a:cursor,b:a});
+    physical.push({kind:'fixed',a,b});
+    cursor=Math.max(cursor,b);
+  }
+  if(cursor<srcMax-tol)physical.push({kind:'free',a:cursor,b:srcMax});
+
+  function balancedMapperFromSegments(segments){
+    const freeSegments=segments.filter(seg=>seg.kind==='free'&&seg.b-seg.a>1e-9);
+    if(freeSegments.length<2)return null;
+    const fixedTotal=segments.filter(seg=>seg.kind==='fixed').reduce((n,seg)=>n+(seg.b-seg.a),0);
+    if(dstLen+1e-9<fixedTotal)throw new Error(`Destino menor que as medidas fixas (${mm(fixedTotal)} mm)`);
+    const targetEach=Math.max(0,dstLen-fixedTotal)/freeSegments.length;
+    let outCursor=dstMin;
+    for(const seg of segments){
+      seg.srcLen=Math.max(0,seg.b-seg.a);
+      seg.dstA=outCursor;
+      seg.dstLen=seg.kind==='fixed'?seg.srcLen:targetEach;
+      seg.dstB=seg.dstA+seg.dstLen;
+      outCursor=seg.dstB;
+    }
+    if(segments.length)segments[segments.length-1].dstB=dstMax;
+    const mapper=value=>{
+      const v=Math.min(srcMax,Math.max(srcMin,Number(value)));
+      if(v<=srcMin)return dstMin;
+      if(v>=srcMax)return dstMax;
+      let seg=segments.find(seg=>v>=seg.a-tol&&v<=seg.b+tol);
+      if(!seg)seg=segments[segments.length-1];
+      const t=seg.srcLen>1e-12?(v-seg.a)/seg.srcLen:0;
+      return seg.dstA+Math.max(0,Math.min(1,t))*seg.dstLen;
+    };
+    mapper.__designLabBalance={axis,mode:'physical-gaps',freeCount:freeSegments.length,fixedCount:segments.length-freeSegments.length,targetEach};
+    return mapper;
+  }
+
+  // Se as peças/faixas travadas já separam dois ou mais vãos, essa topologia
+  // física é a fonte de verdade. Não deixamos cortes de cima/baixo/frente/fundo
+  // subdividirem artificialmente um vão no eixo X (e o equivalente nos outros).
+  const physicalMapper=balancedMapperFromSegments(physical.map(seg=>({...seg})));
+  if(physicalMapper)return physicalMapper;
+
+  // Fallback para modelos sem nenhuma faixa física entre os vãos (por exemplo,
+  // cortes puros de espessura zero). Neste caso usamos as células, mas somente
+  // porque não há peças/faixas suficientes para separar os vãos fisicamente.
   const points=[srcMin,srcMax];
   for(const [a,b] of fixed)points.push(a,b);
   for(const c of cells){
@@ -11143,13 +11197,12 @@ function makeBalancedSpaceAxisMapper(space,axis,srcMin,srcMax,dstMin,dstMax,extr
   }
   points.sort((a,b)=>a-b);
   const uniq=[];
-  const tol=1e-7;
-  for(const p of points){
-    if(!Number.isFinite(p))continue;
-    if(!uniq.length||Math.abs(p-uniq[uniq.length-1])>tol)uniq.push(p);
+  for(const point of points){
+    if(!Number.isFinite(point))continue;
+    if(!uniq.length||Math.abs(point-uniq[uniq.length-1])>tol)uniq.push(point);
   }
 
-  const segments=[];
+  const topology=[];
   for(let i=0;i<uniq.length-1;i++){
     const a=uniq[i],b=uniq[i+1];
     if(!(b>a+1e-9))continue;
@@ -11159,39 +11212,16 @@ function makeBalancedSpaceAxisMapper(space,axis,srcMin,srcMax,dstMin,dstMax,extr
       const c0=Number(c?.[minKey]),c1=Number(c?.[maxKey]);
       return Number.isFinite(c0)&&Number.isFinite(c1)&&mid>=Math.min(c0,c1)-tol&&mid<=Math.max(c0,c1)+tol;
     });
-    // Se não existe célula ocupando esta faixa, ela é um intervalo estrutural
-    // entre vãos (normalmente a espessura de lateral/divisão/base etc.).
-    segments.push({kind:(explicitlyFixed||!coveredByCell)?'fixed':'free',a,b});
+    topology.push({kind:(explicitlyFixed||!coveredByCell)?'fixed':'free',a,b});
+  }
+  const topologyMapper=balancedMapperFromSegments(topology);
+  if(topologyMapper){
+    topologyMapper.__designLabBalance={...(topologyMapper.__designLabBalance||{}),mode:'cell-fallback'};
+    return topologyMapper;
   }
 
-  const freeSegments=segments.filter(s=>s.kind==='free');
-  if(freeSegments.length<2){
-    return makeBalancedFixedAxisMapper(srcMin,srcMax,dstMin,dstMax,fixed);
-  }
-  const fixedTotal=segments.filter(s=>s.kind==='fixed').reduce((n,s)=>n+(s.b-s.a),0);
-  if(dstLen+1e-9<fixedTotal)throw new Error(`Destino menor que as medidas fixas (${mm(fixedTotal)} mm)`);
-  const targetEach=Math.max(0,dstLen-fixedTotal)/freeSegments.length;
-
-  let outCursor=dstMin;
-  for(const seg of segments){
-    seg.srcLen=seg.b-seg.a;
-    seg.dstA=outCursor;
-    seg.dstLen=seg.kind==='fixed'?seg.srcLen:targetEach;
-    seg.dstB=seg.dstA+seg.dstLen;
-    outCursor=seg.dstB;
-  }
-  // Compensa somente ruído de ponto flutuante no último segmento.
-  if(segments.length)segments[segments.length-1].dstB=dstMax;
-
-  return value=>{
-    const v=Math.min(srcMax,Math.max(srcMin,Number(value)));
-    if(v<=srcMin)return dstMin;
-    if(v>=srcMax)return dstMax;
-    let seg=segments.find(s=>v>=s.a-tol&&v<=s.b+tol);
-    if(!seg)seg=segments[segments.length-1];
-    const t=seg.srcLen>1e-12?(v-seg.a)/seg.srcLen:0;
-    return seg.dstA+Math.max(0,Math.min(1,t))*seg.dstLen;
-  };
+  // Um único vão livre: mantém a regra proporcional tradicional.
+  return makeBalancedFixedAxisMapper(srcMin,srcMax,dstMin,dstMax,fixed);
 }
 function layoutBoundsFromSpace(space){
   if(!space)return null;
@@ -11297,7 +11327,7 @@ function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
   }
   return copyLibraryPartMeta(created,adaptedPart);
 }
-// 1.200.84 · Biblioteca preserva a TOPOLOGIA dos espaços, não somente as peças.
+// 1.200.85 · Biblioteca preserva a TOPOLOGIA dos espaços, não somente as peças.
 // Antes o modelo salvo trazia layout.space, porém placeCustomTemplate() usava
 // esse layout apenas para calcular a escala das peças. O espaço de destino
 // continuava sendo uma única célula; por isso tocar em qualquer vão selecionava
@@ -17621,7 +17651,7 @@ function moveSpaceRootToPosition(root,{leftX,yBase,backZ,linkedObjects=null}={})
   return {dx,dy,dz,count:linkedSet.size};
 }
 // ============================================================================
-// 1.200.84 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
+// 1.200.85 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
 // ============================================================================
 // O espaço principal continua sendo editado por openEditSpaceDialog(). Para uma
 // divisão interna, ajustamos apenas a fronteira compartilhada com o vão vizinho:
@@ -17891,7 +17921,7 @@ function resizeSelectedSpaceCell(ctx,targetMm,fixed){
     return {o,min:Number(b[minK]),max:Number(b[maxK]),oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000},verticalDivider:axis==='x'&&isVerticalDivisionPiece(o,root)};
   });
 
-  // 1.200.84: o "vizinho" pode ter sido cortado novamente em 2, 3 ou mais
+  // 1.200.85: o "vizinho" pode ter sido cortado novamente em 2, 3 ou mais
   // vãos. Remapeamos TODOS os descendentes do mesmo bloco, não apenas um irmão.
   const affected=(ctx.affectedCells?.length?ctx.affectedCells:[cell]).filter(c=>(root.cells||[]).includes(c));
   for(const c of affected){
@@ -19773,7 +19803,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.84';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.85';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
