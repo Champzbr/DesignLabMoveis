@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.81-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.82-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.81-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.82-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -686,10 +686,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.81';
+  return tm?.[1]||'1.200.82';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.81-r1';
+const DESIGNLAB_JS_BUILD='1.200.82-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -3523,7 +3523,7 @@ let visualMode=false;
 // É somente uma preferência da vista atual: não altera o projeto nem o estado
 // individual "Ocultar portas" de cada espaço.
 let quickFrontFacesHidden=false;
-// 1.200.81 · atalho visual global para esconder/mostrar os volumes dos espaços.
+// 1.200.82 · atalho visual global para esconder/mostrar os volumes dos espaços.
 // Afeta somente a visualização/seleção dos espaços; peças do móvel continuam visíveis.
 let quickSpacesHidden=false;
 
@@ -4982,7 +4982,7 @@ function setFrontWorldView(){
   controls.target.set(0,.8,0); perspectiveCamera.lookAt(controls.target); controls.update(); remember3DView();
 }
 
-// 1.200.81 · divisão automática do vão em N partes iguais quando a medida = 0.
+// 1.200.82 · divisão automática do vão em N partes iguais quando a medida = 0.
 // A divisão é gravada como uma sequência de cortes reais, preservando a árvore
 // manualCut usada para editar vãos antigos/descendentes e para histórico.
 function divideSelectedSpaceEvenly(side,count,isFixed=false){
@@ -5288,7 +5288,7 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   const src=rootBounds(root);
   const dst={minX:src.minX,maxX:src.minX+width,minY:yBase,maxY:yBase+height,minZ:src.minZ,maxZ:src.minZ+depth};
   const fixedX=fixedIntervalsFromSpace(root,'x'), fixedY=fixedIntervalsFromSpace(root,'y'), fixedZ=fixedIntervalsFromSpace(root,'z');
-  // 1.200.81: no redimensionamento do móvel inteiro, os vãos SOLTOS
+  // 1.200.82: no redimensionamento do móvel inteiro, os vãos SOLTOS
   // recebem partes iguais do espaço livre; faixas travadas preservam milímetros.
   const mapX=makeBalancedFixedAxisMapper(src.minX,src.maxX,dst.minX,dst.maxX,fixedX);
   const mapY=makeBalancedFixedAxisMapper(src.minY,src.maxY,dst.minY,dst.maxY,fixedY);
@@ -11020,7 +11020,7 @@ function makeFixedAxisMapper(srcMin,srcMax,dstMin,dstMax,fixedIntervals){
   };
 }
 
-// 1.200.81 · Ao redimensionar o móvel inteiro, faixas travadas continuam com
+// 1.200.82 · Ao redimensionar o móvel inteiro, faixas travadas continuam com
 // a medida exata e TODOS os vãos soltos entre elas passam a dividir igualmente
 // o espaço que sobrar. O mapper antigo acima continua sendo usado pelo editor
 // pontual de um único vão, onde preservar a geometria local é mais seguro.
@@ -11179,9 +11179,14 @@ function placeCustomTemplate(item,info){
     const layout=item.layout||null;
     if(layout?.space){
       const lb=layoutBoundsFromSpace(layout.space)||sb;
-      const mapX=makeFixedAxisMapper(lb.minX,lb.maxX,info.cell.minX,info.cell.maxX,fixedIntervalsFromSpace(layout.space,'x'));
-      const mapY=makeFixedAxisMapper(lb.minY,lb.maxY,info.cell.minY,info.cell.maxY,fixedIntervalsFromSpace(layout.space,'y'));
-      const mapZ=makeFixedAxisMapper(lb.minZ,lb.maxZ,info.cell.minZ,info.cell.maxZ,fixedIntervalsFromSpace(layout.space,'z'));
+      // 1.200.82: a Biblioteca local/global precisa usar a MESMA regra do
+      // redimensionamento do espaço principal. Faixas travadas mantêm os mm e
+      // todos os vãos soltos dividem igualmente o restante do destino.
+      // Antes a biblioteca ainda usava makeFixedAxisMapper(), que preservava
+      // a proporção antiga e fazia um vão absorver quase todo o aumento.
+      const mapX=makeBalancedFixedAxisMapper(lb.minX,lb.maxX,info.cell.minX,info.cell.maxX,fixedIntervalsFromSpace(layout.space,'x'));
+      const mapY=makeBalancedFixedAxisMapper(lb.minY,lb.maxY,info.cell.minY,info.cell.maxY,fixedIntervalsFromSpace(layout.space,'y'));
+      const mapZ=makeBalancedFixedAxisMapper(lb.minZ,lb.maxZ,info.cell.minZ,info.cell.maxZ,fixedIntervalsFromSpace(layout.space,'z'));
       for(const p of item.parts){
         const pMinX=p.x-p.width/2,pMaxX=p.x+p.width/2,pMinY=p.yBase,pMaxY=p.yBase+p.height,pMinZ=p.z-p.depth/2,pMaxZ=p.z+p.depth/2;
         const nx0=mapX(pMinX),nx1=mapX(pMaxX),ny0=mapY(pMinY),ny1=mapY(pMaxY),nz0=mapZ(pMinZ),nz1=mapZ(pMaxZ);
@@ -11189,7 +11194,7 @@ function placeCustomTemplate(item,info){
         const x=(nx0+nx1)/2,yBase=ny0,z=(nz0+nz1)/2;
         createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z});
       }
-      toast('Componente ajustado · medidas fixas preservadas');
+      toast('Componente ajustado · fixos preservados · vãos soltos iguais');
     } else {
       const sx=info.size.width/sw, sy=info.size.height/sh, sz=info.size.depth/sd;
       for(const p of item.parts){
@@ -17373,7 +17378,7 @@ function moveSpaceRootToPosition(root,{leftX,yBase,backZ,linkedObjects=null}={})
   return {dx,dy,dz,count:linkedSet.size};
 }
 // ============================================================================
-// 1.200.81 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
+// 1.200.82 · EDITAR O ESPAÇO/VÃO SELECIONADO DIRETO PELO TOQUE LONGO
 // ============================================================================
 // O espaço principal continua sendo editado por openEditSpaceDialog(). Para uma
 // divisão interna, ajustamos apenas a fronteira compartilhada com o vão vizinho:
@@ -17643,7 +17648,7 @@ function resizeSelectedSpaceCell(ctx,targetMm,fixed){
     return {o,min:Number(b[minK]),max:Number(b[maxK]),oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000},verticalDivider:axis==='x'&&isVerticalDivisionPiece(o,root)};
   });
 
-  // 1.200.81: o "vizinho" pode ter sido cortado novamente em 2, 3 ou mais
+  // 1.200.82: o "vizinho" pode ter sido cortado novamente em 2, 3 ou mais
   // vãos. Remapeamos TODOS os descendentes do mesmo bloco, não apenas um irmão.
   const affected=(ctx.affectedCells?.length?ctx.affectedCells:[cell]).filter(c=>(root.cells||[]).includes(c));
   for(const c of affected){
@@ -19525,7 +19530,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.81';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.82';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
