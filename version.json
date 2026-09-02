@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.80",
+  "version": "1.200.81",
   "required": false,
-  "message": "Corte de espaço com quantidade de vãos: usando medida 0, 1 mantém inteiro, 2 divide ao meio, 3 divide em três e assim por diante até 50 vãos iguais. Mantém o corte manual por medida e o travamento dos vãos.",
-  "released_at": "2026-09-02T10:45:00-03:00",
-  "build": "1.200.80-r1"
+  "message": "Ao redimensionar o móvel, faixas/vãos travados mantêm a medida exata e todos os vãos soltos no mesmo eixo dividem igualmente o espaço restante. Corrige o caso em que um vão absorvia quase todo o aumento e os outros ficavam menores.",
+  "released_at": "2026-09-02T11:50:00-03:00",
+  "build": "1.200.81-r1"
 }
