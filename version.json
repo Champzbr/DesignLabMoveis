@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.84",
+  "version": "1.200.85",
   "required": false,
-  "message": "Corrige o redimensionamento dos modelos da Biblioteca: agora cada vão solto real é redistribuído igualmente, mesmo quando dois vãos encostam na mesma linha de corte. Faixas travadas e intervalos estruturais mantêm a medida original.",
-  "released_at": "2026-09-02T12:46:00-03:00",
-  "build": "1.200.84-r1"
+  "message": "Corrige a redistribuição dos vãos soltos: laterais/divisões/faixas travadas mantêm a medida e cada vão físico recebe exatamente uma parte igual, sem ser subdividido por cortes de outros eixos.",
+  "released_at": "2026-09-02T13:05:00-03:00",
+  "build": "1.200.85-r1"
 }
