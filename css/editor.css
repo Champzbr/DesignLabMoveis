@@ -468,3 +468,18 @@
 .slattedPanelWarning strong,.slattedPanelWarning span{display:block}.slattedPanelWarning span{margin-top:3px;color:#cfc4a5}
 #quickDockSubmenu[data-kind="machining"]{width:min(520px,calc(100vw - 12px))}
 #quickDockSubmenu[data-kind="machining"] #quickDockSubmenuTools{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+
+/* 1.200.94 · material diretamente na configuração da peça */
+.pieceMaterialSelect{
+  width:100%;min-height:43px;padding:8px 10px;border:1px solid #484d50;border-radius:9px;
+  background:#0e1112;color:#fff;font-size:11px;font-weight:750;
+}
+.pieceMaterialSelect optgroup{font-weight:900;color:#c9d8e8;background:#111}
+.pieceMaterialSelect option{color:#fff;background:#111}
+.pieceMaterialSyncChoice{
+  display:flex;align-items:flex-start;gap:8px;margin-top:8px;padding:7px 8px;border-radius:8px;
+  border:1px solid #343b40;background:#101314;color:#aab5ba;font-size:8px;line-height:1.35;cursor:pointer;
+}
+.pieceMaterialSyncChoice input{width:18px;height:18px;margin:0;accent-color:#2d7dfa;flex:0 0 auto}
+.pieceMaterialApplyBtn{width:100%;min-height:42px;margin-top:8px;font-weight:900}
