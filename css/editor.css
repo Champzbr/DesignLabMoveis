@@ -350,15 +350,15 @@
   .spaceMoreGrid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px; }
   .spaceMoreGrid button { width:100%; min-height:44px; }
 
-  #newSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #deleteSpaceCellDialog, #slattedPanelDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog, #adminDialog {
+  #newSpaceDialog, #editSelectedSpaceDialog, #editSpaceDialog, #cutSpaceDialog, #createPiecesDialog, #drawerSystemDialog, #libraryDialog, #spaceMoreDialog, #deleteSpaceCellDialog, #slattedPanelDialog, #machiningDialog, #hardwareBuilderDialog, #partsListDialog, #curvedStructureDialog, #shapeDialog, #productionDialog, #adminDialog {
     position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.68); display:none;
     align-items:center; justify-content:center; padding:16px; touch-action:auto;
   }
-  #newSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #deleteSpaceCellDialog .card, #slattedPanelDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card, #adminDialog .card {
+  #newSpaceDialog .card, #editSelectedSpaceDialog .card, #editSpaceDialog .card, #cutSpaceDialog .card, #createPiecesDialog .card, #drawerSystemDialog .card, #libraryDialog .card, #spaceMoreDialog .card, #deleteSpaceCellDialog .card, #slattedPanelDialog .card, #machiningDialog .card, #hardwareBuilderDialog .card, #partsListDialog .card, #curvedStructureDialog .card, #shapeDialog .card, #productionDialog .card, #adminDialog .card {
     width:min(430px,100%); max-height:82%; overflow:auto; background:#222; border-radius:16px;
     padding:14px; box-shadow:0 12px 35px rgba(0,0,0,.52); border:1px solid rgba(255,255,255,.08);
   }
-  #newSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #deleteSpaceCellDialog h3, #slattedPanelDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3, #adminDialog h3 { margin:0 0 5px; font-size:16px; }
+  #newSpaceDialog h3, #editSelectedSpaceDialog h3, #editSpaceDialog h3, #cutSpaceDialog h3, #createPiecesDialog h3, #drawerSystemDialog h3, #libraryDialog h3, #spaceMoreDialog h3, #deleteSpaceCellDialog h3, #slattedPanelDialog h3, #machiningDialog h3, #hardwareBuilderDialog h3, #partsListDialog h3, #curvedStructureDialog h3, #shapeDialog h3, #productionDialog h3, #adminDialog h3 { margin:0 0 5px; font-size:16px; }
   .dialogHelp { margin:0 0 11px; color:var(--muted); font-size:11px; line-height:1.35; }
   .spaceFields { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
   .spaceFields.two { grid-template-columns:1fr 1fr; }
