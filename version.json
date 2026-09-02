@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.88",
+  "version": "1.200.89",
   "required": false,
-  "message": "Redimensionamento direto: soma todas as faixas travadas do modelo, desconta do comprimento novo e divide o restante igualmente entre os vãos principais. Ignora cortes locais que antes faziam um vão receber duas partes.",
-  "released_at": "2026-09-02T13:40:00-03:00",
-  "build": "1.200.88-r1"
+  "message": "Biblioteca paramétrica corrigida: usa fixedBands como fonte de verdade, desconta somente as faixas realmente travadas e divide o restante igualmente entre os vãos soltos. Ignora fixedAxes herdado quando existe banda fixa salva.",
+  "released_at": "2026-09-02T13:55:00-03:00",
+  "build": "1.200.89-r1"
 }
