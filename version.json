@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.87",
+  "version": "1.200.88",
   "required": false,
-  "message": "Corrige modelos antigos da Biblioteca: peças estruturais que já ocupavam faixas do móvel voltam a manter 18 mm, 60 mm etc., e o restante é dividido igualmente entre os vãos. Adiciona botão Configuração para abrir o menu do espaço ou da peça selecionada.",
-  "released_at": "2026-09-02T13:28:00-03:00",
-  "build": "1.200.87-r1"
+  "message": "Redimensionamento direto: soma todas as faixas travadas do modelo, desconta do comprimento novo e divide o restante igualmente entre os vãos principais. Ignora cortes locais que antes faziam um vão receber duas partes.",
+  "released_at": "2026-09-02T13:40:00-03:00",
+  "build": "1.200.88-r1"
 }
