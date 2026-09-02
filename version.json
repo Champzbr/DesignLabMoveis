@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.92",
+  "version": "1.200.93",
   "required": false,
-  "message": "Configuração de peça persistente: medidas/posição exatas e ajustes X/Y/Z, faces e rotações ficam salvos. Ao redimensionar o móvel ou inserir pela Biblioteca, a geometria paramétrica é recalculada e os mesmos ajustes são reaplicados sem escalar ou zerar.",
-  "released_at": "2026-09-02T15:00:00-03:00",
-  "build": "1.200.92-r1"
+  "message": "Seleção mais segura no CAD: duplo toque e toque segurado não abrem mais configurações. Use o botão Configuração. Novo botão Ocultar selecionado acima da Grade; o botão Mostrar espaços agora restaura todos os espaços e divisões do projeto.",
+  "released_at": "2026-09-02T14:55:00-03:00",
+  "build": "1.200.93-r1"
 }
