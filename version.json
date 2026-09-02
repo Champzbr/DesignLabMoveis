@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.90",
+  "version": "1.200.92",
   "required": false,
-  "message": "Biblioteca paramétrica: reconstrói as faixas realmente travadas diretamente da árvore de cortes (manualCut), desconta somente essas medidas e divide o restante igualmente entre os vãos soltos. Inclui diagnóstico do comprimento ao inserir.",
-  "released_at": "2026-09-02T14:10:00-03:00",
-  "build": "1.200.90-r1"
+  "message": "Configuração de peça persistente: medidas/posição exatas e ajustes X/Y/Z, faces e rotações ficam salvos. Ao redimensionar o móvel ou inserir pela Biblioteca, a geometria paramétrica é recalculada e os mesmos ajustes são reaplicados sem escalar ou zerar.",
+  "released_at": "2026-09-02T15:00:00-03:00",
+  "build": "1.200.92-r1"
 }
