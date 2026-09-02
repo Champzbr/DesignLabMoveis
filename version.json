@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.77",
+  "version": "1.200.78",
   "required": false,
-  "message": "Correção de inicialização: o app volta a carregar pelo js/app.js com cache-busting, sem depender de um segundo arquivo JS versionado.",
-  "released_at": "2026-09-01T15:00:00-03:00",
-  "build": "1.200.77-r1"
+  "message": "Editar espaço selecionado por toque longo: ajuste da medida do vão e travado/solto. Corrige também materiais e fitas com medidas decimais como 18,5 mm.",
+  "released_at": "2026-09-02T09:15:00-03:00",
+  "build": "1.200.78-r1"
 }

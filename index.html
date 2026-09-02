@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.77-r1">
+<meta name="designlab-build" content="1.200.78-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.77-r1';
+  const BUILD='1.200.78-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -24,7 +24,7 @@
   const USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';
   let theme='light';
   try{
-    // 1.200.77: tema da Home nasce CLARO. Nenhuma chave de versões antigas
+    // 1.200.78: tema da Home nasce CLARO. Nenhuma chave de versões antigas
     // pode ativar o escuro. Só uma escolha feita no seletor desta geração (V2)
     // habilita o modo escuro. Isso elimina instalações antigas presas no dark.
     const explicit=localStorage.getItem(USER_CHOICE_KEY);
@@ -43,7 +43,7 @@
 <script id="designLabStartupServerRefresh">
 (function(){
   'use strict';
-  // 1.200.77: a abertura/retomada nunca recarrega automaticamente para a raiz.
+  // 1.200.78: a abertura/retomada nunca recarrega automaticamente para a raiz.
   // Isso preserva o projeto aberto. A recuperação forçada do servidor existe
   // somente no botão manual de Configurações.
   window.__designLabStartupOnline=!!navigator.onLine;
@@ -61,7 +61,7 @@
 <script id="designLabEarlyBackBootstrap">
 (function(){
   'use strict';
-  // 1.200.77 · NAVEGAÇÃO REAL DO PWA.
+  // 1.200.78 · NAVEGAÇÃO REAL DO PWA.
   // Não fabricamos uma pilha no carregamento. O Chrome pode ignorar estados
   // criados sem gesto do usuário. Apenas marcamos a entrada atual como HOME.
   // A entrada HOME-GUARD e a WORKSPACE serão criadas dentro do toque real que
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.200.77';
+    st[KEY]=route;st.__designLabRouteVersion='1.200.78';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.77 - Correção de inicialização do JavaScript</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.77-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.77-r1">
+<title>DesignLabMoveis 1.200.78 - Editar espaço selecionado e decimais</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.78-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.78-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -126,7 +126,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.77</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.78</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -248,7 +248,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.77</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.78</span>
         </div>
       </div>
 
@@ -545,7 +545,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.77</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.78</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -571,7 +571,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.77</strong>
+        <strong id="updateCurrentVersion">1.200.78</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -614,7 +614,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.77 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.78 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -976,7 +976,7 @@
         <label>Material salvo<select id="productionMaterialSelect"></select></label>
         <label>Nome<input id="productionMaterialName" placeholder="Ex.: MDF Branco TX 18"></label>
         <label>Código / referência<input id="productionMaterialCode" placeholder="Ex.: BR-TX18"></label>
-        <label>Espessura nominal (mm)<input id="productionMaterialThickness" type="number" value="18" min="0.1" step="0.1"></label>
+        <label>Espessura nominal (mm)<input id="productionMaterialThickness" type="text" inputmode="decimal" value="18" autocomplete="off"></label>
         <label>Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
         <label>Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="100" step="1"></label>
         <label>Sentido do veio na chapa
@@ -1012,8 +1012,8 @@
         <label>Fita salva<select id="productionBandSelect"></select></label>
         <label>Nome<input id="productionBandName" placeholder="Ex.: Fita branca 0,45"></label>
         <label>Código / referência<input id="productionBandCode" placeholder="Opcional"></label>
-        <label>Espessura da fita (mm)<input id="productionBandThickness" type="number" value="0.45" min="0.1" step="0.05"></label>
-        <label>Largura da fita (mm)<input id="productionBandWidth" type="number" value="22" min="1" step="1"></label>
+        <label>Espessura da fita (mm)<input id="productionBandThickness" type="text" inputmode="decimal" value="0,45" autocomplete="off"></label>
+        <label>Largura da fita (mm)<input id="productionBandWidth" type="text" inputmode="decimal" value="22" autocomplete="off"></label>
         <label>Cor visual<input id="productionBandColor" type="color" value="#f5f5f2"></label>
       </div>
 
@@ -1482,6 +1482,7 @@
     <button id="curvedSpaceBtn" class="secondary">◒ Móvel curvo</button>
     <button id="openLibraryBtn" class="secondary">▦ Biblioteca</button>
     <button id="hideSelectedSpaceBtn" class="secondary">◫ Ocultar selecionado</button>
+    <button id="editSelectedSpaceBtn" class="secondary" style="grid-column:1 / -1">✎ Editar espaço selecionado</button>
     <button id="deleteSelectedSpaceBtn" class="danger" style="grid-column:1 / -1">🗑 Apagar espaço / móvel</button>
     <button id="deleteSpaceCellBtn" class="danger" style="grid-column:1 / -1">🧩 Apagar espaço selecionado</button>
     <button id="spaceMoreBtn" class="secondary" style="grid-column:1 / -1">••• Mais</button>
@@ -1532,7 +1533,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.77</span>
+      <span class="cutPlanBadge">1.200.78</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -1663,6 +1664,38 @@
       <span id="sheetPreviewFaceInfo">Plano otimizado</span>
       <span id="sheetPreviewPosition">X — · Y — mm</span>
     </div>
+  </div>
+</div>
+
+<div id="editSelectedSpaceDialog">
+  <div class="card">
+    <h3>Editar espaço selecionado</h3>
+    <p id="editSelectedSpaceInfo" class="dialogHelp">Selecione um vão/divisão e segure para editar.</p>
+
+    <div class="spaceMaterialDefaultBox" style="margin-top:10px">
+      <div class="spaceMaterialHead">
+        <strong>📐 Medida deste espaço</strong>
+        <span>o móvel externo continua com o mesmo tamanho</span>
+      </div>
+      <div class="spaceFields">
+        <label>Largura (mm)<input id="editSelectedSpaceW" type="text" inputmode="decimal" value="0"></label>
+        <label>Profundidade (mm)<input id="editSelectedSpaceD" type="text" inputmode="decimal" value="0"></label>
+        <label>Altura (mm)<input id="editSelectedSpaceH" type="text" inputmode="decimal" value="0"></label>
+      </div>
+      <p id="editSelectedSpaceMeasureHelp" class="dialogHelp" style="margin:8px 0 0">A medida ligada ao corte fica editável; as outras servem como referência.</p>
+    </div>
+
+    <label class="fixedChoice" style="margin-top:10px">
+      <input id="editSelectedSpaceFixed" type="checkbox">
+      <div>
+        <strong>🔒 Espaço travado / fixo</strong>
+        <span id="editSelectedSpaceFixedHelp">Marcado: esta medida fica fixa quando o móvel/modelo for redimensionado. Desmarcado: este vão fica solto e absorve a diferença.</span>
+      </div>
+    </label>
+
+    <div id="editSelectedSpacePreview" class="spaceCreatePreview" style="margin-top:10px">Espaço selecionado</div>
+    <p class="dialogHelp" style="margin-top:9px">Ao alterar a medida, a divisória entre este espaço e o espaço vizinho é deslocada. O espaço vizinho absorve a diferença; o tamanho externo do móvel não muda.</p>
+    <div class="dialogActions"><button id="cancelEditSelectedSpace" class="secondary">Cancelar</button><button id="confirmEditSelectedSpace">Aplicar alterações</button></div>
   </div>
 </div>
 
@@ -2491,7 +2524,7 @@
   </div>
 </div>
 
-<!-- 1.200.77 · barra original preservada + submenus flutuantes -->
+<!-- 1.200.78 · barra original preservada + submenus flutuantes -->
 <div id="quickDock" aria-label="Barra de atalhos rápidos do CAD">
   <div id="quickDockTools"></div>
   <button id="quickDockSwap" class="secondary" type="button" aria-label="Trocar página de atalhos" title="Trocar atalhos">⇄</button>
@@ -2524,6 +2557,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.77-r1"></script>
+<script type="module" src="js/app.js?v=1.200.78-r1"></script>
 </body>
 </html>
