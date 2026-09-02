@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.85",
+  "version": "1.200.86",
   "required": false,
-  "message": "Corrige a redistribuição dos vãos soltos: laterais/divisões/faixas travadas mantêm a medida e cada vão físico recebe exatamente uma parte igual, sem ser subdividido por cortes de outros eixos.",
-  "released_at": "2026-09-02T13:05:00-03:00",
-  "build": "1.200.85-r1"
+  "message": "Redistribui o móvel pela regra exata do modelo: tudo que foi travado mantém a medida original; todo o restante é dividido igualmente entre os vãos soltos, sem inferir travamentos pelas peças.",
+  "released_at": "2026-09-02T13:15:00-03:00",
+  "build": "1.200.86-r1"
 }
