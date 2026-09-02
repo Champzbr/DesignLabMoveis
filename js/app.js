@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.90-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.92-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.90-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.92-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -689,7 +689,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.200.84';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.90-r1';
+const DESIGNLAB_JS_BUILD='1.200.92-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -5328,8 +5328,13 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   // Captura as peças antes de alterar os limites do espaço.
   const linked=objects.filter(o=>o.userData?.spaceRootId===root.id || objectInsideSpaceRoot(o,root));
   const pieceStates=linked.map(o=>{
-    const u=o.userData;
-    return {o, minX:o.position.x-u.width/2,maxX:o.position.x+u.width/2,minY:o.position.y-u.height/2,maxY:o.position.y+u.height/2,minZ:o.position.z-u.depth/2,maxZ:o.position.z+u.depth/2,oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000}};
+    const u=o.userData,d=normalizePieceManualGeometryDelta(u.manualGeometryDelta);
+    const curYBase=o.position.y-u.height/2;
+    // Remove somente o ajuste manual para descobrir a peça-base que deve
+    // acompanhar o móvel. Depois do mapeamento o mesmo delta será reaplicado.
+    const bw=Math.max(.001,Number(u.width)-d.dw),bd=Math.max(.001,Number(u.depth)-d.dd),bh=Math.max(.001,Number(u.height)-d.dh);
+    const bx=o.position.x-d.dx,byBase=curYBase-d.dyBase,bz=o.position.z-d.dz;
+    return {o,d,minX:bx-bw/2,maxX:bx+bw/2,minY:byBase,maxY:byBase+bh,minZ:bz-bd/2,maxZ:bz+bd/2,oldDimsMm:{x:Number(u.width)*1000,y:Number(u.height)*1000,z:Number(u.depth)*1000}};
   });
 
   // Primeiro remapeia as divisões/vãos internos.
@@ -5343,12 +5348,14 @@ function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){
   // trechos soltos absorvem o aumento/redução do móvel.
   for(const st of pieceStates){
     const o=st.o,u=o.userData;
-    const nx0=mapX(st.minX), nx1=mapX(st.maxX), ny0=mapY(st.minY), ny1=mapY(st.maxY), nz0=mapZ(st.minZ), nz1=mapZ(st.maxZ);
-    const nw=Math.max(.001,Math.abs(nx1-nx0)), nh=Math.max(.001,Math.abs(ny1-ny0)), nd=Math.max(.001,Math.abs(nz1-nz0));
-    u.width=nw; u.height=nh; u.depth=nd;
+    const nx0=mapX(st.minX), nx1=mapX(st.maxX), ny0=mapY(st.minY), ny1=mapY(st.maxY), nz0=mapZ(st.minZ), nz1=mapZ(st.maxZ),d=st.d;
+    const baseW=Math.max(.001,Math.abs(nx1-nx0)),baseH=Math.max(.001,Math.abs(ny1-ny0)),baseD=Math.max(.001,Math.abs(nz1-nz0));
+    const nw=Math.max(.001,baseW+d.dw),nh=Math.max(.001,baseH+d.dh),nd=Math.max(.001,baseD+d.dd);
+    u.width=nw;u.height=nh;u.depth=nd;
     remapMachiningForPieceResize(o,st.oldDimsMm,{x:nw*1000,y:nh*1000,z:nd*1000});
     if(Array.isArray(u.forms)&&u.forms.length){o.scale.set(1,1,1);rebuildFormGeometry(o);}else o.scale.set(nw,nh,nd);
-    o.position.set((nx0+nx1)/2,(ny0+ny1)/2,(nz0+nz1)/2);
+    const mappedBaseY=Math.min(ny0,ny1);
+    o.position.set((nx0+nx1)/2+d.dx,mappedBaseY+d.dyBase+nh/2,(nz0+nz1)/2+d.dz);
     updateAutoMachiningAfterPieceResize(o);
     sanitizeMachiningForPiece(o);
   }
@@ -5548,7 +5555,7 @@ function deleteSelectedSpaceCell(){
   return true;
 }
 
-function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null}={}, doHistory=true){
+function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null, manualGeometryDelta=null, pieceSavedConfig=null}={}, doHistory=true){
   width=clampSize(width); depth=clampSize(depth); height=clampSize(height);
   const mats=makeMaterials(baseColor,6);
   const mesh=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),mats);
@@ -5582,7 +5589,12 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     // Guarda o vão ORIGINAL no qual esta peça estrutural foi criada. Isso
     // permite devolver somente a espessura da peça ao vão correto ao apagá-la,
     // sem misturar com divisões vizinhas do mesmo espaço.
-    spaceCutParentBounds:spaceCutParentBounds?JSON.parse(JSON.stringify(spaceCutParentBounds)):null
+    spaceCutParentBounds:spaceCutParentBounds?JSON.parse(JSON.stringify(spaceCutParentBounds)):null,
+    // 1.200.92 · ajustes manuais da configuração da peça ficam separados da
+    // geometria paramétrica. Assim Biblioteca/redimensionamento recalculam a
+    // peça-base e reaplicam exatamente os mesmos milímetros/posição depois.
+    manualGeometryDelta:manualGeometryDelta?JSON.parse(JSON.stringify(manualGeometryDelta)):null,
+    pieceSavedConfig:pieceSavedConfig?JSON.parse(JSON.stringify(pieceSavedConfig)):null
   };
   mesh.castShadow=true; mesh.receiveShadow=true;
 
@@ -6563,8 +6575,9 @@ function updateInspector(){
   }
   if(hasGrain)$('objectType').textContent += grainRot===90?' · VEIO 90°':' · VEIO 0°';
 
-  // Os campos relativos sempre começam em zero quando a seleção muda/atualiza.
-  resetPieceRelativeInputs();
+  // 1.200.92: os campos relativos são uma configuração persistente da peça.
+  // Ao reabrir, mostramos exatamente os valores salvos em vez de zerá-los.
+  loadPieceRelativeInputs(selected);
 }
 function updateMeasureBadge(){
   if(selected){
@@ -6714,6 +6727,9 @@ let tapePieceFirst=null;
 let tapePieceSecond=null;
 let tapePieceHover=null;
 let tapeMeasurementCommitted=false;
+// 1.200.91 · Depois da 2ª peça a Trena encerra automaticamente, mas a
+// última medida fica "latched" na tela até a próxima interação do usuário.
+let tapeMeasurementLatched=false;
 
 const tapeFirstPieceBox=new THREE.Box3Helper(new THREE.Box3(),0x00e5ff);
 tapeFirstPieceBox.visible=false; tapeFirstPieceBox.renderOrder=108; tapeFirstPieceBox.material.depthTest=false; scene.add(tapeFirstPieceBox);
@@ -6793,6 +6809,7 @@ function tapeUpdatePiecePrompt(){
   }
 }
 function resetTapeMeasure(){
+  tapeMeasurementLatched=false;
   tapeStart=null;
   tapeStartClient=null;
   tapeHover=null;
@@ -6819,6 +6836,48 @@ function hideTapeCrosshair(){
   tapeSnapDot.style.display='none';
   tapeAim=null;
 }
+
+function clearLatchedTapeMeasurement(){
+  if(!tapeMeasurementLatched)return;
+  tapeMeasurementLatched=false;
+  tapeMeasurementCommitted=false;
+  tapePieceFirst=null;
+  tapePieceSecond=null;
+  tapePieceHover=null;
+  tapePreviewLine.visible=false;
+  tapeSourceEdgeLine.visible=false;
+  tapeOffsetLine.visible=false;
+  tapePointMarker.visible=false;
+  tapeFirstPieceBox.visible=false;
+  tapeSecondPieceBox.visible=false;
+  tapeHoverPieceBox.visible=false;
+  liveLabel.style.display='none';
+}
+
+function closeTapeAfterCommittedMeasurement(){
+  // Não chama setTool('select'), porque setTool limparia a linha e o texto
+  // imediatamente. Aqui só desarma a ferramenta; a medida fica visível até
+  // o próximo clique/toque em qualquer outro lugar.
+  tapeMeasurementLatched=true;
+  tapeMeasurementCommitted=false;
+  tapePieceHover=null;
+  tapeFirstPieceBox.visible=false;
+  tapeSecondPieceBox.visible=false;
+  tapeHoverPieceBox.visible=false;
+  tapePointMarker.visible=false;
+  hideTapeCrosshair();
+  toolMode='select';
+  $('hintText').textContent='Selecionar · toque exatamente onde o dedo encostar';
+  if(typeof syncToolDockButtons==='function')syncToolDockButtons();
+}
+
+// A medida concluída permanece na tela, mas qualquer interação seguinte
+// (na área 3D ou em um botão da interface) a remove antes de continuar.
+const clearTapeLatchedOnNextInteraction=()=>{
+  if(tapeMeasurementLatched&&toolMode!=='tape')clearLatchedTapeMeasurement();
+};
+document.addEventListener('pointerdown',clearTapeLatchedOnNextInteraction,true);
+document.addEventListener('touchstart',clearTapeLatchedOnNextInteraction,{capture:true,passive:true});
 
 function setTapeCrosshair(client,aim,snapClient=null){
   // A mira principal acompanha SEMPRE o dedo/mouse.
@@ -7260,8 +7319,8 @@ function handleTapeTap(event){
   tapeSetBoxHelper(tapeSecondPieceBox,tapePieceSecond);
   tapeHoverPieceBox.visible=false;
   tapeShowPieceDistance(tapePieceFirst,tapePieceSecond,{committed:true});
-  tapeUpdatePiecePrompt();
   tapeLastConfirmedTap={time:0,x:-9999,y:-9999,key:''};
+  closeTapeAfterCommittedMeasurement();
   return true;
 }
 
@@ -7387,6 +7446,7 @@ function captureObjects(){
     spaceRootId:o.userData.spaceRootId||null,
     machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,
     divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,
+    manualGeometryDelta:productionClone(o.userData.manualGeometryDelta||null),pieceSavedConfig:productionClone(o.userData.pieceSavedConfig||null),
     rotationX:Number(o.rotation.x)||0,rotationY:Number(o.rotation.y)||0,rotationZ:Number(o.rotation.z)||0,
     width:o.userData.width,depth:o.userData.depth,height:o.userData.height,
     x:Number.isFinite(o.userData.curvedTargetX)?o.userData.curvedTargetX:o.position.x,yBase:o.position.y-o.userData.height/2,z:Number.isFinite(o.userData.curvedTargetZ)?o.userData.curvedTargetZ:o.position.z
@@ -7523,6 +7583,72 @@ function redo(){ if(historyIndex>=history.length-1){toast('Nada para refazer');r
 // ============================================================================
 // 1.100.32 · AJUSTES RELATIVOS / POR FACE
 // ============================================================================
+
+// 1.200.92 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
+// ----------------------------------------------------
+// manualGeometryDelta guarda o efeito geométrico LÍQUIDO de tudo que o usuário
+// alterou pela configuração da peça. É propositalmente independente do tamanho
+// do móvel: no redimensionamento/Biblioteca primeiro recalculamos a peça-base e
+// só então reaplicamos estes deltas em metros (e rotações em radianos).
+function normalizePieceManualGeometryDelta(v){
+  const src=v&&typeof v==='object'?v:{};
+  const out={};
+  for(const k of ['dw','dd','dh','dx','dyBase','dz','drx','dry','drz']){
+    const n=Number(src[k]);out[k]=Number.isFinite(n)?n:0;
+  }
+  return out;
+}
+function pieceGeometrySnapshot(mesh){
+  if(!mesh)return null;const u=mesh.userData||{};
+  return {
+    width:Number(u.width)||0,depth:Number(u.depth)||0,height:Number(u.height)||0,
+    x:Number(mesh.position.x)||0,yBase:(Number(mesh.position.y)||0)-(Number(u.height)||0)/2,z:Number(mesh.position.z)||0,
+    rx:Number(mesh.rotation.x)||0,ry:Number(mesh.rotation.y)||0,rz:Number(mesh.rotation.z)||0
+  };
+}
+function accumulatePieceManualGeometryDelta(mesh,before){
+  if(!mesh||!before)return;const after=pieceGeometrySnapshot(mesh),u=mesh.userData||{};
+  const d=normalizePieceManualGeometryDelta(u.manualGeometryDelta);
+  d.dw+=after.width-before.width;d.dd+=after.depth-before.depth;d.dh+=after.height-before.height;
+  d.dx+=after.x-before.x;d.dyBase+=after.yBase-before.yBase;d.dz+=after.z-before.z;
+  d.drx+=after.rx-before.rx;d.dry+=after.ry-before.ry;d.drz+=after.rz-before.rz;
+  for(const k of Object.keys(d))if(Math.abs(d[k])<1e-12)d[k]=0;
+  u.manualGeometryDelta=d;
+}
+function normalizePieceSavedConfig(v){
+  const src=v&&typeof v==='object'?v:{};
+  const num=(obj,k)=>{const n=Number(obj?.[k]);return Number.isFinite(n)?n:0;};
+  return {
+    move:{x:num(src.move,'x'),y:num(src.move,'y'),z:num(src.move,'z')},
+    faces:{left:num(src.faces,'left'),right:num(src.faces,'right'),back:num(src.faces,'back'),front:num(src.faces,'front'),bottom:num(src.faces,'bottom'),top:num(src.faces,'top')},
+    rotation:{x:num(src.rotation,'x'),y:num(src.rotation,'y'),z:num(src.rotation,'z')}
+  };
+}
+function loadPieceRelativeInputs(mesh=selected){
+  const cfg=normalizePieceSavedConfig(mesh?.userData?.pieceSavedConfig);
+  const values={
+    pieceMoveX:cfg.move.x,pieceMoveY:cfg.move.y,pieceMoveZ:cfg.move.z,
+    pieceFaceLeft:cfg.faces.left,pieceFaceRight:cfg.faces.right,pieceFaceBack:cfg.faces.back,pieceFaceFront:cfg.faces.front,
+    pieceFaceBottom:cfg.faces.bottom,pieceFaceTop:cfg.faces.top,
+    pieceRotX:cfg.rotation.x,pieceRotY:cfg.rotation.y,pieceRotZ:cfg.rotation.z
+  };
+  for(const [id,val] of Object.entries(values)){const el=$(id);if(el)el.value=nice(val);}
+}
+function pieceParametricBaseFromRecord(p){
+  const d=normalizePieceManualGeometryDelta(p?.manualGeometryDelta);
+  const width=Math.max(.001,(Number(p?.width)||0)-d.dw),depth=Math.max(.001,(Number(p?.depth)||0)-d.dd),height=Math.max(.001,(Number(p?.height)||0)-d.dh);
+  return {d,width,depth,height,x:(Number(p?.x)||0)-d.dx,yBase:(Number(p?.yBase)||0)-d.dyBase,z:(Number(p?.z)||0)-d.dz};
+}
+function pieceMappedGeometryWithManualDelta(p,mapX,mapY,mapZ){
+  const b=pieceParametricBaseFromRecord(p),d=b.d;
+  const x0=mapX(b.x-b.width/2),x1=mapX(b.x+b.width/2),y0=mapY(b.yBase),y1=mapY(b.yBase+b.height),z0=mapZ(b.z-b.depth/2),z1=mapZ(b.z+b.depth/2);
+  const baseW=Math.max(.001,Math.abs(x1-x0)),baseH=Math.max(.001,Math.abs(y1-y0)),baseD=Math.max(.001,Math.abs(z1-z0));
+  return {
+    width:Math.max(.001,baseW+d.dw),height:Math.max(.001,baseH+d.dh),depth:Math.max(.001,baseD+d.dd),
+    x:(x0+x1)/2+d.dx,yBase:Math.min(y0,y1)+d.dyBase,z:(z0+z1)/2+d.dz
+  };
+}
+
 const PIECE_RELATIVE_INPUT_IDS=[
   'pieceMoveX','pieceMoveY','pieceMoveZ',
   'pieceFaceLeft','pieceFaceRight',
@@ -7572,125 +7698,63 @@ function applyPieceRelativeConfig(){
     return;
   }
 
-  const moveMm={
-    x:pieceRelativeNumber('pieceMoveX'),
-    y:pieceRelativeNumber('pieceMoveY'),
-    z:pieceRelativeNumber('pieceMoveZ')
-  };
-
-  // Cada valor representa o deslocamento DAQUELA FACE:
-  // positivo = face anda para fora, aumentando a peça;
-  // negativo = face anda para dentro, diminuindo a peça.
+  // Os campos agora representam o AJUSTE TOTAL salvo da peça, e não uma ação
+  // descartável. Se o usuário tinha -18 e muda para -20, aplicamos somente -2.
+  const desired=normalizePieceSavedConfig({
+    move:{x:pieceRelativeNumber('pieceMoveX'),y:pieceRelativeNumber('pieceMoveY'),z:pieceRelativeNumber('pieceMoveZ')},
+    faces:{left:pieceRelativeNumber('pieceFaceLeft'),right:pieceRelativeNumber('pieceFaceRight'),back:pieceRelativeNumber('pieceFaceBack'),front:pieceRelativeNumber('pieceFaceFront'),bottom:pieceRelativeNumber('pieceFaceBottom'),top:pieceRelativeNumber('pieceFaceTop')},
+    rotation:{x:pieceRelativeNumber('pieceRotX'),y:pieceRelativeNumber('pieceRotY'),z:pieceRelativeNumber('pieceRotZ')}
+  });
+  const saved=normalizePieceSavedConfig(selected.userData?.pieceSavedConfig);
+  const sub=(a,b)=>Number(a)-Number(b);
+  const moveMm={x:sub(desired.move.x,saved.move.x),y:sub(desired.move.y,saved.move.y),z:sub(desired.move.z,saved.move.z)};
   const faceMm={
-    left:pieceRelativeNumber('pieceFaceLeft'),
-    right:pieceRelativeNumber('pieceFaceRight'),
-    back:pieceRelativeNumber('pieceFaceBack'),
-    front:pieceRelativeNumber('pieceFaceFront'),
-    bottom:pieceRelativeNumber('pieceFaceBottom'),
-    top:pieceRelativeNumber('pieceFaceTop')
+    left:sub(desired.faces.left,saved.faces.left),right:sub(desired.faces.right,saved.faces.right),
+    back:sub(desired.faces.back,saved.faces.back),front:sub(desired.faces.front,saved.faces.front),
+    bottom:sub(desired.faces.bottom,saved.faces.bottom),top:sub(desired.faces.top,saved.faces.top)
   };
-
-  const rotDeg={
-    x:pieceRelativeNumber('pieceRotX'),
-    y:pieceRelativeNumber('pieceRotY'),
-    z:pieceRelativeNumber('pieceRotZ')
-  };
+  const rotDeg={x:sub(desired.rotation.x,saved.rotation.x),y:sub(desired.rotation.y,saved.rotation.y),z:sub(desired.rotation.z,saved.rotation.z)};
 
   const nums=[...Object.values(moveMm),...Object.values(faceMm),...Object.values(rotDeg)];
-  if(!nums.every(Number.isFinite)){
-    toast('Confira os valores da configuração');
-    return;
-  }
+  if(!nums.every(Number.isFinite)){toast('Confira os valores da configuração');return;}
 
+  const before=pieceGeometrySnapshot(selected);
   const u=selected.userData;
-  const oldW=Number(u.width)||0;
-  const oldD=Number(u.depth)||0;
-  const oldH=Number(u.height)||0;
-
-  // A dimensão total muda pela SOMA dos dois lados.
-  // Ex.: somente Cima=-20 => altura perde EXATAMENTE 20 mm.
+  const oldW=Number(u.width)||0,oldD=Number(u.depth)||0,oldH=Number(u.height)||0;
   const newW=oldW+m(faceMm.left+faceMm.right);
   const newD=oldD+m(faceMm.back+faceMm.front);
   const newH=oldH+m(faceMm.bottom+faceMm.top);
+  if(newW<MIN_SIZE||newD<MIN_SIZE||newH<MIN_SIZE){toast('O ajuste deixaria a peça com medida menor que 1 mm');return;}
+  if(newW>MAX_SIZE||newD>MAX_SIZE||newH>MAX_SIZE){toast('O ajuste ultrapassa a medida máxima permitida');return;}
 
-  if(newW<MIN_SIZE||newD<MIN_SIZE||newH<MIN_SIZE){
-    toast('O ajuste deixaria a peça com medida menor que 1 mm');
-    return;
-  }
-  if(newW>MAX_SIZE||newD>MAX_SIZE||newH>MAX_SIZE){
-    toast('O ajuste ultrapassa a medida máxima permitida');
-    return;
-  }
-
-  // Preserva a face oposta.
-  //
-  // X:
-  // esquerda positiva expande para -X => centro vai -left/2
-  // direita positiva expande para +X => centro vai +right/2
-  //
-  // Y:
-  // baixo positivo expande para -Y
-  // cima positivo expande para +Y
-  //
-  // Z:
-  // trás positivo expande para -Z
-  // frente positivo expande para +Z
   const shiftLocalX=m((faceMm.right-faceMm.left)/2);
   const shiftLocalY=m((faceMm.top-faceMm.bottom)/2);
   const shiftLocalZ=m((faceMm.front-faceMm.back)/2);
+  if(Math.abs(shiftLocalX)>1e-12)selected.position.addScaledVector(pieceLocalAxisVector(selected,'x'),shiftLocalX);
+  if(Math.abs(shiftLocalY)>1e-12)selected.position.addScaledVector(pieceLocalAxisVector(selected,'y'),shiftLocalY);
+  if(Math.abs(shiftLocalZ)>1e-12)selected.position.addScaledVector(pieceLocalAxisVector(selected,'z'),shiftLocalZ);
 
-  if(Math.abs(shiftLocalX)>1e-12){
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'x'),shiftLocalX);
-  }
-  if(Math.abs(shiftLocalY)>1e-12){
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'y'),shiftLocalY);
-  }
-  if(Math.abs(shiftLocalZ)>1e-12){
-    selected.position.addScaledVector(pieceLocalAxisVector(selected,'z'),shiftLocalZ);
-  }
-
-  if(
-    Math.abs(newW-oldW)>1e-12||
-    Math.abs(newD-oldD)>1e-12||
-    Math.abs(newH-oldH)>1e-12
-  ){
-    setDimensions(selected,newW,newD,newH,false);
-  }
-
-  // Deslocamento da peça inteira nos eixos GLOBAIS.
-  selected.position.x+=m(moveMm.x);
-  selected.position.y+=m(moveMm.y);
-  selected.position.z+=m(moveMm.z);
-
-  // Rotação relativa.
+  if(Math.abs(newW-oldW)>1e-12||Math.abs(newD-oldD)>1e-12||Math.abs(newH-oldH)>1e-12)setDimensions(selected,newW,newD,newH,false);
+  selected.position.x+=m(moveMm.x);selected.position.y+=m(moveMm.y);selected.position.z+=m(moveMm.z);
   selected.rotation.order='XYZ';
-  selected.rotation.x+=THREE.MathUtils.degToRad(rotDeg.x);
-  selected.rotation.y+=THREE.MathUtils.degToRad(rotDeg.y);
-  selected.rotation.z+=THREE.MathUtils.degToRad(rotDeg.z);
+  selected.rotation.x+=THREE.MathUtils.degToRad(rotDeg.x);selected.rotation.y+=THREE.MathUtils.degToRad(rotDeg.y);selected.rotation.z+=THREE.MathUtils.degToRad(rotDeg.z);
   syncPieceRotationMetadata(selected);
 
+  // Só depois de aplicar a diferença, a configuração digitada vira o novo
+  // estado persistente. Isso impede clicar duas vezes em Aplicar de duplicar o ajuste.
+  u.pieceSavedConfig=desired;
+  accumulatePieceManualGeometryDelta(selected,before);
   selected.updateMatrixWorld(true);
   if(Array.isArray(u.machining)&&u.machining.length)renderMachiningVisuals();
+  updateInspector();updateMeasureBadge();commitHistory();
 
-  updateInspector();
-  updateMeasureBadge();
-  resetPieceRelativeInputs();
-  commitHistory();
-
-  const changedFaces=Object.entries(faceMm)
-    .filter(([,v])=>Math.abs(v)>1e-12)
-    .map(([k])=>({
-      left:'esquerda',right:'direita',
-      back:'trás',front:'frente',
-      bottom:'baixo',top:'cima'
-    }[k]));
-
-  const parts=[];
-  if(moveMm.x||moveMm.y||moveMm.z)parts.push('deslocada');
-  if(changedFaces.length)parts.push(`faces: ${changedFaces.join(', ')}`);
-  if(rotDeg.x||rotDeg.y||rotDeg.z)parts.push('rotacionada');
-
-  toast(parts.length?`Peça ajustada · ${parts.join(' · ')}`:'Nenhum ajuste informado');
+  const changedFaces=Object.entries(faceMm).filter(([,v])=>Math.abs(v)>1e-12).map(([k])=>({left:'esquerda',right:'direita',back:'trás',front:'frente',bottom:'baixo',top:'cima'}[k]));
+  const parts=[];if(moveMm.x||moveMm.y||moveMm.z)parts.push('posição salva');if(changedFaces.length)parts.push(`faces: ${changedFaces.join(', ')}`);if(rotDeg.x||rotDeg.y||rotDeg.z)parts.push('rotação salva');
+  toast(parts.length?`Configuração da peça salva · ${parts.join(' · ')}`:'Configuração já estava aplicada');
+}
+function resetPieceRelativeConfig(){
+  for(const id of PIECE_RELATIVE_INPUT_IDS){const el=$(id);if(el)el.value='0';}
+  applyPieceRelativeConfig();
 }
 
 function setDimensions(mesh,width,depth,height,keepBase=true,followMachining=true){
@@ -7715,17 +7779,20 @@ function applyExactPanel(){
   const w=clampSize(m($('dimW').value)), d=clampSize(m($('dimD').value)), h=clampSize(m($('dimH').value));
   const x=m($('posX').value), yBase=m($('posY').value), z=m($('posZ').value);
   if(![w,d,h,x,yBase,z].every(Number.isFinite)){ toast('Confira os valores'); return; }
+  const before=pieceGeometrySnapshot(selected);
   selected.userData.name=$('partNameInput').value.trim() || selected.userData.name || 'Peça';
   setDimensions(selected,w,d,h,false);
   selected.position.set(x,yBase+h/2,z);
   syncPieceRotationMetadata(selected);
-  updateInspector(); updateMeasureBadge(); commitHistory(); toast('Medidas aplicadas');
+  accumulatePieceManualGeometryDelta(selected,before);
+  updateInspector(); updateMeasureBadge(); commitHistory(); toast('Medidas / posição salvas na peça');
 }
 
 function rotateBox(axis){
   if(!selected) return;
   if(Array.isArray(selected.userData?.forms)&&selected.userData.forms.length){toast('Remova ou edite a Forma antes de girar a peça');return;}
   if(selected.userData.kind==='cylinder'){ toast('Rotação de cilindro ainda não é necessária'); return; }
+  const before=pieceGeometrySnapshot(selected);
   const u=selected.userData;
   const base=selected.position.y-u.height/2;
   let w=u.width,d=u.depth,h=u.height;
@@ -7735,6 +7802,7 @@ function rotateBox(axis){
   setDimensions(selected,w,d,h,false,false);
   selected.position.y=base+h/2;
   if(u.kind==='panel') u.materialType='MDF';
+  accumulatePieceManualGeometryDelta(selected,before);
   updateInspector(); updateMeasureBadge(); commitHistory();
 }
 
@@ -7818,7 +7886,9 @@ function duplicateSelected(){
     rotationZ:Number(source.rotation.z)||0,
     excludeFromCutList:!!u.excludeFromCutList,
     spaceCutting:!!u.spaceCutting,
-    spaceCutParentBounds:u.spaceCutParentBounds?JSON.parse(JSON.stringify(u.spaceCutParentBounds)):null
+    spaceCutParentBounds:u.spaceCutParentBounds?JSON.parse(JSON.stringify(u.spaceCutParentBounds)):null,
+    manualGeometryDelta:u.manualGeometryDelta?JSON.parse(JSON.stringify(u.manualGeometryDelta)):null,
+    pieceSavedConfig:u.pieceSavedConfig?JSON.parse(JSON.stringify(u.pieceSavedConfig)):null
   };
 
   let copy=null;
@@ -11485,6 +11555,8 @@ function copyLibraryPartMeta(created,p){
   u.drawerConfig=p.drawerConfig?JSON.parse(JSON.stringify(p.drawerConfig)):null;
   u.doorConfig=p.doorConfig?JSON.parse(JSON.stringify(p.doorConfig)):null;
   u.excludeFromCutList=!!p.excludeFromCutList;
+  u.manualGeometryDelta=p.manualGeometryDelta?JSON.parse(JSON.stringify(p.manualGeometryDelta)):null;
+  u.pieceSavedConfig=p.pieceSavedConfig?JSON.parse(JSON.stringify(p.pieceSavedConfig)):null;
   u.spaceCutting=!!p.spaceCutting||isSpaceCuttingPieceForHeal(created);
   if(Number.isFinite(Number(p.divisionNominalThicknessM))&&Number(p.divisionNominalThicknessM)>0)u.divisionNominalThicknessM=Number(p.divisionNominalThicknessM);
   restoreBaseColor(created);return created;
@@ -11512,7 +11584,7 @@ function createLibraryTemplatePart(p,info,{width,depth,height,x,yBase,z}={}){
     // estrutural usam a posição antiga como fallback.
     created=createCurvedPost({cfg,yBase,x:structural?.x??x,z:structural?.z??z,name:p.name||'Montante curvo',spaceRootId:info.root.id,rotationY:structural?.rotationY??(Number(p.rotationY)||0)},false);
   }else{
-    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:adaptedMachining,forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationY:Number(p.rotationY)||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
+    created=createBox({width,depth,height,x,yBase,z,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,spaceRootId:info.root.id,machining:adaptedMachining,forms:p.forms||[],doorConfig:p.doorConfig||null,edgeBands:p.edgeBands||{},materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,partId:p.partId||null,labelMeta:p.labelMeta||null,rotationX:Number(p.rotationX)||0,rotationY:Number(p.rotationY)||0,rotationZ:Number(p.rotationZ)||0,manualGeometryDelta:p.manualGeometryDelta||null,pieceSavedConfig:p.pieceSavedConfig||null,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:p.drawerConfig||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null},false);
   }
   return copyLibraryPartMeta(created,adaptedPart);
 }
@@ -11656,11 +11728,10 @@ function placeCustomTemplate(item,info){
       for(const originalPart of item.parts){
         const p=libraryRemapPartCellRefs(originalPart,info.root.id,topology.cellIdMap,fallbackCellId);
         const pInfo=libraryInfoForPart(info,p);
-        const pMinX=p.x-p.width/2,pMaxX=p.x+p.width/2,pMinY=p.yBase,pMaxY=p.yBase+p.height,pMinZ=p.z-p.depth/2,pMaxZ=p.z+p.depth/2;
-        const nx0=mapX(pMinX),nx1=mapX(pMaxX),ny0=mapY(pMinY),ny1=mapY(pMaxY),nz0=mapZ(pMinZ),nz1=mapZ(pMaxZ);
-        const width=Math.max(.001,nx1-nx0),height=Math.max(.001,ny1-ny0),depth=Math.max(.001,nz1-nz0);
-        const x=(nx0+nx1)/2,yBase=ny0,z=(nz0+nz1)/2;
-        createLibraryTemplatePart(p,pInfo,{width,depth,height,x,yBase,z});
+        // 1.200.92: mapeia a geometria PARAMÉTRICA original e só depois
+        // reaplica os ajustes manuais salvos (faces, posição e medidas exatas).
+        const geom=pieceMappedGeometryWithManualDelta(p,mapX,mapY,mapZ);
+        createLibraryTemplatePart(p,pInfo,geom);
       }
       renderSpaces();
       const selectedCell=topology.selectedCell&&getSpaceCell(info.root.id,topology.selectedCell.id);
@@ -11677,8 +11748,9 @@ function placeCustomTemplate(item,info){
     } else {
       const sx=info.size.width/sw, sy=info.size.height/sh, sz=info.size.depth/sd;
       for(const p of item.parts){
-        const x=info.cell.minX+(p.x-sb.minX)*sx, yBase=info.cell.minY+(p.yBase-sb.minY)*sy, z=info.cell.minZ+(p.z-sb.minZ)*sz;
-        createLibraryTemplatePart(p,info,{width:p.width*sx,depth:p.depth*sz,height:p.height*sy,x,yBase,z});
+        const b=pieceParametricBaseFromRecord(p),d=b.d;
+        const x=info.cell.minX+(b.x-sb.minX)*sx+d.dx, yBase=info.cell.minY+(b.yBase-sb.minY)*sy+d.dyBase, z=info.cell.minZ+(b.z-sb.minZ)*sz+d.dz;
+        createLibraryTemplatePart(p,info,{width:Math.max(.001,b.width*sx+d.dw),depth:Math.max(.001,b.depth*sz+d.dd),height:Math.max(.001,b.height*sy+d.dh),x,yBase,z});
       }
       toast('Componente ajustado ao espaço');
     }
@@ -14750,11 +14822,11 @@ function captureFurniture(root){
     materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialGrainRotation:normalizePieceGrainRotation(o.userData.materialGrainRotation),materialCoreColor:o.userData.materialCoreColor||null,
     edgeBands:productionClone(o.userData.edgeBands||{}),partId:o.userData.partId||null,labelMeta:productionClone(o.userData.labelMeta||{schemaVersion:1,enabled:true}),
     spaceRootId:root.id,
-    machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,rotationY:Number(o.rotation.y)||0,
+    machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,manualGeometryDelta:productionClone(o.userData.manualGeometryDelta||null),pieceSavedConfig:productionClone(o.userData.pieceSavedConfig||null),rotationX:Number(o.rotation.x)||0,rotationY:Number(o.rotation.y)||0,rotationZ:Number(o.rotation.z)||0,
     width:o.userData.width,depth:o.userData.depth,height:o.userData.height,
     x:Number.isFinite(o.userData.curvedTargetX)?o.userData.curvedTargetX:o.position.x,yBase:o.position.y-o.userData.height/2,z:Number.isFinite(o.userData.curvedTargetZ)?o.userData.curvedTargetZ:o.position.z
   }));
-  return {type:'mini-cad-furniture',version:56,unit:'meter',name:root.name||'Móvel',createdAt:new Date().toISOString(),objects:parts,spaces:[stateSpace],production:captureProductionState()};
+  return {type:'mini-cad-furniture',version:57,unit:'meter',name:root.name||'Móvel',createdAt:new Date().toISOString(),objects:parts,spaces:[stateSpace],production:captureProductionState()};
 }
 function dxfModelCleanLayerName(name,index){
   const raw=String(name||`Peca ${index+1}`).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -19386,7 +19458,7 @@ $('pieceNamePresetSelect')?.addEventListener('change',e=>{if(e.target.value)appl
 $('pieceNameCustomAddBtn')?.addEventListener('click',createPieceNamePreset);
 $('pieceNameCustomInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();createPieceNamePreset();}});
 $('applyPieceRelative').onclick=applyPieceRelativeConfig;
-$('resetPieceRelative').onclick=resetPieceRelativeInputs;
+$('resetPieceRelative').onclick=resetPieceRelativeConfig;
 $('duplicateBtn').onclick=requestDuplicateSelected;
 $('confirmDuplicateBtn').onclick=confirmDuplicateSelected;
 $('cancelDuplicateBtn').onclick=cancelDuplicateConfirmation;
@@ -20010,7 +20082,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.90';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.92';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
