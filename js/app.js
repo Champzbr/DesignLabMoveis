@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.92-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.93-r1';
 
 
 // ============================================================================
@@ -123,7 +123,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.92-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.93-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -689,7 +689,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.200.84';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.92-r1';
+const DESIGNLAB_JS_BUILD='1.200.93-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -4741,12 +4741,18 @@ function applyQuickFrontVisibility(hidden,{notify=false}={}){
   if(typeof renderMachiningVisuals==='function')renderMachiningVisuals();
   if(notify)toast(quickFrontFacesHidden?'Portas e frentes de gaveta ocultadas':'Portas e frentes de gaveta exibidas');
 }
+function hasIndividuallyHiddenSpaces(){
+  return spaceRoots.some(root=>!!root.spaceHidden || (root.cells||[]).some(c=>!!c.hidden));
+}
 function syncQuickSpaceVisibilityButton(){
   const btn=$('cadSpaceQuickToggle');if(!btn)return;
-  btn.classList.toggle('active',!!quickSpacesHidden);
-  btn.setAttribute('aria-pressed',quickSpacesHidden?'true':'false');
-  btn.textContent=quickSpacesHidden?'▰ Mostrar espaços':'▱ Ocultar espaços';
-  btn.title=quickSpacesHidden?'Mostrar os volumes dos espaços':'Ocultar os volumes dos espaços';
+  // 1.200.93: se QUALQUER divisão foi ocultada individualmente, o botão geral
+  // já vira "Mostrar espaços". Ao mostrar, todos os espaços do projeto voltam.
+  const hasHidden=!!quickSpacesHidden || hasIndividuallyHiddenSpaces();
+  btn.classList.toggle('active',hasHidden);
+  btn.setAttribute('aria-pressed',hasHidden?'true':'false');
+  btn.textContent=hasHidden?'▰ Mostrar espaços':'▱ Ocultar espaços';
+  btn.title=hasHidden?'Mostrar TODOS os espaços e divisões do projeto':'Ocultar os volumes dos espaços';
 }
 function applyQuickSpaceVisibility(hidden,{notify=false}={}){
   quickSpacesHidden=!!hidden;
@@ -4761,8 +4767,40 @@ function applyQuickSpaceVisibility(hidden,{notify=false}={}){
   syncQuickSpaceVisibilityButton();
   if(notify)toast(quickSpacesHidden?'Espaços ocultados':'Espaços exibidos');
 }
+function showAllSpacesGeneral({notify=true}={}){
+  const wasGloballyHidden=!!quickSpacesHidden;
+  let restored=0;
+  quickSpacesHidden=false;
+  for(const root of spaceRoots){
+    if(root.spaceHidden){root.spaceHidden=false;restored++;}
+    for(const c of (root.cells||[])){
+      if(c.hidden){c.hidden=false;restored++;}
+    }
+  }
+  renderSpaces();
+  syncQuickSpaceVisibilityButton();
+  updateSpaceVisibilityToggleButton();
+  // hidden das divisões faz parte do projeto; esconder tudo pelo botão geral é só visual.
+  if(restored)commitHistory();
+  if(notify)toast((restored||wasGloballyHidden)?'Todos os espaços foram exibidos':'Todos os espaços já estão visíveis');
+}
+function quickToggleAllSpaces(){
+  if(quickSpacesHidden || hasIndividuallyHiddenSpaces()){
+    showAllSpacesGeneral({notify:true});
+  }else{
+    applyQuickSpaceVisibility(true,{notify:true});
+  }
+}
+function hideQuickSelectedSpace(){
+  if(!selectedSpaceCell){toast('Selecione o espaço que deseja ocultar');return false;}
+  // Se o projeto inteiro estava oculto, não existe seleção utilizável. Mantemos a
+  // ação individual independente e fazemos o botão geral refletir o novo estado.
+  toggleActiveSpaceVisibility();
+  syncQuickSpaceVisibilityButton();
+  return true;
+}
 
-// 1.200.90 · botão Configuração: reproduz exatamente o gesto de segurar.
+// 1.200.93 · botão Configuração é o único caminho rápido para abrir a configuração.
 // Espaço selecionado abre o menu completo (Corte, Peças, Biblioteca etc.);
 // peça selecionada abre o inspetor/configuração da própria peça.
 function openQuickSelectedConfiguration(){
@@ -4851,6 +4889,7 @@ function toggleActiveSpaceVisibility(){
   cell.hidden=true;
   const rootId=root.id;
   renderSpaces();
+  syncQuickSpaceVisibilityButton();
 
   // Depois de esconder o corte atual, tenta selecionar o corte mais próximo.
   // Em cortes de frente/trás isso normalmente leva direto ao espaço de dentro.
@@ -4862,20 +4901,9 @@ function toggleActiveSpaceVisibility(){
   toast('Corte ocultado · espaço principal mantido');
 }
 function showAllHiddenSpaces(){
-  let count=0;
-  for(const root of spaceRoots){
-    // Compatibilidade com projetos v32/v33 que ocultavam o espaço inteiro.
-    if(root.spaceHidden){ root.spaceHidden=false; }
-    for(const c of root.cells){
-      if(c.hidden){ c.hidden=false; count++; }
-    }
-  }
-  if(!count){ toast('Não há divisões ocultas'); return; }
-  renderSpaces();
-  updateSpaceVisibilityToggleButton();
-  commitHistory();
-  toast(count===1 ? 'Divisão oculta exibida' : `${count} divisões ocultas exibidas`);
+  showAllSpacesGeneral({notify:true});
 }
+
 function setSpaceActionCellMode(hasCell){
   for(const id of ['cutSpaceBtn','createPiecesBtn','openLibraryBtn','hideSelectedSpaceBtn','editSelectedSpaceBtn','deleteSelectedSpaceBtn']){
     const b=$(id);if(b)b.disabled=!hasCell;
@@ -5590,7 +5618,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     // permite devolver somente a espessura da peça ao vão correto ao apagá-la,
     // sem misturar com divisões vizinhas do mesmo espaço.
     spaceCutParentBounds:spaceCutParentBounds?JSON.parse(JSON.stringify(spaceCutParentBounds)):null,
-    // 1.200.92 · ajustes manuais da configuração da peça ficam separados da
+    // 1.200.93 · ajustes manuais da configuração da peça ficam separados da
     // geometria paramétrica. Assim Biblioteca/redimensionamento recalculam a
     // peça-base e reaplicam exatamente os mesmos milímetros/posição depois.
     manualGeometryDelta:manualGeometryDelta?JSON.parse(JSON.stringify(manualGeometryDelta)):null,
@@ -6575,7 +6603,7 @@ function updateInspector(){
   }
   if(hasGrain)$('objectType').textContent += grainRot===90?' · VEIO 90°':' · VEIO 0°';
 
-  // 1.200.92: os campos relativos são uma configuração persistente da peça.
+  // 1.200.93: os campos relativos são uma configuração persistente da peça.
   // Ao reabrir, mostramos exatamente os valores salvos em vez de zerá-los.
   loadPieceRelativeInputs(selected);
 }
@@ -7584,7 +7612,7 @@ function redo(){ if(historyIndex>=history.length-1){toast('Nada para refazer');r
 // 1.100.32 · AJUSTES RELATIVOS / POR FACE
 // ============================================================================
 
-// 1.200.92 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
+// 1.200.93 · CONFIGURAÇÃO MANUAL PERSISTENTE DA PEÇA
 // ----------------------------------------------------
 // manualGeometryDelta guarda o efeito geométrico LÍQUIDO de tudo que o usuário
 // alterou pela configuração da peça. É propositalmente independente do tamanho
@@ -8454,9 +8482,9 @@ function axisVector(axis){
   return axis==='x'?new THREE.Vector3(1,0,0):axis==='y'?new THREE.Vector3(0,1,0):new THREE.Vector3(0,0,1);
 }
 
-// PEÇAS: 1 clique seleciona; segurar abre Configuração da peça.
-// ESPAÇOS/DIVISÕES: 1 clique seleciona; segurar abre o menu flutuante.
-// O antigo duplo clique do espaço foi removido na 1.200.18.
+// 1.200.93 · INTERAÇÃO SIMPLES DO CAD:
+// PEÇAS e ESPAÇOS: toque/clique somente seleciona.
+// Duplo toque e toque segurado não abrem mais nada; use o botão ⚙ Configuração.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
@@ -8629,11 +8657,9 @@ function beginPick(){
     resetLinkedDoubleTap();
     if(toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
-      resetSpaceDoubleTap();
-      // 1.200.18: um toque apenas seleciona e fecha o menu. Segurar o mesmo
-      // espaço/divisão abre a janela, exatamente como a configuração da peça.
+      // 1.200.93: toque, duplo toque e toque segurado apenas SELECIONAM.
+      // A configuração agora abre exclusivamente pelo botão ⚙ Configuração.
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
-      startSpaceLongPress(rootId,cellId,activePointerId,downClientX,downClientY);
       dragMode=null; controls.enabled=true; return;
     }
     if(toolMode==='move-free'){
@@ -8653,22 +8679,15 @@ function beginPick(){
     toast('Use Selecionar, Mover ou as ações do espaço');
     dragMode=null; controls.enabled=true; return;
   }
-  let linkedDoublePending=false;
+  // 1.200.93: removidos duplo toque e toque segurado do CAD.
+  // Um toque apenas seleciona; qualquer configuração abre pelo botão fixo no canto.
   if(toolMode==='select'){
     cancelSpaceLongPress();
+    cancelPieceLongPress();
     resetSpaceDoubleTap();
-    linkedDoublePending=registerLinkedDoubleTap(obj);
-  } else {
     resetLinkedDoubleTap();
   }
   selectObject(obj);
-  if(toolMode==='select'){
-    startPieceLongPress(obj,activePointerId,downClientX,downClientY);
-    // No segundo toque também iniciamos o temporizador de segurar. Se o usuário
-    // apenas tocar duas vezes, o espaço vinculado abre; se mantiver pressionado,
-    // a configuração da peça ganha prioridade e cancela o duplo toque.
-    if(linkedDoublePending){dragMode=null;controls.enabled=true;return;}
-  }
   const f=worldAxisForFace(hit,obj);
   const u=obj.userData;
   dragStartState=stateString(); dragChanged=false;
@@ -8897,8 +8916,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{
   beginPick();
 });
 
-// Fallback para mouse/trackpad: o evento nativo de duplo clique também abre
-// o móvel, usando a mesma inferência de vínculo usada no duplo toque mobile.
+// 1.200.93: duplo clique não executa ação no CAD; apenas evita o comportamento nativo do navegador.
 if(desktopCadNavigation){
   renderer.domElement.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button===1){
@@ -8918,9 +8936,7 @@ if(desktopCadNavigation){
 }
 
 renderer.domElement.addEventListener('dblclick',e=>{
-  // O duplo clique continua reservado ao espaço/móvel vinculado.
-  // Configuração de peça agora abre ao clicar/tocar e segurar.
-  if(toolMode==='select')e.preventDefault();
+  if(toolMode==='select'){e.preventDefault();e.stopPropagation();}
 });
 
 function moveTapeCrosshairRaw(x,y){
@@ -11728,7 +11744,7 @@ function placeCustomTemplate(item,info){
       for(const originalPart of item.parts){
         const p=libraryRemapPartCellRefs(originalPart,info.root.id,topology.cellIdMap,fallbackCellId);
         const pInfo=libraryInfoForPart(info,p);
-        // 1.200.92: mapeia a geometria PARAMÉTRICA original e só depois
+        // 1.200.93: mapeia a geometria PARAMÉTRICA original e só depois
         // reaplica os ajustes manuais salvos (faces, posição e medidas exatas).
         const geom=pieceMappedGeometryWithManualDelta(p,mapX,mapY,mapZ);
         createLibraryTemplatePart(p,pInfo,geom);
@@ -19808,7 +19824,8 @@ $('cadGridVisibleSetting').addEventListener('change',e=>{
 });
 $('cadGridQuickToggle')?.addEventListener('click',()=>applyCadGridVisibility(!cadGridVisible,{persist:true,notify:true}));
 $('cadFrontQuickToggle')?.addEventListener('click',()=>applyQuickFrontVisibility(!quickFrontFacesHidden,{notify:true}));
-$('cadSpaceQuickToggle')?.addEventListener('click',()=>applyQuickSpaceVisibility(!quickSpacesHidden,{notify:true}));
+$('cadSpaceQuickToggle')?.addEventListener('click',quickToggleAllSpaces);
+$('cadHideSelectedSpaceQuick')?.addEventListener('click',hideQuickSelectedSpace);
 $('cadConfigQuickButton')?.addEventListener('click',openQuickSelectedConfiguration);
 syncQuickSpaceVisibilityButton();
 $('cadXrayVisibleSetting').addEventListener('change',e=>{
@@ -20082,7 +20099,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.92';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.93';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
