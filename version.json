@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.83",
+  "version": "1.200.84",
   "required": false,
-  "message": "A Biblioteca agora preserva os cortes/vãos reais do móvel ao inserir um modelo. Cada vão volta a ser selecionável separadamente, os travamentos de 18/18,5 mm são mantidos e o redimensionamento posterior consegue redistribuir igualmente os vãos soltos.",
-  "released_at": "2026-09-02T12:05:00-03:00",
-  "build": "1.200.83-r1"
+  "message": "Corrige o redimensionamento dos modelos da Biblioteca: agora cada vão solto real é redistribuído igualmente, mesmo quando dois vãos encostam na mesma linha de corte. Faixas travadas e intervalos estruturais mantêm a medida original.",
+  "released_at": "2026-09-02T12:46:00-03:00",
+  "build": "1.200.84-r1"
 }
