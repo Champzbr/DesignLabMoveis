@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.95",
+  "version": "1.200.96",
   "required": false,
-  "message": "Materiais padrão compactados: uma entrada por acabamento, busca rápida na Configuração da peça e espessura sempre herdada da própria peça. Fitas padrão também acompanham automaticamente a espessura.",
-  "released_at": "2026-09-02T17:05:00-03:00",
-  "build": "1.200.95-r1"
+  "message": "Premium offline seguro: após uma validação online, o app abre sem internet usando licença assinada. Revalida a cada 24 horas quando houver conexão e permite até 3 dias offline, respeitando a data real de expiração do Premium.",
+  "released_at": "2026-09-04T07:30:00-03:00",
+  "build": "1.200.96-r1"
 }

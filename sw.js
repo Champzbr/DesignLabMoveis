@@ -1,4 +1,4 @@
-const BUILD = '1.200.95-r1';
+const BUILD = '1.200.96-r1';
 const CACHE = 'designlabmoveis-' + BUILD;
 const APP_SHELL = [
   './',
@@ -7,19 +7,25 @@ const APP_SHELL = [
   './version.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './css/base.css?v=1.200.95-r1',
-  './css/editor.css?v=1.200.95-r1',
-  './css/materials.css?v=1.200.95-r1',
-  './css/labels.css?v=1.200.95-r1',
-  './css/cut-plan.css?v=1.200.95-r1',
-  './css/layout.css?v=1.200.95-r1',
-  './css/projects.css?v=1.200.95-r1',
-  './css/settings.css?v=1.200.95-r1',
-  './css/home.css?v=1.200.95-r1',
-  './css/mobile.css?v=1.200.95-r1',
-  './css/home-theme-120066.css?v=1.200.95-r1',
-  './js/app.js?v=1.200.95-r1',
+  './css/base.css?v=1.200.96-r1',
+  './css/editor.css?v=1.200.96-r1',
+  './css/materials.css?v=1.200.96-r1',
+  './css/labels.css?v=1.200.96-r1',
+  './css/cut-plan.css?v=1.200.96-r1',
+  './css/layout.css?v=1.200.96-r1',
+  './css/projects.css?v=1.200.96-r1',
+  './css/settings.css?v=1.200.96-r1',
+  './css/home.css?v=1.200.96-r1',
+  './css/mobile.css?v=1.200.96-r1',
+  './css/home-theme-120066.css?v=1.200.96-r1',
+  './js/app.js?v=1.200.96-r1',
   './js/qr-local.js'
+];
+
+const EXTERNAL_SHELL = [
+  'https://unpkg.com/three@0.160.0/build/three.module.js',
+  'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js',
+  'https://identity.netlify.com/v1/netlify-identity-widget.js'
 ];
 
 self.addEventListener('install', event => {
@@ -30,6 +36,15 @@ self.addEventListener('install', event => {
         const req=new Request(url,{cache:'reload'});
         const res=await fetch(req);
         if(res&&res.ok)await cache.put(req,res.clone());
+      }catch{}
+    }
+    // 1.200.96: guarda também as dependências externas necessárias ao CAD.
+    for(const url of EXTERNAL_SHELL){
+      try{
+        const noCors=url.includes('identity.netlify.com');
+        const req=new Request(url,{mode:noCors?'no-cors':'cors',cache:'reload'});
+        const res=await fetch(req);
+        if(res&&(res.ok||res.type==='opaque'))await cache.put(req,res.clone());
       }catch{}
     }
   })());
@@ -64,11 +79,24 @@ async function networkFirst(req){
   }
 }
 
+async function externalCacheFirst(req){
+  const cached=await caches.match(req);
+  if(cached)return cached;
+  try{
+    const res=await fetch(req);
+    if(res&&(res.ok||res.type==='opaque')){const cache=await caches.open(CACHE);await cache.put(req,res.clone());}
+    return res;
+  }catch{return Response.error();}
+}
+
 self.addEventListener('fetch', event => {
   const req=event.request;
   if(req.method!=='GET')return;
   const url=new URL(req.url);
   const sameOrigin=url.origin===self.location.origin;
+  const isThreeCdn=url.origin==='https://unpkg.com'&&url.pathname.startsWith('/three@0.160.0/');
+  const isIdentityWidget=url.origin==='https://identity.netlify.com'&&url.pathname==='/v1/netlify-identity-widget.js';
+  if(isThreeCdn||isIdentityWidget){event.respondWith(externalCacheFirst(req));return;}
   if(req.headers.has('Authorization') || url.pathname.startsWith('/.netlify/identity/') || !sameOrigin)return;
 
   const isVersion=url.pathname.endsWith('/version.json');
