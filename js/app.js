@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.95-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.96-r1';
 
 
 // ============================================================================
@@ -71,19 +71,168 @@ function escapeHtml(v){
 let identityClient=null;
 let currentIdentityUser=null;
 let authLocalMode=false;
+let authOfflineMode=false;
+let offlineLicensedUser=null;
+let offlineLicensePayload=null;
+let offlineAccessExpiryTimer=null;
 let authInitialized=false;
 let authWidgetEventsBound=false;
 let premiumAccessCheckSerial=0;
 let premiumAccessExpiryTimer=null;
 let premiumAccessRecheckTimer=null;
-const PREMIUM_ACCESS_RECHECK_MS=5*60*1000;
+const PREMIUM_ACCESS_RECHECK_MS=60*60*1000;
+
+// 1.200.96 · Premium offline assinado pelo Worker.
+// O app guarda apenas o token assinado. A chave privada fica SOMENTE no Worker.
+const OFFLINE_LICENSE_STORAGE_KEY='designlabOfflinePremiumLicenseV1';
+const OFFLINE_LICENSE_LAST_SEEN_PREFIX='designlabOfflinePremiumLastSeenV1:';
+const OFFLINE_LICENSE_PUBLIC_SPKI='MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIBmSfuYVRlpYFLz93j9Dgs7un4D5LNe8bapSn8qHq3gGddyI1zlHDweBuewwuvWwd5xy1escqSmDf4ibm1Miig==';
+const OFFLINE_LICENSE_CLOCK_TOLERANCE_MS=10*60*1000;
+let offlineLicensePublicKeyPromise=null;
 
 // 1.200.60: a versão comercial não possui bypass local.
 // Desenvolvimento/login devem ser testados no endereço HTTPS publicado.
 function isLocalAuthDevelopment(){ return false; }
+function offlineLicenseB64UrlToBytes(raw){
+  let s=String(raw||'').replace(/-/g,'+').replace(/_/g,'/');
+  while(s.length%4)s+='=';
+  const bin=atob(s),out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;
+}
+function offlineLicenseBase64ToBytes(raw){
+  const bin=atob(String(raw||'').replace(/\s+/g,'')),out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;
+}
+function offlineLicenseDecodeJson(part){
+  try{return JSON.parse(new TextDecoder().decode(offlineLicenseB64UrlToBytes(part)));}catch{return null;}
+}
+function offlineLicenseUserFromPayload(payload){
+  const name=String(payload?.name||payload?.email||'Usuário').trim();
+  return {
+    id:String(payload?.sub||''),email:String(payload?.email||''),name,
+    role:String(payload?.role||'user'),user_metadata:{full_name:name,name}
+  };
+}
+async function offlineLicensePublicKey(){
+  offlineLicensePublicKeyPromise ||= crypto.subtle.importKey(
+    'spki',offlineLicenseBase64ToBytes(OFFLINE_LICENSE_PUBLIC_SPKI),
+    {name:'ECDSA',namedCurve:'P-256'},false,['verify']
+  );
+  return offlineLicensePublicKeyPromise;
+}
+function offlineLicenseStoredToken(){
+  try{return String(localStorage.getItem(OFFLINE_LICENSE_STORAGE_KEY)||'').trim();}catch{return '';}
+}
+function offlineLicenseLastSeenKey(userId){return OFFLINE_LICENSE_LAST_SEEN_PREFIX+String(userId||'unknown');}
+function clearOfflinePremiumLicense({userId=null}={}){
+  try{
+    const token=offlineLicenseStoredToken();
+    const payload=token?offlineLicenseDecodeJson(token.split('.')[1]||''):null;
+    if(userId&&String(payload?.sub||'')!==String(userId))return false;
+    localStorage.removeItem(OFFLINE_LICENSE_STORAGE_KEY);
+    if(payload?.sub)localStorage.removeItem(offlineLicenseLastSeenKey(payload.sub));
+  }catch{}
+  clearTimeout(offlineAccessExpiryTimer);offlineAccessExpiryTimer=null;
+  authOfflineMode=false;offlineLicensedUser=null;offlineLicensePayload=null;
+  return true;
+}
+async function verifyOfflinePremiumToken(token,{expectedUserId=null,updateClock=true}={}){
+  try{
+    token=String(token||'').trim();
+    const parts=token.split('.');if(parts.length!==3)return {valid:false,reason:'format'};
+    const header=offlineLicenseDecodeJson(parts[0]),payload=offlineLicenseDecodeJson(parts[1]);
+    if(!header||!payload||header.alg!=='ES256'||header.typ!=='DLM-OFFLINE')return {valid:false,reason:'header'};
+    const key=await offlineLicensePublicKey();
+    const ok=await crypto.subtle.verify(
+      {name:'ECDSA',hash:'SHA-256'},key,offlineLicenseB64UrlToBytes(parts[2]),
+      new TextEncoder().encode(parts[0]+'.'+parts[1])
+    );
+    if(!ok)return {valid:false,reason:'signature'};
+    if(payload.v!==1||payload.iss!=='designlabmoveis-api'||payload.aud!=='designlabmoveis'||payload.premium!==true)return {valid:false,reason:'claims'};
+    const uid=String(payload.sub||'');if(!uid)return {valid:false,reason:'user'};
+    if(expectedUserId&&uid!==String(expectedUserId))return {valid:false,reason:'different_user'};
+    const now=Date.now(),issued=Number(payload.iat)*1000,offlineUntil=Number(payload.offline_until)*1000,recheckAfter=Number(payload.recheck_after)*1000;
+    if(!Number.isFinite(issued)||!Number.isFinite(offlineUntil)||!Number.isFinite(recheckAfter))return {valid:false,reason:'times'};
+    if(now+OFFLINE_LICENSE_CLOCK_TOLERANCE_MS<issued)return {valid:false,reason:'clock_before_issue'};
+    const lastKey=offlineLicenseLastSeenKey(uid);
+    let lastSeen=0;try{lastSeen=Number(localStorage.getItem(lastKey)||0)||0;}catch{}
+    if(lastSeen&&now+OFFLINE_LICENSE_CLOCK_TOLERANCE_MS<lastSeen)return {valid:false,reason:'clock_rollback'};
+    if(now>=offlineUntil)return {valid:false,reason:'offline_expired',payload};
+    if(payload.premium_until){
+      const premiumUntil=Date.parse(String(payload.premium_until));
+      if(Number.isFinite(premiumUntil)&&now>=premiumUntil)return {valid:false,reason:'premium_expired',payload};
+    }
+    if(updateClock){try{localStorage.setItem(lastKey,String(Math.max(lastSeen,now)));}catch{}}
+    return {valid:true,payload,token,needsRecheck:now>=recheckAfter,offlineUntil,recheckAfter,remainingMs:offlineUntil-now};
+  }catch(err){console.warn('Licença offline:',err);return {valid:false,reason:'verify_error',error:err};}
+}
+async function loadOfflinePremiumLicense({expectedUserId=null,updateClock=true}={}){
+  const token=offlineLicenseStoredToken();
+  if(!token)return {valid:false,reason:'missing'};
+  const result=await verifyOfflinePremiumToken(token,{expectedUserId,updateClock});
+  if(!result.valid&&['signature','claims','format','header','offline_expired','premium_expired'].includes(result.reason)){
+    clearOfflinePremiumLicense({userId:expectedUserId||null});
+  }
+  return result;
+}
+async function storeOfflinePremiumLicense(bundle,{expectedUserId=null}={}){
+  const token=String(bundle?.token||'').trim();if(!token)return false;
+  const result=await verifyOfflinePremiumToken(token,{expectedUserId,updateClock:true});
+  if(!result.valid){console.warn('Worker devolveu licença offline inválida:',result.reason);return false;}
+  try{localStorage.setItem(OFFLINE_LICENSE_STORAGE_KEY,token);}catch{return false;}
+  offlineLicensePayload=result.payload;offlineLicensedUser=offlineLicenseUserFromPayload(result.payload);
+  scheduleOfflineLicenseExpiry(result.payload);
+  return true;
+}
+function offlineLicenseRecheckDue(){
+  const t=Number(offlineLicensePayload?.recheck_after)*1000;
+  return !Number.isFinite(t)||Date.now()>=t;
+}
+function scheduleOfflineLicenseExpiry(payload){
+  clearTimeout(offlineAccessExpiryTimer);offlineAccessExpiryTimer=null;
+  const until=Number(payload?.offline_until)*1000;if(!Number.isFinite(until))return;
+  const remaining=until-Date.now();
+  if(remaining<=0){queueMicrotask(()=>showOfflineLicenseExpired());return;}
+  offlineAccessExpiryTimer=setTimeout(()=>handleOfflineLicenseDeadline(),Math.min(remaining+500,2147480000));
+}
+function handleOfflineLicenseDeadline(){
+  if(currentIdentityUser&&navigator.onLine){verifyPremiumWorkspaceAccess({background:true}).catch(()=>showOfflineLicenseExpired());return;}
+  showOfflineLicenseExpired();
+}
+function showOfflineLicenseExpired(){
+  clearOfflinePremiumLicense();
+  authOfflineMode=false;
+  $('authGate')?.classList.remove('hidden');
+  $('authMainActions')?.classList.remove('hidden');
+  hidePremiumAccessPanel();
+  showAuthInlineForm('main');
+  setAuthStatus('O período offline terminou. Conecte à internet para validar o Premium novamente.','warn');
+  updateIdentityChrome();
+}
+async function activateOfflinePremiumAccess(result,{message='Premium offline autorizado.'}={}){
+  if(!result?.valid)return false;
+  authOfflineMode=true;authLocalMode=false;
+  offlineLicensePayload=result.payload;offlineLicensedUser=offlineLicenseUserFromPayload(result.payload);
+  prepareProjectAccountSwitch();
+  updateIdentityChrome();
+  hidePremiumAccessPanel();
+  $('authBannedPanel')?.classList.remove('show');
+  $('authMainActions')?.classList.remove('hidden');
+  $('authGate')?.classList.add('hidden');
+  setAuthStatus(message,'good');
+  scheduleOfflineLicenseExpiry(result.payload);
+  queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
+  return true;
+}
+async function tryOfflinePremiumStartup(){
+  const result=await loadOfflinePremiumLicense();
+  if(!result.valid)return false;
+  await activateOfflinePremiumAccess(result,{message:result.needsRecheck?'Premium offline válido · verificaremos quando houver internet.':'Premium validado neste aparelho.'});
+  return true;
+}
 function authUserName(user){
   const meta=user?.user_metadata||{};
-  const full=String(meta.full_name||meta.name||'').trim();
+  const full=String(meta.full_name||meta.name||user?.name||'').trim();
   if(full)return full;
   const email=String(user?.email||'').trim();
   return email?email.split('@')[0]:'Usuário';
@@ -123,7 +272,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.95-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.96-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -226,6 +375,7 @@ function premiumUntilText(subscription){
 }
 function showPremiumAccessRequired(subscription,{verificationError=false}={}){
   if(authLocalMode)return;
+  authOfflineMode=false;clearTimeout(offlineAccessExpiryTimer);offlineAccessExpiryTimer=null;
   stopPremiumAccessWatch();
   $('authGate')?.classList.remove('hidden');
   $('authMainActions')?.classList.add('hidden');
@@ -254,7 +404,7 @@ function schedulePremiumAccessWatch(data){
     premiumAccessExpiryTimer=setTimeout(()=>verifyPremiumWorkspaceAccess({background:true}),Math.min(remaining+750,2147480000));
   }
   premiumAccessRecheckTimer=setInterval(()=>{
-    if(document.visibilityState==='visible'&&currentIdentityUser)verifyPremiumWorkspaceAccess({background:true});
+    if(document.visibilityState==='visible'&&currentIdentityUser&&navigator.onLine&&offlineLicenseRecheckDue())verifyPremiumWorkspaceAccess({background:true});
   },PREMIUM_ACCESS_RECHECK_MS);
 }
 async function verifyPremiumWorkspaceAccess({message='Conta conectada.',background=false}={}){
@@ -271,10 +421,16 @@ async function verifyPremiumWorkspaceAccess({message='Conta conectada.',backgrou
   if(serial!==premiumAccessCheckSerial||currentIdentityUser?.id!==user?.id)return false;
   if(cloudAccountState.banned)return false;
   if(!data){
-    // Durante uma sessão já verificada, uma queda momentânea não derruba o CAD
-    // antes da data de expiração conhecida. Na abertura, porém, falhamos fechado.
-    const until=Date.parse(String(cloudAccountState?.subscription?.premium_until||''));
-    if(background&&cloudAccountState?.subscription?.premium_active&&Number.isFinite(until)&&until>Date.now())return true;
+    // 1.200.96: se a nuvem cair, usamos SOMENTE uma licença local com assinatura
+    // válida, do mesmo usuário e dentro da janela máxima de 72 horas.
+    const cached=await loadOfflinePremiumLicense({expectedUserId:user?.id});
+    if(cached.valid){
+      offlineLicensePayload=cached.payload;offlineLicensedUser=offlineLicenseUserFromPayload(cached.payload);
+      hidePremiumAccessPanel();$('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');
+      setAuthStatus('Sem internet · Premium offline autorizado.','good');
+      scheduleOfflineLicenseExpiry(cached.payload);
+      return true;
+    }
     showPremiumAccessRequired(cloudAccountState?.subscription||null,{verificationError:true});
     return false;
   }
@@ -292,6 +448,17 @@ function updateIdentityChrome(){
   const chip=$('projectAccountChip'),avatar=$('projectAccountAvatar'),name=$('projectAccountName'),
         email=$('projectAccountEmail'),logout=$('homeLogoutBtn'),menu=$('projectMenuAccount');
 
+  if(authOfflineMode&&!currentIdentityUser&&offlineLicensedUser){
+    if(chip)chip.style.display='flex';
+    if(avatar)avatar.textContent=authUserInitials(offlineLicensedUser);
+    if(name)name.textContent=authUserName(offlineLicensedUser);
+    if(email)email.textContent=offlineLicensedUser.email||'Premium offline';
+    if(logout)logout.style.display='';
+    if(menu)menu.innerHTML=`<strong>${escapeHtml(authUserName(offlineLicensedUser))}</strong><br>${escapeHtml(offlineLicensedUser.email||'')}<br>Premium offline autorizado · nuvem sincroniza quando houver internet.`;
+    if(typeof updateCloudAccountChrome==='function')updateCloudAccountChrome();
+    if(typeof updateProjectHomeWelcome==='function')updateProjectHomeWelcome();
+    return;
+  }
   if(authLocalMode){
     if(chip)chip.style.display='flex';
     if(avatar)avatar.textContent='L';
@@ -317,8 +484,10 @@ function updateIdentityChrome(){
   if(typeof updateProjectHomeWelcome==='function')updateProjectHomeWelcome();
 }
 function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
+  if(authOfflineMode&&offlineLicensePayload){setAuthStatus('Premium offline autorizado. A validação online será retomada quando possível.','good');return;}
   stopPremiumAccessWatch();premiumAccessCheckSerial++;
   authLocalMode=false;
+  authOfflineMode=false;
   currentIdentityUser=null;
   hidePremiumAccessPanel();
   $('authBannedPanel')?.classList.remove('show');
@@ -330,11 +499,27 @@ function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
 function unlockOnlineApp(user,{message='Conta conectada.'}={}){
   currentIdentityUser=user||currentIdentityUser;
   authLocalMode=false;
+  authOfflineMode=false;
   prepareProjectAccountSwitch();
   updateIdentityChrome();
-  $('authGate')?.classList.remove('hidden');
-  setAuthStatus('Verificando acesso Premium…','');
-  queueMicrotask(()=>verifyPremiumWorkspaceAccess({message}));
+  queueMicrotask(async()=>{
+    const cached=await loadOfflinePremiumLicense({expectedUserId:currentIdentityUser?.id});
+    if(cached.valid){
+      offlineLicensePayload=cached.payload;offlineLicensedUser=offlineLicenseUserFromPayload(cached.payload);
+      hidePremiumAccessPanel();$('authBannedPanel')?.classList.remove('show');
+      $('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');
+      setAuthStatus(cached.needsRecheck?'Premium local válido · atualizando a licença…':message,'good');
+      scheduleOfflineLicenseExpiry(cached.payload);
+      queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
+      if(navigator.onLine&&cached.needsRecheck)verifyPremiumWorkspaceAccess({message,background:true});
+      else schedulePremiumAccessWatch({user:{role:cached.payload.role},subscription:{premium_active:true,premium_until:cached.payload.premium_until}});
+      return;
+    }
+    if(cached.reason==='different_user')clearOfflinePremiumLicense();
+    $('authGate')?.classList.remove('hidden');
+    setAuthStatus('Verificando acesso Premium…','');
+    verifyPremiumWorkspaceAccess({message});
+  });
 }
 function localAuthContinue(){
   authLocalMode=false;
@@ -356,7 +541,7 @@ function bindIdentityEvents(client){
   client.on('init',user=>{
     authInitialized=true;
     if(user)unlockOnlineApp(user,{message:'Sessão restaurada.'});
-    else if(!authLocalMode)lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
+    else if(!authLocalMode&&!authOfflineMode)lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
   });
   client.on('login',user=>{
     unlockOnlineApp(user,{message:'Login realizado.'});
@@ -364,8 +549,9 @@ function bindIdentityEvents(client){
   });
   client.on('logout',()=>{
     stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
+    clearOfflinePremiumLicense();
     currentIdentityUser=null;
-    authLocalMode=false;
+    authLocalMode=false;authOfflineMode=false;
     cloudAccountState={loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false};
     updateCloudAccountChrome();
     lockOnlineApp('Você saiu da conta.');
@@ -395,7 +581,7 @@ function bindIdentityEvents(client){
       setAuthStatus('Formulário de autenticação aberto.','');
     });
     client.on('close',()=>{
-      if(!currentIdentityUser&&!authLocalMode){
+      if(!currentIdentityUser&&!authLocalMode&&!authOfflineMode){
         $('authGate')?.classList.remove('hidden');
         setAuthStatus('Entre ou crie uma conta para continuar.','');
       }
@@ -404,6 +590,7 @@ function bindIdentityEvents(client){
 }
 async function initOnlineIdentity(){
   const local=isLocalAuthDevelopment();
+  const hadOfflineAccess=await tryOfflinePremiumStartup();
   $('authLocalBox')?.classList.toggle('show',local);
   setAuthStatus(
     local?'Arquivo local detectado. Para testar o login real, use o endereço HTTPS publicado no Netlify.':'Conectando ao Netlify Identity…',
@@ -412,6 +599,10 @@ async function initOnlineIdentity(){
 
   const client=await waitForNetlifyIdentity();
   if(!client){
+    if(hadOfflineAccess||authOfflineMode){
+      setAuthStatus('Premium offline autorizado · conecte à internet dentro do prazo para renovar a validação.','good');
+      return;
+    }
     setAuthStatus(
       local?'Identity não carregou no arquivo local. Você pode continuar em modo local.':'Não foi possível carregar o Netlify Identity. Confira a internet e tente novamente.',
       local?'warn':'error'
@@ -420,7 +611,7 @@ async function initOnlineIdentity(){
   }
 
   identityClient=client;
-  if(!currentIdentityUser&&!authLocalMode&&$('authMainActions')&&!$('authMainActions').classList.contains('hidden')){
+  if(!currentIdentityUser&&!authLocalMode&&!authOfflineMode&&$('authMainActions')&&!$('authMainActions').classList.contains('hidden')){
     setAuthStatus('Autenticação pronta.','good');
   }
 
@@ -438,7 +629,7 @@ async function initOnlineIdentity(){
     }else{
       try{client.init?.();}catch{}
       setTimeout(()=>{
-        if(!authInitialized&&!currentIdentityUser&&!authLocalMode){
+        if(!authInitialized&&!currentIdentityUser&&!authLocalMode&&!authOfflineMode){
           lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
         }
       },1200);
@@ -636,7 +827,7 @@ function openIdentityMode(mode='login'){
     // imediatamente, removemos o gate para o modal ficar visível.
     setTimeout(()=>{
       const widget=document.querySelector('.netlify-identity-widget');
-      if(widget && !currentIdentityUser && !authLocalMode){
+      if(widget && !currentIdentityUser && !authLocalMode && !authOfflineMode){
         $('authGate')?.classList.add('hidden');
       }
     },80);
@@ -648,15 +839,18 @@ function openIdentityMode(mode='login'){
 }
 async function logoutOnlineIdentity(){
   if(authLocalMode){authLocalMode=false;lockOnlineApp('Modo local encerrado.');return;}
-  if(!identityClient)return;
   try{await projectAutosaveNow();}catch{}
+  const wasOfflineOnly=authOfflineMode&&!currentIdentityUser;
+  clearOfflinePremiumLicense();
+  if(wasOfflineOnly){authOfflineMode=false;lockOnlineApp('Acesso offline encerrado. Entre novamente para continuar.');return;}
+  if(!identityClient){currentIdentityUser=null;authOfflineMode=false;lockOnlineApp('Você saiu da conta.');return;}
   try{await identityClient.logout();}
-  catch(err){console.error(err);setAuthStatus('Não foi possível sair da conta agora.','error');}
+  catch(err){currentIdentityUser=null;authOfflineMode=false;lockOnlineApp('Sessão local encerrada. Conecte à internet para concluir a saída no servidor.');console.error(err);}
 }
 
 window.miniCadAuth={
-  getUser(){return currentIdentityUser;},
-  isAuthenticated(){return !!currentIdentityUser&&!authLocalMode;},
+  getUser(){return currentIdentityUser||offlineLicensedUser;},
+  isAuthenticated(){return (!!currentIdentityUser&&!authLocalMode)||!!authOfflineMode;},
   isLocalMode(){return !!authLocalMode;},
   async getToken(){
     if(!currentIdentityUser||authLocalMode)return null;
@@ -686,10 +880,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.84';
+  return tm?.[1]||'1.200.96';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.95-r1';
+const DESIGNLAB_JS_BUILD='1.200.96-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1286,6 +1480,11 @@ function updateCloudAccountChrome(){
   const box=$('cloudAccountStatus');
   const menu=$('projectMenuAccount');
 
+  if(authOfflineMode&&!cloudAccountState.ok){
+    if(line){line.textContent='Premium offline · nuvem aguardando internet';line.className='cloudLine warn';}
+    if(box){box.textContent='Premium offline autorizado. Projetos locais funcionam normalmente; a nuvem sincroniza quando a internet voltar.';box.className='cloudAccountStatus warn';}
+    return;
+  }
   if(authLocalMode){
     if(line){line.textContent='Modo local · nuvem desligada';line.className='cloudLine warn';}
     if(box){box.textContent='Nuvem: modo local. Publique no Netlify para testar D1/R2.';box.className='cloudAccountStatus warn';}
@@ -1506,9 +1705,16 @@ async function syncCloudAccount({silent=false}={}){
     };
     updateCloudAccountChrome();
 
-    // 1.200.60: login do Identity não é licença. Sem Premium ativo (exceto admin),
-    // não sincronizamos projetos/preferências nem liberamos a área de trabalho.
-    if(!premiumWorkspaceAllowed(data)){
+    // 1.200.96: cada validação online renova uma licença assinada por até 72 h.
+    // O token não contém segredo e não pode ser alterado sem invalidar a assinatura.
+    if(premiumWorkspaceAllowed(data)){
+      if(data?.offline_license?.token){
+        await storeOfflinePremiumLicense(data.offline_license,{expectedUserId:data?.user?.id||currentIdentityUser?.id});
+      }else if(data?.offline_license_error){
+        console.warn('Premium offline não emitido pelo Worker:',data.offline_license_error);
+      }
+    }else{
+      clearOfflinePremiumLicense();
       showPremiumAccessRequired(data?.subscription||null);
       return data;
     }
@@ -1527,6 +1733,7 @@ async function syncCloudAccount({silent=false}={}){
   }catch(err){
     console.error('Cloud account sync:',err);
     if(err?.status===403 && err?.data?.error==='banned'){
+      clearOfflinePremiumLicense();
       cloudAccountState={loading:false,ok:false,error:'Conta bloqueada',user:null,subscription:null,lastSync:null,banned:true};
       updateCloudAccountChrome();
       showBannedAccount(err?.data?.reason||'');
@@ -1840,8 +2047,9 @@ function updateProjectHomeWelcome(){
     title.textContent='Olá!';
     return;
   }
-  if(currentIdentityUser){
-    const full=String(authUserName(currentIdentityUser)||'').trim();
+  const welcomeUser=currentIdentityUser||offlineLicensedUser;
+  if(welcomeUser){
+    const full=String(authUserName(welcomeUser)||'').trim();
     const first=full.split(/\s+/)[0]||'';
     title.textContent=first?`Olá, ${first}!`:'Olá!';
     return;
@@ -1882,7 +2090,7 @@ function openHomeMaterials(){
 // ============================================================================
 function projectCurrentOwnerId(){
   if(authLocalMode)return 'local-device';
-  return String(currentIdentityUser?.id || cloudAccountState?.user?.id || '').trim();
+  return String(currentIdentityUser?.id || offlineLicensedUser?.id || cloudAccountState?.user?.id || '').trim();
 }
 function projectBelongsToCurrentOwner(record){
   const owner=projectCurrentOwnerId();
@@ -20161,6 +20369,8 @@ $('authSignupForm').addEventListener('submit',authSubmitSignup);
 $('authForgotForm').addEventListener('submit',authSubmitForgot);
 $('authRetryBtn').onclick=async()=>{
   setAuthStatus('Verificando sessão…','');
+  const cached=await loadOfflinePremiumLicense();
+  if(cached.valid&&!navigator.onLine){await activateOfflinePremiumAccess(cached,{message:'Premium offline autorizado.'});return;}
   if(identityClient){
     const user=identityClient.currentUser?.();
     if(user){
@@ -20365,7 +20575,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.95';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.96';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -20517,7 +20727,11 @@ initDesignLabInstallExperience();
 // para usar o DesignLab dispara, uma única vez, o mesmo caminho do botão manual.
 initDesignLabServiceWorker().catch(()=>{});
 setTimeout(()=>checkDesignLabUpdate({force:true,autoApply:true}),450);
-window.addEventListener('online',()=>{updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);});
+window.addEventListener('online',()=>{
+  updateCacheStatusUI();checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+  if(currentIdentityUser&&offlineLicenseRecheckDue())verifyPremiumWorkspaceAccess({background:true}).catch(()=>{});
+  if(currentIdentityUser&&cloudAccountState.ok)syncCloudPreferences({silent:true,allowReload:false}).then(r=>r?.ok?saveCloudPreferences({silent:true}):null);
+});
 window.addEventListener('offline',updateCacheStatusUI);
 
 document.addEventListener('visibilitychange',()=>{
@@ -20527,6 +20741,11 @@ document.addEventListener('visibilitychange',()=>{
     // atual continue identificada; guard/workspace foram criados por gesto real.
     if(typeof designLabRouteEnsureHomeRoot==='function')designLabRouteEnsureHomeRoot();
     checkDesignLabUpdate({force:true,autoApply:true}).catch(()=>{});
+    if(authOfflineMode){
+      loadOfflinePremiumLicense().then(r=>{if(!r.valid)showOfflineLicenseExpired();});
+    }else if(currentIdentityUser&&navigator.onLine&&offlineLicenseRecheckDue()){
+      verifyPremiumWorkspaceAccess({background:true}).catch(()=>{});
+    }
   }
 });
 window.addEventListener('pageshow',()=>{
