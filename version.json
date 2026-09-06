@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.05",
+  "version": "1.300.06",
   "required": false,
-  "message": "Zoom uniforme e preciso no celular: mesma velocidade em cima e embaixo da tela; Trena fecha automaticamente o menu de ferramentas ao ser ativada.",
+  "message": "Zoom de baixa aproximação mais leve e responsivo no celular; desaceleração apenas nos últimos 10 mm, mantendo precisão junto à peça.",
   "released_at": "2026-09-06T16:40:00-03:00",
-  "build": "1.300.05-r1"
+  "build": "1.300.06-r1"
 }
