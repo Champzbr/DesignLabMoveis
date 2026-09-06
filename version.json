@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.96",
+  "version": "1.200.98",
   "required": false,
-  "message": "Premium offline seguro: após uma validação online, o app abre sem internet usando licença assinada. Revalida a cada 24 horas quando houver conexão e permite até 3 dias offline, respeitando a data real de expiração do Premium.",
-  "released_at": "2026-09-04T07:30:00-03:00",
-  "build": "1.200.96-r1"
+  "message": "Corrige Desfazer/Refazer para preservar cortes modernos do espaço sem devolver faixas já reservadas por peças deslocadas. Ocultar/Mostrar peças mantido.",
+  "released_at": "2026-09-06T10:25:00-03:00",
+  "build": "1.200.98-r1"
 }
