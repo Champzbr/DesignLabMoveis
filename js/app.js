@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.96-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.98-r1';
 
 
 // ============================================================================
@@ -272,7 +272,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.96-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.98-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -880,10 +880,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.96';
+  return tm?.[1]||'1.200.98';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.96-r1';
+const DESIGNLAB_JS_BUILD='1.200.98-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -5054,7 +5054,7 @@ function doorObjectsForRoot(rootId){
 function doorObjectShouldBeVisible(o,root=null){
   if(!isDoorObject(o))return o?.visible!==false;
   root=root || (o.userData?.spaceRootId?getSpaceRoot(o.userData.spaceRootId):null);
-  return !quickFrontFacesHidden && !(root?.doorsHidden);
+  return !o?.userData?.hiddenByUser && !quickFrontFacesHidden && !(root?.doorsHidden);
 }
 function syncQuickFrontVisibilityButton(){
   const btn=$('cadFrontQuickToggle');if(!btn)return;
@@ -5090,6 +5090,70 @@ function applyQuickFrontVisibility(hidden,{notify=false}={}){
   applyAllDoorVisibility();
   if(typeof renderMachiningVisuals==='function')renderMachiningVisuals();
   if(notify)toast(quickFrontFacesHidden?'Portas e frentes de gaveta ocultadas':'Portas e frentes de gaveta exibidas');
+}
+// 1.200.98 · ocultação manual de peças.
+// É somente visual no CAD: não remove a peça e não altera a lista/plano de corte.
+function isManuallyHideablePiece(o){
+  return !!o && objects.includes(o) && o.userData?.kind!=='hardware-visual';
+}
+function manuallyHiddenPieces(){
+  return objects.filter(o=>!!o.userData?.hiddenByUser);
+}
+function syncManualPieceVisibilityButtons(){
+  const showBtn=$('cadShowHiddenPiecesQuick');
+  const hideBtn=$('cadHideSelectedPieceQuick');
+  const count=manuallyHiddenPieces().length;
+  if(showBtn){
+    showBtn.disabled=count===0;
+    showBtn.classList.toggle('active',count>0);
+    showBtn.textContent=count?`◩ Mostrar peças (${count})`:'◩ Mostrar peças';
+    showBtn.title=count?`Mostrar ${count} peça(s) ocultada(s) manualmente`:'Nenhuma peça está ocultada manualmente';
+  }
+  if(hideBtn){
+    const canHide=isManuallyHideablePiece(selected)&&selected.visible!==false;
+    hideBtn.classList.toggle('active',canHide);
+    hideBtn.title=canHide?`Ocultar ${selected.userData?.name||'peça'} somente no CAD`:'Selecione uma peça visível para ocultar';
+  }
+}
+function applyManualVisibilityToObject(o){
+  if(!o)return;
+  if(o.userData?.hiddenByUser){
+    o.visible=false;
+  }else if(isDoorObject(o)){
+    const root=o.userData?.spaceRootId?getSpaceRoot(o.userData.spaceRootId):null;
+    o.visible=doorObjectShouldBeVisible(o,root);
+    o.userData.hiddenByDoors=!o.visible;
+  }else if(o.userData?.kind==='hardware-visual'){
+    o.visible=!!cadHardwareVisible;
+  }else{
+    o.visible=true;
+  }
+  if(o.userData?.visualEdges)o.userData.visualEdges.visible=o.visible!==false;
+}
+function hideSelectedPieceQuick(){
+  if(!selected){toast('Selecione a peça que deseja ocultar');return false;}
+  if(!isManuallyHideablePiece(selected)){toast('Selecione uma peça do móvel');return false;}
+  const o=selected,name=o.userData?.name||'Peça';
+  o.userData.hiddenByUser=true;
+  o.visible=false;
+  if(o.userData?.visualEdges)o.userData.visualEdges.visible=false;
+  restoreBaseColor(o);
+  selectObject(null);
+  if(typeof renderMachiningVisuals==='function')renderMachiningVisuals();
+  syncManualPieceVisibilityButtons();
+  commitHistory();
+  toast(`${name} ocultada · continua na produção`);
+  return true;
+}
+function showAllManuallyHiddenPieces(){
+  const hidden=manuallyHiddenPieces();
+  if(!hidden.length){toast('Nenhuma peça oculta');syncManualPieceVisibilityButtons();return false;}
+  for(const o of hidden){o.userData.hiddenByUser=false;applyManualVisibilityToObject(o);}
+  if(typeof renderMachiningVisuals==='function')renderMachiningVisuals();
+  syncManualPieceVisibilityButtons();
+  commitHistory();
+  toast(`${hidden.length} peça(s) exibida(s)`);
+  return true;
 }
 function hasIndividuallyHiddenSpaces(){
   return spaceRoots.some(root=>!!root.spaceHidden || (root.cells||[]).some(c=>!!c.hidden));
@@ -5933,7 +5997,7 @@ function deleteSelectedSpaceCell(){
   return true;
 }
 
-function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null, manualGeometryDelta=null, pieceSavedConfig=null}={}, doHistory=true){
+function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, hiddenByUser=false, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null, manualGeometryDelta=null, pieceSavedConfig=null}={}, doHistory=true){
   // 1.200.95 · migra automaticamente IDs antigos (Branco TX 6/15/18 etc.)
   // para o cadastro único do material, preservando a espessura da própria peça.
   const canonicalMaterialId=canonicalFactoryMaterialId(materialId);
@@ -5974,6 +6038,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     drawerIndex:Number.isFinite(Number(drawerIndex))?Number(drawerIndex):null,
     drawerConfig:drawerConfig?JSON.parse(JSON.stringify(drawerConfig)):null,
     doorConfig:doorConfig?JSON.parse(JSON.stringify(doorConfig)):null,
+    hiddenByUser:!!hiddenByUser,
     excludeFromCutList:!!excludeFromCutList,
     spaceCutting:!!spaceCutting,
     // Guarda o vão ORIGINAL no qual esta peça estrutural foi criada. Isso
@@ -6004,6 +6069,10 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     const doorRoot=mesh.userData?.spaceRootId?getSpaceRoot(mesh.userData.spaceRootId):null;
     mesh.visible=doorObjectShouldBeVisible(mesh,doorRoot);
     mesh.userData.hiddenByDoors=!mesh.visible;
+  }
+  if(mesh.userData.hiddenByUser){
+    mesh.visible=false;
+    if(mesh.userData.visualEdges)mesh.userData.visualEdges.visible=false;
   }
   if(mesh.userData.forms.length) rebuildFormGeometry(mesh);
   restoreBaseColor(mesh);
@@ -6847,6 +6916,7 @@ function selectObject(mesh){
     $('inspector').style.display='none';
   }
   updateMeasureBadge();
+  if(typeof syncManualPieceVisibilityButtons==='function')syncManualPieceVisibilityButtons();
 }
 
 // 1.200.18 · nomes rápidos de peças + biblioteca pessoal de nomes.
@@ -7906,7 +7976,7 @@ function captureObjects(){
     materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialGrainRotation:normalizePieceGrainRotation(o.userData.materialGrainRotation),materialCoreColor:o.userData.materialCoreColor||null,
     edgeBands:productionClone(o.userData.edgeBands||{}),partId:o.userData.partId||null,labelMeta:productionClone(o.userData.labelMeta||{schemaVersion:1,enabled:true}),
     spaceRootId:o.userData.spaceRootId||null,
-    machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,
+    machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,hiddenByUser:!!o.userData.hiddenByUser,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,
     divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,
     manualGeometryDelta:productionClone(o.userData.manualGeometryDelta||null),pieceSavedConfig:productionClone(o.userData.pieceSavedConfig||null),
     rotationX:Number(o.rotation.x)||0,rotationY:Number(o.rotation.y)||0,rotationZ:Number(o.rotation.z)||0,
@@ -7993,16 +8063,35 @@ function applyState(state){
   }
   for(const sp of spaceState) createSpaceFromState(sp);
 
+  // 1.200.98: restaura a ocultação manual também para geometrias especiais.
+  const hiddenByPartId=new Map(objectState.filter(it=>it?.partId).map(it=>[it.partId,!!it.hiddenByUser]));
+  for(let i=0;i<objects.length;i++){
+    const o=objects[i],fallback=objectState[i];
+    const hidden=o.userData?.partId&&hiddenByPartId.has(o.userData.partId)?hiddenByPartId.get(o.userData.partId):!!fallback?.hiddenByUser;
+    o.userData.hiddenByUser=!!hidden;
+    if(hidden){o.visible=false;if(o.userData?.visualEdges)o.userData.visualEdges.visible=false;}
+  }
+
   // 1.100.34: projetos antigos podiam ter a Divisão vertical afinada/engrossada
   // ao redimensionar o móvel. Recupera a espessura nominal pelo material.
   for(const root of spaceRoots)repairVerticalDivisionThickness(root);
 
-  // v99: projetos antigos podem já ter sido salvos depois de apagar uma
-  // prateleira, deixando uma faixa de 18 mm sem peça e sem célula.
-  // Repara essas faixas automaticamente ao abrir o projeto.
+  // 1.200.98: o reparo de faixas órfãs é SOMENTE para topologia legada.
+  // Projetos modernos guardam a árvore manualCut e ela é a fonte de verdade.
+  // Antes, applyState() rodava repairOrphanSpaceGaps() em todo Desfazer/Refazer.
+  // Se uma peça que havia consumido 10 mm do vão fosse deslocada para frente,
+  // o reparador interpretava os 10 mm originais como um buraco e devolvia essa
+  // faixa ao espaço (ex.: 30 mm voltavam como 40 mm). Agora um root que possui
+  // manualCut é restaurado exatamente como foi salvo no histórico.
+  const sourceSpaceById=new Map(spaceState.map(sp=>[sp?.id,sp]));
   for(let pass=0;pass<6;pass++){
     let changed=0;
-    for(const root of spaceRoots)changed+=repairOrphanSpaceGaps(root).changes;
+    for(const root of spaceRoots){
+      const source=sourceSpaceById.get(root.id);
+      const hasModernCutTree=!!source?.cells?.some(c=>c?.manualCut&&typeof c.manualCut==='object');
+      if(hasModernCutTree)continue;
+      changed+=repairOrphanSpaceGaps(root).changes;
+    }
     if(!changed)break;
   }
 
@@ -8032,9 +8121,12 @@ function applyState(state){
     for(const id of ids)drawerEnsureBottomGroovesForSet(id);
   }
 
-  renderSpaces(); applyAllDoorVisibility(); renderMachiningVisuals();
+  renderSpaces(); applyAllDoorVisibility();
+  for(const o of objects)if(o.userData?.hiddenByUser)applyManualVisibilityToObject(o);
+  renderMachiningVisuals();
   applyCadDetailVisibility({persist:false,notify:false});
   selectObject(objects.filter(o=>o.visible!==false).at(-1)||null); if(!objects.some(o=>o.visible!==false)) clearSpaceSelection();
+  syncManualPieceVisibilityButtons();
   historyMuted=false;
 }
 function undo(){ if(historyIndex<=0){toast('Nada para desfazer');return;} historyIndex--; applyState(JSON.parse(history[historyIndex])); localStorage.setItem(STORAGE_KEY,history[historyIndex]); markCurrentProjectDirty(); }
@@ -20297,11 +20389,14 @@ $('cadGridVisibleSetting').addEventListener('change',e=>{
   applyCadGridVisibility(e.target.checked,{persist:true,notify:true});
 });
 $('cadGridQuickToggle')?.addEventListener('click',()=>applyCadGridVisibility(!cadGridVisible,{persist:true,notify:true}));
+$('cadHideSelectedPieceQuick')?.addEventListener('click',hideSelectedPieceQuick);
+$('cadShowHiddenPiecesQuick')?.addEventListener('click',showAllManuallyHiddenPieces);
 $('cadFrontQuickToggle')?.addEventListener('click',()=>applyQuickFrontVisibility(!quickFrontFacesHidden,{notify:true}));
 $('cadSpaceQuickToggle')?.addEventListener('click',quickToggleAllSpaces);
 $('cadHideSelectedSpaceQuick')?.addEventListener('click',hideQuickSelectedSpace);
 $('cadConfigQuickButton')?.addEventListener('click',openQuickSelectedConfiguration);
 syncQuickSpaceVisibilityButton();
+syncManualPieceVisibilityButtons();
 $('cadXrayVisibleSetting').addEventListener('change',e=>{
   applyXray3D(e.target.checked,{persist:true,notify:true});
 });
@@ -20575,7 +20670,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.96';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.98';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
