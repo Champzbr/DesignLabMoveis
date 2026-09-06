@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.01",
+  "version": "1.300.03",
   "required": false,
-  "message": "Nova Biblioteca de Portas. Inclui Porta Pivotante 01 baseada no Espaço 3 final, criação do conjunto completo por medidas X/Y/Z, salvamento de novos modelos e sobremedida de produção das faces sem alterar o CAD.",
-  "released_at": "2026-09-06T15:05:00-03:00",
-  "build": "1.300.01-r1"
+  "message": "Peças gerais agora reúne Chapas, Madeira maciça e Ferro/Metalon na mesma tela. A impressão dos planos também inclui os três sistemas, mantendo cada otimizador separado.",
+  "released_at": "2026-09-06T15:20:00-03:00",
+  "build": "1.300.03-r1"
 }

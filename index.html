@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.300.01-r1">
+<meta name="designlab-build" content="1.300.03-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.300.01-r1';
+  const BUILD='1.300.03-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.300.01';
+    st[KEY]=route;st.__designLabRouteVersion='1.300.03';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,23 +103,23 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.300.01 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/home.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.300.01-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.300.01-r1">
+<title>DesignLabMoveis 1.300.03 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/home.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.300.03-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.300.03-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
 <style>
-/* 1.300.01 · Sistema de Portas */
+/* 1.300.03 · Sistema de Portas */
 #doorSystemDialog{display:none;position:fixed;inset:0;z-index:10080;background:rgba(7,9,10,.68);align-items:center;justify-content:center;padding:18px}
 #doorSystemDialog .doorSystemCard{width:min(760px,96vw);max-height:92vh;overflow:auto;background:var(--panel,#171a1c);color:var(--text,#f2f3f3);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.42)}
 #doorSystemDialog h3{margin:0 0 5px;font-size:21px}
@@ -149,7 +149,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.300.01</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.300.03</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -271,7 +271,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.300.01</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.300.03</span>
         </div>
       </div>
 
@@ -568,7 +568,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.300.01</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.300.03</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -594,7 +594,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.300.01</strong>
+        <strong id="updateCurrentVersion">1.300.03</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -637,7 +637,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.300.01 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.300.03 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1589,10 +1589,10 @@
   <div class="card cutPlanCard">
     <div class="cutPlanTitleRow">
       <div>
-        <h3>Plano de corte</h3>
-        <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
+        <h3>Peças gerais · Planos de corte</h3>
+        <p id="partsListInfo" class="dialogHelp">Todas as peças do projeto reunidas: chapas, madeira maciça e ferro / Metalon.</p>
       </div>
-      <span class="cutPlanBadge">1.300.01</span>
+      <span class="cutPlanBadge">1.300.03</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -1656,11 +1656,29 @@
       <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: respeita o sentido configurado da chapa. Materiais cadastrados usam suas próprias medidas e, por padrão, o veio segue o comprimento.</span></div>
     </label>
 
-    <div id="partsSummary" class="partsSummary"></div>
-    <div id="partsList"></div>
+    <div id="partsGeneralSummary" class="partsSummary"></div>
+
+    <section class="partsProductionSection" id="partsSheetSection">
+      <div class="partsProductionSectionHead"><strong>▦ Chapas / painéis</strong><span>MDF, lâmina, compensado e outros materiais em chapa</span></div>
+      <div id="partsSummary" class="partsSummary"></div>
+      <div id="partsList"></div>
+    </section>
+
+    <section class="partsProductionSection" id="partsWoodSection">
+      <div class="partsProductionSectionHead"><div><strong>🪵 Madeira maciça / pranchas</strong><span>Peças otimizadas nas pranchas cadastradas</span></div><button id="partsOpenWoodPlan" class="secondary" type="button">Abrir plano madeira</button></div>
+      <div id="partsWoodPlanSummary" class="dlSuiteStatus"></div>
+      <div id="partsWoodPlan" class="dlCheckList partsInlinePlan"></div>
+    </section>
+
+    <section class="partsProductionSection" id="partsMetalSection">
+      <div class="partsProductionSectionHead"><div><strong>▰ Ferro / Metalon</strong><span>Perfis otimizados por barras e sobras</span></div><button id="partsOpenMetalPlan" class="secondary" type="button">Abrir plano ferro</button></div>
+      <div id="partsMetalPlanSummary" class="dlSuiteStatus"></div>
+      <div id="partsMetalPlan" class="dlCheckList partsInlinePlan"></div>
+    </section>
+
     <div class="dialogActions cutPlanActions">
       <button id="previewAspireFromPartsBtn">▦ Abrir plano de corte</button>
-      <button id="printCutPlanFromPartsBtn" class="secondary">🖨 Imprimir plano de corte</button>
+      <button id="printCutPlanFromPartsBtn" class="secondary">🖨 Imprimir planos de corte</button>
       <button id="exportPanelSawSequenceBtn" class="secondary panelOnly" style="display:none">⇩ Sequência seccionadora CSV</button>
       <button id="exportPanelSawZawBtn" class="secondary panelOnly" style="display:none">⇩ Mingli .ZAW · 1 por chapa</button>
       <button id="exportAspireFromPartsBtn" class="secondary">Aspire · manter exportação atual</button>
@@ -2689,6 +2707,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.300.01-r1"></script>
+<script type="module" src="js/app.js?v=1.300.03-r1"></script>
 </body>
 </html>
