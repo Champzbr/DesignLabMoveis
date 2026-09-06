@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.98",
+  "version": "1.200.99",
   "required": false,
-  "message": "Corrige Desfazer/Refazer para preservar cortes modernos do espaço sem devolver faixas já reservadas por peças deslocadas. Ocultar/Mostrar peças mantido.",
-  "released_at": "2026-09-06T10:25:00-03:00",
-  "build": "1.200.98-r1"
+  "message": "Adiciona MDF Cru, classifica Madeira maciça como prancha e Metalon 20×30 como perfil em barra de 6000 mm. Separa chapas, madeira e ferro na produção e cria planos próprios para madeira e metal.",
+  "released_at": "2026-09-06T11:43:00-03:00",
+  "build": "1.200.99-r1"
 }

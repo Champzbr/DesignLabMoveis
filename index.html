@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.98-r1">
+<meta name="designlab-build" content="1.200.99-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.98-r1';
+  const BUILD='1.200.99-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.200.98';
+    st[KEY]=route;st.__designLabRouteVersion='1.200.99';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.98 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.98-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.98-r1">
+<title>DesignLabMoveis 1.200.99 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/home.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.200.99-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.99-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 </head>
@@ -126,7 +126,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.98</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.99</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -248,7 +248,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.98</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.99</span>
         </div>
       </div>
 
@@ -545,7 +545,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.98</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.99</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -571,7 +571,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.98</strong>
+        <strong id="updateCurrentVersion">1.200.99</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -614,7 +614,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.98 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.200.99 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -984,25 +984,40 @@
 <div id="productionDialog">
   <div class="card">
     <h3>🎨 Materiais / fitas de borda</h3>
-    <p class="dialogHelp">O app já inclui materiais e fitas padrão de fábrica sem duplicar por espessura. A espessura vem da própria peça. Você também pode criar personalizados e marcar exatamente quais bordas recebem fita.</p>
+    <p class="dialogHelp">O app separa três tipos de produção: chapas, madeira maciça em prancha e ferro/perfis em barra. A espessura continua vindo da própria peça. Você também pode criar materiais personalizados e marcar fitas nas peças de chapa.</p>
 
     <div class="productionSection">
       <div class="productionSectionHead">
-        <strong>Materiais / chapas do projeto</strong>
-        <span>Padrões do aplicativo + materiais personalizados do projeto</span>
+        <strong>Materiais do projeto</strong>
+        <span>Chapas + madeira maciça + perfis metálicos</span>
       </div>
 
       <div class="productionFields">
         <label>Material salvo<select id="productionMaterialSelect"></select></label>
         <label>Nome<input id="productionMaterialName" placeholder="Ex.: Branco TX"></label>
         <label>Código / referência<input id="productionMaterialCode" placeholder="Ex.: BR-TX"></label>
+        <label>Tipo de produção
+          <select id="productionMaterialKind">
+            <option value="sheet">Chapa / painel</option>
+            <option value="wood">Madeira maciça / prancha</option>
+            <option value="metal">Ferro / perfil em barra</option>
+          </select>
+        </label>
         <label>Espessura nominal (mm)<input id="productionMaterialThickness" type="text" inputmode="decimal" value="18" autocomplete="off"></label>
-        <label>Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
-        <label>Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="100" step="1"></label>
-        <label>Sentido do veio na chapa
+
+        <label id="productionSheetLengthField">Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
+        <label id="productionSheetWidthField">Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="10" step="1"></label>
+
+        <label id="productionStockLengthField" style="display:none">Comprimento da matéria-prima (mm)<input id="productionMaterialStockLength" type="number" value="3000" min="100" step="1"></label>
+        <label id="productionStockWidthField" style="display:none">Largura da prancha (mm)<input id="productionMaterialStockWidth" type="number" value="250" min="10" step="1"></label>
+
+        <label id="productionProfileWidthField" style="display:none">Perfil — lado 1 (mm)<input id="productionMaterialProfileWidth" type="number" value="20" min="1" step="0.1"></label>
+        <label id="productionProfileHeightField" style="display:none">Perfil — lado 2 (mm)<input id="productionMaterialProfileHeight" type="number" value="30" min="1" step="0.1"></label>
+
+        <label id="productionMaterialGrainField">Sentido do veio
           <select id="productionMaterialGrainDirection">
-            <option value="length">No comprimento da chapa</option>
-            <option value="width">Na largura da chapa</option>
+            <option value="length">No comprimento</option>
+            <option value="width">Na largura</option>
           </select>
         </label>
         <label>Cor da face<input id="productionMaterialColor" type="color" value="#e7e1d4"></label>
@@ -1553,7 +1568,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.98</span>
+      <span class="cutPlanBadge">1.200.99</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2494,6 +2509,8 @@
       <button id="productionSuiteRecheck" type="button">↻ Verificar novamente</button>
       <button id="productionSuiteHistory" class="secondary" type="button">🕘 Histórico</button>
       <button id="productionSuiteMaterials" class="secondary" type="button">🎨 Materiais / fitas</button>
+      <button id="productionSuiteWoodPlan" class="secondary" type="button">🪵 Plano madeira</button>
+      <button id="productionSuiteMetalPlan" class="secondary" type="button">▰ Plano ferro</button>
       <button id="productionSuiteLayout" class="secondary" type="button">📐 Layout técnico</button>
       <button id="productionSuiteAssembly" class="secondary" type="button">📘 Manual montagem</button>
       <button id="productionSuiteExplode" class="secondary" type="button">🧩 Vista explodida</button>
@@ -2501,6 +2518,14 @@
     <div id="productionSuiteSummary" class="dlSuiteStatus"><strong>Analisando projeto…</strong><span>Aguarde a conferência.</span></div>
     <div id="productionSuiteIssues" class="dlCheckList"></div>
     <div class="dlSuitePackageBox"><div><strong>Pacote de produção completo</strong><span>.mcad + PDFs + etiquetas + listas + DXF + plano de corte + ZAW + imagens 3D + manual de montagem.</span></div><button id="productionSuitePackage" type="button">📦 Gerar pacote de produção</button></div>
+  </div>
+</div>
+
+<div id="linearMaterialPlanDialog" class="projectModal dlSuiteDialog" role="dialog" aria-modal="true" aria-label="Plano de corte de material linear">
+  <div class="projectModalCard dlSuiteCard dlProductionSuiteCard">
+    <header class="dlSuiteHead"><div><h3 id="linearMaterialPlanTitle">Plano de material</h3><p id="linearMaterialPlanHelp">Produção separada do plano de chapas.</p></div><button id="closeLinearMaterialPlanDialog" class="secondary" type="button">Fechar</button></header>
+    <div id="linearMaterialPlanSummary" class="dlSuiteStatus"><strong>Calculando…</strong><span></span></div>
+    <div id="linearMaterialPlanContent" class="dlCheckList"></div>
   </div>
 </div>
 
@@ -2584,6 +2609,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.98-r1"></script>
+<script type="module" src="js/app.js?v=1.200.99-r1"></script>
 </body>
 </html>
