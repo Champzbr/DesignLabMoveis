@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.200.99-r1">
+<meta name="designlab-build" content="1.300.01-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.200.99-r1';
+  const BUILD='1.300.01-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.200.99';
+    st[KEY]=route;st.__designLabRouteVersion='1.300.01';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,20 +103,43 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.200.99 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/home.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.200.99-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.200.99-r1">
+<title>DesignLabMoveis 1.300.01 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/home.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.300.01-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.300.01-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
+
+<style>
+/* 1.300.01 · Sistema de Portas */
+#doorSystemDialog{display:none;position:fixed;inset:0;z-index:10080;background:rgba(7,9,10,.68);align-items:center;justify-content:center;padding:18px}
+#doorSystemDialog .doorSystemCard{width:min(760px,96vw);max-height:92vh;overflow:auto;background:var(--panel,#171a1c);color:var(--text,#f2f3f3);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.42)}
+#doorSystemDialog h3{margin:0 0 5px;font-size:21px}
+.doorSystemLead{margin:0 0 14px;color:var(--muted,#aeb4b7);font-size:13px;line-height:1.45}
+.doorSystemSection{border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px;margin-top:11px;background:rgba(255,255,255,.025)}
+.doorSystemSectionTitle{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}
+.doorSystemSectionTitle strong{font-size:14px}.doorSystemSectionTitle span{font-size:11px;color:var(--muted,#aeb4b7)}
+.doorSystemFields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.doorSystemFields label,.doorSystemModelRow label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted,#aeb4b7);font-weight:700}
+.doorSystemFields input,.doorSystemModelRow select{width:100%;min-height:38px}
+.doorSystemModelRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+#doorSystemModelInfo{display:flex;flex-direction:column;gap:4px;margin-top:9px;padding:10px 11px;border-radius:11px;background:rgba(90,170,255,.08);border:1px solid rgba(90,170,255,.18)}
+#doorSystemModelInfo strong{font-size:14px}#doorSystemModelInfo span{font-size:12px}#doorSystemModelInfo small{font-size:11px;color:var(--muted,#aeb4b7)}
+.doorSystemProductionNote{font-size:12px;line-height:1.45;color:var(--muted,#aeb4b7);margin-top:7px}
+.doorSystemFooter{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:14px}
+.doorSystemFooter .left,.doorSystemFooter .right{display:flex;flex-wrap:wrap;gap:8px}
+#cadDoorSystemQuick{white-space:nowrap}
+@media(max-width:680px){.doorSystemFields{grid-template-columns:1fr}.doorSystemModelRow{grid-template-columns:1fr}.doorSystemFooter,.doorSystemFooter .left,.doorSystemFooter .right{width:100%}.doorSystemFooter button{flex:1 1 auto}}
+</style>
+
 </head>
 <body>
 
@@ -126,7 +149,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.200.99</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.300.01</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -248,7 +271,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.200.99</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.300.01</span>
         </div>
       </div>
 
@@ -545,7 +568,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.200.99</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.300.01</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -571,7 +594,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.200.99</strong>
+        <strong id="updateCurrentVersion">1.300.01</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -614,7 +637,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.200.99 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.300.01 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -631,6 +654,7 @@
 <button id="cadGridQuickToggle" type="button" title="Ativar/desativar quadriculado da área de trabalho">▦ Grade</button>
 <button id="cadHideSelectedPieceQuick" type="button" title="Ocultar somente a peça selecionada">◫ Ocultar peça</button>
 <button id="cadShowHiddenPiecesQuick" type="button" title="Mostrar todas as peças ocultadas manualmente" disabled>◩ Mostrar peças</button>
+<button id="cadDoorSystemQuick" type="button" title="Abrir a Biblioteca e o Sistema de Portas">🚪 Portas</button>
 <button id="cadFrontQuickToggle" type="button" aria-pressed="false" title="Ocultar/mostrar portas e frentes de gaveta">◫ Ocultar portas/frentes</button>
 <button id="cadSpaceQuickToggle" type="button" aria-pressed="false" title="Ocultar/mostrar os volumes dos espaços">▱ Ocultar espaços</button>
 <button id="cadConfigQuickButton" type="button" title="Abrir a configuração do espaço ou peça selecionada">⚙ Configuração</button>
@@ -1568,7 +1592,7 @@
         <h3>Plano de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Otimização por material e espessura para melhor aproveitamento das chapas.</p>
       </div>
-      <span class="cutPlanBadge">1.200.99</span>
+      <span class="cutPlanBadge">1.300.01</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2332,6 +2356,62 @@
 </div>
 <input id="libraryImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
+<div id="doorSystemDialog" role="dialog" aria-modal="true" aria-label="Biblioteca e Sistema de Portas">
+  <div class="doorSystemCard">
+    <h3>🚪 Biblioteca de Portas</h3>
+    <p class="doorSystemLead">Escolha um modelo completo. O DesignLab cria batentes, folha, miolo e estrutura de uma vez, mantendo os deslocamentos do modelo-mestre.</p>
+
+    <section class="doorSystemSection">
+      <div class="doorSystemSectionTitle"><strong>1. Modelo</strong><span>★ = modelo oficial</span></div>
+      <div class="doorSystemModelRow">
+        <label>Modelo da porta
+          <select id="doorSystemModel"></select>
+        </label>
+        <button id="doorSystemDeleteModel" type="button" class="danger" disabled>Excluir modelo</button>
+      </div>
+      <div id="doorSystemModelInfo"></div>
+    </section>
+
+    <section class="doorSystemSection">
+      <div class="doorSystemSectionTitle"><strong>2. Medidas do vão</strong><span>X = largura · Y = altura · Z = profundidade</span></div>
+      <div class="doorSystemFields">
+        <label>X · Largura (mm)<input id="doorSystemWidth" type="number" value="880" min="100" step="1" inputmode="decimal"></label>
+        <label>Y · Altura (mm)<input id="doorSystemHeight" type="number" value="2100" min="100" step="1" inputmode="decimal"></label>
+        <label>Z · Profundidade (mm)<input id="doorSystemDepth" type="number" value="195" min="20" step="1" inputmode="decimal"></label>
+      </div>
+      <button id="doorSystemUseSelected" class="secondary" type="button" style="margin-top:9px">↙ Usar medidas do espaço selecionado</button>
+    </section>
+
+    <section class="doorSystemSection">
+      <div class="doorSystemSectionTitle"><strong>3. Posição do conjunto</strong><span>referência do espaço da porta</span></div>
+      <div class="doorSystemFields">
+        <label>Posição X (mm)<input id="doorSystemPosX" type="number" value="0" step="1" inputmode="decimal"></label>
+        <label>Piso Y (mm)<input id="doorSystemPosY" type="number" value="0" min="0" step="1" inputmode="decimal"></label>
+        <label>Posição Z (mm)<input id="doorSystemPosZ" type="number" value="97.5" step="1" inputmode="decimal"></label>
+      </div>
+    </section>
+
+    <section class="doorSystemSection">
+      <div class="doorSystemSectionTitle"><strong>4. Produção da folha</strong><span>não altera o desenho acabado</span></div>
+      <div class="doorSystemFields">
+        <label>Sobremedida por lado (mm)<input id="doorSystemOversize" type="number" value="10" min="0" max="100" step="0.5" inputmode="decimal"></label>
+      </div>
+      <div class="doorSystemProductionNote">A folha permanece na medida final no CAD. No plano de chapas, as duas faces recebem a sobremedida em todos os lados. Ex.: +10 mm/lado acrescenta 20 mm na largura e 20 mm na altura.</div>
+    </section>
+
+    <div class="doorSystemFooter">
+      <div class="left">
+        <button id="doorSystemSaveModel" type="button" class="secondary">＋ Salvar espaço selecionado como modelo</button>
+      </div>
+      <div class="right">
+        <button id="doorSystemClose" type="button" class="secondary">Cancelar</button>
+        <button id="doorSystemCreate" type="button">Criar porta completa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id="newPanelDialog">
   <div class="card">
     <h3>Nova peça MDF</h3>
@@ -2609,6 +2689,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.200.99-r1"></script>
+<script type="module" src="js/app.js?v=1.300.01-r1"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.200.99",
+  "version": "1.300.01",
   "required": false,
-  "message": "Adiciona MDF Cru, classifica Madeira maciça como prancha e Metalon 20×30 como perfil em barra de 6000 mm. Separa chapas, madeira e ferro na produção e cria planos próprios para madeira e metal.",
-  "released_at": "2026-09-06T11:43:00-03:00",
-  "build": "1.200.99-r1"
+  "message": "Nova Biblioteca de Portas. Inclui Porta Pivotante 01 baseada no Espaço 3 final, criação do conjunto completo por medidas X/Y/Z, salvamento de novos modelos e sobremedida de produção das faces sem alterar o CAD.",
+  "released_at": "2026-09-06T15:05:00-03:00",
+  "build": "1.300.01-r1"
 }
