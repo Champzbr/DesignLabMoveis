@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.03",
+  "version": "1.300.04",
   "required": false,
-  "message": "Peças gerais agora reúne Chapas, Madeira maciça e Ferro/Metalon na mesma tela. A impressão dos planos também inclui os três sistemas, mantendo cada otimizador separado.",
-  "released_at": "2026-09-06T15:20:00-03:00",
-  "build": "1.300.03-r1"
+  "message": "Zoom CAD mais preciso: aproximação até cerca de 1 mm da superfície, desaceleração somente bem perto da peça e ajuste fino também na pinça do celular/tablet.",
+  "released_at": "2026-09-06T16:45:00-03:00",
+  "build": "1.300.04-r1"
 }
