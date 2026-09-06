@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.200.98-r1';
+window.__DESIGNLAB_APP_BOOTED='1.200.99-r1';
 
 
 // ============================================================================
@@ -272,7 +272,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.98-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.200.99-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -880,10 +880,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.200.98';
+  return tm?.[1]||'1.200.99';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.200.98-r1';
+const DESIGNLAB_JS_BUILD='1.200.99-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -4493,13 +4493,14 @@ function toast(text){
 // ============================================================================
 // 1.100.16 · PRODUÇÃO: MATERIAIS, FITAS E BASE PARA ETIQUETAS
 // ============================================================================
-const PRODUCTION_SCHEMA_VERSION=4;
+const PRODUCTION_SCHEMA_VERSION=5;
 
 // 1.200.95 · CATÁLOGO PADRÃO COM UMA ENTRADA POR MATERIAL
 // A espessura NÃO faz mais parte do cadastro dos padrões de fábrica. Branco TX,
 // Carvalho, Freijó etc. aparecem uma única vez; a espessura efetiva é sempre a
 // espessura geométrica da peça (6, 15, 18, 18,5, 25 mm ou qualquer outra).
 const FACTORY_MATERIAL_PATTERNS=[
+  {key:'mdf-cru',name:'MDF Cru',category:'MDF · Cru',code:'CRU',grain:false,color:'#c7aa78',coreColor:'#b89263'},
   {key:'branco-tx',name:'Branco TX',category:'MDF · Cores básicas',code:'BRTX',grain:false,color:'#f2f2ed',coreColor:'#c8a977'},
   {key:'maxi-branco',name:'Maxi Branco',category:'MDF · Cores básicas',code:'MBR',grain:false,color:'#fafaf7',coreColor:'#c8a977'},
   {key:'preto-tx',name:'Preto TX',category:'MDF · Cores básicas',code:'PTX',grain:false,color:'#202224',coreColor:'#b89263'},
@@ -4525,6 +4526,10 @@ const FACTORY_SOLID_WOODS=[
   {key:'jequitiba',name:'Jequitibá',code:'JEQ',color:'#b88758'},
   {key:'pinus',name:'Pinus',code:'PIN',color:'#d1b37e'}
 ];
+// 1.200.99 · perfis lineares separados das chapas.
+const FACTORY_METAL_PROFILES=[
+  {key:'metalon-20x30',name:'Metalon 20×30',code:'MET-20X30',color:'#555b60',profileWidth:20,profileHeight:30,stockLength:6000}
+];
 const FACTORY_VENEERS=[
   {key:'carvalho',name:'Carvalho',code:'CAR',color:'#a97b50'},
   {key:'freijo',name:'Freijó',code:'FRE',color:'#b88d5d'},
@@ -4537,7 +4542,7 @@ function factoryBandFamily(kind,key){return `${kind}-${key}`;}
 function canonicalFactoryMaterialId(id){
   const s=String(id||'');if(!s)return '';
   if(s==='mat-mdf-branco-18'||s==='mat-mdf-branco-6')return factoryMaterialId('mdf','branco-tx');
-  for(const [kind,list] of [['mdf',FACTORY_MATERIAL_PATTERNS],['wood',FACTORY_SOLID_WOODS],['veneer',FACTORY_VENEERS]]){
+  for(const [kind,list] of [['mdf',FACTORY_MATERIAL_PATTERNS],['wood',FACTORY_SOLID_WOODS],['veneer',FACTORY_VENEERS],['metal',FACTORY_METAL_PROFILES]]){
     for(const p of list){const canonical=factoryMaterialId(kind,p.key);if(s===canonical||s.startsWith(canonical+'-'))return canonical;}
   }
   return s;
@@ -4553,18 +4558,24 @@ function buildFactoryProductionCatalog(){
   const materials=[],edgeBands=[];
   for(const p of FACTORY_MATERIAL_PATTERNS)materials.push({
     id:factoryMaterialId('mdf',p.key),name:p.name,code:`MDF-${p.code}`,
-    category:p.category,pattern:p.name,family:factoryBandFamily('mdf',p.key),factory:true,flexibleThickness:true,
+    category:p.category,pattern:p.name,family:factoryBandFamily('mdf',p.key),factory:true,flexibleThickness:true,productionKind:'sheet',
     thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.coreColor,grain:!!p.grain
   });
   for(const p of FACTORY_SOLID_WOODS)materials.push({
     id:factoryMaterialId('wood',p.key),name:`Madeira maciça ${p.name}`,code:`MAC-${p.code}`,
-    category:'Madeira maciça',pattern:p.name,family:factoryBandFamily('wood',p.key),factory:true,flexibleThickness:true,
-    thickness:18,sheetWidth:3000,sheetHeight:600,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+    category:'Madeira maciça · Prancha',pattern:p.name,family:factoryBandFamily('wood',p.key),factory:true,flexibleThickness:true,productionKind:'wood',
+    thickness:18,sheetWidth:3000,sheetHeight:250,stockLength:3000,stockWidth:250,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
   });
   for(const p of FACTORY_VENEERS)materials.push({
     id:factoryMaterialId('veneer',p.key),name:`Lâmina ${p.name}`,code:`LAM-${p.code}`,
-    category:'Lâmina natural',pattern:p.name,family:factoryBandFamily('veneer',p.key),factory:true,flexibleThickness:true,
+    category:'Lâmina natural',pattern:p.name,family:factoryBandFamily('veneer',p.key),factory:true,flexibleThickness:true,productionKind:'sheet',
     thickness:18,sheetWidth:2750,sheetHeight:1850,grainDirection:'length',color:p.color,coreColor:p.color,grain:true
+  });
+  for(const p of FACTORY_METAL_PROFILES)materials.push({
+    id:factoryMaterialId('metal',p.key),name:p.name,code:p.code,
+    category:'Ferro · Perfil metálico',pattern:p.name,family:'',factory:true,flexibleThickness:true,productionKind:'metal',
+    thickness:p.profileWidth,sheetWidth:p.stockLength,sheetHeight:p.profileHeight,stockLength:p.stockLength,profileWidth:p.profileWidth,profileHeight:p.profileHeight,
+    grainDirection:'length',color:p.color,coreColor:p.color,grain:false
   });
   const bandFamilies=[];
   for(const p of FACTORY_MATERIAL_PATTERNS)bandFamilies.push({kind:'mdf',key:p.key,name:p.name,category:p.category,color:p.color,code:p.code});
@@ -4605,16 +4616,34 @@ function productionColorInt(v,fallback=COLORS.panel){
   const s=productionColor(v,'');
   return s?parseInt(s.slice(1),16):fallback;
 }
+function inferProductionKind(m){
+  const explicit=String(m?.productionKind||'').toLowerCase();
+  if(['sheet','wood','metal'].includes(explicit))return explicit;
+  const hay=`${m?.category||''} ${m?.name||''} ${m?.code||''}`.toLowerCase();
+  if(/metalon|metal|ferro|perfil/.test(hay))return 'metal';
+  if(/madeira maci[cç]a|prancha/.test(hay))return 'wood';
+  return 'sheet';
+}
 function normalizeProductionMaterial(m){
   if(!m)return null;
   const thickness=parseDecimalInput(m.thickness),sheetWidth=parseDecimalInput(m.sheetWidth),sheetHeight=parseDecimalInput(m.sheetHeight);
+  const stockLength=parseDecimalInput(m.stockLength),stockWidth=parseDecimalInput(m.stockWidth);
+  const profileWidth=parseDecimalInput(m.profileWidth),profileHeight=parseDecimalInput(m.profileHeight);
+  const productionKind=inferProductionKind(m);
+  const normalizedSheetWidth=Number.isFinite(sheetWidth)&&sheetWidth>=100?sheetWidth:2750;
+  const normalizedSheetHeight=Number.isFinite(sheetHeight)&&sheetHeight>=10?sheetHeight:1850;
   return {
     id:String(m.id||uid('mat')),
     name:String(m.name||'Material').trim()||'Material',
     code:String(m.code||'').trim(),
     thickness:Number.isFinite(thickness)&&thickness>0?thickness:18,
-    sheetWidth:Number.isFinite(sheetWidth)&&sheetWidth>=100?sheetWidth:2750,
-    sheetHeight:Number.isFinite(sheetHeight)&&sheetHeight>=100?sheetHeight:1850,
+    sheetWidth:normalizedSheetWidth,
+    sheetHeight:normalizedSheetHeight,
+    stockLength:Number.isFinite(stockLength)&&stockLength>=100?stockLength:normalizedSheetWidth,
+    stockWidth:Number.isFinite(stockWidth)&&stockWidth>=10?stockWidth:normalizedSheetHeight,
+    profileWidth:Number.isFinite(profileWidth)&&profileWidth>0?profileWidth:(productionKind==='metal'?20:0),
+    profileHeight:Number.isFinite(profileHeight)&&profileHeight>0?profileHeight:(productionKind==='metal'?30:0),
+    productionKind,
     grainDirection:m.grainDirection==='width'?'width':'length',
     color:productionColor(m.color,'#d8c5a4'),
     coreColor:productionColor(m.coreColor,'#c6a77b'),
@@ -4705,6 +4734,21 @@ function productionBandById(id){
   return projectProduction.edgeBands.find(x=>x.id===wanted)||projectProduction.edgeBands.find(x=>x.id===canonicalFactoryBandId(wanted))||null;
 }
 function productionMaterialUsesPieceThickness(m){return !!m?.flexibleThickness;}
+function productionMaterialKind(m){return inferProductionKind(m);}
+function productionMaterialKindLabel(m){
+  const k=productionMaterialKind(m);
+  return k==='wood'?'Madeira maciça / prancha':k==='metal'?'Ferro / perfil em barra':'Chapa';
+}
+function productionMaterialStockText(m){
+  const k=productionMaterialKind(m);
+  if(k==='wood')return `prancha ${nice(m.stockLength||m.sheetWidth||3000)} × ${nice(m.stockWidth||m.sheetHeight||250)} mm`;
+  if(k==='metal')return `barra ${nice(m.stockLength||m.sheetWidth||6000)} mm · perfil ${nice(m.profileWidth||20)} × ${nice(m.profileHeight||30)} mm`;
+  return `chapa ${nice(m.sheetWidth||2750)} × ${nice(m.sheetHeight||1850)} mm`;
+}
+function productionObjectKind(o){
+  const m=productionMaterialById(o?.userData?.materialId);
+  return productionMaterialKind(m||{name:o?.userData?.materialType||''});
+}
 function productionMaterialEffectiveThickness(m,o=null){
   if(!m)return 0;
   if(productionMaterialUsesPieceThickness(m)){
@@ -4887,7 +4931,7 @@ function applySpaceMaterialToExistingPieces(root,material){
 }
 function spaceMaterialText(rootOrId){
   const m=spaceDefaultMaterial(rootOrId);
-  return m?`${m.name}${m.code?` · ${m.code}`:''}${productionMaterialUsesPieceThickness(m)?' · espessura pela peça':` · ${nice(m.thickness)} mm`} · chapa ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)}${m.grain?` · veio no ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`:'Sem material padrão';
+  return m?`${m.name}${m.code?` · ${m.code}`:''}${productionMaterialUsesPieceThickness(m)?' · espessura pela peça':` · ${nice(m.thickness)} mm`} · ${productionMaterialStockText(m)}${m.grain?` · veio no ${m.grainDirection==='width'?'largura':'comprimento'}`:''}`:'Sem material padrão';
 }
 
 
@@ -12823,11 +12867,25 @@ function productionFillSelect(select,items,emptyText){
 function productionSelectedIsPiece(){
   return !!selected && selected.userData?.kind!=='cylinder' && selected.userData?.kind!=='hardware-visual' && !selected.userData?.excludeFromCutList;
 }
+function productionUpdateMaterialKindFields(){
+  const kind=$('productionMaterialKind')?.value||'sheet';
+  const show=(id,on)=>{const el=$(id);if(el)el.style.display=on?'':'none';};
+  show('productionSheetLengthField',kind==='sheet');
+  show('productionSheetWidthField',kind==='sheet');
+  show('productionStockLengthField',kind==='wood'||kind==='metal');
+  show('productionStockWidthField',kind==='wood');
+  show('productionProfileWidthField',kind==='metal');
+  show('productionProfileHeightField',kind==='metal');
+  show('productionMaterialGrainField',kind!=='metal');
+  const check=$('productionMaterialGrain')?.closest?.('.productionCheck');
+  if(check)check.style.display=kind==='metal'?'none':'';
+}
 function productionLoadMaterialFields(){
   const m=productionMaterialById($('productionMaterialSelect').value);
   if(!m)return;
   $('productionMaterialName').value=m.name;
   $('productionMaterialCode').value=m.code||'';
+  if($('productionMaterialKind'))$('productionMaterialKind').value=productionMaterialKind(m);
   const tInput=$('productionMaterialThickness');
   if(tInput){
     const ti=selected?pieceThicknessInfo(selected):null;
@@ -12837,10 +12895,15 @@ function productionLoadMaterialFields(){
   }
   $('productionMaterialSheetWidth').value=nice(m.sheetWidth||2750);
   $('productionMaterialSheetHeight').value=nice(m.sheetHeight||1850);
+  if($('productionMaterialStockLength'))$('productionMaterialStockLength').value=nice(m.stockLength||m.sheetWidth||3000);
+  if($('productionMaterialStockWidth'))$('productionMaterialStockWidth').value=nice(m.stockWidth||m.sheetHeight||250);
+  if($('productionMaterialProfileWidth'))$('productionMaterialProfileWidth').value=nice(m.profileWidth||20);
+  if($('productionMaterialProfileHeight'))$('productionMaterialProfileHeight').value=nice(m.profileHeight||30);
   $('productionMaterialGrainDirection').value=m.grainDirection==='width'?'width':'length';
   $('productionMaterialColor').value=productionColor(m.color,'#d8c5a4');
   $('productionMaterialCoreColor').value=productionColor(m.coreColor,'#c6a77b');
   $('productionMaterialGrain').checked=!!m.grain;
+  productionUpdateMaterialKindFields();
 }
 function productionLoadBandFields(){
   const b=productionBandById($('productionBandSelect').value);
@@ -12883,7 +12946,7 @@ function productionRefreshSelectedPiece(){
   for(const sel of document.querySelectorAll('[data-edge-key]'))sel.disabled=!ok;
 
   if(!ok){
-    info.textContent='Selecione uma peça MDF para definir material e fitas.';
+    info.textContent='Selecione uma peça para definir o material de produção.';
     $('productionLabelPreview').innerHTML='<strong>Etiquetas:</strong> selecione uma peça para visualizar os dados que já estão preparados.';
     return;
   }
@@ -12895,7 +12958,7 @@ function productionRefreshSelectedPiece(){
 
   info.innerHTML=
     `<strong>${escapeHtml(u.name||'Peça')}</strong> · ${nice(ti?.faceW||0)} × ${nice(ti?.faceH||0)} × ${nice(actualT)} mm`+
-    `<br>Material: <strong>${escapeHtml(u.materialType||'não definido')}</strong>${u.materialCode?` · ${escapeHtml(u.materialCode)}`:''}`+
+    `<br>Material: <strong>${escapeHtml(u.materialType||'não definido')}</strong>${u.materialCode?` · ${escapeHtml(u.materialCode)}`:''}${material?` · <em>${escapeHtml(productionMaterialKindLabel(material))}</em>`:''}`+
     `${mismatch?`<br><span style="color:#ffb14a">⚠ Material cadastrado com ${nice(material.thickness)} mm, mas a peça tem ${nice(actualT)} mm. A geometria não foi alterada.</span>`:''}`;
 
   for(const [key,d] of Object.entries(defs)){
@@ -13099,45 +13162,63 @@ function productionNewMaterial(){
   $('productionMaterialThickness').title='';
   $('productionMaterialName').value='';
   $('productionMaterialCode').value='';
+  if($('productionMaterialKind'))$('productionMaterialKind').value='sheet';
   $('productionMaterialThickness').value=18;
   $('productionMaterialSheetWidth').value=2750;
   $('productionMaterialSheetHeight').value=1850;
+  if($('productionMaterialStockLength'))$('productionMaterialStockLength').value=3000;
+  if($('productionMaterialStockWidth'))$('productionMaterialStockWidth').value=250;
+  if($('productionMaterialProfileWidth'))$('productionMaterialProfileWidth').value=20;
+  if($('productionMaterialProfileHeight'))$('productionMaterialProfileHeight').value=30;
   $('productionMaterialGrainDirection').value='length';
   $('productionMaterialColor').value='#e7e1d4';
   $('productionMaterialCoreColor').value='#c6a77b';
   $('productionMaterialGrain').checked=false;
+  productionUpdateMaterialKindFields();
   $('productionMaterialName').focus();
 }
 function productionSaveMaterial(){
   const name=String($('productionMaterialName').value||'').trim();
+  const productionKind=$('productionMaterialKind')?.value||'sheet';
   const thickness=parseDecimalInput($('productionMaterialThickness').value);
   const sheetWidth=parseDecimalInput($('productionMaterialSheetWidth').value),sheetHeight=parseDecimalInput($('productionMaterialSheetHeight').value);
+  const stockLength=parseDecimalInput($('productionMaterialStockLength')?.value);
+  const stockWidth=parseDecimalInput($('productionMaterialStockWidth')?.value);
+  const profileWidth=parseDecimalInput($('productionMaterialProfileWidth')?.value),profileHeight=parseDecimalInput($('productionMaterialProfileHeight')?.value);
   if(!name){toast('Digite o nome do material');return;}
   if(!Number.isFinite(thickness)||thickness<=0){toast('Confira a espessura do material');return;}
-  if(!Number.isFinite(sheetWidth)||sheetWidth<100||!Number.isFinite(sheetHeight)||sheetHeight<100){toast('Confira o tamanho da chapa');return;}
+  if(productionKind==='sheet'&&(!Number.isFinite(sheetWidth)||sheetWidth<100||!Number.isFinite(sheetHeight)||sheetHeight<100)){toast('Confira o tamanho da chapa');return;}
+  if((productionKind==='wood'||productionKind==='metal')&&(!Number.isFinite(stockLength)||stockLength<100)){toast('Confira o comprimento da matéria-prima');return;}
+  if(productionKind==='wood'&&(!Number.isFinite(stockWidth)||stockWidth<10)){toast('Confira a largura da prancha');return;}
+  if(productionKind==='metal'&&(!(profileWidth>0)||!(profileHeight>0))){toast('Confira as medidas do perfil metálico');return;}
 
   const selectedId=$('productionMaterialSelect').value;
   let m=selectedId?productionMaterialById(selectedId):null;
   const editingFactory=!!m?.factory;
   if(editingFactory)m=null;
+  const categoryDefault=productionKind==='wood'?'Madeira maciça · Personalizada':productionKind==='metal'?'Ferro · Perfil metálico personalizado':'Personalizados';
   const data=normalizeProductionMaterial({
     id:m?.id||uid('mat'),
     name,
     code:$('productionMaterialCode').value,
+    productionKind,
     thickness,
-    sheetWidth,
-    sheetHeight,
+    sheetWidth:productionKind==='sheet'?sheetWidth:(Number.isFinite(stockLength)?stockLength:3000),
+    sheetHeight:productionKind==='sheet'?sheetHeight:(productionKind==='wood'?(Number.isFinite(stockWidth)?stockWidth:250):(Number.isFinite(profileHeight)?profileHeight:30)),
+    stockLength,
+    stockWidth,
+    profileWidth,
+    profileHeight,
     grainDirection:$('productionMaterialGrainDirection').value==='width'?'width':'length',
     color:$('productionMaterialColor').value,
     coreColor:$('productionMaterialCoreColor').value,
-    grain:$('productionMaterialGrain').checked,
-    category:m?.category||'Personalizados',pattern:m?.pattern||'',family:m?.family||'',factory:false
+    grain:productionKind==='metal'?false:$('productionMaterialGrain').checked,
+    category:m?.category||categoryDefault,pattern:m?.pattern||'',family:m?.family||'',factory:false
   });
 
   if(m)Object.assign(m,data);
   else{m=data;projectProduction.materials.push(m);}
 
-  // Material editado atualiza automaticamente todas as peças ligadas a ele.
   for(const o of objects){
     if(o.userData?.materialId!==m.id)continue;
     o.userData.materialType=m.name;
@@ -13154,7 +13235,8 @@ function productionSaveMaterial(){
   productionLoadMaterialFields();
   productionRefreshSelectedPiece();
   commitHistory();
-  toast(editingFactory?'Material padrão copiado como personalizado':(selectedId?'Material atualizado':'Material salvo no projeto'));
+  const kindText=productionMaterialKindLabel(m);
+  toast(editingFactory?`Material padrão copiado · ${kindText}`:(selectedId?`Material atualizado · ${kindText}`:`Material salvo · ${kindText}`));
 }
 function productionDeleteMaterial(){
   const id=$('productionMaterialSelect').value,m=productionMaterialById(id);if(!m)return;
@@ -13171,7 +13253,7 @@ function productionDeleteMaterial(){
   productionNewMaterial();productionRefreshDialog();renderSpaces();commitHistory();toast('Material removido da biblioteca e dos padrões de espaço');
 }
 function productionApplyMaterial(){
-  if(!productionSelectedIsPiece()){toast('Selecione uma peça MDF');return;}
+  if(!productionSelectedIsPiece()){toast('Selecione uma peça');return;}
   const m=productionMaterialById($('productionMaterialSelect').value);
   if(!m){toast('Selecione um material salvo');return;}
 
@@ -13315,7 +13397,7 @@ function updateSpaceMaterialPreview(){
   if(!out||!sel)return;
   const m=productionMaterialById(sel.value);
   out.innerHTML=m
-    ? `${productionMaterialUsesPieceThickness(m)?'Cada peça mantém a <strong>espessura que você definir nela</strong> e recebe automaticamente':`Novas peças de <strong>${nice(m.thickness)} mm</strong> recebem automaticamente`} <strong>${escapeHtml(m.name)}</strong>. Chapa: <strong>${nice(m.sheetWidth||2750)} × ${nice(m.sheetHeight||1850)} mm</strong>${m.grain?` · veio no <strong>${m.grainDirection==='width'?'sentido da largura':'sentido do comprimento'}</strong>`:''}.`
+    ? `${productionMaterialUsesPieceThickness(m)?'Cada peça mantém a <strong>espessura que você definir nela</strong> e recebe automaticamente':`Novas peças de <strong>${nice(m.thickness)} mm</strong> recebem automaticamente`} <strong>${escapeHtml(m.name)}</strong>. Matéria-prima: <strong>${escapeHtml(productionMaterialStockText(m))}</strong>${m.grain?` · veio no <strong>${m.grainDirection==='width'?'sentido da largura':'sentido do comprimento'}</strong>`:''}.`
     : 'Sem padrão: as novas peças continuam com o material genérico até você aplicar um material manualmente.';
 }
 function updateEditSpaceMaterialPreview(){
@@ -15981,7 +16063,8 @@ function flatPartInfo(o,index){
   const postProfile=(!cp&&u.curvedRole==='post'&&u.curvedConfig)?curvedPostOutlineMm(u.curvedConfig):null;
   return {
     index,name:u.name||`Peça ${index}`,
-    material:u.materialType||'MDF',materialId:u.materialId||null,materialCode:u.materialCode||'',materialGrain:!!u.materialGrain,materialGrainRotation:normalizePieceGrainRotation(u.materialGrainRotation),
+    material:u.materialType||'MDF',materialId:u.materialId||null,materialCode:u.materialCode||'',productionKind:productionObjectKind(o),
+    materialRecord:productionClone(productionMaterialById(u.materialId)||{}),materialGrain:!!u.materialGrain,materialGrainRotation:normalizePieceGrainRotation(u.materialGrainRotation),
     partId:u.partId||'',edgeBands:productionClone(u.edgeBands||{}),edgeBandSignature:pieceEdgeBandSignature(o),edgeBandSummary:pieceEdgeBandSummary(o),
     thickness:ti.thickness,faceW:cp?.bboxW||fp?.bboxW||postProfile?.bboxW||ti.faceW,faceH:cp?.bboxH||fp?.bboxH||postProfile?.bboxH||ti.faceH,
     thicknessAxis:cp?'y':ti.thicknessAxis,uAxis:cp?'x':ti.uAxis,vAxis:cp?'z':ti.vAxis,dims:ti.dims,object:o,
@@ -18139,8 +18222,8 @@ function repairAllDrawerDrillingForAspire(){
   return {sets,holes,missingSides,forced};
 }
 function groupAspireParts(root,cfg=getSheetPrefs()){
-  const parts=furnitureObjects(root).filter(o=>o.userData?.kind!=='space-cell'&&o.userData?.kind!=='cylinder'&&!o.userData?.excludeFromCutList&&o.userData?.kind!=='hardware-visual').map((o,i)=>{const p=flatPartInfo(o,i+1);if(p){p.spaceName=root.name||'Espaço';p.spaceRootId=root.id;}return p;}).filter(Boolean);
-  return groupPartArrayForAspire(parts,cfg,'Este móvel não possui peças para exportar');
+  const parts=furnitureObjects(root).filter(o=>o.userData?.kind!=='space-cell'&&o.userData?.kind!=='cylinder'&&!o.userData?.excludeFromCutList&&o.userData?.kind!=='hardware-visual'&&productionObjectKind(o)==='sheet').map((o,i)=>{const p=flatPartInfo(o,i+1);if(p){p.spaceName=root.name||'Espaço';p.spaceRootId=root.id;}return p;}).filter(Boolean);
+  return groupPartArrayForAspire(parts,cfg,'Este móvel não possui peças de chapa para exportar');
 }
 function allProjectFurnitureParts(){
   const parts=[],seen=new Set();let index=0;
@@ -18152,8 +18235,11 @@ function allProjectFurnitureParts(){
   }
   return parts;
 }
+function allProjectProductionPartsByKind(kind){
+  return allProjectFurnitureParts().filter(p=>(p.productionKind||'sheet')===kind);
+}
 function groupAspireProjectParts(cfg=getSheetPrefs()){
-  return groupPartArrayForAspire(allProjectFurnitureParts(),cfg,'O projeto ainda não possui peças dentro dos espaços');
+  return groupPartArrayForAspire(allProjectProductionPartsByKind('sheet'),cfg,'O projeto ainda não possui peças de chapa dentro dos espaços');
 }
 function u16(n){return new Uint8Array([n&255,(n>>>8)&255]);} function u32(n){return new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);}
 function concatBytes(parts){let len=parts.reduce((n,p)=>n+p.length,0),out=new Uint8Array(len),o=0;for(const p of parts){out.set(p,o);o+=p.length;}return out;}
@@ -19366,6 +19452,7 @@ $('exportAspireBtn').onclick=()=>{exportSelectedAspireDxf();};
 $('closeProductionDialog').onclick=closeProductionDialog;
 $('productionDialog').addEventListener('pointerdown',e=>{if(e.target===$('productionDialog'))closeProductionDialog();});
 $('productionMaterialSelect').addEventListener('change',()=>{if($('productionMaterialSelect').value)productionLoadMaterialFields();});
+$('productionMaterialKind')?.addEventListener('change',productionUpdateMaterialKindFields);
 $('productionBandSelect').addEventListener('change',()=>{if($('productionBandSelect').value)productionLoadBandFields();});
 $('productionMaterialNew').onclick=productionNewMaterial;
 $('productionMaterialSave').onclick=productionSaveMaterial;
@@ -19561,7 +19648,7 @@ function cutPlanSheetStats(sheet,cfg){
   return {area,efficiency:area/usable*100,cutLength,reusable};
 }
 function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
-  const raw=allProjectFurnitureParts();if(!raw.length)throw new Error('O projeto ainda não possui peças para o plano de corte.');
+  const raw=allProjectProductionPartsByKind('sheet');if(!raw.length)throw new Error('O projeto ainda não possui peças de chapa para o plano de corte.');
   const byMaterial=new Map();
   for(const p of raw){const mat=normalizedLayer(p.material||'MDF')||'MDF',key=`${mat}_${layerNum(p.thickness)}mm`;if(!byMaterial.has(key))byMaterial.set(key,[]);byMaterial.get(key).push(p);}
   const groups=[];
@@ -20670,7 +20757,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.98';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.200.99';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -21788,6 +21875,7 @@ function dlProdIssue(level,title,detail='',objectsList=[]){return {level,title,d
 function dlProdPieceLabel(o){return String(o?.userData?.name||'Peça sem nome');}
 function dlProdHasAnyBand(o){const b=normalizePieceEdgeBands(o?.userData?.edgeBands||{});return ['uMin','uMax','vMin','vMax'].some(k=>!!b[k]);}
 function dlProdFitsSheet(o,mat){
+  if(productionMaterialKind(mat)!=='sheet')return true;
   const ti=pieceThicknessInfo(o);if(!ti||!mat)return true;
   const w=ti.faceW,h=ti.faceH,sw=Number(mat.sheetWidth)||0,sh=Number(mat.sheetHeight)||0;
   if(sw<=0||sh<=0)return false;
@@ -21814,33 +21902,40 @@ async function checkProjectReadyForProduction({render=true}={}){
   });
   if(thicknessMismatch.length)issues.push(dlProdIssue('error','Espessura diferente do material',`${thicknessMismatch.length} peça(s) têm espessura geométrica diferente da chapa cadastrada.`,thicknessMismatch));
 
-  const tooBig=pieces.filter(o=>{const m=productionMaterialById(o.userData?.materialId);return m&&!dlProdFitsSheet(o,m);});
+  const tooBig=pieces.filter(o=>{const m=productionMaterialById(o.userData?.materialId);return m&&productionMaterialKind(m)==='sheet'&&!dlProdFitsSheet(o,m);});
   if(tooBig.length)issues.push(dlProdIssue('error','Peça maior que a chapa',`${tooBig.length} peça(s) não cabem na chapa cadastrada respeitando o veio.`,tooBig));
 
   const badGrain=pieces.filter(o=>o.userData?.materialGrain&&![0,90].includes(normalizePieceGrainRotation(o.userData?.materialGrainRotation)));
   if(badGrain.length)issues.push(dlProdIssue('warning','Sentido do veio fora do padrão',`${badGrain.length} peça(s) precisam confirmar 0° ou 90°.`,badGrain));
 
-  const frontsWithoutBands=pieces.filter(o=>(dlLayoutIsDoor?.(o)||dlLayoutIsFront?.(o))&&!dlProdHasAnyBand(o));
+  const frontsWithoutBands=pieces.filter(o=>productionObjectKind(o)==='sheet'&&(dlLayoutIsDoor?.(o)||dlLayoutIsFront?.(o))&&!dlProdHasAnyBand(o));
   if(frontsWithoutBands.length)issues.push(dlProdIssue('warning','Portas/frentes sem fita',`${frontsWithoutBands.length} porta(s)/frente(s) não têm fita de borda definida.`,frontsWithoutBands));
 
   if(excluded.length)issues.push(dlProdIssue('info','Peças marcadas “não produzir”',`${excluded.length} peça(s) ficam no 3D, mas não entram na produção.`,excluded));
 
   const doors=pieces.filter(o=>dlLayoutIsDoor?.(o)),drawerFronts=pieces.filter(o=>dlLayoutIsFront?.(o));
   const mach=pieces.reduce((n,o)=>n+(o.userData?.machining||[]).length,0);
+  const sheetPieces=pieces.filter(o=>productionObjectKind(o)==='sheet');
+  const woodPieces=pieces.filter(o=>productionObjectKind(o)==='wood');
+  const metalPieces=pieces.filter(o=>productionObjectKind(o)==='metal');
   issues.push(dlProdIssue('ok','Estrutura reconhecida',`${pieces.length} peça(s) · ${doors.length} porta(s) · ${drawerFronts.length} frente(s) de gaveta · ${mach} usinagem(ns).`));
+  if(woodPieces.length)issues.push(dlProdIssue('info','Plano separado · Madeira maciça',`${woodPieces.length} peça(s) irão para pranchas, fora do plano de chapas.`,woodPieces));
+  if(metalPieces.length)issues.push(dlProdIssue('info','Plano separado · Ferro / Metalon',`${metalPieces.length} peça(s) irão para barras, fora do plano de chapas.`,metalPieces));
 
   let groups=[],cfg=null,zawCount=0;
-  try{
-    cfg=getSheetPrefs();groups=groupAspireProjectParts(cfg);
-    issues.push(dlProdIssue('ok','Plano de corte calculado',`${groups.length} chapa(s) física(s) calculada(s) com as configurações atuais.`));
-    if(cfg.cutMode==='panel'){
-      zawCount=buildMingliZawFiles(groups,cfg).length;
-      issues.push(dlProdIssue(zawCount?'ok':'warning','Mingli/ZAW',zawCount?`${zawCount} arquivo(s) ZAW pronto(s) para a seccionadora.`:'Nenhum ZAW foi gerado. Confira as peças e o plano mestre.'));
-    }else issues.push(dlProdIssue('info','Mingli/ZAW não ativo','O plano atual está em CNC. Para ZAW, use o modo Seccionadora.'));
-  }catch(err){issues.push(dlProdIssue('error','Falha ao calcular plano de corte',err.message||'Não foi possível organizar as peças nas chapas.'));}
+  if(sheetPieces.length){
+    try{
+      cfg=getSheetPrefs();groups=groupAspireProjectParts(cfg);
+      issues.push(dlProdIssue('ok','Plano de chapas calculado',`${groups.length} chapa(s) física(s) calculada(s) com as configurações atuais.`));
+      if(cfg.cutMode==='panel'){
+        zawCount=buildMingliZawFiles(groups,cfg).length;
+        issues.push(dlProdIssue(zawCount?'ok':'warning','Mingli/ZAW',zawCount?`${zawCount} arquivo(s) ZAW pronto(s) para a seccionadora.`:'Nenhum ZAW foi gerado. Confira as peças e o plano mestre.'));
+      }else issues.push(dlProdIssue('info','Mingli/ZAW não ativo','O plano de chapas atual está em CNC. Para ZAW, use o modo Seccionadora.'));
+    }catch(err){issues.push(dlProdIssue('error','Falha ao calcular plano de chapas',err.message||'Não foi possível organizar as peças nas chapas.'));}
+  }else issues.push(dlProdIssue('info','Sem peças de chapa','O projeto atual possui somente madeira/perfis ou peças sem chapa.'));
 
   const errors=issues.filter(x=>x.level==='error').length,warnings=issues.filter(x=>x.level==='warning').length;
-  const result={at:projectNow(),ready:errors===0,errors,warnings,issues,stats:{pieces:pieces.length,excluded:excluded.length,doors:doors.length,drawerFronts:drawerFronts.length,machining:mach,sheets:groups.length,zaw:zawCount},groups,cfg};
+  const result={at:projectNow(),ready:errors===0,errors,warnings,issues,stats:{pieces:pieces.length,excluded:excluded.length,doors:doors.length,drawerFronts:drawerFronts.length,machining:mach,sheets:groups.length,wood:woodPieces.length,metal:metalPieces.length,zaw:zawCount},groups,cfg};
   dlProductionLastCheck=result;
   if(render)dlRenderProductionCheck(result);
   return result;
@@ -21868,6 +21963,123 @@ async function openProductionSuiteDialog(){
   await checkProjectReadyForProduction({render:true});
 }
 function closeProductionSuiteDialog(){const d=$('productionSuiteDialog');if(d){d.classList.remove('show');d.style.display='none';}}
+
+// ---------------------------------------------------------------------------
+// 1.200.99 · PLANOS SEPARADOS: MADEIRA MACIÇA E PERFIS METÁLICOS
+// ---------------------------------------------------------------------------
+function dlLinearPieceLengthMm(p){
+  const d=p?.dims||{};
+  return Math.max(Number(d.x)||0,Number(d.y)||0,Number(d.z)||0);
+}
+function dlPackMetalBars(parts,stockLength=6000,kerf=3){
+  const ordered=parts.map(p=>({...p,cutLength:dlLinearPieceLengthMm(p)})).sort((a,b)=>b.cutLength-a.cutLength);
+  const bars=[];
+  for(const p of ordered){
+    if(!(p.cutLength>0))continue;
+    if(p.cutLength>stockLength+.001)throw new Error(`${p.name}: ${nice(p.cutLength)} mm é maior que a barra de ${nice(stockLength)} mm.`);
+    let best=-1,bestRemain=Infinity;
+    for(let i=0;i<bars.length;i++){
+      const b=bars[i],extra=(b.parts.length?kerf:0)+p.cutLength,remain=stockLength-(b.used+extra);
+      if(remain>=-.001&&remain<bestRemain){best=i;bestRemain=remain;}
+    }
+    if(best<0)bars.push({used:p.cutLength,parts:[p]});
+    else{
+      const b=bars[best];b.used+=(b.parts.length?kerf:0)+p.cutLength;b.parts.push(p);
+    }
+  }
+  return bars.map((b,i)=>({...b,index:i+1,waste:Math.max(0,stockLength-b.used)}));
+}
+function dlWoodPlanGroups(){
+  const parts=allProjectProductionPartsByKind('wood'),map=new Map();
+  for(const p of parts){
+    const m=productionMaterialById(p.materialId)||p.materialRecord||{};
+    const key=`${p.materialId||p.material}_${layerNum(p.thickness)}mm`;
+    if(!map.has(key))map.set(key,{material:m,thickness:p.thickness,parts:[]});
+    map.get(key).parts.push(p);
+  }
+  return [...map.values()];
+}
+function dlMetalPlanGroups(){
+  const parts=allProjectProductionPartsByKind('metal'),map=new Map();
+  for(const p of parts){
+    const m=productionMaterialById(p.materialId)||p.materialRecord||{};
+    const key=p.materialId||p.material||'metal';
+    if(!map.has(key))map.set(key,{material:m,parts:[]});
+    map.get(key).parts.push(p);
+  }
+  return [...map.values()];
+}
+function dlRenderWoodPlan(){
+  const content=$('linearMaterialPlanContent'),summary=$('linearMaterialPlanSummary');content.innerHTML='';
+  const groups=dlWoodPlanGroups();
+  if(!groups.length){summary.className='dlSuiteStatus attention';summary.innerHTML='<strong>Sem peças de madeira maciça</strong><span>Aplique um material da categoria Madeira maciça às peças.</span>';return;}
+  let totalPlanks=0,totalPieces=0;
+  for(const g of groups){
+    const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||3000),stockWidth=Number(mat.stockWidth||mat.sheetHeight||250);
+    const cfg={...normalizedSheetPrefs(getSheetPrefs()),width:stockLength,height:stockWidth,margin:0,gap:3,grain:true,grainDirection:'length',cutMode:'cnc',optimization:'advanced',direction:'length',keepLength:100,keepWidth:20};
+    let planks=[];
+    try{planks=cutPlanPackOpen(g.parts,cfg);}catch(err){
+      const row=document.createElement('div');row.className='dlCheckRow error';row.innerHTML=`<b class="dlCheckIcon">✕</b><div><strong>${escapeHtml(mat.name||'Madeira maciça')}</strong><span>${escapeHtml(err.message||'Não foi possível organizar as peças na prancha.')}</span></div>`;content.appendChild(row);continue;
+    }
+    totalPlanks+=planks.length;totalPieces+=g.parts.length;
+    const row=document.createElement('div');row.className='dlCheckRow ok';
+    const details=planks.map((pl,i)=>{
+      const usedArea=pl.placements.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),pct=usedArea/Math.max(1,stockLength*stockWidth)*100;
+      const pieces=pl.placements.map(p=>`${p.name} ${nice(p.faceW)}×${nice(p.faceH)}`).join(' · ');
+      return `Prancha ${i+1}: ${nice(stockLength)}×${nice(stockWidth)} mm · ${nice(pct)}% · ${pieces}`;
+    }).join('<br>');
+    row.innerHTML=`<b class="dlCheckIcon">✓</b><div><strong>${escapeHtml(mat.name||'Madeira maciça')} · ${nice(g.thickness)} mm</strong><span>${planks.length} prancha(s) · ${g.parts.length} peça(s) · matéria-prima ${nice(stockLength)} × ${nice(stockWidth)} mm</span><small>${details}</small></div>`;
+    content.appendChild(row);
+  }
+  summary.className='dlSuiteStatus ready';summary.innerHTML=`<strong>🪵 Plano de madeira</strong><span>${totalPieces} peça(s) · ${totalPlanks} prancha(s). Corte separado do MDF.</span>`;
+}
+function dlRenderMetalPlan(){
+  const content=$('linearMaterialPlanContent'),summary=$('linearMaterialPlanSummary');content.innerHTML='';
+  const groups=dlMetalPlanGroups();
+  if(!groups.length){summary.className='dlSuiteStatus attention';summary.innerHTML='<strong>Sem peças de ferro/perfil</strong><span>Aplique Metalon ou outro perfil metálico às peças.</span>';return;}
+  let totalBars=0,totalPieces=0;
+  for(const g of groups){
+    const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||6000),kerf=3;
+    let bars=[];
+    try{bars=dlPackMetalBars(g.parts,stockLength,kerf);}catch(err){
+      const row=document.createElement('div');row.className='dlCheckRow error';row.innerHTML=`<b class="dlCheckIcon">✕</b><div><strong>${escapeHtml(mat.name||'Perfil metálico')}</strong><span>${escapeHtml(err.message||'Não foi possível organizar as barras.')}</span></div>`;content.appendChild(row);continue;
+    }
+    totalBars+=bars.length;totalPieces+=g.parts.length;
+    const profile=mat.profileWidth&&mat.profileHeight?`${nice(mat.profileWidth)}×${nice(mat.profileHeight)} mm`:'perfil cadastrado';
+    const details=bars.map(b=>`Barra ${b.index}: ${b.parts.map(p=>`${p.name} ${nice(dlLinearPieceLengthMm(p))}`).join(' + ')} · sobra ${nice(b.waste)} mm`).join('<br>');
+    const row=document.createElement('div');row.className='dlCheckRow ok';
+    row.innerHTML=`<b class="dlCheckIcon">✓</b><div><strong>${escapeHtml(mat.name||'Perfil metálico')} · ${profile}</strong><span>${bars.length} barra(s) de ${nice(stockLength)} mm · ${g.parts.length} peça(s) · corte considerado 3 mm</span><small>${details}</small></div>`;
+    content.appendChild(row);
+  }
+  summary.className='dlSuiteStatus ready';summary.innerHTML=`<strong>▰ Plano de ferro / Metalon</strong><span>${totalPieces} peça(s) · ${totalBars} barra(s). Não entra no plano de chapas.</span>`;
+}
+function dlWoodPlanCsv(){
+  let c=csvLine(['Material','Espessura_mm','Prancha','Comprimento_prancha_mm','Largura_prancha_mm','Peca','Espaco','Largura_peca_mm','Comprimento_peca_mm']);
+  for(const g of dlWoodPlanGroups()){
+    const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||3000),stockWidth=Number(mat.stockWidth||mat.sheetHeight||250);
+    const cfg={...normalizedSheetPrefs(getSheetPrefs()),width:stockLength,height:stockWidth,margin:0,gap:3,grain:true,grainDirection:'length',cutMode:'cnc',optimization:'advanced',direction:'length',keepLength:100,keepWidth:20};
+    const planks=cutPlanPackOpen(g.parts,cfg);
+    planks.forEach((pl,i)=>pl.placements.forEach(p=>{c+=csvLine([mat.name||p.material,g.thickness,i+1,stockLength,stockWidth,p.name,p.spaceName||'',p.faceW,p.faceH]);}));
+  }
+  return c;
+}
+function dlMetalPlanCsv(){
+  let c=csvLine(['Material','Perfil_mm','Barra','Comprimento_barra_mm','Peca','Espaco','Corte_mm','Sobra_barra_mm']);
+  for(const g of dlMetalPlanGroups()){
+    const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||6000),profile=mat.profileWidth&&mat.profileHeight?`${nice(mat.profileWidth)}x${nice(mat.profileHeight)}`:'';
+    const bars=dlPackMetalBars(g.parts,stockLength,3);
+    bars.forEach(b=>b.parts.forEach(p=>{c+=csvLine([mat.name||p.material,profile,b.index,stockLength,p.name,p.spaceName||'',dlLinearPieceLengthMm(p),b.waste]);}));
+  }
+  return c;
+}
+function openLinearMaterialPlan(kind){
+  const d=$('linearMaterialPlanDialog');if(!d)return;
+  $('linearMaterialPlanTitle').textContent=kind==='metal'?'▰ Plano de corte · Ferro / Metalon':'🪵 Plano de corte · Madeira maciça';
+  $('linearMaterialPlanHelp').textContent=kind==='metal'?'Otimização por barras lineares. O padrão Metalon 20×30 usa barra de 6000 mm.':'Otimização em pranchas. O padrão inicial de madeira maciça usa 3000 × 250 mm e pode ser personalizado.';
+  d.classList.add('show');d.style.display='flex';
+  if(kind==='metal')dlRenderMetalPlan();else dlRenderWoodPlan();
+}
+function closeLinearMaterialPlanDialog(){const d=$('linearMaterialPlanDialog');if(d){d.classList.remove('show');d.style.display='none';}}
 
 // ---------------------------------------------------------------------------
 // VISTA EXPLODIDA + MANUAL DE MONTAGEM
@@ -22023,16 +22235,18 @@ async function generateCompleteProductionPackage(){
     if(grooves.sets||drilling.sets){rec=await saveCurrentProject({silent:true})||rec;}
     const check=await checkProjectReadyForProduction({render:true});
     if(!check.ready&&!confirm(`O verificador encontrou ${check.errors} item(ns) crítico(s).\n\nDeseja gerar o pacote mesmo assim?`))return;
-    const cfg=check.cfg||getSheetPrefs(),groups=check.groups?.length?check.groups:groupAspireProjectParts(cfg),files=[];
+    const cfg=check.cfg||getSheetPrefs(),groups=Array.isArray(check.groups)?check.groups:[],files=[];
     const slug=safeFileName(rec.name||'projeto');
-    files.push({name:'00-LEIA-ME.txt',data:`PACOTE DE PRODUÇÃO · ${rec.name||'Projeto'}\r\nGerado pelo DesignLabMoveis ${DL_PRODUCTION_SUITE_VERSION}\r\n\r\nPastas:\r\n01-projeto = arquivo editável .mcad\r\n02-layout = desenhos técnicos PDF\r\n03-listas = peças, etiquetas e usinagens CSV\r\n04-etiquetas = folha HTML pronta para imprimir\r\n05-plano-corte = DXF, plano, imagens e ZAW (quando Seccionadora)\r\n06-3d = vistas montada e explodida\r\n07-montagem = manual automático\r\n08-verificacao = auditoria antes da produção\r\n`});
+    files.push({name:'00-LEIA-ME.txt',data:`PACOTE DE PRODUÇÃO · ${rec.name||'Projeto'}\r\nGerado pelo DesignLabMoveis ${DL_PRODUCTION_SUITE_VERSION}\r\n\r\nPastas:\r\n01-projeto = arquivo editável .mcad\r\n02-layout = desenhos técnicos PDF\r\n03-listas = peças, etiquetas e usinagens CSV\r\n04-etiquetas = folha HTML pronta para imprimir\r\n05-plano-corte = chapas + planos separados de madeira e ferro\r\n06-3d = vistas montada e explodida\r\n07-montagem = manual automático\r\n08-verificacao = auditoria antes da produção\r\n`});
     files.push({name:`01-projeto/${slug}.mcad`,data:JSON.stringify(dlProductionMcadPayload(rec),null,2)});
 
     const pdfs=await dlProductionLayoutPdfs();files.push({name:'02-layout/layout-tecnico.pdf',data:pdfs.technical},{name:'02-layout/layout-limpo.pdf',data:pdfs.clean},{name:'02-layout/layout-producao-2-folhas.pdf',data:pdfs.combined});
 
     for(const g of groups)files.push({name:`05-plano-corte/dxf/${g.file}`,data:g.text});
     files.push({name:'03-listas/lista-pecas.csv',data:buildPartsCsv(groups)},{name:'03-listas/etiquetas-base.csv',data:buildLabelsBaseCsv(groups)},{name:'03-listas/usinagens.csv',data:buildMachiningCsv(groups)},{name:'05-plano-corte/plano-chapas.csv',data:buildSheetsCsv(groups,cfg)});
-    if(cfg.cutMode==='panel')files.push({name:'05-plano-corte/cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)},...buildMingliZawFiles(groups,cfg).map(f=>({name:`05-plano-corte/mingli-zaw/${f.name}`,data:f.data})));
+    if(allProjectProductionPartsByKind('wood').length)files.push({name:'05-plano-corte/madeira/plano-madeira.csv',data:dlWoodPlanCsv()});
+    if(allProjectProductionPartsByKind('metal').length)files.push({name:'05-plano-corte/ferro/plano-ferro.csv',data:dlMetalPlanCsv()});
+    if(groups.length&&cfg.cutMode==='panel')files.push({name:'05-plano-corte/cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)},...buildMingliZawFiles(groups,cfg).map(f=>({name:`05-plano-corte/mingli-zaw/${f.name}`,data:f.data})));
 
     const labelPrefs={...labelsPrefs(),scope:'project'},labelItems=labelsBuildItems(labelPrefs);files.push({name:'04-etiquetas/etiquetas.html',data:labelsPrintDocument(labelItems,labelPrefs)});
     for(let i=0;i<groups.length;i++){const png=await dlCanvasPngBytes(dlCutPlanCanvas(groups[i],groups[i].cfg||cfg));files.push({name:`05-plano-corte/imagens/chapa-${String(i+1).padStart(2,'0')}.png`,data:png});}
@@ -22059,6 +22273,10 @@ $('productionSuiteDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('
 $('productionSuiteRecheck')?.addEventListener('click',()=>checkProjectReadyForProduction({render:true}));
 $('productionSuiteHistory')?.addEventListener('click',openProjectVersionsDialog);
 $('productionSuiteMaterials')?.addEventListener('click',()=>{closeProductionSuiteDialog();openProductionDialog();});
+$('productionSuiteWoodPlan')?.addEventListener('click',()=>{closeProductionSuiteDialog();openLinearMaterialPlan('wood');});
+$('productionSuiteMetalPlan')?.addEventListener('click',()=>{closeProductionSuiteDialog();openLinearMaterialPlan('metal');});
+$('closeLinearMaterialPlanDialog')?.addEventListener('click',closeLinearMaterialPlanDialog);
+$('linearMaterialPlanDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('linearMaterialPlanDialog'))closeLinearMaterialPlanDialog();});
 $('productionSuiteLayout')?.addEventListener('click',()=>{closeProductionSuiteDialog();openTechnicalLayoutDialog();});
 $('productionSuiteAssembly')?.addEventListener('click',()=>{closeProductionSuiteDialog();openAssemblyManualDialog();});
 $('productionSuiteExplode')?.addEventListener('click',()=>{closeProductionSuiteDialog();openAssemblyExplodedView();});
