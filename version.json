@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.10",
+  "version": "1.300.11",
   "required": false,
-  "message": "Biblioteca global de Portas: somente ADM pode adicionar, substituir, renomear ou excluir modelos oficiais. Usuários apenas utilizam; modelos e revisões ficam no R2.",
-  "released_at": "2026-09-07T20:19:00-03:00",
-  "build": "1.300.10-r1"
+  "message": "Biblioteca de Portas: o ADM agora pode renomear e excluir/ocultar também o modelo padrão embutido, mantendo o mesmo ID e preservando geometria e regras; modelos oficiais continuam sincronizados pela nuvem.",
+  "released_at": "2026-09-08T12:30:00-03:00",
+  "build": "1.300.11-r1"
 }
