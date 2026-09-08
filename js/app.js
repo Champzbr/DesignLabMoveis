@@ -34,7 +34,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.300.10-r1';
+window.__DESIGNLAB_APP_BOOTED='1.300.11-r1';
 
 
 // ============================================================================
@@ -272,7 +272,7 @@ async function premiumRenderQr(code){
   const holder=$('premiumPixQr');if(!holder)return;
   holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
   try{
-    premiumQrModulePromise ||= import('./qr-local.js?v=1.300.10-r1');
+    premiumQrModulePromise ||= import('./qr-local.js?v=1.300.11-r1');
     const mod=await premiumQrModulePromise;
     if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
       holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -880,10 +880,10 @@ function designLabRuntimeVersion(){
   if(m?.[1])return m[1];
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.300.10';
+  return tm?.[1]||'1.300.11';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.300.10-r1';
+const DESIGNLAB_JS_BUILD='1.300.11-r1';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -1245,7 +1245,6 @@ function updateAdminVisibility(){
     b.style.display=allowed?'block':'none';
   }
   if(!allowed&&$('adminDialog')?.style.display==='flex')$('adminDialog').style.display='none';
-  try{updateDoorSystemAdminUi();}catch(_){}
 }
 function adminMoney(cents){return (Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function adminDate(value){
@@ -4064,7 +4063,7 @@ controls.dampingFactor = .09;
 controls.target.set(0,.45,0);
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
-// 1.300.10 · ZOOM CAD DE ALTA PRECISÃO (PC + TOUCH)
+// 1.300.11 · ZOOM CAD DE ALTA PRECISÃO (PC + TOUCH)
 // O ajuste anterior começava a frear a 120 mm da superfície e caía para uma
 // velocidade muito baixa. No celular isso dava a sensação de que a câmera
 // "parava" antes de chegar na peça. Agora a desaceleração só entra nos
@@ -4131,7 +4130,7 @@ function cadZoomPrepareIn(clientX,clientY){
   cadZoomTuneNearPlane(d);
   return d;
 }
-// 1.300.10 · No touch a velocidade não pode depender da altura onde os dedos
+// 1.300.11 · No touch a velocidade não pode depender da altura onde os dedos
 // estão na tela. Usar o centro da pinça fazia a metade inferior parecer mais
 // lenta em algumas perspectivas. A pinça agora mede a aproximação no foco
 // estável do OrbitControls (target projetado na tela); se não houver superfície
@@ -6108,7 +6107,7 @@ function expandManualCutParentBoundsAtDeletedBoundary(cell,axis,oldBoundary,newE
   }
 }
 function selectedSpaceCellDeleteContext(root,cell){
-  // 1.300.10: o "irmão" original pode ter sido recortado novamente. A rotina
+  // 1.300.11: o "irmão" original pode ter sido recortado novamente. A rotina
   // de edição de vãos já sabe reconstruir essa árvore e retornar todos os
   // descendentes do mesmo pai; reaproveitamos a mesma leitura aqui.
   let ctx=null;
@@ -6264,7 +6263,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
     drawerIndex:Number.isFinite(Number(drawerIndex))?Number(drawerIndex):null,
     drawerConfig:drawerConfig?JSON.parse(JSON.stringify(drawerConfig)):null,
     doorConfig:doorConfig?JSON.parse(JSON.stringify(doorConfig)):null,
-    // 1.300.10 · metadados do Sistema de Portas.
+    // 1.300.11 · metadados do Sistema de Portas.
     doorSystem:doorSystem?JSON.parse(JSON.stringify(doorSystem)):null,
     hiddenByUser:!!hiddenByUser,
     excludeFromCutList:!!excludeFromCutList,
@@ -12488,7 +12487,7 @@ function placeCustomTemplate(item,info,{commit=true,notify=true}={}){
       const libStructuralX=structuralFixedIntervalsFromPartRecords(item.parts,'x',lb);
       const libStructuralY=structuralFixedIntervalsFromPartRecords(item.parts,'y',lb);
       const libStructuralZ=structuralFixedIntervalsFromPartRecords(item.parts,'z',lb);
-      // 1.300.10 · PORTA PIVOTANTE: a árvore manualCut pode perder uma das
+      // 1.300.11 · PORTA PIVOTANTE: a árvore manualCut pode perder uma das
       // faixas fixas de profundidade depois de vários cortes/edições. Para um
       // sistema de porta isso deformava peças construtivas do batente ao mudar
       // a espessura da parede (ex.: 195 -> 205 mm). O modelo de porta passa a
@@ -12557,7 +12556,7 @@ function builtinLibraryItems(){return [
 
 
 // ============================================================================
-// 1.300.10 · SISTEMA DE PORTAS / BIBLIOTECA GLOBAL ADMINISTRÁVEL
+// 1.300.11 · SISTEMA DE PORTAS / BIBLIOTECA DE PORTAS
 // O primeiro modelo oficial foi capturado diretamente do Espaço 3 final
 // enviado pelo usuário. O CAD guarda a medida acabada; a fabricação pode
 // acrescentar uma sobremedida somente às faces da folha.
@@ -12571,7 +12570,7 @@ function doorSystemPreferredOversize(model){
   const prefs=doorSystemReadOversizePrefs(),n=Number(prefs?.[model?.id]);
   if(Number.isFinite(n)&&n>=0&&n<=100)return n;
   const def=Number(model?.productionOversizeMm);
-  return Number.isFinite(def)&&def>=0?def:15;
+  return Number.isFinite(def)&&def>=0?def:10;
 }
 function doorSystemRememberOversize(modelId,value){
   const n=Number(value);if(!modelId||!Number.isFinite(n)||n<0||n>100)return;
@@ -12588,78 +12587,6 @@ try{
 function persistDoorLibrary(){
   try{localStorage.setItem(DOOR_SYSTEM_LIBRARY_KEY,JSON.stringify(customDoorLibrary));}
   catch(err){toast('A Biblioteca de Portas ficou grande demais para este dispositivo');}
-}
-
-const DOOR_SYSTEM_GLOBAL_CACHE_KEY='designLabGlobalDoorModelsV130010';
-let globalDoorState={loaded:false,loading:false,error:'',items:[],records:new Map()};
-function doorSystemReadGlobalCache(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(DOOR_SYSTEM_GLOBAL_CACHE_KEY)||'null');
-    if(!raw||!Array.isArray(raw.items))return;
-    globalDoorState.items=raw.items.map(x=>({...x,global:true,server:true,builtin:false}));
-    globalDoorState.records=new Map(Object.entries(raw.records||{}));
-  }catch(_){ }
-}
-function doorSystemWriteGlobalCache(){
-  try{
-    const records={};for(const [id,record] of globalDoorState.records.entries())records[id]=record;
-    localStorage.setItem(DOOR_SYSTEM_GLOBAL_CACHE_KEY,JSON.stringify({items:globalDoorState.items,records,savedAt:new Date().toISOString()}));
-  }catch(_){ }
-}
-doorSystemReadGlobalCache();
-function doorSystemServerModelById(id){return globalDoorState.items.find(m=>m.id===id)||null;}
-async function loadGlobalDoorModels({force=false,quiet=false}={}){
-  if(globalDoorState.loading)return;
-  if(globalDoorState.loaded&&!force)return;
-  if(!cloudAccountState.ok){if(!quiet)globalDoorState.error='Entre na conta para atualizar os modelos globais.';return;}
-  globalDoorState.loading=true;globalDoorState.error='';
-  try{
-    const data=await cloudApiFetch('/doors/global',{timeoutMs:20000});
-    globalDoorState.items=(Array.isArray(data?.items)?data.items:[]).map(x=>({...x,global:true,server:true,builtin:false}));
-    globalDoorState.loaded=true;doorSystemWriteGlobalCache();
-  }catch(err){
-    const msg=err.message||'Não foi possível atualizar a Biblioteca de Portas.';
-    globalDoorState.error=/rota.*não encontrada|not_found|404/i.test(msg)?'Atualize o Cloudflare Worker para a versão 1.100.93 para ativar a Biblioteca global de Portas.':msg;
-  }finally{
-    globalDoorState.loading=false;
-    if($('doorSystemDialog')?.style.display==='flex')renderDoorSystemModels();
-  }
-}
-async function doorSystemEnsureRecord(model){
-  if(!model)throw new Error('Modelo de porta não encontrado');
-  if(model.record)return model;
-  const cached=globalDoorState.records.get(model.id);
-  if(cached)return {...model,record:JSON.parse(JSON.stringify(cached))};
-  if(!model.server)throw new Error('Modelo de porta sem geometria');
-  const data=await cloudApiFetch(`/doors/global/${encodeURIComponent(model.id)}`,{timeoutMs:30000});
-  const record=data?.record||data?.model?.record;
-  if(!record||!Array.isArray(record.objects)||!record.objects.length)throw new Error('O modelo global está sem geometria válida.');
-  globalDoorState.records.set(model.id,record);doorSystemWriteGlobalCache();
-  return {...model,...(data?.item||{}),record,global:true,server:true,builtin:false};
-}
-function updateDoorSystemAdminUi(){
-  const admin=adminAllowed(),box=$('doorSystemAdminTools');
-  if(box)box.style.display=admin?'block':'none';
-  const hint=$('doorSystemAdminHint');
-  if(hint)hint.textContent=admin?'Somente o ADM publica alterações. Os modelos salvos aqui aparecem para todos os usuários.':'Biblioteca oficial: somente o administrador pode adicionar ou substituir modelos.';
-}
-function doorSystemParametricRules(){return {schemaVersion:1,axisMode:'fixed-bands-equal-free',preserveFixedBands:true,preserveStructuralThickness:true,productionOversizeTarget:'leaf-faces',depthMode:'fixed-bands-free-gap'};}
-function doorSystemCaptureAdminModel(root,{name,kind,description,productionOversizeMm}={}){
-  if(!root)throw new Error('Selecione o espaço completo da porta.');
-  const record=captureFurniture(root),facePartIds=doorSystemDetectFacePartIds(record);
-  if(facePartIds.length<2)throw new Error('Não encontrei as duas faces da folha. Nomeie as duas peças como “Folha Porta” ou use uma porta criada pelo Sistema de Portas.');
-  const ref={widthMm:roundMmNumber(root.width*1000,3),heightMm:roundMmNumber(root.height*1000,3),depthMm:roundMmNumber(root.depth*1000,3)};
-  const over=Number(productionOversizeMm);
-  return {
-    name:String(name||root.doorSystem?.templateName||root.name||'Modelo de porta').trim(),
-    kind:String(kind||root.doorSystem?.kind||'personalizada').trim()||'personalizada',
-    description:String(description||'Modelo oficial criado pelo administrador').trim(),
-    reference:ref,
-    productionOversizeMm:Number.isFinite(over)&&over>=0?over:(Number(root.doorSystem?.productionOversizeMm)||15),
-    facePartIds,
-    rules:doorSystemParametricRules(),
-    record
-  };
 }
 let doorSystemBuiltinCache=null;
 function doorSystemBuiltinRecord(){
@@ -12679,12 +12606,7 @@ function doorSystemBoundsFromParts(parts){
   return Number.isFinite(minX)?{minX,maxX,minY,maxY,minZ,maxZ}:null;
 }
 function doorSystemDetectFacePartIds(record){
-  const parts=record?.objects||[];
-  // 1.300.10: ao recapturar uma porta já criada pelo Sistema de Portas,
-  // conserva explicitamente as faces já marcadas. Só usa nome/espessura como fallback.
-  const tagged=parts.filter(p=>String(p?.doorSystem?.role||'').startsWith('leaf-face')).map(p=>p.partId).filter(Boolean);
-  if(tagged.length>=2)return tagged.slice(0,2);
-  const candidates=parts.map((p,i)=>{
+  const candidates=(record?.objects||[]).map((p,i)=>{
     const dims=[Number(p.width)*1000,Number(p.height)*1000,Number(p.depth)*1000].filter(Number.isFinite).sort((a,b)=>a-b);
     const thickness=dims[0]||0,area=(dims[1]||0)*(dims[2]||0),name=String(p.name||'');
     const score=(/folha\s*porta/i.test(name)?100:/face\s*(externa|interna)/i.test(name)?90:/^frente$/i.test(name)?70:0)+(thickness<=12.5?20:0);
@@ -12695,30 +12617,43 @@ function doorSystemDetectFacePartIds(record){
 function doorSystemBuiltinModels(){
   const record=doorSystemBuiltinRecord(),sp=record.spaces?.[0];
   return [{
-    id:'door-pivotante-01',name:'Porta Pivotante 01',kind:'pivotante',builtin:true,
+    id:'door-pivotante-01',name:'Porta Pivotante 01',kind:'pivotante',builtin:true,builtinBase:true,
     description:'Modelo-mestre completo · batentes + duas faces + miolo MDF Cru + Tauari + Metalon 20×30',
     reference:{widthMm:Math.round(Number(sp?.width||.9)*1000),heightMm:Math.round(Number(sp?.height||2.5)*1000),depthMm:Math.round(Number(sp?.depth||.195)*1000)},
     productionOversizeMm:15,
-    facePartIds:[...DOOR_SYSTEM_BUILTIN_FACE_IDS],
+    facePartIds:[...DOOR_SYSTEM_BUILTIN_FACE_IDS],rules:{parametricMode:'fixed-bands'},
     record
   }];
 }
+
+// 1.300.11 · Biblioteca oficial de portas. A nuvem faz override por ID, então
+// o ADM pode renomear a Pivotante 01 sem recriar a geometria nem quebrar projetos.
+const globalDoorLibraryState={items:[],records:new Map(),loaded:false,loading:false,error:'',updatedAt:null};
+function doorSystemIsBuiltinId(id){return doorSystemBuiltinModels().some(m=>m.id===id);}
+function doorSystemGlobalMeta(id){return globalDoorLibraryState.items.find(m=>m.id===id)||null;}
+function doorSystemHiddenBuiltinIds(){return new Set(globalDoorLibraryState.items.filter(m=>m?.rules?.hiddenBuiltin===true).map(m=>m.id));}
+function doorSystemVisibleOfficialItems(){return globalDoorLibraryState.items.filter(m=>m?.rules?.hiddenBuiltin!==true);}
 function doorSystemModels(){
-  const builtins=doorSystemBuiltinModels(),server=globalDoorState.items||[],byId=new Map();
-  for(const b of builtins)byId.set(b.id,b);
-  // Um registro global com o mesmo ID substitui o modelo embutido. Se a nuvem
-  // cair, o embutido continua sendo o fallback seguro para abrir o app offline.
-  for(const g0 of server){
-    const g={...g0,global:true,server:true,builtin:false,hasBuiltinFallback:byId.has(g0.id)};
-    const cached=globalDoorState.records.get(g.id);if(cached)g.record=cached;
-    byId.set(g.id,g);
+  const builtins=doorSystemBuiltinModels(),globals=doorSystemVisibleOfficialItems(),hidden=doorSystemHiddenBuiltinIds();
+  const byId=new Map(globals.map(m=>[m.id,m]));
+  const out=[];
+  for(const base of builtins){
+    if(hidden.has(base.id))continue;
+    const g=byId.get(base.id);
+    if(g){
+      const cached=globalDoorLibraryState.records.get(g.id);
+      out.push({...base,...g,builtin:false,builtinBase:true,global:true,official:true,record:cached?.record||null,cloudMeta:g});
+      byId.delete(base.id);
+    }else out.push(base);
   }
-  // Modelos pessoais antigos só aparecem para o ADM como migração; usuários
-  // comuns passam a consumir exclusivamente a biblioteca oficial.
-  if(adminAllowed())for(const m of customDoorLibrary)if(!byId.has(m.id))byId.set(m.id,{...m,builtin:false,legacyLocal:true});
-  return [...byId.values()];
+  for(const g of byId.values()){
+    const cached=globalDoorLibraryState.records.get(g.id);
+    out.push({...g,builtin:false,builtinBase:false,global:true,official:true,record:cached?.record||null,cloudMeta:g});
+  }
+  const custom=customDoorLibrary.map(m=>({...m,builtin:false,builtinBase:false,global:false,official:false,localCustom:true}));
+  return [...out,...custom];
 }
-function doorSystemModelById(id){const all=doorSystemModels();return all.find(m=>m.id===id)||all[0]||null;}
+function doorSystemModelById(id){return doorSystemModels().find(m=>m.id===id)||doorSystemModels()[0]||null;}
 function doorSystemTemplateItem(model,systemId,oversizeMm){
   const record=JSON.parse(JSON.stringify(model.record||{})),parts=record.objects||[],space=record.spaces?.[0];
   if(!parts.length||!space)throw new Error('Modelo de porta sem peças ou espaço de referência');
@@ -12749,9 +12684,33 @@ function doorSystemDefaultPosition(widthMm,depthMm){
   const width=Number(widthMm)/1000||.9,depth=Number(depthMm)/1000||.195;
   return {xMm:spaceRoots.length?Math.round((projectMaxX()+.2+width/2)*1000):0,yMm:0,zMm:Math.round(depth/2*1000)};
 }
+function doorSystemCloudStatusText(){
+  const el=$('doorSystemCloudStatus');if(!el)return;
+  if(globalDoorLibraryState.loading){el.textContent='Carregando modelos oficiais da nuvem…';return;}
+  if(globalDoorLibraryState.error){el.textContent='Nuvem: '+globalDoorLibraryState.error;return;}
+  if(!cloudAccountState.ok){el.textContent='Entre na conta para sincronizar os modelos oficiais.';return;}
+  const n=doorSystemVisibleOfficialItems().length;
+  el.textContent=`${n} modelo(s) oficial(is) carregado(s) da nuvem.`;
+}
+function doorSystemUpdateAdminUi(model){
+  const box=$('doorSystemAdminBox'),admin=adminAllowed();
+  if(box)box.style.display=admin?'block':'none';
+  const ids=['doorSystemAdminAdd','doorSystemAdminReplace','doorSystemAdminRename','doorSystemAdminDelete','doorSystemAdminRefresh'];
+  for(const id of ids){const b=$(id);if(b)b.disabled=!admin||globalDoorLibraryState.loading;}
+  const canModel=!!model;
+  if($('doorSystemAdminRename'))$('doorSystemAdminRename').disabled=!admin||!canModel||globalDoorLibraryState.loading;
+  if($('doorSystemAdminDelete'))$('doorSystemAdminDelete').disabled=!admin||!canModel||globalDoorLibraryState.loading;
+  if($('doorSystemAdminReplace'))$('doorSystemAdminReplace').disabled=!admin||!canModel||globalDoorLibraryState.loading;
+  const restore=$('doorSystemAdminRestoreBuiltin'),hidden=[...doorSystemHiddenBuiltinIds()].filter(doorSystemIsBuiltinId);
+  if(restore){restore.style.display=admin&&hidden.length?'block':'none';restore.disabled=!admin||globalDoorLibraryState.loading;restore.dataset.modelId=hidden[0]||'';}
+  doorSystemCloudStatusText();
+}
 function doorSystemUpdateModelInfo({resetDimensions=false}={}){
   const select=$('doorSystemModel'),model=doorSystemModelById(select?.value);
-  if(!model)return;
+  if(!model){
+    const info=$('doorSystemModelInfo');if(info)info.innerHTML='<strong>Nenhum modelo disponível</strong><small>O administrador pode publicar um novo modelo.</small>';
+    doorSystemUpdateAdminUi(null);return;
+  }
   const ref=model.reference||{widthMm:900,heightMm:2500,depthMm:195};
   if(resetDimensions){
     $('doorSystemWidth').value=String(roundMmNumber(ref.widthMm,3));
@@ -12761,36 +12720,57 @@ function doorSystemUpdateModelInfo({resetDimensions=false}={}){
     const pos=doorSystemDefaultPosition(ref.widthMm,ref.depthMm);
     $('doorSystemPosX').value=String(roundMmNumber(pos.xMm,3));$('doorSystemPosY').value=String(roundMmNumber(pos.yMm,3));$('doorSystemPosZ').value=String(roundMmNumber(pos.zMm,3));
   }
-  const count=model.part_count??model.record?.objects?.length??0,faces=model.face_count??model.facePartIds?.length??doorSystemDetectFacePartIds(model.record).length;
-  const source=model.server?'🌐 Oficial na nuvem':model.legacyLocal?'📱 Local antigo':'★ Padrão embutido';
-  const revision=model.revision?` · revisão ${Number(model.revision)}`:'';
+  const count=model.record?.objects?.length||Number(model.part_count)||0,faces=(model.facePartIds?.length||Number(model.face_count)||doorSystemDetectFacePartIds(model.record).length);
+  const source=model.official?'🌐 Oficial do ADM':model.builtinBase?'★ Padrão embutido':model.localCustom?'📱 Modelo local':'Modelo';
+  const rule=model.builtinBase||model.rules?.parametricMode==='fixed-bands'?' · regra: peças fixas preservadas, vãos livres redistribuídos':'';
   const info=$('doorSystemModelInfo');
-  if(info)info.innerHTML=`<strong>${escapeHtml(model.name)}</strong><span>${source}${revision} · ${escapeHtml(model.description||'Modelo de porta')} · ${count||'—'} peça(s) · ${faces||'—'} face(s)</span><small>Referência: X ${nice(ref.widthMm)} · Y ${nice(ref.heightMm)} · Z ${nice(ref.depthMm)} mm · regra: peças fixas preservadas, vãos livres redistribuídos</small>`;
-  updateDoorSystemAdminUi();
-  const replace=$('doorSystemAdminReplace');if(replace)replace.disabled=!adminAllowed()||!!model.legacyLocal;
-  const rename=$('doorSystemAdminRename');if(rename)rename.disabled=!adminAllowed()||!model.server;
-  const remove=$('doorSystemAdminDelete');if(remove){remove.disabled=!adminAllowed()||(!model.server&&model.builtin);remove.textContent=model.server&&model.hasBuiltinFallback?'↩ Restaurar padrão':'Excluir modelo';}
-  if(model.server&&!model.record)doorSystemEnsureRecord(model).then(()=>{if($('doorSystemModel')?.value===model.id)doorSystemUpdateModelInfo();}).catch(()=>{});
+  if(info)info.innerHTML=`<strong>${escapeHtml(model.name)}</strong><span>${source} · ${escapeHtml(model.description||'Modelo de porta')} · ${count} peça(s) · ${faces} face(s)</span><small>Referência: X ${nice(ref.widthMm)} · Y ${nice(ref.heightMm)} · Z ${nice(ref.depthMm)} mm${escapeHtml(rule)}</small>`;
+  doorSystemUpdateAdminUi(model);
 }
 function renderDoorSystemModels({resetDimensions=false}={}){
   const sel=$('doorSystemModel');if(!sel)return;
   const keep=sel.value,models=doorSystemModels();sel.innerHTML='';
   for(const m of models){
     const o=document.createElement('option');o.value=m.id;
-    const prefix=m.server?'🌐 ':m.legacyLocal?'📱 ':'★ ';
-    o.textContent=prefix+m.name;sel.appendChild(o);
+    o.textContent=(m.official?'🌐 ':m.builtinBase?'★ ':m.localCustom?'📱 ':'')+m.name;sel.appendChild(o);
   }
   if(models.some(m=>m.id===keep))sel.value=keep;else if(models[0])sel.value=models[0].id;
   doorSystemUpdateModelInfo({resetDimensions});
-  const status=$('doorSystemCloudStatus');if(status){
-    status.textContent=globalDoorState.loading?'Atualizando modelos oficiais…':globalDoorState.error?`Nuvem: ${globalDoorState.error}`:globalDoorState.loaded?`${globalDoorState.items.length} modelo(s) oficial(is) carregado(s) da nuvem.`:'Usando modelos em cache/padrão; a nuvem ainda não foi consultada.';
-  }
 }
-function openDoorSystemDialog(){
+async function loadGlobalDoorModels({force=false}={}){
+  if(globalDoorLibraryState.loading)return false;
+  if(globalDoorLibraryState.loaded&&!force)return true;
+  if(!cloudAccountState.ok){globalDoorLibraryState.error='conta ainda não sincronizada';doorSystemCloudStatusText();return false;}
+  globalDoorLibraryState.loading=true;globalDoorLibraryState.error='';doorSystemUpdateAdminUi(doorSystemModelById($('doorSystemModel')?.value));
+  try{
+    const data=await cloudApiFetch('/doors/global',{timeoutMs:20000});
+    globalDoorLibraryState.items=Array.isArray(data?.items)?data.items:[];
+    globalDoorLibraryState.loaded=true;globalDoorLibraryState.updatedAt=new Date().toISOString();
+    // Descarta apenas records que não existem mais; os demais permanecem em cache.
+    const ids=new Set(globalDoorLibraryState.items.map(x=>x.id));
+    for(const id of [...globalDoorLibraryState.records.keys()])if(!ids.has(id))globalDoorLibraryState.records.delete(id);
+    return true;
+  }catch(err){globalDoorLibraryState.error=err.message||'não foi possível carregar a biblioteca oficial';return false;}
+  finally{globalDoorLibraryState.loading=false;renderDoorSystemModels({resetDimensions:false});doorSystemCloudStatusText();}
+}
+async function doorSystemEnsureModelRecord(model){
+  if(!model)return null;
+  if(model.record?.objects?.length)return model;
+  if(!model.official)throw new Error('Modelo sem geometria disponível');
+  let payload=globalDoorLibraryState.records.get(model.id);
+  if(!payload){
+    payload=await cloudApiFetch(`/doors/global/${encodeURIComponent(model.id)}`,{timeoutMs:30000});
+    globalDoorLibraryState.records.set(model.id,payload);
+  }
+  const merged={...model,...(payload?.item||{}),record:payload?.record||null,official:true,global:true};
+  if(!merged.record?.objects?.length)throw new Error('O arquivo do modelo oficial está inválido');
+  return merged;
+}
+async function openDoorSystemDialog(){
   if(visualMode)setVisualMode(false,{notify:false,frame:false});
+  renderDoorSystemModels({resetDimensions:true});
   $('doorSystemDialog').style.display='flex';
-  updateDoorSystemAdminUi();renderDoorSystemModels({resetDimensions:true});
-  loadGlobalDoorModels({force:true,quiet:true}).catch(()=>{});
+  if(cloudAccountState.ok)loadGlobalDoorModels({force:true}).then(()=>renderDoorSystemModels({resetDimensions:false}));
 }
 function closeDoorSystemDialog(){$('doorSystemDialog').style.display='none';}
 function doorSystemUseSelectedDimensions(){
@@ -12801,7 +12781,7 @@ function doorSystemUseSelectedDimensions(){
 }
 async function doorSystemCreate(){
   let model=doorSystemModelById($('doorSystemModel')?.value);if(!model){toast('Selecione um modelo de porta');return;}
-  try{model=await doorSystemEnsureRecord(model);}catch(err){toast(err.message||'Não foi possível baixar o modelo oficial');return;}
+  try{model=await doorSystemEnsureModelRecord(model);}catch(err){toast(err.message||'Não foi possível abrir o modelo oficial');return;}
   const wMm=parseDecimalInput($('doorSystemWidth')?.value),hMm=parseDecimalInput($('doorSystemHeight')?.value),dMm=parseDecimalInput($('doorSystemDepth')?.value);
   const xMm=parseDecimalInput($('doorSystemPosX')?.value),yMm=parseDecimalInput($('doorSystemPosY')?.value),zMm=parseDecimalInput($('doorSystemPosZ')?.value);
   const over=parseDecimalInput($('doorSystemOversize')?.value);
@@ -12826,63 +12806,98 @@ async function doorSystemCreate(){
   const faces=furnitureObjects(root).filter(o=>String(o.userData?.doorSystem?.role||'').startsWith('leaf-face')).length;
   toast(`${model.name} criada · ${furnitureObjects(root).length} peça(s) · ${faces} face(s) · bruto +${nice(over)} mm/lado`);
 }
-async function saveSelectedDoorModel(){
-  // Compatibilidade: o botão antigo chama agora a publicação oficial.
-  return adminAddDoorModel();
+function doorSystemModelPayloadFromRoot(root,name,{rules={}}={}){
+  if(!root)throw new Error('Selecione o espaço completo da porta');
+  const record=captureFurniture(root),facePartIds=doorSystemDetectFacePartIds(record);
+  if(facePartIds.length<2)throw new Error('Não encontrei as duas faces da Folha Porta neste espaço');
+  const ref={widthMm:Math.round(root.width*1000),heightMm:Math.round(root.height*1000),depthMm:Math.round(root.depth*1000)};
+  const n=Number(root.doorSystem?.productionOversizeMm),productionOversizeMm=Number.isFinite(n)&&n>=0?n:15;
+  return {name,kind:root.doorSystem?.kind||'personalizada',description:'Modelo oficial do DesignLabMoveis',reference:ref,productionOversizeMm,facePartIds,rules:{parametricMode:'fixed-bands',...rules},record};
 }
-async function adminAddDoorModel(){
-  if(!adminAllowed()){toast('Somente o administrador pode adicionar modelos de portas');return;}
-  const root=doorSystemSelectedRoot();if(!root){toast('Selecione o espaço completo da porta que será o modelo');return;}
+function doorSystemPayloadFromModel(model,newName,{rulesOverride=null}={}){
+  if(!model?.record?.objects?.length)throw new Error('Modelo sem geometria carregada');
+  return {
+    name:newName||model.name,kind:model.kind||'porta',description:model.description||'Modelo oficial do DesignLabMoveis',
+    reference:model.reference||{},productionOversizeMm:Number(model.productionOversizeMm)||0,
+    facePartIds:(model.facePartIds?.length?model.facePartIds:doorSystemDetectFacePartIds(model.record)),
+    rules:rulesOverride||model.rules||{},record:JSON.parse(JSON.stringify(model.record))
+  };
+}
+async function doorSystemAdminAddNew(){
+  if(!adminAllowed()){toast('Somente o ADM pode adicionar modelos oficiais');return;}
+  const root=doorSystemSelectedRoot();if(!root){toast('Selecione o espaço completo da porta que será o novo modelo');return;}
   const suggested=(root.doorSystem?.templateName||root.name||'Nova porta').trim();
-  const name=(window.prompt('Nome do NOVO modelo oficial:',suggested)||'').trim();if(!name)return;
-  const over=parseDecimalInput($('doorSystemOversize')?.value);
-  let model;try{model=doorSystemCaptureAdminModel(root,{name,productionOversizeMm:Number.isFinite(over)?over:15});}catch(err){toast(err.message);return;}
+  const name=(window.prompt('Nome do novo modelo oficial:',suggested)||'').trim();if(!name)return;
   try{
-    const data=await cloudApiFetch('/admin/doors/global',{method:'POST',body:{model},timeoutMs:45000});
-    globalDoorState.records.set(data?.item?.id,model.record);await loadGlobalDoorModels({force:true});
-    renderDoorSystemModels();if(data?.item?.id)$('doorSystemModel').value=data.item.id;doorSystemUpdateModelInfo({resetDimensions:true});doorSystemWriteGlobalCache();
-    toast(`Modelo oficial “${name}” publicado para todos`);
-  }catch(err){toast(err.message||'Não foi possível publicar o modelo de porta');}
+    const model=doorSystemModelPayloadFromRoot(root,name);
+    const data=await cloudApiFetch('/admin/doors/global',{method:'POST',body:{model},timeoutMs:40000});
+    await loadGlobalDoorModels({force:true});renderDoorSystemModels();if(data?.item?.id)$('doorSystemModel').value=data.item.id;doorSystemUpdateModelInfo({resetDimensions:true});
+    toast(`Modelo oficial “${name}” adicionado`);
+  }catch(err){toast(err.message||'Não foi possível adicionar o modelo oficial');}
 }
-async function adminReplaceDoorModel(){
-  if(!adminAllowed()){toast('Somente o administrador pode substituir modelos');return;}
-  const selected=doorSystemModelById($('doorSystemModel')?.value),root=doorSystemSelectedRoot();
-  if(!selected){toast('Selecione o modelo que será substituído');return;}if(selected.legacyLocal){toast('Modelo local antigo: publique como novo modelo oficial.');return;}
-  if(!root){toast('Selecione no CAD o espaço completo que será a nova versão do modelo');return;}
-  if(!window.confirm(`Substituir “${selected.name}” pelo espaço selecionado? A alteração valerá para todos os usuários.`))return;
-  const over=parseDecimalInput($('doorSystemOversize')?.value);
-  let model;try{model=doorSystemCaptureAdminModel(root,{name:selected.name,kind:selected.kind,description:selected.description,productionOversizeMm:Number.isFinite(over)?over:doorSystemPreferredOversize(selected)});}catch(err){toast(err.message);return;}
+async function doorSystemAdminReplaceSelected(){
+  if(!adminAllowed()){toast('Somente o ADM pode substituir modelos oficiais');return;}
+  const selectedModel=doorSystemModelById($('doorSystemModel')?.value);if(!selectedModel){toast('Selecione o modelo que será substituído');return;}
+  const root=doorSystemSelectedRoot();if(!root){toast('Selecione no CAD a porta completa que será usada como novo modelo');return;}
+  if(!window.confirm(`Substituir “${selectedModel.name}” pela porta selecionada no CAD?\n\nO ID do modelo será mantido.`))return;
   try{
-    const data=await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(selected.id)}`,{method:'PUT',body:{model},timeoutMs:45000});
-    globalDoorState.records.set(selected.id,model.record);await loadGlobalDoorModels({force:true});renderDoorSystemModels();$('doorSystemModel').value=selected.id;doorSystemUpdateModelInfo({resetDimensions:true});doorSystemWriteGlobalCache();
-    toast(`“${selected.name}” substituído · revisão ${Number(data?.item?.revision||1)}`);
+    const model=doorSystemModelPayloadFromRoot(root,selectedModel.name,{rules:selectedModel.rules||{}});
+    await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(selectedModel.id)}`,{method:'PUT',body:{model},timeoutMs:40000});
+    globalDoorLibraryState.records.delete(selectedModel.id);await loadGlobalDoorModels({force:true});renderDoorSystemModels();$('doorSystemModel').value=selectedModel.id;doorSystemUpdateModelInfo({resetDimensions:true});
+    toast(`“${selectedModel.name}” substituído sem trocar o ID`);
   }catch(err){toast(err.message||'Não foi possível substituir o modelo');}
 }
-async function adminRenameDoorModel(){
-  if(!adminAllowed())return;
-  let selected=doorSystemModelById($('doorSystemModel')?.value);if(!selected?.server){toast('Primeiro publique/substitua este modelo na nuvem.');return;}
-  const name=(window.prompt('Novo nome do modelo:',selected.name)||'').trim();if(!name||name===selected.name)return;
+async function doorSystemAdminRenameSelected(){
+  if(!adminAllowed()){toast('Somente o ADM pode renomear modelos oficiais');return;}
+  let model=doorSystemModelById($('doorSystemModel')?.value);if(!model)return;
+  const name=(window.prompt('Novo nome do modelo:',model.name)||'').trim();if(!name||name===model.name)return;
   try{
-    selected=await doorSystemEnsureRecord(selected);
-    const model={name,kind:selected.kind,description:selected.description||'',reference:selected.reference,productionOversizeMm:selected.productionOversizeMm,facePartIds:selected.facePartIds||doorSystemDetectFacePartIds(selected.record),rules:selected.rules||doorSystemParametricRules(),record:selected.record};
-    await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(selected.id)}`,{method:'PUT',body:{model},timeoutMs:45000});
-    await loadGlobalDoorModels({force:true});renderDoorSystemModels();$('doorSystemModel').value=selected.id;doorSystemUpdateModelInfo();toast('Modelo renomeado para todos');
+    model=await doorSystemEnsureModelRecord(model);
+    const payload=doorSystemPayloadFromModel(model,name);
+    await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(model.id)}`,{method:'PUT',body:{model:payload},timeoutMs:40000});
+    globalDoorLibraryState.records.delete(model.id);await loadGlobalDoorModels({force:true});renderDoorSystemModels();$('doorSystemModel').value=model.id;doorSystemUpdateModelInfo({resetDimensions:false});
+    toast(`Modelo renomeado para “${name}” · geometria preservada`);
   }catch(err){toast(err.message||'Não foi possível renomear o modelo');}
 }
-async function deleteSelectedDoorModel(){return adminDeleteDoorModel();}
-async function adminDeleteDoorModel(){
-  if(!adminAllowed()){toast('Somente o administrador pode excluir modelos');return;}
-  const model=doorSystemModelById($('doorSystemModel')?.value);if(!model)return;
-  if(!model.server){toast(model.builtin?'O padrão embutido não pode ser excluído.':'Publique o modelo local antes de gerenciá-lo.');return;}
-  const restore=!!model.hasBuiltinFallback;
-  const question=restore?`Restaurar “${model.name}” para o modelo padrão embutido? A versão global atual deixará de valer para todos.`:`Excluir “${model.name}” da Biblioteca de Portas de todos os usuários?`;
-  if(!window.confirm(question))return;
+async function doorSystemAdminDeleteSelected(){
+  if(!adminAllowed()){toast('Somente o ADM pode excluir modelos oficiais');return;}
+  let model=doorSystemModelById($('doorSystemModel')?.value);if(!model)return;
+  const builtinId=doorSystemIsBuiltinId(model.id);
+  const msg=builtinId
+    ?`Ocultar o modelo padrão “${model.name}” para todos os usuários?\n\nA geometria embutida não será destruída e poderá ser restaurada pelo ADM.`
+    :`Excluir o modelo oficial “${model.name}” para todos os usuários?\n\nProjetos já criados não serão alterados.`;
+  if(!window.confirm(msg))return;
   try{
-    await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(model.id)}`,{method:'DELETE',body:{},timeoutMs:30000});
-    globalDoorState.records.delete(model.id);await loadGlobalDoorModels({force:true});renderDoorSystemModels({resetDimensions:true});doorSystemWriteGlobalCache();
-    toast(restore?'Modelo padrão restaurado':'Modelo oficial excluído');
+    if(builtinId){
+      model=await doorSystemEnsureModelRecord(model);
+      const payload=doorSystemPayloadFromModel(model,model.name,{rulesOverride:{...(model.rules||{}),hiddenBuiltin:true,hiddenAt:new Date().toISOString()}});
+      await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(model.id)}`,{method:'PUT',body:{model:payload},timeoutMs:40000});
+    }else if(model.official){
+      await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(model.id)}`,{method:'DELETE',body:{},timeoutMs:30000});
+    }else if(model.localCustom){
+      customDoorLibrary=customDoorLibrary.filter(m=>m.id!==model.id);persistDoorLibrary();
+    }
+    globalDoorLibraryState.records.delete(model.id);await loadGlobalDoorModels({force:true});renderDoorSystemModels({resetDimensions:true});
+    toast(builtinId?'Modelo padrão ocultado para todos':'Modelo excluído da Biblioteca de Portas');
   }catch(err){toast(err.message||'Não foi possível excluir o modelo');}
 }
+async function doorSystemAdminRestoreBuiltin(){
+  if(!adminAllowed())return;
+  const id=$('doorSystemAdminRestoreBuiltin')?.dataset?.modelId||[...doorSystemHiddenBuiltinIds()][0];if(!id)return;
+  if(!window.confirm('Restaurar o modelo padrão oculto para todos os usuários?'))return;
+  try{
+    await cloudApiFetch(`/admin/doors/global/${encodeURIComponent(id)}`,{method:'DELETE',body:{},timeoutMs:30000});
+    globalDoorLibraryState.records.delete(id);await loadGlobalDoorModels({force:true});renderDoorSystemModels({resetDimensions:true});
+    if(doorSystemModels().some(m=>m.id===id))$('doorSystemModel').value=id;doorSystemUpdateModelInfo({resetDimensions:true});toast('Modelo padrão restaurado');
+  }catch(err){toast(err.message||'Não foi possível restaurar o modelo padrão');}
+}
+// Compatibilidade com modelos locais antigos. A partir da 1.300.11, publicação
+// e manutenção da biblioteca compartilhada são exclusivas do ADM.
+function saveSelectedDoorModel(){
+  if(adminAllowed())return doorSystemAdminAddNew();
+  toast('Somente o ADM pode adicionar modelos de portas');
+}
+function deleteSelectedDoorModel(){return doorSystemAdminDeleteSelected();}
 
 function globalLibraryFolderById(id){return globalLibraryState.folders.find(f=>f.id===id)||null;}
 function setLibraryScope(scope){
@@ -16345,7 +16360,7 @@ function buildFurnitureModelStl(root){
   }
   if(![min.x,min.y,min.z].every(Number.isFinite))throw new Error('Não foi possível calcular a geometria STL');
   const buffer=new ArrayBuffer(84+triangleCount*50),view=new DataView(buffer),header=new Uint8Array(buffer,0,80);
-  const headerText=new TextEncoder().encode('DesignLabMoveis 1.300.10 STL 3D | metadata after triangles');
+  const headerText=new TextEncoder().encode('DesignLabMoveis 1.300.11 STL 3D | metadata after triangles');
   header.set(headerText.subarray(0,80));
   view.setUint32(80,triangleCount,true);
   let off=84,written=0;
@@ -16587,7 +16602,7 @@ function flatPartInfo(o,index,{production=false}={}){
   const u=o.userData;if(u?.excludeFromCutList||u?.kind==='hardware-visual')return null;const ti=pieceThicknessInfo(o); if(!ti)return null;
   const cp=u.customProfile||null,fp=u.formProfile||null;
   const postProfile=(!cp&&u.curvedRole==='post'&&u.curvedConfig)?curvedPostOutlineMm(u.curvedConfig):null;
-  // 1.300.10 · medida acabada no CAD; sobremedida somente para fabricação.
+  // 1.300.11 · medida acabada no CAD; sobremedida somente para fabricação.
   const ds=u.doorSystem||null,doorFace=String(ds?.role||'').startsWith('leaf-face');
   const over=(production&&doorFace)?Math.max(0,Number(ds?.productionOversizeMm)||0):0;
   const baseFaceW=cp?.bboxW||fp?.bboxW||postProfile?.bboxW||ti.faceW;
@@ -18920,7 +18935,7 @@ async function writeExportTarget(target,blob,filename='arquivo'){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.300.10 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.300.11 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -18935,7 +18950,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.300.10 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.300.11 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -19032,7 +19047,7 @@ async function exportSelectedAspireDxf(){
 
 function setTool(mode){
   if(visualMode && mode!=='select')setVisualMode(false,{notify:false,frame:false});
-  // 1.300.10 · Ao ativar a Trena, fecha imediatamente o menu/submenu que a
+  // 1.300.11 · Ao ativar a Trena, fecha imediatamente o menu/submenu que a
   // lançou. A área de desenho fica livre para escolher a 1ª e a 2ª peça.
   if(mode==='tape'){
     try{setToolDockOpen(false);}catch{}
@@ -20559,13 +20574,13 @@ function cutPlanPrintLinearPages(){
       const usedArea=pl.placements.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),pct=usedArea/Math.max(1,stockLength*stockWidth)*100;
       return `<tr><td><b>Prancha ${i+1}</b><small>${nice(stockLength)} × ${nice(stockWidth)} mm</small></td><td>${pl.placements.map(p=>`${escapeHtml(p.name||'Peça')} · ${nice(p.faceW)}×${nice(p.faceH)}×${nice(p.thickness)} mm`).join('<br>')}</td><td>${nice(pct)}%</td></tr>`;
     }).join('');
-    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>🪵 Plano de corte · Madeira maciça</h2></div><div class="sheetTag"><span>PRANCHA</span><b>${planks.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Madeira maciça')}</b></div><div><span>Espessura</span><b>${nice(g.thickness)} mm</b></div><div><span>Matéria-prima</span><b>${nice(stockLength)} × ${nice(stockWidth)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Prancha</th><th>Peças / cortes</th><th>Aproveit.</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Madeira maciça · plano separado das chapas</span><span>DesignLabMoveis 1.300.10</span></footer></section>`);
+    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>🪵 Plano de corte · Madeira maciça</h2></div><div class="sheetTag"><span>PRANCHA</span><b>${planks.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Madeira maciça')}</b></div><div><span>Espessura</span><b>${nice(g.thickness)} mm</b></div><div><span>Matéria-prima</span><b>${nice(stockLength)} × ${nice(stockWidth)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Prancha</th><th>Peças / cortes</th><th>Aproveit.</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Madeira maciça · plano separado das chapas</span><span>DesignLabMoveis 1.300.11</span></footer></section>`);
   }
   for(const g of dlMetalPlanGroups()){
     const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||6000),profile=mat.profileWidth&&mat.profileHeight?`${nice(mat.profileWidth)} × ${nice(mat.profileHeight)} mm`:'perfil cadastrado';
     let bars=[],err='';try{bars=dlPackMetalBars(g.parts,stockLength,3);}catch(e){err=String(e?.message||e||'Falha no plano de ferro');}
     const rows=bars.map(b=>`<tr><td><b>Barra ${b.index}</b><small>${nice(stockLength)} mm</small></td><td>${b.parts.map(p=>`${escapeHtml(p.name||'Peça')} · ${nice(dlLinearPieceLengthMm(p))} mm`).join('<br>')}</td><td>${nice(b.waste)} mm</td></tr>`).join('');
-    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>▰ Plano de corte · Ferro / Metalon</h2></div><div class="sheetTag"><span>BARRA</span><b>${bars.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Perfil metálico')}</b></div><div><span>Perfil</span><b>${escapeHtml(profile)}</b></div><div><span>Barra</span><b>${nice(stockLength)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Barra</th><th>Peças / comprimentos</th><th>Sobra</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Ferro / Metalon · plano separado das chapas</span><span>DesignLabMoveis 1.300.10</span></footer></section>`);
+    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>▰ Plano de corte · Ferro / Metalon</h2></div><div class="sheetTag"><span>BARRA</span><b>${bars.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Perfil metálico')}</b></div><div><span>Perfil</span><b>${escapeHtml(profile)}</b></div><div><span>Barra</span><b>${nice(stockLength)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Barra</th><th>Peças / comprimentos</th><th>Sobra</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Ferro / Metalon · plano separado das chapas</span><span>DesignLabMoveis 1.300.11</span></footer></section>`);
   }
   return pages;
 }
@@ -20577,7 +20592,7 @@ function cutPlanPrintDocument(groups){
       <header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${project}</h1><h2>${escapeHtml(g.displayName)}</h2></div><div class="sheetTag"><span>CHAPA</span><b>${g.sheetNo}/${g.totalSheets}</b><small>Página ${i+1} de ${groups.length}</small></div></header>
       <div class="summaryGrid"><div><span>Dimensão da chapa</span><b>${nice(g.cfg.width)} × ${nice(g.cfg.height)} mm</b></div><div><span>Aproveitamento</span><b>${nice(st.efficiency)}%</b></div><div><span>Peças</span><b>${g.parts.length}</b></div><div><span>Tipos</span><b>${unique}</b></div><div><span>Corte estimado</span><b>${nice(st.cutLength/1000)} m</b></div><div><span>Usinagens</span><b>${machTotal}</b></div></div>
       <div class="reportBody"><div class="drawingPanel"><div class="panelTitle">PLANO DA CHAPA</div><div class="drawing">${cutPlanPrintSvg(g)}</div></div><aside class="rightPanel">${g.planMode==='panel'?cutPlanPrintPanelSequence(g):''}<div class="partsPanel"><div class="panelTitle">PEÇAS DESTA CHAPA</div><table><thead><tr><th>Cód.</th><th>Peça / material</th><th>Qtd.</th><th>Medidas (mm)</th></tr></thead><tbody>${cutPlanPrintPartRows(g)}</tbody></table></div></aside></div>
-      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.300.10</span></footer>
+      <footer><span>Refilo ${nice(g.cfg.margin)} mm · espessura de corte ${nice(g.cfg.gap)} mm</span><span>DesignLabMoveis 1.300.11</span></footer>
     </section>`;
   });
   const pages=[...sheetPages,...cutPlanPrintLinearPages()].join('');
@@ -20682,13 +20697,14 @@ $('libraryImportFile').addEventListener('change',async e=>{
   e.target.value='';
 });
 
-$('doorSystemModel')?.addEventListener('change',()=>doorSystemUpdateModelInfo({resetDimensions:true}));
+$('doorSystemModel')?.addEventListener('change',async()=>{doorSystemUpdateModelInfo({resetDimensions:true});const m=doorSystemModelById($('doorSystemModel')?.value);if(m?.official&&!m.record){try{await doorSystemEnsureModelRecord(m);globalDoorLibraryState.records.set(m.id,globalDoorLibraryState.records.get(m.id));}catch{}}doorSystemUpdateModelInfo({resetDimensions:false});});
 $('doorSystemUseSelected')?.addEventListener('click',doorSystemUseSelectedDimensions);
-$('doorSystemAdminAdd')?.addEventListener('click',adminAddDoorModel);
-$('doorSystemAdminReplace')?.addEventListener('click',adminReplaceDoorModel);
-$('doorSystemAdminRename')?.addEventListener('click',adminRenameDoorModel);
-$('doorSystemAdminDelete')?.addEventListener('click',adminDeleteDoorModel);
-$('doorSystemAdminRefresh')?.addEventListener('click',()=>loadGlobalDoorModels({force:true}));
+$('doorSystemAdminAdd')?.addEventListener('click',doorSystemAdminAddNew);
+$('doorSystemAdminReplace')?.addEventListener('click',doorSystemAdminReplaceSelected);
+$('doorSystemAdminRename')?.addEventListener('click',doorSystemAdminRenameSelected);
+$('doorSystemAdminDelete')?.addEventListener('click',doorSystemAdminDeleteSelected);
+$('doorSystemAdminRefresh')?.addEventListener('click',async()=>{await loadGlobalDoorModels({force:true});renderDoorSystemModels();toast(globalDoorLibraryState.error?'Não foi possível atualizar':'Biblioteca de portas atualizada');});
+$('doorSystemAdminRestoreBuiltin')?.addEventListener('click',doorSystemAdminRestoreBuiltin);
 $('doorSystemClose')?.addEventListener('click',closeDoorSystemDialog);
 $('doorSystemCreate')?.addEventListener('click',doorSystemCreate);
 $('doorSystemDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('doorSystemDialog'))closeDoorSystemDialog();});
@@ -21344,7 +21360,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.300.10';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.300.11';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){
@@ -22301,7 +22317,7 @@ window.addEventListener('resize',()=>{if($('technicalLayoutDialog')?.classList.c
 // 4) Vista explodida numerada + manual automático de montagem.
 // ============================================================================
 
-const DL_PRODUCTION_SUITE_VERSION='1.300.10';
+const DL_PRODUCTION_SUITE_VERSION='1.300.11';
 const DL_PROJECT_VERSION_LIMIT=10;
 const DL_COMMIT_AUTOSAVE_MS=25000;
 let dlCommitAutosaveTimer=null;
