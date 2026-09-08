@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.08",
+  "version": "1.300.10",
   "required": false,
-  "message": "Porta Pivotante 01 substituída pelo novo modelo-mestre de 900 × 2500 × 195 mm; zoom touch mais uniforme e leve na parte inferior sem alterar giro/pan.",
-  "released_at": "2026-09-07T19:12:00-03:00",
-  "build": "1.300.08-r1"
+  "message": "Biblioteca global de Portas: somente ADM pode adicionar, substituir, renomear ou excluir modelos oficiais. Usuários apenas utilizam; modelos e revisões ficam no R2.",
+  "released_at": "2026-09-07T20:19:00-03:00",
+  "build": "1.300.10-r1"
 }
