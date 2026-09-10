@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.300.11-r1">
+<meta name="designlab-build" content="1.300.15-r1">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.300.11-r1';
+  const BUILD='1.300.15-r1';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.300.11';
+    st[KEY]=route;st.__designLabRouteVersion='1.300.15';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,23 +103,23 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.300.11 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/home.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.300.11-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.300.11-r1">
+<title>DesignLabMoveis 1.300.15 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/editor.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/materials.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/labels.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/layout.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/projects.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/settings.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/home.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/mobile.css?v=1.300.15-r1">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.300.15-r1">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
 <style>
-/* 1.300.11 · Sistema de Portas */
+/* 1.300.15 · Sistema de Portas */
 #doorSystemDialog{display:none;position:fixed;inset:0;z-index:10080;background:rgba(7,9,10,.68);align-items:center;justify-content:center;padding:18px}
 #doorSystemDialog .doorSystemCard{width:min(760px,96vw);max-height:92vh;overflow:auto;background:var(--panel,#171a1c);color:var(--text,#f2f3f3);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.42)}
 #doorSystemDialog h3{margin:0 0 5px;font-size:21px}
@@ -155,7 +155,7 @@
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.300.11</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.300.15</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -277,7 +277,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.300.11</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.300.15</span>
         </div>
       </div>
 
@@ -574,7 +574,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.300.11</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.300.15</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -600,7 +600,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.300.11</strong>
+        <strong id="updateCurrentVersion">1.300.15</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -643,7 +643,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.300.11 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.300.15 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1014,7 +1014,7 @@
 <div id="productionDialog">
   <div class="card">
     <h3>🎨 Materiais / fitas de borda</h3>
-    <p class="dialogHelp">O app separa três tipos de produção: chapas, madeira maciça em prancha e ferro/perfis em barra. A espessura continua vindo da própria peça. Você também pode criar materiais personalizados e marcar fitas nas peças de chapa.</p>
+    <p class="dialogHelp">O app separa três tipos de produção: chapas, madeira maciça em prancha e ferro/perfis em barra. A espessura continua vindo da própria peça. As medidas de chapa/prancha podem ser editadas por qualquer usuário; ao salvar um padrão alterado, o app cria uma variação no projeto sem mudar a biblioteca original.</p>
 
     <div class="productionSection">
       <div class="productionSectionHead">
@@ -1038,7 +1038,7 @@
         <label id="productionSheetLengthField">Comprimento da chapa (mm)<input id="productionMaterialSheetWidth" type="number" value="2750" min="100" step="1"></label>
         <label id="productionSheetWidthField">Largura da chapa (mm)<input id="productionMaterialSheetHeight" type="number" value="1850" min="10" step="1"></label>
 
-        <label id="productionStockLengthField" style="display:none">Comprimento da matéria-prima (mm)<input id="productionMaterialStockLength" type="number" value="3000" min="100" step="1"></label>
+        <label id="productionStockLengthField" style="display:none">Comprimento da matéria-prima (mm)<input id="productionMaterialStockLength" type="number" value="6000" min="100" step="1"></label>
         <label id="productionStockWidthField" style="display:none">Largura da prancha (mm)<input id="productionMaterialStockWidth" type="number" value="250" min="10" step="1"></label>
 
         <label id="productionProfileWidthField" style="display:none">Perfil — lado 1 (mm)<input id="productionMaterialProfileWidth" type="number" value="20" min="1" step="0.1"></label>
@@ -1061,6 +1061,7 @@
 
       <div class="productionActions">
         <button id="productionMaterialNew" class="secondary" type="button">＋ Novo</button>
+        <button id="productionMaterialEditStock" class="secondary" type="button">✎ Editar medidas</button>
         <button id="productionMaterialSave" class="secondary" type="button">💾 Salvar material</button>
         <button id="productionMaterialDelete" class="danger" type="button">Excluir</button>
         <button id="productionMaterialApply" type="button">Aplicar à peça</button>
@@ -1598,7 +1599,7 @@
         <h3>Peças gerais · Planos de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Todas as peças do projeto reunidas: chapas, madeira maciça e ferro / Metalon.</p>
       </div>
-      <span class="cutPlanBadge">1.300.11</span>
+      <span class="cutPlanBadge">1.300.15</span>
     </div>
 
     <div class="cutPlanSettings">
@@ -2014,14 +2015,20 @@
               <option value="cava">Cava / perfil · descontar da porta</option>
             </select>
           </label>
-          <label id="doorHandleSizeLabel" class="hiddenField">Tamanho / desconto (mm)<input id="doorHandleSize" type="number" value="20" min="0" step="0.5" inputmode="decimal"></label>
+          <label id="doorHandleSizeLabel" class="hiddenField">Desconto da cava (mm)<input id="doorHandleSize" type="number" value="20" min="0" step="0.5" inputmode="decimal"></label>
         </div>
         <div class="spaceFields two" style="margin-top:8px">
+          <label id="doorHandleOrientationLabel" class="hiddenField">Orientação do puxador
+            <select id="doorHandleOrientation">
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
+            </select>
+          </label>
           <label id="doorCavaPositionLabel" class="hiddenField">Cava em
             <select id="doorCavaPosition"><option value="top">Cima</option><option value="bottom">Baixo</option></select>
           </label>
         </div>
-        <div class="doorConfigHint">Puxador externo não altera a medida. Cava/perfil desconta automaticamente o tamanho informado da altura da porta.</div>
+        <div class="doorConfigHint">Puxador externo é somente visual: marcador simples de 35 mm, horizontal ou vertical, sem alterar a medida da porta. Cava/perfil desconta automaticamente o valor informado da altura da porta.</div>
       </div>
 
       <div class="doorConfigBox">
@@ -2723,6 +2730,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.300.11-r1"></script>
+<script type="module" src="js/app.js?v=1.300.15-r1"></script>
 </body>
 </html>

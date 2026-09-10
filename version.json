@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.11",
+  "version": "1.300.15",
   "required": false,
-  "message": "Biblioteca de Portas: o ADM agora pode renomear e excluir/ocultar também o modelo padrão embutido, mantendo o mesmo ID e preservando geometria e regras; modelos oficiais continuam sincronizados pela nuvem.",
-  "released_at": "2026-09-08T12:30:00-03:00",
-  "build": "1.300.11-r1"
+  "message": "Trena com dois modos: medir peça e medir ponto estilo SketchUp, com snap em quinas, arestas, guias, eixos e faces.",
+  "released_at": "2026-09-10T07:15:00-03:00",
+  "build": "1.300.15-r1"
 }
