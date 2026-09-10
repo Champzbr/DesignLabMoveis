@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.17",
+  "version": "1.300.18",
   "required": false,
-  "message": "Portas: removido o puxador externo visual. Cava/perfil agora pode descontar na horizontal (altura) ou vertical (largura), com escolha do lado.",
-  "released_at": "2026-09-10T08:25:00-03:00",
-  "build": "1.300.17-r1"
+  "message": "Trena por ponto: pinça/zoom com 2 dedos liberada entre o primeiro e o segundo ponto, sem perder o ponto já marcado.",
+  "released_at": "2026-09-10T08:16:00-03:00",
+  "build": "1.300.18-r1"
 }
