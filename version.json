@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.20",
+  "version": "1.300.21",
   "required": false,
-  "message": "Seccionadora aceita Compensado Naval de até 3050 mm e usa automaticamente a chapa 3050 × 1610 mm quando a peça não cabe no tamanho padrão.",
-  "released_at": "2026-09-10T12:14:00-03:00",
-  "build": "1.300.20-r1"
+  "message": "Compensado Naval 3050 × 1610 mm agora também é usado automaticamente no modo Otimizado · cortes guilhotina quando a chapa informada é pequena.",
+  "released_at": "2026-09-10T14:01:00-03:00",
+  "build": "1.300.21-r1"
 }
