@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.15",
+  "version": "1.300.17",
   "required": false,
-  "message": "Trena com dois modos: medir peça e medir ponto estilo SketchUp, com snap em quinas, arestas, guias, eixos e faces.",
-  "released_at": "2026-09-10T07:15:00-03:00",
-  "build": "1.300.15-r1"
+  "message": "Portas: removido o puxador externo visual. Cava/perfil agora pode descontar na horizontal (altura) ou vertical (largura), com escolha do lado.",
+  "released_at": "2026-09-10T08:25:00-03:00",
+  "build": "1.300.17-r1"
 }
