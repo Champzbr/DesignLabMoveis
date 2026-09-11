@@ -1,8 +1,7 @@
 {
-  "app": "DesignLabMoveis",
-  "version": "1.300.24",
-  "required": false,
-  "message": "Correção da Configuração do Espaço: trocar material ou aplicar em todas as peças não redimensiona nem redistribui os vãos quando as medidas externas não foram alteradas.",
-  "released_at": "2026-09-11T06:58:00-03:00",
-  "build": "1.300.24-r1"
+  "version": "1.300.27",
+  "released_at": "2026-09-11T10:21:00-03:00",
+  "message": "Plano de corte no celular com rolagem vertical real: a chapa não esconde mais detalhes/peças, o canvas permite deslizar a tela, e o botão Fechar fica sempre acessível no topo e também abaixo dos detalhes.",
+  "force_update": false,
+  "build": "1.300.27-r1"
 }
