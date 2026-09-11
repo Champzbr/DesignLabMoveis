@@ -1,8 +1,8 @@
 {
   "app": "DesignLabMoveis",
-  "version": "1.300.22",
+  "version": "1.300.23",
   "required": false,
-  "message": "Otimização global do plano de corte: menos chapas, melhor reaproveitamento e distribuição de faixas da seccionadora.",
-  "released_at": "2026-09-10T14:20:00-03:00",
-  "build": "1.300.22-r1"
+  "message": "Seccionadora com reaproveitamento real das sobras internas: peças da última chapa podem ocupar caudas de faixas já cortadas, reduzindo o total de chapas.",
+  "released_at": "2026-09-11T05:55:00-03:00",
+  "build": "1.300.23-r1"
 }
