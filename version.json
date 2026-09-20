@@ -1,5 +1,5 @@
 {
-  "version": "1.300.31",
-  "released_at": "2026-09-20T15:20:00-03:00",
-  "message": "Seleção múltipla de espaços para criar portas: Ctrl+clique no PC, toque longo no celular, região automática e recobrimento por valores negativos."
+  "version": "1.300.32",
+  "released_at": "2026-09-20T16:20:00-03:00",
+  "message": "Seleção de portas corrigida: o primeiro espaço já vira referência, toque longo/Ctrl+clique adiciona outros, e a porta usa o envelope de todos os espaços selecionados."
 }
