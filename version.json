@@ -1,5 +1,5 @@
 {
-  "version": "1.300.28",
+  "version": "1.300.29",
   "released_at": "2026-09-20T13:45:00-03:00",
   "message": "Contornos 3D mais suaves: supersampling no desktop e arestas técnicas menos pesadas."
 }
