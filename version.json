@@ -1,5 +1,5 @@
 {
-  "version": "1.300.33",
-  "released_at": "2026-09-20T16:40:00-03:00",
-  "message": "Suavização reforçada das linhas do 3D com FXAA no desktop, supersampling ajustado e contornos das peças mais leves, reduzindo o serrilhado do desenho."
+  "version": "1.300.34",
+  "released_at": "2026-09-20T16:48:00-03:00",
+  "message": "Correção do visual no PC: removido o pós-processamento que alterava as cores; renderização volta ao mesmo pipeline visual do celular, com supersampling maior apenas no desktop para suavizar as linhas."
 }
