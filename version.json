@@ -1,6 +1,5 @@
 {
-  "version": "1.300.36",
-  "build": "1.300.36-r1",
-  "released_at": "2026-09-20T17:15:00-03:00",
-  "message": "Correção do atualizador e da identificação de versão: feedback visível nos botões, recarga forçada realmente limpa o cache/Service Worker e toda a interface exibe a versão correta."
+  "version": "1.300.37",
+  "released_at": "2026-09-20T17:10:00-03:00",
+  "message": "Correção de compatibilidade com Firefox: criação e renderização dos espaços voltam ao modo estável nesse navegador; Chrome/Edge mantêm os contornos CAD suavizados."
 }
