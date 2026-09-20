@@ -1,5 +1,6 @@
 {
-  "version": "1.300.35",
-  "released_at": "2026-09-20T16:55:00-03:00",
-  "message": "Contornos 3D do PC agora usam linhas suavizadas próprias para CAD, preservando as cores corretas da 1.300.34 e reduzindo o serrilhado sem mexer nos materiais das peças."
+  "version": "1.300.36",
+  "build": "1.300.36-r1",
+  "released_at": "2026-09-20T17:15:00-03:00",
+  "message": "Correção do atualizador e da identificação de versão: feedback visível nos botões, recarga forçada realmente limpa o cache/Service Worker e toda a interface exibe a versão correta."
 }

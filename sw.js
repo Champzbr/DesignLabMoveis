@@ -1,4 +1,4 @@
-const BUILD = '1.300.35-r1';
+const BUILD = '1.300.36-r1';
 const CACHE = 'designlabmoveis-' + BUILD;
 const APP_SHELL = [
   './',
@@ -7,24 +7,27 @@ const APP_SHELL = [
   './version.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './css/base.css?v=1.300.35-r1',
-  './css/editor.css?v=1.300.35-r1',
-  './css/materials.css?v=1.300.35-r1',
-  './css/labels.css?v=1.300.35-r1',
-  './css/cut-plan.css?v=1.300.35-r1',
-  './css/layout.css?v=1.300.35-r1',
-  './css/projects.css?v=1.300.35-r1',
-  './css/settings.css?v=1.300.35-r1',
-  './css/home.css?v=1.300.35-r1',
-  './css/mobile.css?v=1.300.35-r1',
-  './css/home-theme-120066.css?v=1.300.35-r1',
-  './js/app.js?v=1.300.35-r1',
+  './css/base.css?v=1.300.36-r1',
+  './css/editor.css?v=1.300.36-r1',
+  './css/materials.css?v=1.300.36-r1',
+  './css/labels.css?v=1.300.36-r1',
+  './css/cut-plan.css?v=1.300.36-r1',
+  './css/layout.css?v=1.300.36-r1',
+  './css/projects.css?v=1.300.36-r1',
+  './css/settings.css?v=1.300.36-r1',
+  './css/home.css?v=1.300.36-r1',
+  './css/mobile.css?v=1.300.36-r1',
+  './css/home-theme-120066.css?v=1.300.36-r1',
+  './js/app.js?v=1.300.36-r1',
   './js/qr-local.js'
 ];
 
 const EXTERNAL_SHELL = [
   'https://unpkg.com/three@0.160.0/build/three.module.js',
   'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js',
+  'https://unpkg.com/three@0.160.0/examples/jsm/lines/LineSegments2.js',
+  'https://unpkg.com/three@0.160.0/examples/jsm/lines/LineSegmentsGeometry.js',
+  'https://unpkg.com/three@0.160.0/examples/jsm/lines/LineMaterial.js',
   'https://identity.netlify.com/v1/netlify-identity-widget.js'
 ];
 
@@ -64,7 +67,8 @@ self.addEventListener('message', event => {
   if(event.data?.type==='CLEAR_OLD_CACHES' || event.data?.type==='PURGE_APP_CACHE'){
     event.waitUntil((async()=>{
       const keys=await caches.keys();
-      await Promise.all(keys.filter(k=>k!==CACHE&&(k.startsWith('mini-cad-pro-')||k.startsWith('designlabmoveis-'))).map(k=>caches.delete(k)));
+      const purgeAll=event.data?.type==='PURGE_APP_CACHE';
+      await Promise.all(keys.filter(k=>(purgeAll||k!==CACHE)&&(k.startsWith('mini-cad-pro-')||k.startsWith('designlabmoveis-'))).map(k=>caches.delete(k)));
     })());
   }
 });
