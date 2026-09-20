@@ -1,10 +1,6 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
@@ -46,7 +42,7 @@ const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.300.32-r1';
+window.__DESIGNLAB_APP_BOOTED='1.300.34-r1';
 
 
 // ============================================================================
@@ -2232,7 +2228,7 @@ async function captureProjectThumbnail(){
     if(!visualMode)setVisualMode(true,{notify:false,frame:true});
     else frameFurnitureVisual();
     setPieceVisualEdgesVisible(false);
-    cadRender(perspectiveCamera);
+    renderer.render(scene,perspectiveCamera);
 
     const src=renderer.domElement,w=720,h=405;
     const c=document.createElement('canvas');c.width=w;c.height=h;
@@ -3867,11 +3863,10 @@ let camera = perspectiveCamera;
 let viewMode2D = false;
 let current2DView = null;
 const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true });
-// 1.300.33 · pós-processamento FXAA + supersampling no desktop para suavizar
-// ainda mais o serrilhado das arestas finas do desenho. No celular mantemos
-// um custo menor para preservar fluidez.
-const cadPointerCoarse=matchMedia('(pointer:coarse)').matches;
-const cadRenderPixelRatio=Math.min(Math.max(devicePixelRatio||1,cadPointerCoarse?1:2),cadPointerCoarse?1.5:3);
+// 1.300.34 · mantém exatamente o pipeline de cor original (igual ao celular)
+// e aumenta SOMENTE a resolução interna no desktop. Assim suavizamos as linhas
+// sem pós-processamento e sem alterar cores, materiais, luzes ou transparências.
+const cadRenderPixelRatio=Math.min(Math.max(devicePixelRatio||1,matchMedia('(pointer:coarse)').matches?1:2.5),3);
 renderer.setPixelRatio(cadRenderPixelRatio);
 renderer.setSize(innerWidth, innerHeight);
 renderer.domElement.style.touchAction='none';
@@ -3879,33 +3874,6 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=cadShadowsVisible;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
-
-let cadComposer=null;
-let cadRenderPass=null;
-let cadFxaaPass=null;
-function updateCadPostAA(){
-  if(!cadFxaaPass) return;
-  const pr=renderer.getPixelRatio?renderer.getPixelRatio():(window.devicePixelRatio||1);
-  cadFxaaPass.material.uniforms['resolution'].value.set(1/Math.max(1,innerWidth*pr),1/Math.max(1,innerHeight*pr));
-}
-function buildCadComposer(){
-  if(cadPointerCoarse) return;
-  cadComposer=new EffectComposer(renderer);
-  if(typeof cadComposer.setPixelRatio==='function') cadComposer.setPixelRatio(renderer.getPixelRatio());
-  cadComposer.setSize(innerWidth,innerHeight);
-  cadRenderPass=new RenderPass(scene,camera);
-  cadComposer.addPass(cadRenderPass);
-  cadFxaaPass=new ShaderPass(FXAAShader);
-  updateCadPostAA();
-  cadComposer.addPass(cadFxaaPass);
-}
-function cadRender(activeCamera=camera){
-  const cam=activeCamera||camera;
-  if(cadRenderPass) cadRenderPass.camera=cam;
-  if(cadComposer) cadComposer.render();
-  else renderer.render(scene,cam);
-}
-buildCadComposer();
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x222222, 1.12));
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.28);
@@ -6518,7 +6486,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
   // Isso evita aplicar MDF 18 mm automaticamente em um fundo de gaveta 6 mm.
   applySpaceDefaultMaterialToObject(mesh,spaceRootId,{requireThicknessMatch:true});
 
-  const visualEdgeMat=new THREE.LineBasicMaterial({color:xray3DActive()?0x101010:0x4d534f,transparent:true,opacity:xray3DActive()?.8:.52,depthTest:!xray3DActive(),depthWrite:false});
+  const visualEdgeMat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});
   const visualEdges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),visualEdgeMat);
   visualEdges.userData.isVisualEdge=true; visualEdges.visible=true; visualEdges.renderOrder=xray3DActive()?88:12;
   mesh.add(visualEdges); mesh.userData.visualEdges=visualEdges;
@@ -14864,7 +14832,7 @@ function formLocalPoint(ti,u,v,t){
   if(ti.thicknessAxis==='z')return new THREE.Vector3(su,sv,st);if(ti.thicknessAxis==='y')return new THREE.Vector3(su,st,sv);return new THREE.Vector3(st,sv,su);
 }
 function makeFormVisualEdges(o,pts,ti){
-  const group=new THREE.Group();group.userData.isVisualEdge=true;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x101010:0x4d534f,transparent:true,opacity:xray3DActive()?.8:.52,depthTest:!xray3DActive(),depthWrite:false});group.material=mat;const t=ti.thickness/2;
+  const group=new THREE.Group();group.userData.isVisualEdge=true;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});group.material=mat;const t=ti.thickness/2;
   for(const side of [-t,t]){const arr=pts.map(([u,v])=>formLocalPoint(ti,u,v,side));if(arr.length)arr.push(arr[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(arr),mat);line.userData.isVisualEdge=true;group.add(line);}
   // Só quatro ligações de espessura. Não desenha uma linha em cada segmento do arco.
   const anchors=[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]],seg=[];for(const a of anchors){let best=pts[0],bd=Infinity;for(const p of pts){const d=(p[0]-a[0])**2+(p[1]-a[1])**2;if(d<bd){bd=d;best=p;}}seg.push(formLocalPoint(ti,best[0],best[1],-t),formLocalPoint(ti,best[0],best[1],t));}
@@ -14874,7 +14842,7 @@ function rebuildFormGeometry(o){
   if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;
   const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
   const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
-  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x101010:0x4d534f,transparent:true,opacity:xray3DActive()?.8:.52,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
   const pts=formOutlinePointsMm(o,forms,48);if(pts.length<4)return;
   const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);});shape.closePath();
   const geom=new THREE.ExtrudeGeometry(shape,{depth:ti.thickness*MM_TO_M,bevelEnabled:false,steps:1,curveSegments:64});geom.translate(0,0,-ti.thickness*MM_TO_M/2);formMapExtrudeGeometry(geom,ti);o.geometry=geom;o.scale.set(1,1,1);
@@ -15893,7 +15861,7 @@ function makeFormVisualEdgesWithCutouts(o,outer,cutouts,ti){
 rebuildFormGeometry=function(o){
   if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
   const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
-  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x101010:0x4d534f,transparent:true,opacity:xray3DActive()?.8:.52,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
   const pts=formOutlinePointsMm(o,forms,48),cutouts=formCutoutPointsMm(o,forms);if(pts.length<4)return;
   const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?shape.lineTo(x,y):shape.moveTo(x,y);});shape.closePath();
   const outerSign=Math.sign(shapeCadPolygonArea(pts))||1;
@@ -16254,7 +16222,7 @@ function formVisualSharpCornerIndices(pts,{thresholdDeg=18,maxCorners=32}={}){
 }
 makeFormVisualEdges=function(o,pts,ti){
   const group=new THREE.Group();group.userData.isVisualEdge=true;
-  const xray=xray3DActive(),outlineMat=new THREE.LineBasicMaterial({color:xray?0x15120e:0x4d534f,transparent:true,opacity:xray?.82:.6,depthTest:!xray,depthWrite:false});
+  const xray=xray3DActive(),outlineMat=new THREE.LineBasicMaterial({color:0x15120e,transparent:true,opacity:xray?.82:.82,depthTest:!xray,depthWrite:false});
   const cornerMat=new THREE.LineBasicMaterial({color:0x1b1711,transparent:true,opacity:xray?.76:.62,depthTest:!xray,depthWrite:false});
   group.material=outlineMat;const t=ti.thickness/2;
   // Contorno superior e inferior contínuos: mostram a espessura sem "abrir" a peça.
@@ -22791,7 +22759,7 @@ installOutsideMenuClose();
 
 window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
-window.addEventListener('resize',()=>{renderer.setPixelRatio(cadRenderPixelRatio);renderer.setSize(innerWidth,innerHeight);if(cadComposer){if(typeof cadComposer.setPixelRatio==='function')cadComposer.setPixelRatio(renderer.getPixelRatio());cadComposer.setSize(innerWidth,innerHeight);}updateCadPostAA();perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
+window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
 // 1.200.42: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
@@ -22857,7 +22825,7 @@ initProjectHub().catch(err=>{console.error(err);toast('Não foi possível abrir 
 initOnlineIdentity().catch(err=>{console.error(err);setAuthStatus('Falha ao iniciar a autenticação.','error');});
 
 function animate(){
-  requestAnimationFrame(animate); controls.update(); if(dragMode) updateLiveLabel(); updateMachiningVisualTransforms(); updateDoorHandleVisuals(); cadRender(camera);
+  requestAnimationFrame(animate); controls.update(); if(dragMode) updateLiveLabel(); updateMachiningVisualTransforms(); updateDoorHandleVisuals(); renderer.render(scene,camera);
 }
 updateXray3DButton();
 applyCadDetailVisibility({persist:false,notify:false});
