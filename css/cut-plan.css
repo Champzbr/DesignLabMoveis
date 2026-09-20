@@ -220,7 +220,7 @@
 body.project-home-active #cadHideSelectedSpaceQuick,body.project-home-active #cadGridQuickToggle,body.project-home-active #cadHideSelectedPieceQuick,body.project-home-active #cadShowHiddenPiecesQuick,body.project-home-active #cadFrontQuickToggle,body.project-home-active #cadSpaceQuickToggle,body.project-home-active #cadConfigQuickButton{display:none}
 \n\n/* 1.300.02 · Peças gerais: chapas + madeira maciça + ferro na mesma tela */\n.partsProductionSection{margin-top:14px;padding-top:12px;border-top:1px solid rgba(127,127,127,.28)}\n.partsProductionSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}\n.partsProductionSectionHead>div{display:flex;flex-direction:column;gap:2px}\n.partsProductionSectionHead>strong,.partsProductionSectionHead>div>strong{font-size:14px}\n.partsProductionSectionHead span{font-size:11px;color:var(--muted,#7b8084)}\n.partsProductionSectionHead button{flex:0 0 auto}\n.partsInlinePlan{margin-top:8px}\n.partsInlinePlan .dlCheckRow small{display:block;white-space:normal;line-height:1.55;margin-top:4px}\n#partsGeneralSummary{margin:10px 0 4px}\n@media(max-width:720px){.partsProductionSectionHead{align-items:stretch;flex-direction:column}.partsProductionSectionHead button{width:100%}}\n
 
-/* 1.300.27 · plano de corte mobile: detalhes e fechar sempre acessíveis */
+/* 1.300.28 · plano de corte mobile: detalhes e fechar sempre acessíveis */
 .sheetPreviewMobileClose{display:none}
 @media(max-width:820px){
   #sheetPreviewDialog{
