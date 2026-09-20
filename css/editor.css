@@ -491,3 +491,14 @@
 }
 .pieceMaterialSearch::placeholder{color:#778188;font-weight:650}
 .pieceMaterialSearch:focus{border-color:#2d7dfa;box-shadow:0 0 0 2px rgba(45,125,250,.12)}
+
+/* 1.300.31 · seleção múltipla de espaços para criar portas */
+.spaceMultiSelectBar{bottom:calc(82px + env(safe-area-inset-bottom));border-color:rgba(52,208,88,.55)}
+.spaceMultiSelectBar .shapeCopyBarText strong{color:#8cff9f}
+.spaceMultiSelectBar .spaceMultiSelectActions{display:grid;grid-template-columns:1fr 1fr;min-width:min(310px,42vw)}
+.spaceMultiSelectBar button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:620px){
+  .spaceMultiSelectBar{bottom:calc(78px + env(safe-area-inset-bottom));width:calc(100vw - 16px);padding:9px 10px;gap:8px}
+  .spaceMultiSelectBar .spaceMultiSelectActions{grid-template-columns:1fr 1fr;min-width:0;width:100%}
+  .spaceMultiSelectBar .shapeCopyBarActions button{font-size:11px;min-height:38px}
+}
