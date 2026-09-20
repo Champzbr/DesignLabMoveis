@@ -1,4 +1,4 @@
-const BUILD = '1.300.37-r1';
+const BUILD = '1.300.38-r1';
 const CACHE = 'designlabmoveis-' + BUILD;
 const APP_SHELL = [
   './',
@@ -7,18 +7,18 @@ const APP_SHELL = [
   './version.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './css/base.css?v=1.300.37-r1',
-  './css/editor.css?v=1.300.37-r1',
-  './css/materials.css?v=1.300.37-r1',
-  './css/labels.css?v=1.300.37-r1',
-  './css/cut-plan.css?v=1.300.37-r1',
-  './css/layout.css?v=1.300.37-r1',
-  './css/projects.css?v=1.300.37-r1',
-  './css/settings.css?v=1.300.37-r1',
-  './css/home.css?v=1.300.37-r1',
-  './css/mobile.css?v=1.300.37-r1',
-  './css/home-theme-120066.css?v=1.300.37-r1',
-  './js/app.js?v=1.300.37-r1',
+  './css/base.css?v=1.300.38-r1',
+  './css/editor.css?v=1.300.38-r1',
+  './css/materials.css?v=1.300.38-r1',
+  './css/labels.css?v=1.300.38-r1',
+  './css/cut-plan.css?v=1.300.38-r1',
+  './css/layout.css?v=1.300.38-r1',
+  './css/projects.css?v=1.300.38-r1',
+  './css/settings.css?v=1.300.38-r1',
+  './css/home.css?v=1.300.38-r1',
+  './css/mobile.css?v=1.300.38-r1',
+  './css/home-theme-120066.css?v=1.300.38-r1',
+  './js/app.js?v=1.300.38-r1',
   './js/qr-local.js'
 ];
 
