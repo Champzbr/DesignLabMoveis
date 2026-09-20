@@ -288,7 +288,7 @@
   #dialogBtns { display:flex; gap:7px; justify-content:flex-end; margin-top:12px; }
 
   #toast {
-    position:fixed; z-index:100; left:50%; bottom:calc(84px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+    position:fixed; z-index:20000; left:50%; bottom:calc(84px + env(safe-area-inset-bottom)); transform:translateX(-50%);
     background:rgba(0,0,0,.88); color:#fff; padding:8px 12px; border-radius:999px; font-size:12px; font-weight:700;
     opacity:0; pointer-events:none; transition:opacity .2s; white-space:nowrap; max-width:90vw; overflow:hidden; text-overflow:ellipsis;
   }
