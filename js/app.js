@@ -1,6 +1,9 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 
 const M_TO_MM = 1000;
 const MM_TO_M = 0.001;
@@ -41,8 +44,53 @@ const GUIDE_SNAP_PX = 36;      // snap visual do Mover nas guias da Trena
 const FACE_SNAP_PX = 34;       // indicação de face sob o dedo
 const GUIDE_OBJECT_SNAP_WORLD = 0.15; // até 150 mm para alinhar face/aresta da peça à guia
 
+// 1.300.35 · linhas 3D anti-serrilhado no desktop sem alterar os materiais.
+const CAD_SMOOTH_EDGE_LINES = !matchMedia('(pointer:coarse)').matches;
+const cadSmoothEdgeMaterials = new Set();
+let cadBoxEdgePositionsCache = null;
+function cadRegisterSmoothEdgeMaterial(mat){
+  if(!mat) return mat;
+  cadSmoothEdgeMaterials.add(mat);
+  try{ if(mat.resolution) mat.resolution.set(innerWidth,innerHeight); }catch(_){ }
+  return mat;
+}
+function cadUpdateSmoothEdgeMaterialResolutions(){
+  cadSmoothEdgeMaterials.forEach(mat=>{ try{ if(mat?.resolution) mat.resolution.set(innerWidth,innerHeight); }catch(_){ } });
+}
+function cadMakeEdgeMaterial({color=0x2b2f30,opacity=.68,depthTest=true,depthWrite=false,transparent=true,linewidth=1.15}={}){
+  if(CAD_SMOOTH_EDGE_LINES){
+    const mat=new LineMaterial({color,transparent,opacity,depthTest,depthWrite,linewidth,worldUnits:false,toneMapped:false});
+    try{mat.alphaToCoverage=true;}catch(_){ }
+    return cadRegisterSmoothEdgeMaterial(mat);
+  }
+  return new THREE.LineBasicMaterial({color,transparent,opacity,depthTest,depthWrite});
+}
+function cadBoxEdgePositions(){
+  if(cadBoxEdgePositionsCache) return cadBoxEdgePositionsCache;
+  const g=new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1));
+  cadBoxEdgePositionsCache=Array.from(g.attributes.position.array||[]);
+  g.dispose();
+  return cadBoxEdgePositionsCache;
+}
+function cadMakeBoxVisualEdges(material){
+  const renderOrder=xray3DActive()?88:12;
+  if(CAD_SMOOTH_EDGE_LINES && material?.isLineMaterial){
+    const geo=new LineSegmentsGeometry();
+    geo.setPositions(cadBoxEdgePositions());
+    const line=new LineSegments2(geo,material);
+    line.userData.isVisualEdge=true;
+    line.renderOrder=renderOrder;
+    line.frustumCulled=false;
+    return line;
+  }
+  const line=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),material);
+  line.userData.isVisualEdge=true;
+  line.renderOrder=renderOrder;
+  return line;
+}
+
 const $ = id => document.getElementById(id);
-window.__DESIGNLAB_APP_BOOTED='1.300.34-r1';
+window.__DESIGNLAB_APP_BOOTED='1.300.35-r1';
 
 
 // ============================================================================
@@ -3863,7 +3911,7 @@ let camera = perspectiveCamera;
 let viewMode2D = false;
 let current2DView = null;
 const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:true });
-// 1.300.34 · mantém exatamente o pipeline de cor original (igual ao celular)
+// 1.300.35 · mantém o pipeline de cor da 1.300.34 e suaviza só os contornos no PC
 // e aumenta SOMENTE a resolução interna no desktop. Assim suavizamos as linhas
 // sem pós-processamento e sem alterar cores, materiais, luzes ou transparências.
 const cadRenderPixelRatio=Math.min(Math.max(devicePixelRatio||1,matchMedia('(pointer:coarse)').matches?1:2.5),3);
@@ -6486,9 +6534,9 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
   // Isso evita aplicar MDF 18 mm automaticamente em um fundo de gaveta 6 mm.
   applySpaceDefaultMaterialToObject(mesh,spaceRootId,{requireThicknessMatch:true});
 
-  const visualEdgeMat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});
-  const visualEdges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),visualEdgeMat);
-  visualEdges.userData.isVisualEdge=true; visualEdges.visible=true; visualEdges.renderOrder=xray3DActive()?88:12;
+  const visualEdgeMat=cadMakeEdgeMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false,linewidth:xray3DActive()?1.45:1.1});
+  const visualEdges=cadMakeBoxVisualEdges(visualEdgeMat);
+  visualEdges.visible=true;
   mesh.add(visualEdges); mesh.userData.visualEdges=visualEdges;
   scene.add(mesh); objects.push(mesh);
   // 1.200.75: se a visualização rápida de frentes estiver oculta, qualquer
@@ -14842,7 +14890,7 @@ function rebuildFormGeometry(o){
   if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;
   const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
   const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
-  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=cadMakeEdgeMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false,linewidth:xray3DActive()?1.45:1.1});const e=cadMakeBoxVisualEdges(mat);o.add(e);o.userData.visualEdges=e;return;}
   const pts=formOutlinePointsMm(o,forms,48);if(pts.length<4)return;
   const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);});shape.closePath();
   const geom=new THREE.ExtrudeGeometry(shape,{depth:ti.thickness*MM_TO_M,bevelEnabled:false,steps:1,curveSegments:64});geom.translate(0,0,-ti.thickness*MM_TO_M/2);formMapExtrudeGeometry(geom,ti);o.geometry=geom;o.scale.set(1,1,1);
@@ -15861,7 +15909,7 @@ function makeFormVisualEdgesWithCutouts(o,outer,cutouts,ti){
 rebuildFormGeometry=function(o){
   if(!o||o.userData?.kind==='cylinder'||o.userData?.kind==='curved-panel'||o.userData?.curvedRole)return;const ti=pieceThicknessInfo(o);if(!ti)return;disposeVisualEdgeTree(o);o.geometry?.dispose?.();
   const forms=Array.isArray(o.userData.forms)?o.userData.forms:[];
-  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=new THREE.LineBasicMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false});const e=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),mat);e.userData.isVisualEdge=true;e.renderOrder=xray3DActive()?88:12;o.add(e);o.userData.visualEdges=e;return;}
+  if(!forms.length){o.geometry=new THREE.BoxGeometry(1,1,1);o.scale.set(o.userData.width,o.userData.height,o.userData.depth);delete o.userData.formProfile;const mat=cadMakeEdgeMaterial({color:xray3DActive()?0x111111:0x2b2f30,transparent:true,opacity:xray3DActive()?.82:.68,depthTest:!xray3DActive(),depthWrite:false,linewidth:xray3DActive()?1.45:1.1});const e=cadMakeBoxVisualEdges(mat);o.add(e);o.userData.visualEdges=e;return;}
   const pts=formOutlinePointsMm(o,forms,48),cutouts=formCutoutPointsMm(o,forms);if(pts.length<4)return;
   const shape=new THREE.Shape();pts.forEach(([u,v],i)=>{const x=(u-ti.faceW/2)*MM_TO_M,y=(v-ti.faceH/2)*MM_TO_M;i?shape.lineTo(x,y):shape.moveTo(x,y);});shape.closePath();
   const outerSign=Math.sign(shapeCadPolygonArea(pts))||1;
@@ -22759,7 +22807,7 @@ installOutsideMenuClose();
 
 window.addEventListener('resize'
 ,()=>{if($('sheetPreviewDialog')?.classList.contains('show'))requestAnimationFrame(sheetPreviewDraw);});
-window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
+window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);cadUpdateSmoothEdgeMaterialResolutions();perspectiveCamera.aspect=innerWidth/Math.max(1,innerHeight);perspectiveCamera.updateProjectionMatrix();if(viewMode2D){const root=activeSpaceRoot();viewSpace(root,current2DView||'front');}else camera.updateProjectionMatrix();});
 
 // 1.200.42: remove os parâmetros técnicos depois que a cópia fresca abriu.
 // Assim, uma próxima abertura fria do PWA volta para / e passa novamente pelo
