@@ -1,5 +1,5 @@
 {
-  "version": "1.300.34",
-  "released_at": "2026-09-20T16:48:00-03:00",
-  "message": "Correção do visual no PC: removido o pós-processamento que alterava as cores; renderização volta ao mesmo pipeline visual do celular, com supersampling maior apenas no desktop para suavizar as linhas."
+  "version": "1.300.35",
+  "released_at": "2026-09-20T16:55:00-03:00",
+  "message": "Contornos 3D do PC agora usam linhas suavizadas próprias para CAD, preservando as cores corretas da 1.300.34 e reduzindo o serrilhado sem mexer nos materiais das peças."
 }
