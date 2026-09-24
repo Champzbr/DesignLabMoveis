@@ -111,3 +111,12 @@ O smoke test real encontrou dois problemas no fluxo de Porta/Gaveta:
 A seleção múltipla continua disponível: no PC, `Ctrl + clique` adiciona/remove referências e o duplo clique abre o menu central; no celular, toque longo adiciona a referência e abre o mesmo menu.
 
 Build: **1.310.00-r4**.
+
+
+## Hotfix r5 — divisão vertical centralizada
+
+O smoke test real no Windows encontrou `mergeIntervals is not a function` ao criar uma **Divisão vertical** com medida **0 mm = centralizar**. A causa era de wiring: `spaces-cuts` nasce antes de `library`, mas recebia por shorthand quatro helpers da Biblioteca (`mergeIntervals`, `fixedIntervalsFromSpace`, `structuralFixedIntervalsFromRoot` e `makeBalancedSpaceAxisMapper`). Nesse momento as variáveis ainda eram `undefined` e o módulo congelava esse valor.
+
+O runtime agora resolve esses quatro helpers pelo `moduleRegistry` no momento da chamada. O botão **Criar** também ganhou trava curta contra duplo clique/toque para não duplicar a peça por reenvio rápido.
+
+Build: **1.310.00-r6**.

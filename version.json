@@ -1,5 +1,5 @@
 {
   "version": "1.310.00",
-  "released_at": "2026-09-23T21:45:00-03:00",
-  "message": "Fase 10 r4: corrigido o erro de criação de portas (helper m não era repassado ao módulo doors-drawers) e removida a barra inferior duplicada de seleção de espaços; o menu rápido central passa a ser a única interface visível para criar portas/gavetas."
+  "released_at": "2026-09-23T22:20:00-03:00",
+  "message": "Fase 10 r6: corrigido Ocultar portas/frentes (setter de estado ausente) e Corte rápido pelo menu (late-binding de applySelectedSpaceCut). Também corrigidos late-bindings das vistas do dock que nasciam antes de spacesCuts/cameraNavigation."
 }
