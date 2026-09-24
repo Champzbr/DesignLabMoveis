@@ -54,7 +54,7 @@ Há **305 chamadas `callIfReady`** no runtime final: as 303 da categoria `i-regi
 
 ## 5. Offline / Service Worker
 
-`sw.js` foi atualizado para `1.310.00-r3` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
+`sw.js` foi atualizado para `1.310.00-r4` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
 
 ## Validação automática executada
 
@@ -99,4 +99,15 @@ Durante o smoke test real no navegador foi encontrado um erro de wiring que a va
 
 A mesma auditoria de escopo encontrou três referências que seriam os próximos `ReferenceError`: `mmPrec`, `shapeCopyPieceEligible` e `shapeDeepClone`. As três já eram exportadas por `machining-shapes.js`, mas não eram desestruturadas no runtime antes de serem passadas a `production-materials.js`. Isso foi corrigido no mesmo hotfix.
 
-Build: **1.310.00-r3**.
+Build: **1.310.00-r4**.
+
+## Hotfix r4 — portas e menu de espaço
+
+O smoke test real encontrou dois problemas no fluxo de Porta/Gaveta:
+
+- O `createDoorsDrawersModule()` desestruturava o helper `m` (conversão mm → metros), mas `editor-runtime.js` não o repassava à factory. O erro só aparecia ao confirmar a criação da porta (`m is not a function`). O wiring agora passa `m` explicitamente.
+- O duplo clique em um espaço mostrava simultaneamente o menu rápido central **Adicionar ao espaço** e a barra inferior **Seleção de espaços**. A barra inferior foi aposentada visualmente; sua API foi mantida apenas por compatibilidade. O menu rápido central é agora a única interface visível para Porta/Gaveta.
+
+A seleção múltipla continua disponível: no PC, `Ctrl + clique` adiciona/remove referências e o duplo clique abre o menu central; no celular, toque longo adiciona a referência e abre o mesmo menu.
+
+Build: **1.310.00-r4**.
