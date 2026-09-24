@@ -61,38 +61,30 @@ export function createDoorsDrawersModule(ctx){
       };
   }
   
+  // 1.310.00-r4 · o menu persistente inferior de seleção foi aposentado.
+  // A API é mantida para compatibilidade com os módulos existentes, mas a única
+  // interface visível para Porta/Gaveta passa a ser o menu rápido central
+  // (duplo clique no PC / toque longo no celular). A seleção múltipla continua
+  // funcionando internamente via Ctrl+clique ou toque longo.
   function ensureSpaceMultiSelectBar() {
       let bar = document.getElementById('spaceMultiSelectBar');
-      if (bar)
-          return bar;
-      bar = document.createElement('div');
-      bar.id = 'spaceMultiSelectBar';
-      bar.className = 'shapeCopyBar spaceMultiSelectBar';
-      bar.innerHTML = `<div class="shapeCopyBarText"><strong>▣ Seleção de espaços</strong><span id="spaceMultiSelectStatus">Selecione um espaço e adicione outros como referência.</span></div><div class="shapeCopyBarActions spaceMultiSelectActions"><button id="spaceMultiDoorBtn">🚪 Criar porta</button><button id="spaceMultiDrawerBtn">▤ Criar gavetas</button><button id="spaceMultiCancelBtn" class="secondary">✕ Cancelar</button></div>`;
-      document.body.appendChild(bar);
-      bar.querySelector('#spaceMultiDoorBtn').addEventListener('click', openDoorFromSpaceSelection);
-      bar.querySelector('#spaceMultiDrawerBtn').addEventListener('click', openDrawerFromSpaceSelection);
-      bar.querySelector('#spaceMultiCancelBtn').addEventListener('click', () => clearSpaceMultiSelection({ notify: true }));
+      if (!bar) {
+          bar = document.createElement('div');
+          bar.id = 'spaceMultiSelectBar';
+          bar.hidden = true;
+          bar.style.display = 'none';
+          document.body.appendChild(bar);
+      }
+      bar.hidden = true;
+      bar.style.display = 'none';
       return bar;
   }
   
   function updateSpaceMultiSelectBar() {
-      const bar = ensureSpaceMultiSelectBar(), entries = spaceMultiSelectionEntries();
-      if (!entries.length) {
+      const bar = document.getElementById('spaceMultiSelectBar');
+      if (bar) {
+          bar.hidden = true;
           bar.style.display = 'none';
-          return;
-      }
-      const info = spaceMultiSelectionInfo(), status = bar.querySelector('#spaceMultiSelectStatus'), btn = bar.querySelector('#spaceMultiDoorBtn');
-      bar.style.display = 'flex';
-      if (info.ok) {
-          status.textContent = `${entries.length} espaço(s) de referência · porta L ${nice(mm(info.size.width))} × A ${nice(mm(info.size.height))} mm`;
-          btn.disabled = false;
-          btn.title = 'Criar porta usando esta região';
-      }
-      else {
-          status.textContent = `${entries.length} espaço(s) · ${info.reason}`;
-          btn.disabled = true;
-          btn.title = info.reason;
       }
   }
   
