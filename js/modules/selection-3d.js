@@ -2,10 +2,14 @@
 export function createSelection3DModule(ctx){
   const { $, THREE, renderer, controls, getPointerNDC, designLabVisualizationOnlyActive, selectObject, clearSpaceSelection, rootForObject, openSpaceFromObject, openPieceInspector, isDoorObject, objectInsideSpaceRoot, worldAxisForFace, nearestCornerToClient, nearestEdgeOnMeshToClient, worldToClient, getBounds, updateMeasureBadge, updateInspector, renderSpaces, setAllFaces, commitHistory, renderMachiningVisuals, stateString, intersectPlane, axisVector, closestParamOnAxis, inferMoveAxis, showInference, hideInference, findMoveInferenceTarget, snapMovingObjectFeaturesToGuide, setMoveTargetMarker, snapFaceCoordinate, hideGuides, showGuide, moveGrip, cornerMarker, COLORS, clampSize, REAIM_THRESHOLD_PX, updateTapePreview, tapePointAimClient, tapePointAimEvent, handleTapeTap, desktopCadNavigation, getSpaceRoot, getSpaceCell, selectSpaceCellByIds, toggleSpaceMultiSelection, clearSpaceMultiSelection, openSpaceQuickCreateMenu, referenceMeshes, hardwareCopyHandlePick, shapeCopyHandlePick, CORNER_PICK_PX, EDGE_PICK_PX, findMoveSnap, guideX, guideY, guideZ, mm, toast, pickSpaceCellAtClient, spaceSelectionKey }=ctx;
   const runtimeModel=ctx.runtimeModel;
-// 1.200.95 · INTERAÇÃO SIMPLES DO CAD:
-// PEÇAS e ESPAÇOS: toque/clique somente seleciona.
-// Duplo toque e toque segurado não abrem mais nada; use o botão ⚙ Configuração.
+// 1.310.00-r7 · interação dos ESPAÇOS no celular:
+// - 1 toque mantém o fluxo normal de seleção;
+// - 2 toques rápidos adicionam/removem o vão da seleção de porta;
+// - toque longo abre Porta/Gaveta usando a seleção já montada.
+// No PC, Ctrl+clique continua fazendo a seleção múltipla e duplo clique abre o menu rápido.
 let spaceTapState={count:0,lastAt:0,lastX:0,lastY:0,rootId:null,cellId:null};
+let lastSpacePointerType='mouse';
+let suppressTouchDblClickUntil=0;
 const SPACE_MULTI_TAP_GAP_MS=560;
 const SPACE_MULTI_TAP_PX=64;
 function resetSpaceDoubleTap(){
@@ -22,7 +26,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   // Alguns WebViews Android podem repetir o pointerdown do mesmo contato quase
   // instantaneamente. Isso não deve virar um falso "duplo toque". Um segundo
   // toque real precisa ter uma pequena separação temporal.
-  const looksLikeDuplicateEvent=spaceTapState.count && sameTarget && distance<=12 && elapsed>=0 && elapsed<110;
+  const looksLikeDuplicateEvent=spaceTapState.count && sameTarget && distance<=12 && elapsed>=0 && elapsed<45;
   if(looksLikeDuplicateEvent)return false;
 
   if(spaceTapState.count && closeEnough && inTime && sameTarget){
@@ -33,8 +37,9 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.300.35 · no celular, segurar um espaço alterna a seleção múltipla.
-// No PC, a mesma função é feita com Ctrl + clique.
+// 1.310.00-r7 · no celular, o duplo toque alterna a seleção múltipla.
+// O toque longo NÃO seleciona por si só: ele abre o menu e, se necessário,
+// acrescenta o vão pressionado como última referência. No PC usa Ctrl + clique.
 let spaceLongPressTimer=null;
 let spaceLongPress={id:null,rootId:null,cellId:null,x:0,y:0,triggered:false};
 const SPACE_LONG_PRESS_MS=520;
@@ -179,7 +184,29 @@ function beginPick(event=null){
     if(ctx.toolMode==='select'){
       const rootId=obj.userData.spaceRootId,cellId=obj.userData.spaceCellId;
       const isTouch=event?.pointerType==='touch';
+      lastSpacePointerType=isTouch?'touch':(event?.pointerType||'mouse');
       const multiModifier=!isTouch&&!!(event?.ctrlKey||event?.metaKey);
+
+      // CELULAR · r7: o segundo toque rápido no MESMO vão apenas alterna a
+      // referência da porta. O menu não abre aqui; ele só abre ao segurar.
+      if(isTouch){
+        const isDoubleTap=registerSpaceDoubleTap(rootId,cellId);
+        if(isDoubleTap){
+          cancelSpaceLongPress();
+          suppressTouchDblClickUntil=performance.now()+900;
+          toggleSpaceMultiSelection(rootId,cellId,{notify:true});
+          ctx.dragMode=null;controls.enabled=true;return;
+        }
+
+        // O primeiro toque de um possível duplo toque não pode apagar os vãos
+        // que já foram selecionados. Ele muda só o vão ativo e arma o toque longo.
+        selectSpaceCellByIds(rootId,cellId,{
+          showMenu:false,
+          preserveMulti:runtimeModel.selectedSpaceCells.size>0
+        });
+        startSpaceLongPress(rootId,cellId,event.pointerId,event.clientX,event.clientY);
+        ctx.dragMode=null;controls.enabled=true;return;
+      }
 
       // PC: Ctrl + clique adiciona/remove o vão da seleção múltipla.
       if(multiModifier){
@@ -188,22 +215,9 @@ function beginPick(event=null){
         ctx.dragMode=null;controls.enabled=true;return;
       }
 
-      // Celular: quando já existe uma região de referência, um toque simples
-      // NÃO abre menu nem adiciona o vão. Só o toque longo faz isso.
-      if(isTouch&&runtimeModel.selectedSpaceCells.size){
-        clearSpaceMultiSelection({notify:false});
-        selectSpaceCellByIds(rootId,cellId,{showMenu:false});
-        startSpaceLongPress(rootId,cellId,event.pointerId,event.clientX,event.clientY);
-        ctx.dragMode=null;controls.enabled=true;return;
-      }
-
-      // 1.300.39 · clique/toque simples no espaço não abre menu rápido e não
-      // cria automaticamente referência de porta. Isso evita atrapalhar o fluxo
-      // normal de cortes/peças. O acesso ao menu fica só no duplo clique (PC)
-      // e no toque longo (celular).
+      // PC sem modificador: seleção normal. O menu rápido permanece no dblclick.
       if(runtimeModel.selectedSpaceCells.size){clearSpaceMultiSelection({notify:false});}
       selectSpaceCellByIds(rootId,cellId,{showMenu:false});
-      if(isTouch)startSpaceLongPress(rootId,cellId,event.pointerId,event.clientX,event.clientY);
       ctx.dragMode=null; controls.enabled=true; return;
     }
     if(ctx.toolMode==='move-free'){
@@ -496,6 +510,12 @@ if(desktopCadNavigation){
 renderer.domElement.addEventListener('dblclick',e=>{
   if(ctx.toolMode!=='select')return;
   e.preventDefault();e.stopPropagation();
+
+  // Android/WebView pode transformar dois toques em um dblclick sintético.
+  // No celular o duplo toque é SOMENTE seleção; impedir que esse evento abra
+  // Porta/Gaveta logo depois. Mouse real no PC continua abrindo o menu.
+  if(lastSpacePointerType==='touch'||performance.now()<suppressTouchDblClickUntil)return;
+
   const pick=pickSpaceCellAtClient(e.clientX,e.clientY);
   if(pick){
     const key=spaceSelectionKey(pick.rootId,pick.cellId);

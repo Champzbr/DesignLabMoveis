@@ -64,8 +64,8 @@ export function createDoorsDrawersModule(ctx){
   // 1.310.00-r4 · o menu persistente inferior de seleção foi aposentado.
   // A API é mantida para compatibilidade com os módulos existentes, mas a única
   // interface visível para Porta/Gaveta passa a ser o menu rápido central
-  // (duplo clique no PC / toque longo no celular). A seleção múltipla continua
-  // funcionando internamente via Ctrl+clique ou toque longo.
+  // (duplo clique no PC / toque longo no celular). No celular, a seleção múltipla
+  // é feita com duplo toque; no PC, com Ctrl+clique.
   function ensureSpaceMultiSelectBar() {
       let bar = document.getElementById('spaceMultiSelectBar');
       if (!bar) {
@@ -148,7 +148,7 @@ export function createDoorsDrawersModule(ctx){
       updateMeasureBadge();
       if (notify) {
           if (remaining.length)
-              toast(`${remaining.length} espaço(s) selecionado(s) · ${navigator.maxTouchPoints ? 'segure outro espaço' : 'Ctrl + clique em outro espaço'}`);
+              toast(`${remaining.length} espaço(s) selecionado(s) · ${navigator.maxTouchPoints ? '2 toques selecionam outro · segure para abrir' : 'Ctrl + clique em outro espaço'}`);
           else
               toast('Seleção múltipla vazia');
       }
