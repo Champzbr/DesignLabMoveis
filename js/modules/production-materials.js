@@ -415,7 +415,7 @@ export function createProductionMaterialsModule(ctx){
     for(const mat of mats)mat?.color?.set?.(u.baseColor);
     if(mats.length>=6)applyPieceProductionEdgeColors(o);
   
-    if(keepSelection&&o===ctx.selected&&!ctx.visualMode)setAllFaces(o,COLORS.ctx.selected);
+    if(keepSelection&&o===ctx.selected&&!ctx.visualMode)setAllFaces(o,COLORS.selected);
     return true;
   }
   function applySpaceDefaultMaterialToObject(o,rootOrId,{requireThicknessMatch=true}={}){
@@ -449,7 +449,7 @@ export function createProductionMaterialsModule(ctx){
       if(productionApplyMaterialRecordToObject(o,material,{keepSelection:false}))changed++;
       else skipped++;
     }
-    if(ctx.selected&&spaceEligibleProductionPieces(root).includes(ctx.selected)&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(ctx.selected&&spaceEligibleProductionPieces(root).includes(ctx.selected)&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
     return {changed,skipped};
   }
   function spaceMaterialText(rootOrId){
@@ -594,7 +594,7 @@ export function createProductionMaterialsModule(ctx){
         }
         ctx.selected.userData.edgeBands=current;
         restoreBaseColor(ctx.selected);
-        if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+        if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
       }
     }
     updateInspector();productionRefreshSelectedPiece();commitHistory();
@@ -1007,7 +1007,7 @@ export function createProductionMaterialsModule(ctx){
       o.userData.baseColor=productionColorInt(m.color,COLORS.panel);
       restoreBaseColor(o);
     }
-    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
   
     productionRefreshCatalogSelects();
     $('productionMaterialSelect').value=m.id;
@@ -1081,7 +1081,7 @@ export function createProductionMaterialsModule(ctx){
       }
       if(changed){o.userData.edgeBands=bands;restoreBaseColor(o);}
     }
-    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
   
     productionRefreshCatalogSelects();
     $('productionBandSelect').value=b.id;
@@ -1104,7 +1104,7 @@ export function createProductionMaterialsModule(ctx){
       }
       if(changed){o.userData.edgeBands=bands;restoreBaseColor(o);}
     }
-    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(ctx.selected&&!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
   
     productionNewBand();productionRefreshDialog();commitHistory();toast('Fita removida');
   }
@@ -1119,14 +1119,14 @@ export function createProductionMaterialsModule(ctx){
     ctx.selected.userData.edgeBands=bands;
     ctx.selected.userData.labelMeta={...(ctx.selected.userData.labelMeta||{}),schemaVersion:1,enabled:true};
     restoreBaseColor(ctx.selected);
-    if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
     productionRefreshSelectedPiece();commitHistory();
   }
   function productionClearSelectedBands(){
     if(!productionSelectedIsPiece())return;
     ctx.selected.userData.edgeBands={};
     restoreBaseColor(ctx.selected);
-    if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.ctx.selected);
+    if(!ctx.visualMode)setAllFaces(ctx.selected,COLORS.selected);
     productionRefreshSelectedPiece();commitHistory();toast('Fitas removidas desta peça');
   }
   

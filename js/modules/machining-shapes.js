@@ -1,5 +1,7 @@
 // DesignLabMoveis 1.310.00 · módulo machining-shapes.
 export function createMachiningShapesModule(ctx){
+// 1.310.00-r12 · corrige referência de cor de seleção após migração state→ctx.
+// COLORS.ctx.selected era inválido e quebrava ao aplicar/reconstruir uma Forma.
   const { $, COLORS, MM_TO_M, M_TO_MM, THREE, adminAllowed, cloudApiFetch, commitHistory, controls, m, makeBoxVisualEdges, makeCadEdgeMaterial, nice, perspectiveCamera, referenceMeshes, restoreBaseColor, returnTo3D, roundMmNumber, scene, selectObject, setAllFaces, setDesignLabVisualizationOnly, setDimensions, setTool, setVisualMode, toast, uid, updateInspector, xray3DActive }=ctx;
   const runtimeModel=ctx.runtimeModel;
   // ---- domínio extraído do runtime: linhas 4877-4952 ----
@@ -1544,7 +1546,7 @@ export function createMachiningShapesModule(ctx){
     disposeVisualEdgeTree(o);o.geometry?.dispose?.();o.geometry=geom;o.scale.set(1,1,1);
     if(Array.isArray(o.userData?.faceMaterials)&&o.userData.faceMaterials.length)o.material=o.userData.faceMaterials;
     formV47RestoreOpaqueMaterials(o);
-    if(o===ctx.selected&&!ctx.visualMode)setAllFaces(o,COLORS.ctx.selected);else restoreBaseColor(o);
+    if(o===ctx.selected&&!ctx.visualMode)setAllFaces(o,COLORS.selected);else restoreBaseColor(o);
   
     const perimeter=shapePolylinePerimeter(outer)+holes.reduce((n,h)=>n+shapePolylinePerimeter(h),0);
     o.userData.formProfile={type:'forms',points:outer.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)]),cutouts:holes.map(h=>h.map(p=>[roundMmNumber(p[0],3),roundMmNumber(p[1],3)])),bboxW:ti.faceW,bboxH:ti.faceH,thicknessAxis:ti.thicknessAxis,uAxis:ti.uAxis,vAxis:ti.vAxis,perimeterMm:roundMmNumber(perimeter,2),solidVersion:48};

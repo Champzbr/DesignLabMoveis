@@ -1195,8 +1195,9 @@ export function createDoorsDrawersModule(ctx){
           $('drawerDrillingFields').style.display = on ? 'block' : 'none';
       try {
           const vals = drawerDrillValuesFromUi(), target = drawerTarget(), preset = drawerPreset($('drawerSlideType').value);
+          const drillFrontReserve = (Number($('drawerFrontInset').value) || 0) + ($('drawerCreateFronts')?.checked ? (Number($('drawerFrontThickness').value) || 0) : 0);
           const resolved = target
-              ? drawerResolvedLengthMm(target.cell, preset, $('drawerLengthMode').value, Number($('drawerFrontInset').value) || 0, Number($('drawerRearClearance').value) || 0)
+              ? drawerResolvedLengthMm(target.cell, preset, $('drawerLengthMode').value, drillFrontReserve, Number($('drawerRearClearance').value) || 0)
               : { length: Number($('drawerLengthMode').value) || 0 };
           const hasTable = !!preset?.drillByLength;
           $('drawerDrillAutoRow').style.display = hasTable ? 'flex' : 'none';
@@ -1355,7 +1356,11 @@ export function createDoorsDrawersModule(ctx){
           if (Math.max(Math.abs(frontGapLeft), Math.abs(frontGapRight), Math.abs(frontGapTop), Math.abs(frontGapBottom), Math.abs(frontGapBetween)) > 1000)
               throw new Error('Folga das frentes fora do limite');
       }
-      const resolved = drawerResolvedLengthMm(target.cell, preset, $('drawerLengthMode').value, frontInset, rearClearance);
+      // 1.310.00-r12: quando houver frente de gaveta, ela passa a ocupar o
+      // próprio vão (não fica mais do lado de fora). Portanto a profundidade útil
+      // da caixa/corrediça também desconta a espessura da frente.
+      const frontReserve = frontInset + (createFronts ? frontThickness : 0);
+      const resolved = drawerResolvedLengthMm(target.cell, preset, $('drawerLengthMode').value, frontReserve, rearClearance);
       if (resolved.available < 100)
           throw new Error('A profundidade útil é muito pequena para uma corrediça');
       if (resolved.length <= 0)
@@ -1410,7 +1415,7 @@ export function createDoorsDrawersModule(ctx){
           createSlides: !!$('drawerCreateSlides').checked, createDrilling: !!$('drawerCreateDrilling').checked,
           drillFrontRef, drillOffsets, drillAutoByLength, drillVerticalMode, drillSide, drillMountY, drillDiameter, drillDepth,
           openingW, openingH, openingD: mm(target.size.depth), outerW, innerW,
-          version: 5
+          version: 6
       };
   }
   
@@ -1428,7 +1433,7 @@ export function createDoorsDrawersModule(ctx){
           const freeSpan = cfg.openingH - 2 * cfg.edgeGap - cfg.boxHeight;
           const step = cfg.count > 1 ? freeSpan / (cfg.count - 1) : 0;
           const frontTxt = cfg.createFronts
-              ? `<br><strong>Frentes:</strong> ${cfg.count} × ${nice(cfg.frontW)} × ${nice(cfg.frontThickness)} × ${nice(cfg.frontH)} mm · folgas E ${nice(cfg.frontGapLeft)} / D ${nice(cfg.frontGapRight)} / C ${nice(cfg.frontGapTop)} / B ${nice(cfg.frontGapBottom)} / entre ${nice(cfg.frontGapBetween)} mm`
+              ? `<br><strong>Frentes dentro do vão:</strong> ${cfg.count} × ${nice(cfg.frontW)} × ${nice(cfg.frontThickness)} × ${nice(cfg.frontH)} mm · folgas E ${nice(cfg.frontGapLeft)} / D ${nice(cfg.frontGapRight)} / C ${nice(cfg.frontGapTop)} / B ${nice(cfg.frontGapBottom)} / entre ${nice(cfg.frontGapBetween)} mm · caixa inicia atrás da frente`
               : '<br><strong>Frentes:</strong> não criar';
           const grooveSides = [];
           if (cfg.grooveLeft)
@@ -2041,7 +2046,8 @@ export function createDoorsDrawersModule(ctx){
       cfg.openingW = mm(s.width);
       cfg.openingH = mm(s.height);
       cfg.openingD = mm(s.depth);
-      const rr = drawerResolvedLengthMm(cell, preset, cfg.lengthMode, cfg.frontInset, cfg.rearClearance);
+      const frontReserve = Number(cfg.frontInset || 0) + (cfg.createFronts ? Number(cfg.frontThickness || 0) : 0);
+      const rr = drawerResolvedLengthMm(cell, preset, cfg.lengthMode, frontReserve, cfg.rearClearance);
       cfg.resolvedLength = rr.length;
       cfg.availableDepth = rr.available;
       if (cfg.resolvedLength <= 0 || cfg.resolvedLength > cfg.availableDepth + .001)
@@ -2078,7 +2084,10 @@ export function createDoorsDrawersModule(ctx){
       cfg.slideName = preset.name;
       cfg.name = `${cfg.count} gaveta${cfg.count > 1 ? 's' : ''} · ${preset.name}`;
       const t = m(cfg.boxThickness), bt = m(cfg.bottomThickness), outerW = m(cfg.outerW), innerW = m(cfg.innerW), len = m(cfg.resolvedLength), sideH = m(cfg.boxHeight);
-      const frontZ = cell.maxZ - m(cfg.frontInset), backZ = frontZ - len, zCenter = (frontZ + backZ) / 2;
+      // Frente de gaveta agora fica DENTRO do vão. A caixa começa atrás da
+      // espessura da frente + recuo configurado, evitando qualquer sobreposição.
+      const frontFaceReserve = Number(cfg.frontInset || 0) + (cfg.createFronts ? Number(cfg.frontThickness || 0) : 0);
+      const frontZ = cell.maxZ - m(frontFaceReserve), backZ = frontZ - len, zCenter = (frontZ + backZ) / 2;
       const leftX = cell.minX + m(cfg.sideClearance) + t / 2, rightX = cell.maxX - m(cfg.sideClearance) - t / 2;
       const levels = [];
       state.historyMuted = true;
@@ -2135,8 +2144,10 @@ export function createDoorsDrawersModule(ctx){
               if (cfg.createFronts) {
                   const fw = m(cfg.frontW), fh = m(cfg.frontH), ft = m(cfg.frontThickness);
                   const fx = cell.minX + m(cfg.frontGapLeft) + fw / 2;
-                  const fz = cell.maxZ + ft / 2;
-                  const front = drawerCreatePiece({ width: fw, depth: ft, height: fh, x: fx, yBase: frontYBase, z: fz, name: `G${i + 1} · Frente externa` }, cfg, 'drawer-front', i);
+                  // A face frontal fica alinhada ao limite frontal do vão e toda
+                  // a espessura permanece para DENTRO do espaço selecionado.
+                  const fz = cell.maxZ - ft / 2;
+                  const front = drawerCreatePiece({ width: fw, depth: ft, height: fh, x: fx, yBase: frontYBase, z: fz, name: `G${i + 1} · Frente de gaveta` }, cfg, 'drawer-front', i);
                   if (root.doorsHidden) {
                       front.visible = false;
                       front.userData.hiddenByDoors = true;
@@ -2162,9 +2173,8 @@ export function createDoorsDrawersModule(ctx){
                   const rx = isUnder
                       ? cell.maxX - rw / 2
                       : cell.maxX - m(cfg.sideClearance / 2);
-                  const railFrontZ = cfg.slideType === 'telescopic'
-                      ? cell.maxZ - m(Number(preset.railFrontInset || 0))
-                      : cell.maxZ - m(Number(preset.railFrontInset || 0));
+                  const railFrontBase = cell.maxZ - m(cfg.createFronts ? Number(cfg.frontThickness || 0) : 0);
+                  const railFrontZ = railFrontBase - m(Number(preset.railFrontInset || 0));
                   const railZ = railFrontZ - railDepth / 2;
                   drawerCreatePiece({
                       width: rw, depth: railDepth, height: rh, x: lx, yBase: railY, z: railZ,

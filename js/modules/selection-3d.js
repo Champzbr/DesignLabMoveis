@@ -724,7 +724,7 @@ function endDrag(e){
     if(keepCellId && getSpaceCell(keepRootId,keepCellId)) selectSpaceCellByIds(keepRootId,keepCellId);
     ctx.movingSpaceRoot=null; ctx.movingSpaceRootStart=null; ctx.movingSpaceCellStarts=[]; ctx.movingSpaceObjectStarts=[];
   }
-  if(ctx.selected) setAllFaces(ctx.selected,COLORS.ctx.selected);
+  if(ctx.selected) setAllFaces(ctx.selected,COLORS.selected);
   controls.enabled=true; ctx.activePointerId=null; ctx.dragMode=null; ctx.gestureLocked=false; runtimeModel.liveLabel.style.display='none'; moveGrip.visible=false; ctx.moveGrabIsCorner=false; ctx.moveGrabKind='face'; ctx.moveCornerTarget=null; ctx.moveSnapKind=null; ctx.moveSnapText=''; hideGuides();
   if(ctx.dragChanged && ctx.dragStartState!==stateString()) commitHistory();
   if(ctx.dragChanged) renderMachiningVisuals();
