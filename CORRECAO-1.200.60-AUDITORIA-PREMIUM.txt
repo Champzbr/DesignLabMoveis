@@ -1,9 +1,0 @@
-DesignLabMoveis 1.200.60
-
-- Premium agora é verificado antes de liberar a área de trabalho.
-- Conta sem Premium ativo permanece no gate de acesso e não entra no CAD.
-- Administrador mantém acesso administrativo mesmo sem Premium.
-- Modo local de desenvolvimento foi desativado no pacote comercial.
-- Revalidação do Premium ocorre durante a sessão e ao atingir a data conhecida de expiração.
-- Corrigida exceção na prévia do plano de corte causada por elementos removidos do HTML.
-- Requer publicar também o Worker 1.100.90 para bloqueio server-side das APIs.
