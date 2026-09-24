@@ -1,0 +1,281 @@
+/* DesignLabMoveis 1.200.66 · HOME CLARA INDEPENDENTE DO CACHE ANTIGO
+   Arquivo novo e carregado por último. O modo escuro só vence quando a classe
+   designlab-dark-enabled foi colocada por escolha explícita V2 do usuário. */
+html:not(.designlab-dark-enabled){color-scheme:only light!important;background:#f4f7f9!important;forced-color-adjust:none!important;}
+html:not(.designlab-dark-enabled) body.project-home-active{background:#f4f7f9!important;color:#17242c!important;}
+html:not(.designlab-dark-enabled){
+  color-scheme:only light !important;
+  background:#f4f7f9 !important;
+  forced-color-adjust:none !important;
+}
+html:not(.designlab-dark-enabled) body.project-home-active{
+  background:#f4f7f9 !important;
+  color:#17242c !important;
+  color-scheme:only light !important;
+  forced-color-adjust:none !important;
+}
+html:not(.designlab-dark-enabled) #projectHome,
+html:not(.designlab-dark-enabled) #projectHome *{
+  color-scheme:only light !important;
+  forced-color-adjust:none !important;
+}
+html:not(.designlab-dark-enabled) #projectHome{
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+  isolation:isolate;
+}
+html:not(.designlab-dark-enabled) #projectHome::before{
+  filter:none !important;
+  mix-blend-mode:normal !important;
+}
+/* No claro, cartões estruturais são opacos para o fundo escuro antigo nunca
+   aparecer por transparência/backdrop-filter dentro da TWA. */
+html:not(.designlab-dark-enabled) .projectWelcomeCard,
+html:not(.designlab-dark-enabled) .projectAccountChip,
+html:not(.designlab-dark-enabled) .homeQuickAction,
+html:not(.designlab-dark-enabled) .projectCard,
+html:not(.designlab-dark-enabled) .homeModelCard,
+html:not(.designlab-dark-enabled) .homeBottomNav,
+html:not(.designlab-dark-enabled) .homeTopButtons button{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+}
+
+/* ==========================================================================
+   1.200.48 · CLÁSSICO CLARO
+   Tema padrão: claro, moderno e leve. O CSS escuro acima permanece intacto e
+   reaparece integralmente quando data-app-theme="dark".
+   ========================================================================== */
+html:not(.designlab-dark-enabled) #projectHome{
+  background:
+    radial-gradient(circle at 9% 0%,rgba(42,184,167,.12),transparent 25%),
+    radial-gradient(circle at 92% 12%,rgba(57,126,214,.09),transparent 28%),
+    linear-gradient(155deg,#f8fafb 0%,#f2f6f7 48%,#edf3f4 100%) !important;
+  color:#17242c;
+  scrollbar-color:#b7c8ce transparent;
+}
+html:not(.designlab-dark-enabled) #projectHome::before{
+  background-image:
+    linear-gradient(rgba(47,120,130,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(47,120,130,.03) 1px,transparent 1px);
+  mask-image:linear-gradient(to bottom,black,transparent 42%);
+}
+html:not(.designlab-dark-enabled) .projectBrandLogo{
+  background:linear-gradient(145deg,#ffffff,#e8f5f3) !important;
+  color:#128b7f !important;
+  border-color:#cfe3df !important;
+  box-shadow:0 8px 24px rgba(35,91,98,.10),inset 0 0 0 1px rgba(255,255,255,.8) !important;
+}
+html:not(.designlab-dark-enabled) .projectBrand strong{color:#17242c !important}
+html:not(.designlab-dark-enabled) .projectBrand strong .brandMoveis{color:#148f83 !important}
+html:not(.designlab-dark-enabled) .projectBrand span,
+html:not(.designlab-dark-enabled) .homeVersionPill{color:#71838b !important}
+html:not(.designlab-dark-enabled) .homeVersionDot{
+  background:#23b59f;
+  box-shadow:0 0 8px rgba(35,181,159,.35);
+}
+html:not(.designlab-dark-enabled) .homeTopButtons button{
+  background:#ffffff !important;
+  color:#263840 !important;
+  border-color:#d9e4e8 !important;
+  box-shadow:0 8px 22px rgba(35,61,72,.08) !important;
+}
+html:not(.designlab-dark-enabled) .projectWelcomeCard{
+  border-color:#d9e5e8;
+  background:
+    radial-gradient(circle at 8% 42%,rgba(40,186,169,.10),transparent 34%),
+    linear-gradient(135deg,rgba(255,255,255,.98),rgba(246,250,250,.97));
+  box-shadow:0 22px 60px rgba(38,68,78,.10),inset 0 0 0 1px rgba(255,255,255,.7);
+}
+html:not(.designlab-dark-enabled) .projectWelcomeCard::after{
+  background:rgba(41,183,168,.07);
+}
+html:not(.designlab-dark-enabled) .homeWelcomeEyebrow{color:#148f83}
+html:not(.designlab-dark-enabled) #projectWelcomeTitle{color:#15242c}
+html:not(.designlab-dark-enabled) .homeWelcomeCopy{color:#677a83}
+html:not(.designlab-dark-enabled) .projectAccountChip{
+  background:#ffffff !important;
+  border-color:#dbe5e8 !important;
+  box-shadow:0 7px 20px rgba(43,70,80,.06);
+}
+html:not(.designlab-dark-enabled) .projectAccountAvatar{
+  color:#fff !important;
+  background:linear-gradient(145deg,#27b8a6,#368bd7) !important;
+  box-shadow:0 0 0 3px rgba(47,174,158,.10),0 8px 22px rgba(35,122,133,.13);
+}
+html:not(.designlab-dark-enabled) .projectAccountText strong{color:#1b2c34 !important}
+html:not(.designlab-dark-enabled) .projectAccountText #projectAccountEmail{color:#778891 !important}
+html:not(.designlab-dark-enabled) .projectAccountText .cloudLine{
+  color:#158d79 !important;
+  background:#edf8f5 !important;
+  border-color:#d4ece6 !important;
+}
+html:not(.designlab-dark-enabled) #homeLogoutBtn{
+  background:#f1f5f6 !important;
+  color:#43565f !important;
+  border-color:#dce5e8 !important;
+}
+html:not(.designlab-dark-enabled) .homeBlueprint{
+  background:
+    linear-gradient(90deg,transparent 0 12%,rgba(37,145,142,.11) 12.5% 13%,transparent 13.5% 34%,rgba(37,145,142,.11) 34.5% 35%,transparent 35.5% 70%,rgba(37,145,142,.11) 70.5% 71%,transparent 71.5%),
+    linear-gradient(transparent 0 20%,rgba(37,145,142,.11) 20.5% 21%,transparent 21.5% 56%,rgba(37,145,142,.11) 56.5% 57%,transparent 57.5% 82%,rgba(37,145,142,.11) 82.5% 83%,transparent 83.5%),
+    linear-gradient(145deg,#f3faf9,#edf4f5);
+  border-color:#d9e7e7;
+  box-shadow:inset 0 0 35px rgba(35,142,139,.04);
+}
+html:not(.designlab-dark-enabled) .homeBlueprint::before,
+html:not(.designlab-dark-enabled) .homeBlueprint::after{border-color:rgba(42,139,137,.22)}
+html:not(.designlab-dark-enabled) .homeBlueprintLabel{color:#5f8f8d}
+
+/* Ações principais: cartões brancos com hierarquia simples. */
+html:not(.designlab-dark-enabled) .homeQuickAction{
+  border-color:#dce6e9 !important;
+  background:linear-gradient(145deg,#ffffff,#f8fafb) !important;
+  color:#1d2d35 !important;
+  box-shadow:0 10px 28px rgba(35,61,72,.075) !important;
+}
+html:not(.designlab-dark-enabled) .homeQuickAction:hover{
+  border-color:#bcdcd7 !important;
+  box-shadow:0 14px 32px rgba(35,85,88,.11) !important;
+}
+html:not(.designlab-dark-enabled) .homeQuickIcon{
+  border-color:#d9ece8;
+  background:#edf8f5;
+  color:#149582;
+}
+html:not(.designlab-dark-enabled) .homeQuickAction:nth-child(2) .homeQuickIcon{
+  color:#337fbd;background:#eef5fb;border-color:#d9e7f2;
+}
+html:not(.designlab-dark-enabled) .homeQuickAction:nth-child(3) .homeQuickIcon,
+html:not(.designlab-dark-enabled) .homeQuickAction:nth-child(4) .homeQuickIcon{
+  color:#2a9a63;background:#eef8f2;border-color:#d9ecdf;
+}
+html:not(.designlab-dark-enabled) #homeDownloadApk .homeQuickIcon{
+  color:#a86a18;background:#fbf5e9;border-color:#eee1c9;
+}
+html:not(.designlab-dark-enabled) .homeQuickText span{color:#73858d}
+html:not(.designlab-dark-enabled) .homeQuickChevron{color:#94a6ad}
+
+html:not(.designlab-dark-enabled) .homeProjectUtilities button{
+  background:#ffffff !important;
+  border-color:#dce5e8 !important;
+  color:#657780 !important;
+}
+html:not(.designlab-dark-enabled) .projectCurrentStrip{
+  background:#eef7f5 !important;
+  border-color:#d6ebe6 !important;
+  color:#5e7976 !important;
+}
+html:not(.designlab-dark-enabled) .projectSectionHead h2,
+html:not(.designlab-dark-enabled) .homeModelsHead h2{color:#1b2c34}
+html:not(.designlab-dark-enabled) .projectSectionHead span,
+html:not(.designlab-dark-enabled) .homeModelsHead span{color:#398f87 !important}
+html:not(.designlab-dark-enabled) .projectSectionIcon{
+  background:#edf7f5;
+  color:#178d81;
+  border-color:#d6eae6;
+}
+
+/* Projetos recentes. */
+html:not(.designlab-dark-enabled) .projectCard{
+  background:#ffffff !important;
+  border-color:#dce5e8 !important;
+  box-shadow:0 10px 30px rgba(36,60,70,.08) !important;
+}
+html:not(.designlab-dark-enabled) .projectCard:hover{
+  border-color:#c3dad7 !important;
+  box-shadow:0 16px 38px rgba(36,70,76,.11) !important;
+}
+html:not(.designlab-dark-enabled) .projectThumb{
+  background:
+    radial-gradient(circle at 52% 44%,rgba(48,169,158,.10),transparent 34%),
+    linear-gradient(150deg,#eef5f5,#e4ecee) !important;
+}
+html:not(.designlab-dark-enabled) .projectThumbFallback{color:#8da2aa}
+html:not(.designlab-dark-enabled) .projectCardName{color:#1b2c34 !important}
+html:not(.designlab-dark-enabled) .projectCardMeta{color:#73858d !important}
+html:not(.designlab-dark-enabled) .projectCardFooter button.secondary{
+  background:#f0f4f5 !important;
+  border-color:#dce5e8 !important;
+  color:#52656e !important;
+}
+html:not(.designlab-dark-enabled) .projectCloudBadge{
+  background:#eef8f6 !important;color:#238e80 !important;border-color:#d7ebe7 !important;
+}
+html:not(.designlab-dark-enabled) .projectCloudBadge.ok{
+  color:#258554 !important;background:#eef8f2 !important;border-color:#d7ebdf !important;
+}
+html:not(.designlab-dark-enabled) .projectCloudBadge.pending{
+  color:#9a641e !important;background:#fbf5e9 !important;border-color:#eee2cc !important;
+}
+html:not(.designlab-dark-enabled) .projectCloudBadge.local{
+  color:#397ead !important;background:#eef5fa !important;border-color:#d9e7ef !important;
+}
+html:not(.designlab-dark-enabled) .projectEmpty{
+  background:rgba(255,255,255,.66);
+  border-color:#ccdadd !important;
+  color:#74868e !important;
+}
+
+/* Modelos. */
+html:not(.designlab-dark-enabled) .homeModelCard{
+  border-color:#dce5e8;
+  background:linear-gradient(145deg,#ffffff,#f7fafb);
+  box-shadow:0 8px 24px rgba(37,62,72,.06);
+}
+html:not(.designlab-dark-enabled) .homeModelCard.favorite{
+  background:
+    radial-gradient(circle at 50% 38%,rgba(42,180,164,.10),transparent 36%),
+    linear-gradient(145deg,#ffffff,#f6faf9);
+}
+html:not(.designlab-dark-enabled) .homeModelStar{color:#188f83;text-shadow:none}
+html:not(.designlab-dark-enabled) .homeModelCard strong{color:#24343c}
+html:not(.designlab-dark-enabled) .homeModelCard small{color:#75878f}
+html:not(.designlab-dark-enabled) .homeModelPreview{
+  border-color:#dbe6e8;
+  background:
+    linear-gradient(90deg,transparent 0 18%,rgba(48,151,145,.13) 18.5% 19%,transparent 19.5% 44%,rgba(48,151,145,.13) 44.5% 45%,transparent 45.5% 76%,rgba(48,151,145,.13) 76.5% 77%,transparent 77.5%),
+    linear-gradient(transparent 0 28%,rgba(48,151,145,.13) 28.5% 29%,transparent 29.5% 68%,rgba(48,151,145,.13) 68.5% 69%,transparent 69.5%),
+    linear-gradient(145deg,#eef6f5,#e5edef);
+}
+html:not(.designlab-dark-enabled) .homeModelPreview::after{border-color:rgba(43,143,138,.25)}
+html:not(.designlab-dark-enabled) .homeModelSoon{
+  background:#eef8f6;border-color:#d8ebe7;color:#338a81;
+}
+html:not(.designlab-dark-enabled) #legacyProjectsSection{
+  border-color:#ead9bd !important;
+  background:rgba(255,248,235,.68) !important;
+}
+
+/* Barra inferior clara estilo app nativo. */
+html:not(.designlab-dark-enabled) .homeBottomNav{
+  border-color:#d8e3e6;
+  background:#ffffff;
+  box-shadow:0 18px 45px rgba(31,57,67,.15),inset 0 0 0 1px rgba(255,255,255,.65);
+}
+html:not(.designlab-dark-enabled) .homeBottomNav button{color:#73858d !important}
+html:not(.designlab-dark-enabled) .homeBottomNav button .navIcon{color:#83959d}
+html:not(.designlab-dark-enabled) .homeBottomNav button.active{
+  color:#176f68 !important;
+  background:#edf8f5 !important;
+  box-shadow:inset 0 0 0 1px #d4ebe6 !important;
+}
+html:not(.designlab-dark-enabled) .homeBottomNav button.active .navIcon{
+  color:#168f82;text-shadow:none;
+}
+
+/* 1.200.65 · TWA/PWA: reforço contra Auto Dark do Android. Só atua quando
+   o próprio DesignLab escolheu explicitamente o tema claro. */
+@media (display-mode: standalone){
+  html:not(.designlab-dark-enabled),
+  html:not(.designlab-dark-enabled) body.project-home-active,
+  html:not(.designlab-dark-enabled) #projectHome{
+    color-scheme:only light !important;
+    forced-color-adjust:none !important;
+    background-color:#f4f7f9 !important;
+  }
+}

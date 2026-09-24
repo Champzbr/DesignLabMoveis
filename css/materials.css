@@ -1,0 +1,65 @@
+/* DesignLabMoveis 1.100.87 · extraído do monólito 1.100.78 · ordem preservada */
+  /* 1.100.16 · Materiais, fita de borda e preparação para etiquetas */
+  #productionDialog .card { width:min(700px,100%); max-height:90%; }
+  .productionSection{
+    margin-top:10px;
+    padding:10px;
+    border-radius:11px;
+    border:1px solid #3a4044;
+    background:#131516;
+  }
+  .productionSectionHead{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .productionSectionHead strong{font-size:12px}
+  .productionSectionHead span{font-size:9px;color:var(--muted);text-align:right}
+  .productionFields{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+  }
+  .productionFields.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .productionFields label{font-size:10px;color:var(--muted);min-width:0}
+  .productionFields input,.productionFields select{
+    width:100%;margin-top:3px;padding:9px 8px;border-radius:8px;border:1px solid #4b4b4b;
+    background:#101112;color:#fff;font-size:14px;outline:none;min-width:0;
+  }
+  .productionFields input[type="color"]{height:39px;padding:3px}
+  .productionCheck{
+    display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px;border:1px solid #34393c;
+    background:#181a1b;border-radius:9px;font-size:10px;color:#dce1e4;
+  }
+  .productionCheck input{width:19px;height:19px;accent-color:var(--green);flex:0 0 auto}
+  .productionActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .productionActions button{min-height:38px;flex:1 1 120px}
+  .productionPieceBox{
+    padding:9px;border:1px solid #33383c;border-radius:9px;background:#17191a;margin-bottom:8px;
+    font-size:10px;line-height:1.45;color:#c9d0d5;
+  }
+  .productionPieceBox strong{color:#fff}
+  .edgeAssignGrid{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+  }
+  .edgeAssignCard{
+    padding:8px;border:1px solid #3a4044;border-radius:9px;background:#191b1c;min-width:0;
+  }
+  .edgeAssignCard strong{display:block;font-size:11px;margin-bottom:4px}
+  .edgeAssignCard small{display:block;color:#929ba2;font-size:9px;margin-bottom:5px}
+  .edgeAssignCard select{
+    width:100%;padding:8px 6px;border-radius:7px;background:#0f1011;color:#fff;border:1px solid #4a5054;
+  }
+  .productionLabelPreview{
+    margin-top:7px;padding:9px;border-radius:9px;background:#101314;border:1px dashed #3b5d49;
+    color:#b9c9bf;font-size:9px;line-height:1.5;word-break:break-word;
+  }
+  .productionLabelPreview strong{color:#5fd080}
+  @media(max-width:520px){
+    .productionFields,.productionFields.three,.edgeAssignGrid{grid-template-columns:1fr}
+    .productionSectionHead{display:block}
+    .productionSectionHead span{display:block;text-align:left;margin-top:3px}
+  }
+

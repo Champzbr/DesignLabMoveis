@@ -1,0 +1,571 @@
+/* DesignLabMoveis 1.100.87 · extraído do monólito 1.100.78 · ordem preservada */
+  /* 1.100.10 · Configurações gerais */
+  #homeSettings {
+    min-width:44px;
+    padding-left:10px;
+    padding-right:10px;
+    font-size:16px;
+  }
+  .appSettingsSection {
+    margin-top:10px;
+    padding:11px;
+    border:1px solid #3b4044;
+    border-radius:12px;
+    background:#121416;
+  }
+  .appSettingsSectionHead strong {
+    display:block;
+    font-size:12px;
+  }
+  .appSettingsSectionHead span {
+    display:block;
+    margin-top:3px;
+    color:#929ba2;
+    font-size:9px;
+    line-height:1.4;
+  }
+  .cadBackgroundChoices {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+  }
+  .cadBackgroundChoice {
+    min-height:92px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:7px;
+    border:2px solid #3b4044 !important;
+    background:#181a1c !important;
+  }
+  .cadBackgroundChoice .cadBgSample {
+    width:52px;
+    height:34px;
+    border-radius:7px;
+    border:1px solid #5b6268;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .cadBackgroundChoice[data-cad-bg="dark"] .cadBgSample { background:#171717; }
+  .cadBackgroundChoice[data-cad-bg="white"] .cadBgSample { background:#f4f4f4; }
+  .cadBackgroundChoice.active {
+    border-color:var(--cyan) !important;
+    box-shadow:0 0 0 1px rgba(52,217,255,.22);
+  }
+  .cadBackgroundChoice strong {
+    font-size:11px;
+  }
+  .cadSettingsNote {
+    margin:9px 0 0 !important;
+    font-size:9px !important;
+    color:#8f989f !important;
+  }
+
+  .cadGridSetting {
+    margin-top:10px;
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    padding:10px;
+    border:1px solid #3b4044;
+    border-radius:10px;
+    background:#181a1c;
+    cursor:pointer;
+  }
+  .cadGridSetting input[type="checkbox"] {
+    width:20px !important;
+    height:20px !important;
+    min-width:20px;
+    margin:1px 0 0 !important;
+    padding:0 !important;
+    accent-color:var(--green);
+  }
+  .cadGridSetting > div { min-width:0; }
+  .cadGridSetting strong { display:block; font-size:11px; }
+  .cadGridSetting span {
+    display:block;
+    margin-top:3px;
+    color:#929ba2;
+    font-size:9px;
+    line-height:1.35;
+  }
+
+
+  /* ==========================================================================
+     1.100.20 · BASE ONLINE / NETLIFY IDENTITY
+     ========================================================================== */
+  #authGate{
+    position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;
+    padding:18px;background:
+      radial-gradient(circle at 20% 10%,rgba(45,125,250,.14),transparent 34%),
+      radial-gradient(circle at 80% 80%,rgba(52,208,88,.10),transparent 38%),#101214;
+    color:#f4f7f8;touch-action:auto;overflow:auto;
+  }
+  #authGate.hidden{display:none}
+  .authCard{
+    width:min(460px,100%);border:1px solid rgba(255,255,255,.12);border-radius:20px;
+    background:rgba(25,28,30,.98);box-shadow:0 24px 80px rgba(0,0,0,.48);overflow:hidden;
+  }
+  .authHero{
+    padding:23px 20px 17px;border-bottom:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(145deg,rgba(45,125,250,.13),rgba(52,208,88,.07));
+  }
+  .authBrand{display:flex;align-items:center;gap:11px}
+  .authBrandLogo{
+    width:45px;height:45px;border-radius:13px;display:grid;place-items:center;background:#2d7dfa;
+    color:white;font-size:16px;font-weight:950;letter-spacing:-1px;box-shadow:0 7px 24px rgba(45,125,250,.25);
+  }
+  .authBrand strong{display:block;font-size:18px}
+  .authBrand span{display:block;margin-top:3px;color:#9eabb3;font-size:10px}
+  .authHero h1{margin:19px 0 6px;font-size:25px;line-height:1.08}
+  .authHero p{margin:0;color:#aeb8be;font-size:11px;line-height:1.55}
+  .authBody{padding:17px 20px 20px}
+  .authActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .authActions button{min-height:46px;border-radius:11px;font-size:12px}
+  #authLoginBtn{grid-column:1/-1;font-size:13px}
+  #authForgotBtn{grid-column:1/-1}
+  .authStatus{
+    margin-top:12px;padding:10px 11px;min-height:40px;border:1px solid #343b3f;border-radius:10px;
+    background:#151819;color:#aeb8be;font-size:10px;line-height:1.45;
+  }
+  .authStatus.good{border-color:rgba(52,208,88,.36);color:#82dd99;background:rgba(52,208,88,.06)}
+  .authStatus.warn{border-color:rgba(255,178,73,.38);color:#ffc372;background:rgba(255,157,46,.06)}
+  .authStatus.error{border-color:rgba(224,69,58,.45);color:#ff8f86;background:rgba(224,69,58,.07)}
+  .authPrivacy{margin:11px 2px 0;color:#758088;font-size:9px;line-height:1.45}
+  #authLocalBox{
+    display:none;margin-top:12px;padding:10px;border:1px dashed #59646a;border-radius:10px;background:#141718;
+  }
+  #authLocalBox.show{display:block}
+  #authLocalBox strong{font-size:10px;color:#dbe2e6}
+  #authLocalBox p{font-size:9px;color:#8e999f;line-height:1.45;margin:5px 0 8px}
+  #authLocalBtn{width:100%}
+
+  .projectAccountArea{
+    min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-left:auto;
+  }
+  .projectAccountChip{
+    min-width:0;max-width:235px;display:flex;align-items:center;gap:8px;padding:6px 8px;
+    border-radius:11px;border:1px solid rgba(255,255,255,.10);background:#191c1e;
+  }
+  .projectAccountAvatar{
+    width:31px;height:31px;flex:0 0 31px;display:grid;place-items:center;border-radius:9px;
+    background:#2d7dfa;color:#fff;font-size:11px;font-weight:950;
+  }
+  .projectAccountText{min-width:0;line-height:1.25}
+  .projectAccountText strong,.projectAccountText span{
+    display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .projectAccountText strong{font-size:10px}
+  .projectAccountText span{margin-top:2px;font-size:8px;color:#87939a}
+  #homeLogoutBtn{min-width:38px;min-height:38px;padding:6px 8px;border-radius:10px;box-shadow:none}
+  #projectMenuAccount{
+    margin-top:7px;padding:7px;border-top:1px solid #333;color:#8f999f;font-size:9px;line-height:1.4;
+  }
+  #projectMenuAccount strong{color:#dbe2e6}
+
+
+  .projectAccountText .cloudLine{margin-top:2px;color:#8f9da4;font-size:8px}
+  .projectAccountText .cloudLine.ok{color:#66d786}
+  .projectAccountText .cloudLine.warn{color:#ffbd68}
+  .cloudAccountStatus{margin-top:8px;padding:8px 9px;border:1px solid #343b3f;border-radius:9px;background:#141719;color:#98a3a9;font-size:9px;line-height:1.45}
+  .cloudAccountStatus.ok{border-color:rgba(52,208,88,.32);color:#76d98e;background:rgba(52,208,88,.05)}
+  .cloudAccountStatus.warn{border-color:rgba(255,177,73,.32);color:#ffc06f;background:rgba(255,157,46,.05)}
+  .cloudAccountStatus.error{border-color:rgba(224,69,58,.38);color:#ff9189;background:rgba(224,69,58,.05)}
+
+
+  /* 1.100.78 · Painel administrativo restaurado no layout inicial */
+  #homeAdminPanel,#menuAdminPanel{display:none}
+  #homeAdminPanel.show,#menuAdminPanel.show{display:block}
+  #adminDialog .card{width:min(920px,100%);max-height:90%;background:#1d2022}
+  .adminDialogHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:sticky;top:-14px;z-index:4;margin:-14px -14px 10px;padding:14px;background:#1d2022;border-bottom:1px solid #353b3f}
+  .adminDialogHead h3{margin:0!important}
+  .adminDialogHead p{margin:4px 0 0;color:#8f9aa1;font-size:9px;line-height:1.4}
+  .adminCloseBtn{width:38px;min-width:38px;height:38px;padding:0;border-radius:10px}
+  .adminTabs{display:flex;gap:6px;margin-bottom:10px}
+  .adminTabs button{flex:1;min-height:40px}
+  .adminTabs button.active{outline:2px solid rgba(45,125,250,.55)}
+  .adminStatsGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:10px}
+  .adminStat{padding:10px;border:1px solid #343a3e;border-radius:10px;background:#151819}
+  .adminStat strong{display:block;font-size:19px}
+  .adminStat span{display:block;margin-top:3px;color:#8f999f;font-size:9px}
+  .adminToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;margin-bottom:9px}
+  .adminToolbar input,.adminToolbar select{width:100%;padding:10px 9px;border-radius:9px;border:1px solid #41484c;background:#101214;color:#fff}
+  .adminList{display:flex;flex-direction:column;gap:8px}
+  .adminUserCard,.adminPaymentCard{padding:10px;border:1px solid #343a3e;border-radius:11px;background:#151819}
+  .adminUserTop,.adminPaymentTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .adminUserTop strong,.adminPaymentTop strong{font-size:11px;word-break:break-word}
+  .adminUserTop small,.adminPaymentTop small{display:block;margin-top:3px;color:#8e999f;font-size:9px;word-break:break-word}
+  .adminBadges{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
+  .adminBadge{display:inline-block;padding:3px 6px;border-radius:999px;background:#2b3033;color:#b9c2c7;font-size:8px;font-weight:800}
+  .adminBadge.admin{background:rgba(45,125,250,.16);color:#71aaff}
+  .adminBadge.premium{background:rgba(52,208,88,.14);color:#70d98a}
+  .adminBadge.banned{background:rgba(224,69,58,.14);color:#ff8c82}
+  .adminBadge.pending{background:rgba(255,177,73,.14);color:#ffc26f}
+  .adminMeta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+  .adminMeta div{padding:6px;border-radius:7px;background:#101214;color:#8f999f;font-size:8px}
+  .adminMeta strong{display:block;margin-bottom:2px;color:#dce2e5;font-size:9px}
+  .adminActions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .adminActions button{flex:1 1 95px;min-height:34px;padding:6px;font-size:9px}
+  .adminEmpty{padding:18px;text-align:center;border:1px dashed #434b50;border-radius:10px;color:#87939a;font-size:10px}
+  #adminStatus{margin:8px 0;padding:8px 9px;border-radius:9px;background:#111416;color:#909ba1;font-size:9px;line-height:1.4}
+  #adminStatus.error{color:#ff9189;border:1px solid rgba(224,69,58,.3)}
+  #adminStatus.good{color:#76d98e;border:1px solid rgba(52,208,88,.27)}
+  .authBannedPanel{display:none;margin-top:0;padding:12px;border:1px solid rgba(224,69,58,.45);border-radius:12px;background:rgba(224,69,58,.06)}
+  .authBannedPanel.show{display:block}
+  .authBannedPanel strong{display:block;color:#ff8e85;font-size:14px}
+  .authBannedPanel p{margin:6px 0 10px;color:#c9a3a0;font-size:10px;line-height:1.5}
+  .authBannedPanel button{width:100%}
+
+  /* ==========================================================================
+     1.100.27 · ATUALIZAÇÕES / CACHE
+     ========================================================================== */
+  #adminDialog{z-index:780 !important}
+
+  #updateDialog{z-index:900}
+  #updateDialog .projectModalCard{width:min(500px,100%)}
+  .updateVersionBox{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;
+    margin:10px 0;padding:10px;border:1px solid #3a4145;border-radius:11px;background:#131618;
+  }
+  .updateVersionBox div{min-width:0}
+  .updateVersionBox span{display:block;color:#87939a;font-size:8px;margin-bottom:3px}
+  .updateVersionBox strong{display:block;font-size:12px;word-break:break-word}
+  .updateArrow{color:#5fa3ff;font-size:18px;font-weight:900;text-align:center}
+  .updateNote{
+    margin:8px 0;padding:8px 9px;border-radius:9px;background:#111416;
+    border:1px solid #333a3e;color:#9da7ad;font-size:9px;line-height:1.5;
+  }
+  .updateNote.good{border-color:rgba(52,208,88,.28);color:#78d991}
+  .updateNote.warn{border-color:rgba(255,177,73,.30);color:#ffc070}
+  .updateNote.error{border-color:rgba(224,69,58,.35);color:#ff9189}
+  .updateSettingRow{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;
+  }
+  .updateSettingRow div{min-width:0}
+  .updateSettingRow strong{display:block;font-size:10px}
+  .updateSettingRow span{display:block;margin-top:2px;color:#89949a;font-size:8px;line-height:1.4}
+  .updateSettingRow button{flex:0 0 auto;min-height:37px}
+  #homeCheckUpdate{font-size:11px}
+  @media(max-width:700px){
+    .updateVersionBox{grid-template-columns:1fr}
+    .updateArrow{transform:rotate(90deg)}
+  }
+
+
+
+  /* ==========================================================================
+     1.100.29 · PROJETOS POR CONTA + NUVEM
+     ========================================================================== */
+  .projectCloudBadge{
+    display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 6px;
+    border-radius:999px;background:#282d30;color:#9ca7ad;font-size:8px;font-weight:800;
+  }
+  .projectCloudBadge.ok{background:rgba(52,208,88,.12);color:#72d98c}
+  .projectCloudBadge.pending{background:rgba(255,177,73,.12);color:#ffc06c}
+  .projectCloudBadge.local{background:rgba(45,125,250,.12);color:#7daeff}
+
+  #legacyProjectsSection{
+    display:none;margin-top:22px;padding:14px;border:1px solid rgba(255,177,73,.28);
+    border-radius:16px;background:rgba(255,157,46,.035);
+  }
+  #legacyProjectsSection.show{display:block}
+  .legacyProjectsHead{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px;
+  }
+  .legacyProjectsHead h2{margin:0;font-size:15px}
+  .legacyProjectsHead p{margin:4px 0 0;color:#9b948b;font-size:9px;line-height:1.45}
+  .legacyProjectsHead button{flex:0 0 auto}
+  #legacyProjectCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:9px}
+  .legacyProjectCard{padding:10px;border:1px solid #484137;border-radius:11px;background:#171614}
+  .legacyProjectCard strong{display:block;font-size:11px}
+  .legacyProjectCard span{display:block;margin-top:4px;color:#9f978c;font-size:9px;line-height:1.4}
+  .legacyProjectCard button{width:100%;margin-top:8px;min-height:37px;font-size:9px}
+  .projectAccountPrivacy{
+    margin-top:9px;padding:8px 9px;border:1px solid rgba(45,125,250,.20);
+    border-radius:9px;background:rgba(45,125,250,.045);color:#92a5b5;font-size:9px;line-height:1.45;
+  }
+  @media(max-width:700px){
+    .legacyProjectsHead{display:block}
+    .legacyProjectsHead button{width:100%;margin-top:8px}
+  }
+
+
+  /* 1.100.28 · Teste grátis configurável */
+  .adminSettingsCard{
+    padding:12px;border:1px solid #343a3e;border-radius:12px;background:#151819;
+  }
+  .adminSettingsCard h4{margin:0 0 5px;font-size:13px}
+  .adminSettingsCard p{margin:0 0 10px;color:#8e999f;font-size:9px;line-height:1.5}
+  .adminSettingsGrid{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;
+  }
+  .adminSettingsGrid label{color:#9da7ad;font-size:9px;font-weight:800}
+  .adminSettingsGrid input{
+    width:100%;margin-top:5px;padding:11px 10px;border:1px solid #41484c;
+    border-radius:9px;background:#101214;color:#fff;font-size:15px;box-sizing:border-box;
+  }
+  .trialInfoBox{
+    margin-top:9px;padding:9px;border-radius:9px;background:#101214;color:#929da3;
+    font-size:9px;line-height:1.5;
+  }
+  .adminBadge.trial{background:rgba(137,96,255,.16);color:#b89cff}
+  @media(max-width:700px){
+    .adminSettingsGrid{grid-template-columns:1fr}
+  }
+
+  @media(max-width:700px){
+    .adminStatsGrid{grid-template-columns:1fr 1fr}
+    .adminToolbar{grid-template-columns:1fr 1fr}
+    .adminToolbar input{grid-column:1/-1}
+    .adminMeta{grid-template-columns:1fr}
+  }
+
+  @media(max-width:700px){
+    .projectHomeHeader{gap:10px}
+    .projectAccountArea{order:3;width:100%;justify-content:stretch;margin-left:0}
+    .projectAccountChip{max-width:none;flex:1}
+    #homeLogoutBtn{width:auto}
+  }
+  /* O modal oficial do Netlify Identity precisa ficar acima da tela de acesso. */
+  .netlify-identity-widget{z-index:12000 !important}
+  .netlify-identity-widget .modal{z-index:12001 !important}
+
+
+  /* 1.100.24 · formulários de autenticação próprios, instantâneos */
+  .authMainActions.hidden{display:none}
+  .authInlineForm{display:none;margin-top:0}
+  .authInlineForm.show{display:block}
+  .authFormHead{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;
+  }
+  .authFormHead strong{font-size:15px}
+  .authBackBtn{
+    width:auto !important;min-height:34px !important;padding:6px 10px !important;
+    font-size:10px !important;border-radius:8px !important;
+  }
+  .authField{display:block;margin-top:8px;color:#aeb8be;font-size:10px;font-weight:700}
+  .authField input{
+    width:100%;margin-top:4px;padding:12px 11px;border-radius:10px;border:1px solid #40474b;
+    background:#101214;color:#fff;font-size:15px;outline:none;box-sizing:border-box;
+  }
+  .authField input:focus{border-color:#2d7dfa;box-shadow:0 0 0 2px rgba(45,125,250,.12)}
+  .authSubmit{
+    width:100%;min-height:46px;margin-top:12px;border-radius:11px;font-size:13px;
+  }
+  .authSubmit[disabled]{opacity:.55;cursor:wait}
+  .authRemember{
+    display:flex;align-items:center;gap:7px;margin-top:9px;color:#9ca7ad;font-size:10px;
+  }
+  .authRemember input{width:17px;height:17px;accent-color:#2d7dfa}
+  .authFormHint{margin:8px 1px 0;color:#7f8a90;font-size:9px;line-height:1.45}
+
+  @media(max-width:390px){
+    .authActions{grid-template-columns:1fr}
+    #authLoginBtn,#authForgotBtn{grid-column:auto}
+  }
+
+  @media (max-width:700px) {
+    #homeSettings { width:100%; min-width:0; }
+  }
+
+  @media (max-width:700px) {
+    .projectHomeShell { width:calc(100% - 18px); }
+    .projectHomeHeader { align-items:flex-start; }
+    .projectHomeActions { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+    .projectHero { padding:18px 15px; margin-top:18px; }
+    #projectCards { grid-template-columns:1fr; }
+    .projectThumb { height:185px; }
+    body.presentation-active #presentationBar { align-items:flex-start; }
+    .presentationActions { flex-direction:column; }
+  }
+
+  @media (max-width:700px) {
+    #inspector { top:auto; right:8px; left:8px; bottom:calc(78px + env(safe-area-inset-bottom)); width:auto; }
+    #inspector.compact { display:none !important; }
+    .fields { grid-template-columns:repeat(3,1fr); }
+  }
+
+
+
+/* ==========================================================================
+   1.200.48 · Aparência do aplicativo
+   ========================================================================== */
+.appThemeChoices{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:10px;
+}
+.appThemeChoice{
+  min-height:108px !important;
+  display:flex !important;
+  flex-direction:column;
+  align-items:flex-start !important;
+  justify-content:center;
+  gap:8px;
+  padding:10px !important;
+  border:2px solid #3b4044 !important;
+  border-radius:13px !important;
+  background:#181a1c !important;
+  text-align:left !important;
+}
+.appThemeChoice.active{
+  border-color:#36b8ad !important;
+  box-shadow:0 0 0 2px rgba(54,184,173,.12) !important;
+}
+.appThemeChoice > span:last-child{display:block}
+.appThemeChoice strong{display:block;font-size:11px}
+.appThemeChoice small{display:block;margin-top:3px;color:#8f9aa1;font-size:8px;line-height:1.35}
+.appThemeSample{
+  position:relative;
+  width:100%;
+  height:44px;
+  overflow:hidden;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.14);
+  display:block;
+}
+.appThemeSample i,.appThemeSample b,.appThemeSample em{position:absolute;display:block;border-radius:5px}
+.appThemeSample i{left:7px;top:7px;width:24px;height:30px}
+.appThemeSample b{left:38px;right:7px;top:7px;height:12px}
+.appThemeSample em{left:38px;right:18px;top:24px;height:12px}
+.appThemeSampleLight{background:#f4f7f9;border-color:#d7e0e5}
+.appThemeSampleLight i{background:#fff;border:1px solid #dce5e9;box-shadow:0 3px 8px rgba(32,61,73,.08)}
+.appThemeSampleLight b{background:#dcefee}
+.appThemeSampleLight em{background:#e7edf0}
+.appThemeSampleDark{background:#06141c}
+.appThemeSampleDark i{background:#0d252e;border:1px solid #1d5660}
+.appThemeSampleDark b{background:#14414a}
+.appThemeSampleDark em{background:#102b34}
+
+/* Configurações também acompanham o tema claro, sem alterar o CAD. */
+html[data-app-theme="light"] #appSettingsDialog{
+  background:rgba(26,43,51,.30);
+}
+html[data-app-theme="light"] #appSettingsDialog .projectModalCard{
+  background:#ffffff;
+  color:#17242c;
+  border-color:#dbe4e8;
+  box-shadow:0 24px 70px rgba(31,55,65,.18);
+}
+html[data-app-theme="light"] #appSettingsDialog .projectModalCard > p,
+html[data-app-theme="light"] #appSettingsDialog .appSettingsSectionHead span,
+html[data-app-theme="light"] #appSettingsDialog .cadSettingsNote{
+  color:#697b84 !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .appSettingsSection{
+  background:#f8fafb;
+  border-color:#dfe7ea;
+}
+html[data-app-theme="light"] #appSettingsDialog .cadGridSetting,
+html[data-app-theme="light"] #appSettingsDialog .cadBackgroundChoice,
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice{
+  background:#ffffff !important;
+  color:#1a2931 !important;
+  border-color:#dce5e9 !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice.active,
+html[data-app-theme="light"] #appSettingsDialog .cadBackgroundChoice.active{
+  border-color:#2fae9e !important;
+  box-shadow:0 0 0 2px rgba(47,174,158,.12) !important;
+}
+html[data-app-theme="light"] #appSettingsDialog .cadGridSetting span,
+html[data-app-theme="light"] #appSettingsDialog .appThemeChoice small{
+  color:#71828a;
+}
+html[data-app-theme="light"] #appSettingsDialog .updateSettingRow{
+  background:#fff;
+  border-color:#dce5e9;
+}
+html[data-app-theme="light"] #appSettingsDialog button.secondary{
+  background:#eef3f5 !important;
+  color:#24343c !important;
+  border-color:#d6e0e4 !important;
+}
+
+/* Login claro no tema padrão. */
+html[data-app-theme="light"] #authGate{
+  background:
+    radial-gradient(circle at 14% 6%,rgba(51,184,170,.12),transparent 31%),
+    radial-gradient(circle at 88% 86%,rgba(57,126,214,.10),transparent 33%),
+    #f3f6f8;
+  color:#17242c;
+}
+html[data-app-theme="light"] .authCard{
+  background:rgba(255,255,255,.98);
+  border-color:#dbe4e8;
+  box-shadow:0 26px 80px rgba(28,54,65,.18);
+}
+html[data-app-theme="light"] .authHero{
+  border-color:#e3eaed;
+  background:linear-gradient(145deg,rgba(53,184,169,.08),rgba(72,135,221,.055));
+}
+html[data-app-theme="light"] .authBrand span,
+html[data-app-theme="light"] .authHero p,
+html[data-app-theme="light"] .authPrivacy{color:#697b84}
+html[data-app-theme="light"] .authStatus{
+  background:#f8fafb;color:#667780;border-color:#dce5e9;
+}
+html[data-app-theme="light"] .authActions .secondary{
+  background:#eef3f5 !important;color:#24343c !important;border-color:#d6e0e4 !important;
+}
+
+/* ========================================================================== 
+   1.200.65 · COMPRA PREMIUM / PIX MANUAL
+   ========================================================================== */
+.authBannedPanel #authPremiumBuy{
+  margin-bottom:7px;background:linear-gradient(135deg,#19a979,#257bea);border-color:transparent;
+  color:#fff;font-weight:950;box-shadow:0 8px 24px rgba(37,123,234,.22);
+}
+.premiumPurchaseDialog{
+  position:fixed;inset:0;z-index:4100;display:none;align-items:center;justify-content:center;
+  padding:16px;background:rgba(4,8,11,.68);backdrop-filter:blur(8px);overflow:auto;
+}
+.premiumPurchaseDialog.show{display:flex}
+.premiumPurchaseCard{
+  width:min(430px,100%);padding:16px;border:1px solid #3a4348;border-radius:18px;
+  background:#181c1e;color:#f2f6f8;box-shadow:0 24px 80px rgba(0,0,0,.5);
+}
+.premiumPurchaseHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.premiumPurchaseHead strong{display:block;font-size:18px}
+.premiumPurchaseHead span{display:block;margin-top:3px;color:#8f9ca3;font-size:9px}
+.premiumPurchaseHead button{width:38px;min-width:38px;height:38px;padding:0;border-radius:10px}
+.premiumPurchaseLoading,.premiumPurchaseStatus{
+  padding:10px;border:1px solid #363f43;border-radius:10px;background:#111517;color:#9ca9af;font-size:10px;line-height:1.45;
+}
+.premiumPurchaseStatus{margin-top:9px;min-height:0}
+.premiumPurchaseStatus:empty{display:none}
+.premiumPurchaseStatus.good{border-color:rgba(52,208,88,.34);background:rgba(52,208,88,.06);color:#78dd92}
+.premiumPurchaseStatus.warn{border-color:rgba(255,177,73,.35);background:rgba(255,177,73,.06);color:#ffc16e}
+.premiumPurchaseStatus.error{border-color:rgba(224,69,58,.4);background:rgba(224,69,58,.06);color:#ff9189}
+.premiumPurchaseOffer{text-align:center;margin:3px 0 10px}
+.premiumPurchaseOffer span,.premiumPurchaseOffer small{display:block;color:#96a3aa;font-size:9px}
+.premiumPurchaseOffer strong{display:block;margin:3px 0;font-size:25px;color:#66dfa0}
+.premiumPixQr{width:min(260px,78vw);aspect-ratio:1;margin:0 auto 11px;padding:8px;border-radius:13px;background:#fff;box-sizing:border-box}
+.premiumPixQr svg{display:block;width:100%;height:100%}
+.premiumPixCopyLabel{display:block;color:#99a6ad;font-size:9px;font-weight:850}
+.premiumPixCopyLabel textarea{
+  width:100%;margin-top:5px;resize:none;box-sizing:border-box;padding:9px;border:1px solid #3d474c;border-radius:9px;
+  background:#0f1315;color:#dce5e9;font:8px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all;
+}
+.premiumPurchaseContent>button{width:100%;margin-top:7px;min-height:42px}
+.premiumPaidBtn{background:#1a9e68!important}
+.premiumPurchaseHelp{margin:9px 2px 0;color:#7f8d94;font-size:8px;line-height:1.5;text-align:center}
+.adminPaymentSettingsCard{margin-top:10px}
+.adminPaymentSettingsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px}
+.adminPaymentSettingsGrid label{color:#9da7ad;font-size:9px;font-weight:800}
+.adminPaymentSettingsGrid input,.adminPaymentSettingsGrid select{
+  width:100%;margin-top:5px;padding:10px;border:1px solid #41484c;border-radius:9px;background:#101214;color:#fff;box-sizing:border-box;
+}
+#adminSavePaymentSettingsBtn{width:100%}
+.adminPaymentReported{margin-top:7px;padding:7px;border-radius:8px;background:rgba(52,208,88,.08);color:#78db91;font-size:8px;font-weight:800}
+@media(max-width:700px){.adminPaymentSettingsGrid{grid-template-columns:1fr}}
+
+html[data-app-theme="light"] .premiumPurchaseDialog{background:rgba(35,50,58,.36)}
+html[data-app-theme="light"] .premiumPurchaseCard{background:#fff;color:#18272f;border-color:#d8e3e7;box-shadow:0 24px 70px rgba(37,57,67,.22)}
+html[data-app-theme="light"] .premiumPurchaseHead span,html[data-app-theme="light"] .premiumPurchaseOffer span,html[data-app-theme="light"] .premiumPurchaseOffer small,html[data-app-theme="light"] .premiumPurchaseHelp{color:#6f8088}
+html[data-app-theme="light"] .premiumPurchaseLoading,html[data-app-theme="light"] .premiumPurchaseStatus{background:#f7fafb;border-color:#dbe5e9;color:#61747d}
+html[data-app-theme="light"] .premiumPixCopyLabel{color:#60727b}
+html[data-app-theme="light"] .premiumPixCopyLabel textarea{background:#f6f9fa;color:#26373f;border-color:#d7e1e5}
+html[data-app-theme="light"] .adminPaymentSettingsGrid input,html[data-app-theme="light"] .adminPaymentSettingsGrid select{background:#fff;color:#24343c;border-color:#d7e1e5}
