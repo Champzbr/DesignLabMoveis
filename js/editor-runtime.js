@@ -1,50 +1,50 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.310.00-r6';
-import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.310.00-r6';
-import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.310.00-r6';
-import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.310.00-r6';
-import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.310.00-r6';
-import { createAdminModule } from './modules/admin.js?v=1.310.00-r6';
-import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.310.00-r6';
-import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.310.00-r6';
-import { createProjectsModule } from './modules/projects.js?v=1.310.00-r6';
-import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.310.00-r6';
-import { createLibraryModule } from './modules/library.js?v=1.310.00-r6';
-import { createCadIoModule } from './modules/cad-io.js?v=1.310.00-r6';
-import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.310.00-r6';
-import { createTapeMovementModule } from './modules/tape-movement.js?v=1.310.00-r6';
-import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.310.00-r6';
-import { createSelection3DModule } from './modules/selection-3d.js?v=1.310.00-r6';
-import { createPieceEditorModule } from './modules/piece-editor.js?v=1.310.00-r6';
-import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.310.00-r6';
-import { createProductionSuiteModule } from './modules/production-suite.js?v=1.310.00-r6';
-import { createToolDockModule } from './modules/tool-dock.js?v=1.310.00-r6';
-import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.310.00-r6';
-import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.310.00-r6';
-import { createEditorHistoryModule } from './modules/editor-history.js?v=1.310.00-r6';
-import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.310.00-r6';
-import { createAppUpdateModule } from './modules/app-update.js?v=1.310.00-r6';
-import { createCloudAccountModule } from './modules/cloud-account.js?v=1.310.00-r6';
-import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.310.00-r6';
-import { createBackNavigationModule } from './modules/back-navigation.js?v=1.310.00-r6';
-import { bindUiEvents } from './modules/ui-events.js?v=1.310.00-r6';
-import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.310.00-r6';
-import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.310.00-r6';
-import { createAppThemeModule } from './modules/app-theme.js?v=1.310.00-r6';
-import { createSpaceHealingModule } from './modules/space-healing.js?v=1.310.00-r6';
-import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.310.00-r6';
-import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.310.00-r6';
-import { createToolController } from './modules/tool-controller.js?v=1.310.00-r6';
-import { createSpaceEditorModule } from './modules/space-editor.js?v=1.310.00-r6';
-import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.310.00-r6';
-import { createCadScene } from './modules/cad-scene.js?v=1.310.00-r6';
-import { createRuntimeModel } from './modules/runtime-model.js?v=1.310.00-r6';
-import { createModuleRegistry } from './modules/module-registry.js?v=1.310.00-r6';
-import { installCadInputNavigation } from './modules/cad-input.js?v=1.310.00-r6';
-import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.310.00-r6';
-import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.310.00-r6';
+import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.310.00-r8';
+import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.310.00-r8';
+import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.310.00-r8';
+import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.310.00-r8';
+import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.310.00-r8';
+import { createAdminModule } from './modules/admin.js?v=1.310.00-r8';
+import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.310.00-r8';
+import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.310.00-r8';
+import { createProjectsModule } from './modules/projects.js?v=1.310.00-r8';
+import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.310.00-r8';
+import { createLibraryModule } from './modules/library.js?v=1.310.00-r8';
+import { createCadIoModule } from './modules/cad-io.js?v=1.310.00-r8';
+import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.310.00-r8';
+import { createTapeMovementModule } from './modules/tape-movement.js?v=1.310.00-r8';
+import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.310.00-r8';
+import { createSelection3DModule } from './modules/selection-3d.js?v=1.310.00-r8';
+import { createPieceEditorModule } from './modules/piece-editor.js?v=1.310.00-r8';
+import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.310.00-r8';
+import { createProductionSuiteModule } from './modules/production-suite.js?v=1.310.00-r8';
+import { createToolDockModule } from './modules/tool-dock.js?v=1.310.00-r8';
+import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.310.00-r8';
+import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.310.00-r8';
+import { createEditorHistoryModule } from './modules/editor-history.js?v=1.310.00-r8';
+import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.310.00-r8';
+import { createAppUpdateModule } from './modules/app-update.js?v=1.310.00-r8';
+import { createCloudAccountModule } from './modules/cloud-account.js?v=1.310.00-r8';
+import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.310.00-r8';
+import { createBackNavigationModule } from './modules/back-navigation.js?v=1.310.00-r8';
+import { bindUiEvents } from './modules/ui-events.js?v=1.310.00-r8';
+import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.310.00-r8';
+import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.310.00-r8';
+import { createAppThemeModule } from './modules/app-theme.js?v=1.310.00-r8';
+import { createSpaceHealingModule } from './modules/space-healing.js?v=1.310.00-r8';
+import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.310.00-r8';
+import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.310.00-r8';
+import { createToolController } from './modules/tool-controller.js?v=1.310.00-r8';
+import { createSpaceEditorModule } from './modules/space-editor.js?v=1.310.00-r8';
+import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.310.00-r8';
+import { createCadScene } from './modules/cad-scene.js?v=1.310.00-r8';
+import { createRuntimeModel } from './modules/runtime-model.js?v=1.310.00-r8';
+import { createModuleRegistry } from './modules/module-registry.js?v=1.310.00-r8';
+import { installCadInputNavigation } from './modules/cad-input.js?v=1.310.00-r8';
+import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.310.00-r8';
+import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.310.00-r8';
 
 // 1.310.00 · constantes compartilhadas em js/modules/runtime-config.js.
 
@@ -52,7 +52,7 @@ const $ = id => document.getElementById(id);
 const runtimeHelpers=createRuntimeHelpers({THREE,roundMmNumber,M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,$});
 const {mm,m,clampSize,toast}=runtimeHelpers;
 const moduleRegistry=createModuleRegistry();
-window.__DESIGNLAB_APP_BOOTED='1.310.00-r6';
+window.__DESIGNLAB_APP_BOOTED='1.310.00-r8';
 let auth=null;
 let projects=null;
 let projectIsoMs,cloudSaveProjectRecord,syncCloudProjects,claimLegacyProject,claimAllLegacyProjects,projectNow,projectStateHasContent,updateProjectHomeWelcome,scrollProjectHomeTo,openHomeModeling,openHomeMaterials,projectCurrentOwnerId,projectBelongsToCurrentOwner,projectEmergencyKey,prepareProjectAccountSwitch,applyProjectAccountScope,projectDbGet,projectDbPut,captureProjectCamera,restoreProjectCamera,captureProjectThumbnail,updateProjectChrome,markCurrentProjectDirty,projectAutosaveNow,applyProjectPresentationScene,resetProjectHistory,enterProjectEditor,renderProjectHome,showProjectHome,openProjectMetaDialog,closeProjectMetaDialog,readProjectMeta,createNewProject,saveCurrentProject,saveAsCurrentProject,renameCurrentProject,duplicateProjectById,deleteProjectById,exportProjectRecordFile,exportCurrentProjectFile,importProjectFile,requestOpenProject,recoverPendingProject,discardPendingRecovery,closeProjectCardMenu,initProjectHub;
@@ -102,7 +102,7 @@ let spaceMultiSelectionEntries,spaceMultiSelectionInfo,ensureSpaceMultiSelectBar
 
 // 1.310.00 · atualização/PWA extraídos para js/modules/app-update.js.
 let appUpdate=null;
-let DESIGNLAB_APP_VERSION='1.310.00',DESIGNLAB_JS_BUILD='1.310.00-r6';
+let DESIGNLAB_APP_VERSION='1.310.00',DESIGNLAB_JS_BUILD='1.310.00-r8';
 let designLabRuntimeBuild=()=>'',setDesignLabVisualizationOnly=()=>{},designLabVisualizationOnlyActive=()=>false,checkDesignLabUpdate=async()=>null,applyDesignLabUpdate=async()=>{},forceDesignLabServerRefresh=async()=>{},initDesignLabInstallExperience=()=>{},initDesignLabServiceWorker=async()=>null,showBannedAccount=()=>{},updateCacheStatusUI=()=>{},closeUpdateDialog=()=>{};
 
 let isLocalAuthDevelopment,offlineLicensePublicKey,offlineLicenseStoredToken,offlineLicenseLastSeenKey,clearOfflinePremiumLicense,verifyOfflinePremiumToken,loadOfflinePremiumLicense,storeOfflinePremiumLicense,offlineLicenseRecheckDue,scheduleOfflineLicenseExpiry,handleOfflineLicenseDeadline,showOfflineLicenseExpired,activateOfflinePremiumAccess,tryOfflinePremiumStartup,setAuthStatus,ensurePremiumAccessPanel,hidePremiumAccessPanel,premiumRenderQr,premiumMoney,premiumPurchaseSetStatus,closePremiumPurchase,renderPremiumPurchase,openPremiumPurchase,copyPremiumPix,markPremiumPaymentPaid,verifyPremiumPayment,stopPremiumAccessWatch,premiumWorkspaceAllowed,premiumUntilText,showPremiumAccessRequired,schedulePremiumAccessWatch,verifyPremiumWorkspaceAccess,updateIdentityChrome,lockOnlineApp,unlockOnlineApp,localAuthContinue,waitForNetlifyIdentity,bindIdentityEvents,initOnlineIdentity,authFriendlyError,showAuthInlineForm,authSetBusy,getReadyGoTrue,authSubmitLogin,authSubmitSignup,authSubmitForgot,openIdentityMode,logoutOnlineIdentity;
@@ -455,7 +455,7 @@ desktopCadNavigation=cadInput.desktopCadNavigation;
 moduleRegistry.register('cadInput',cadInput);
 
 tapeMovement=createTapeMovementModule({runtimeModel,moduleRegistry,
-  $,THREE,referenceMeshes,SNAP_THRESHOLD,CORNER_PICK_PX,EDGE_PICK_PX,GUIDE_SNAP_PX,TAPE_AIM_SNAP_PX,COLORS,scene,commitHistory,getPointerNDC,get camera(){return camera;},worldToClient,mm,nice,toast,controls,syncToolDockButtons,renderer,TAPE_POINT_TOUCH_OFFSET_PX,axisVector,GUIDE_EXTENT,closestParamOnAxis,worldAxisX,worldAxisY,worldAxisZ,worldAxisForFace,groundPlane,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,MIN_SIZE,CORNER_SNAP_PX,EDGE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,
+  $,THREE,referenceMeshes:(...a)=>moduleRegistry.callIfReady('spacesCuts','referenceMeshes',...a)??[],SNAP_THRESHOLD,CORNER_PICK_PX,EDGE_PICK_PX,GUIDE_SNAP_PX,TAPE_AIM_SNAP_PX,COLORS,scene,commitHistory,getPointerNDC,get camera(){return camera;},worldToClient,mm,nice,toast,controls,syncToolDockButtons,renderer,TAPE_POINT_TOUCH_OFFSET_PX,axisVector,GUIDE_EXTENT,closestParamOnAxis,worldAxisX,worldAxisY,worldAxisZ,worldAxisForFace,groundPlane,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,MIN_SIZE,CORNER_SNAP_PX,EDGE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,
   get toolMode(){return toolMode;},set toolMode(v){toolMode=v;},get tapeStart(){return tapeStart;},set tapeStart(v){tapeStart=v;},get tapeStartClient(){return tapeStartClient;},set tapeStartClient(v){tapeStartClient=v;},get tapeHover(){return tapeHover;},set tapeHover(v){tapeHover=v;},get tapeEdgeSource(){return tapeEdgeSource;},set tapeEdgeSource(v){tapeEdgeSource=v;},get tapePendingEdge(){return tapePendingEdge;},set tapePendingEdge(v){tapePendingEdge=v;},get tapeDragEdgeActive(){return tapeDragEdgeActive;},set tapeDragEdgeActive(v){tapeDragEdgeActive=v;},get tapeTouchActive(){return tapeTouchActive;},set tapeTouchActive(v){tapeTouchActive=v;},get tapeTouchId(){return tapeTouchId;},set tapeTouchId(v){tapeTouchId=v;},get tapeMouseActive(){return tapeMouseActive;},set tapeMouseActive(v){tapeMouseActive=v;},get tapePointPinchNavigating(){return tapePointPinchNavigating;},set tapePointPinchNavigating(v){tapePointPinchNavigating=v;},get tapePointPinchSuppressUntil(){return tapePointPinchSuppressUntil;},set tapePointPinchSuppressUntil(v){tapePointPinchSuppressUntil=v;},get tapeLastConfirmedTap(){return tapeLastConfirmedTap;},set tapeLastConfirmedTap(v){tapeLastConfirmedTap=v;},get tapeConfirmGate(){return tapeConfirmGate;},set tapeConfirmGate(v){tapeConfirmGate=v;},get tapeAim(){return tapeAim;},set tapeAim(v){tapeAim=v;},get moveSnapKind(){return moveSnapKind;},set moveSnapKind(v){moveSnapKind=v;},get moveSnapText(){return moveSnapText;},set moveSnapText(v){moveSnapText=v;},get moveGrabIsCorner(){return moveGrabIsCorner;},set moveGrabIsCorner(v){moveGrabIsCorner=v;},get selected(){return selected;},set selected(v){selected=v;},get moveInferenceAxis(){return moveInferenceAxis;},set moveInferenceAxis(v){moveInferenceAxis=v;},get moveCornerTarget(){return moveCornerTarget;},set moveCornerTarget(v){moveCornerTarget=v;}
 });
 ({getBounds,axisFeatures,findMoveSnap,snapFaceCoordinate,guide,makeDashedMaterial,setLinePoints,guideAxisColor,createConstructionGuide,tapePieceName,tapeSetBoxHelper,tapeMeasurablePieces,getTapePieceAtEvent,tapeClosestIntervalPoints,tapeDistanceBetweenPieces,tapeShowPieceDistance,tapeUpdatePiecePrompt,resetTapeMeasure,hideTapeCrosshair,clearLatchedTapeMeasurement,restoreCadNavigationAfterTape,closeTapeAfterCommittedMeasurement,tapePointAimEvent,tapePointAimClient,setTapeCrosshair,nearestAnyCornerToClient,getBoxEdges,refineTapeEdgeScreenPick,nearestAnyEdgeToClient,nearestEdgeOnMeshToClient,nearestGuideToClient,closestPointOnInfiniteLine,nearestGlobalAxisHit,nearestReferenceLineByRay,resolveTapeAim,getTapePick,distancePointToSegment2D,nearestGlobalAxisAtClient,inferTapeAxis,projectPointToAxis,activateTapeEdgeSource,parallelGuideGeometryFromPick,commitTapeParallelAtEvent,tapePointKindLabel,tapePointPickIsValid,tapeShowPointDistance,updateTapePointPreview,handleTapePointTap,updateTapePreview,createInfiniteAxisGuide,tapePickKey,handleTapeTap,getBoxCorners,getFaceCorners,nearestCornerToClient,findTargetCornerSnap,findMoveInferenceTarget,snapMovingObjectFeaturesToGuide,setMoveTargetMarker,showGuide,hideInference,showInference,hideGuides,guideX,guideY,guideZ,inferenceLines,moveGrip,cornerMarker}=tapeMovement);
