@@ -1,0 +1,5 @@
+{
+  "version": "1.310.00",
+  "released_at": "2026-09-23T21:25:00-03:00",
+  "message": "Fase 10 r3: corrigido ReferenceError XRAY_3D_KEY no tool-dock e três referências de escopo (mmPrec, shapeCopyPieceEligible, shapeDeepClone) detectadas pelo smoke test/auditoria de escopo. Build e cache atualizados para r3."
+}
