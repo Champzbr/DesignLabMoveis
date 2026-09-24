@@ -1,9 +1,0 @@
-DesignLabMoveis 1.200.61
-
-Correção: instalações antigas do PWA podiam permanecer em modo escuro porque designLabAppThemeV2 ficava salvo localmente no aparelho.
-
-Nesta versão:
-- o Clássico claro é aplicado UMA vez também em instalações antigas;
-- depois da migração, a escolha manual Claro/Escuro continua sendo respeitada;
-- o tema não depende do Worker nem de SQL;
-- o bloqueio Premium da 1.200.60 foi preservado.
