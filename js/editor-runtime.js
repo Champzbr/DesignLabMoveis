@@ -1,50 +1,50 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.310.00-r4';
-import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.310.00-r4';
-import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.310.00-r4';
-import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.310.00-r4';
-import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.310.00-r4';
-import { createAdminModule } from './modules/admin.js?v=1.310.00-r4';
-import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.310.00-r4';
-import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.310.00-r4';
-import { createProjectsModule } from './modules/projects.js?v=1.310.00-r4';
-import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.310.00-r4';
-import { createLibraryModule } from './modules/library.js?v=1.310.00-r4';
-import { createCadIoModule } from './modules/cad-io.js?v=1.310.00-r4';
-import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.310.00-r4';
-import { createTapeMovementModule } from './modules/tape-movement.js?v=1.310.00-r4';
-import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.310.00-r4';
-import { createSelection3DModule } from './modules/selection-3d.js?v=1.310.00-r4';
-import { createPieceEditorModule } from './modules/piece-editor.js?v=1.310.00-r4';
-import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.310.00-r4';
-import { createProductionSuiteModule } from './modules/production-suite.js?v=1.310.00-r4';
-import { createToolDockModule } from './modules/tool-dock.js?v=1.310.00-r4';
-import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.310.00-r4';
-import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.310.00-r4';
-import { createEditorHistoryModule } from './modules/editor-history.js?v=1.310.00-r4';
-import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.310.00-r4';
-import { createAppUpdateModule } from './modules/app-update.js?v=1.310.00-r4';
-import { createCloudAccountModule } from './modules/cloud-account.js?v=1.310.00-r4';
-import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.310.00-r4';
-import { createBackNavigationModule } from './modules/back-navigation.js?v=1.310.00-r4';
-import { bindUiEvents } from './modules/ui-events.js?v=1.310.00-r4';
-import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.310.00-r4';
-import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.310.00-r4';
-import { createAppThemeModule } from './modules/app-theme.js?v=1.310.00-r4';
-import { createSpaceHealingModule } from './modules/space-healing.js?v=1.310.00-r4';
-import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.310.00-r4';
-import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.310.00-r4';
-import { createToolController } from './modules/tool-controller.js?v=1.310.00-r4';
-import { createSpaceEditorModule } from './modules/space-editor.js?v=1.310.00-r4';
-import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.310.00-r4';
-import { createCadScene } from './modules/cad-scene.js?v=1.310.00-r4';
-import { createRuntimeModel } from './modules/runtime-model.js?v=1.310.00-r4';
-import { createModuleRegistry } from './modules/module-registry.js?v=1.310.00-r4';
-import { installCadInputNavigation } from './modules/cad-input.js?v=1.310.00-r4';
-import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.310.00-r4';
-import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.310.00-r4';
+import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.310.00-r6';
+import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.310.00-r6';
+import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.310.00-r6';
+import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.310.00-r6';
+import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.310.00-r6';
+import { createAdminModule } from './modules/admin.js?v=1.310.00-r6';
+import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.310.00-r6';
+import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.310.00-r6';
+import { createProjectsModule } from './modules/projects.js?v=1.310.00-r6';
+import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.310.00-r6';
+import { createLibraryModule } from './modules/library.js?v=1.310.00-r6';
+import { createCadIoModule } from './modules/cad-io.js?v=1.310.00-r6';
+import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.310.00-r6';
+import { createTapeMovementModule } from './modules/tape-movement.js?v=1.310.00-r6';
+import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.310.00-r6';
+import { createSelection3DModule } from './modules/selection-3d.js?v=1.310.00-r6';
+import { createPieceEditorModule } from './modules/piece-editor.js?v=1.310.00-r6';
+import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.310.00-r6';
+import { createProductionSuiteModule } from './modules/production-suite.js?v=1.310.00-r6';
+import { createToolDockModule } from './modules/tool-dock.js?v=1.310.00-r6';
+import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.310.00-r6';
+import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.310.00-r6';
+import { createEditorHistoryModule } from './modules/editor-history.js?v=1.310.00-r6';
+import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.310.00-r6';
+import { createAppUpdateModule } from './modules/app-update.js?v=1.310.00-r6';
+import { createCloudAccountModule } from './modules/cloud-account.js?v=1.310.00-r6';
+import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.310.00-r6';
+import { createBackNavigationModule } from './modules/back-navigation.js?v=1.310.00-r6';
+import { bindUiEvents } from './modules/ui-events.js?v=1.310.00-r6';
+import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.310.00-r6';
+import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.310.00-r6';
+import { createAppThemeModule } from './modules/app-theme.js?v=1.310.00-r6';
+import { createSpaceHealingModule } from './modules/space-healing.js?v=1.310.00-r6';
+import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.310.00-r6';
+import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.310.00-r6';
+import { createToolController } from './modules/tool-controller.js?v=1.310.00-r6';
+import { createSpaceEditorModule } from './modules/space-editor.js?v=1.310.00-r6';
+import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.310.00-r6';
+import { createCadScene } from './modules/cad-scene.js?v=1.310.00-r6';
+import { createRuntimeModel } from './modules/runtime-model.js?v=1.310.00-r6';
+import { createModuleRegistry } from './modules/module-registry.js?v=1.310.00-r6';
+import { installCadInputNavigation } from './modules/cad-input.js?v=1.310.00-r6';
+import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.310.00-r6';
+import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.310.00-r6';
 
 // 1.310.00 · constantes compartilhadas em js/modules/runtime-config.js.
 
@@ -52,7 +52,7 @@ const $ = id => document.getElementById(id);
 const runtimeHelpers=createRuntimeHelpers({THREE,roundMmNumber,M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,$});
 const {mm,m,clampSize,toast}=runtimeHelpers;
 const moduleRegistry=createModuleRegistry();
-window.__DESIGNLAB_APP_BOOTED='1.310.00-r4';
+window.__DESIGNLAB_APP_BOOTED='1.310.00-r6';
 let auth=null;
 let projects=null;
 let projectIsoMs,cloudSaveProjectRecord,syncCloudProjects,claimLegacyProject,claimAllLegacyProjects,projectNow,projectStateHasContent,updateProjectHomeWelcome,scrollProjectHomeTo,openHomeModeling,openHomeMaterials,projectCurrentOwnerId,projectBelongsToCurrentOwner,projectEmergencyKey,prepareProjectAccountSwitch,applyProjectAccountScope,projectDbGet,projectDbPut,captureProjectCamera,restoreProjectCamera,captureProjectThumbnail,updateProjectChrome,markCurrentProjectDirty,projectAutosaveNow,applyProjectPresentationScene,resetProjectHistory,enterProjectEditor,renderProjectHome,showProjectHome,openProjectMetaDialog,closeProjectMetaDialog,readProjectMeta,createNewProject,saveCurrentProject,saveAsCurrentProject,renameCurrentProject,duplicateProjectById,deleteProjectById,exportProjectRecordFile,exportCurrentProjectFile,importProjectFile,requestOpenProject,recoverPendingProject,discardPendingRecovery,closeProjectCardMenu,initProjectHub;
@@ -102,7 +102,7 @@ let spaceMultiSelectionEntries,spaceMultiSelectionInfo,ensureSpaceMultiSelectBar
 
 // 1.310.00 · atualização/PWA extraídos para js/modules/app-update.js.
 let appUpdate=null;
-let DESIGNLAB_APP_VERSION='1.310.00',DESIGNLAB_JS_BUILD='1.310.00-r4';
+let DESIGNLAB_APP_VERSION='1.310.00',DESIGNLAB_JS_BUILD='1.310.00-r6';
 let designLabRuntimeBuild=()=>'',setDesignLabVisualizationOnly=()=>{},designLabVisualizationOnlyActive=()=>false,checkDesignLabUpdate=async()=>null,applyDesignLabUpdate=async()=>{},forceDesignLabServerRefresh=async()=>{},initDesignLabInstallExperience=()=>{},initDesignLabServiceWorker=async()=>null,showBannedAccount=()=>{},updateCacheStatusUI=()=>{},closeUpdateDialog=()=>{};
 
 let isLocalAuthDevelopment,offlineLicensePublicKey,offlineLicenseStoredToken,offlineLicenseLastSeenKey,clearOfflinePremiumLicense,verifyOfflinePremiumToken,loadOfflinePremiumLicense,storeOfflinePremiumLicense,offlineLicenseRecheckDue,scheduleOfflineLicenseExpiry,handleOfflineLicenseDeadline,showOfflineLicenseExpired,activateOfflinePremiumAccess,tryOfflinePremiumStartup,setAuthStatus,ensurePremiumAccessPanel,hidePremiumAccessPanel,premiumRenderQr,premiumMoney,premiumPurchaseSetStatus,closePremiumPurchase,renderPremiumPurchase,openPremiumPurchase,copyPremiumPix,markPremiumPaymentPaid,verifyPremiumPayment,stopPremiumAccessWatch,premiumWorkspaceAllowed,premiumUntilText,showPremiumAccessRequired,schedulePremiumAccessWatch,verifyPremiumWorkspaceAccess,updateIdentityChrome,lockOnlineApp,unlockOnlineApp,localAuthContinue,waitForNetlifyIdentity,bindIdentityEvents,initOnlineIdentity,authFriendlyError,showAuthInlineForm,authSetBusy,getReadyGoTrue,authSubmitLogin,authSubmitSignup,authSubmitForgot,openIdentityMode,logoutOnlineIdentity;
@@ -354,7 +354,7 @@ toolController=createToolController({runtimeModel,moduleRegistry,
 moduleRegistry.register('toolController',toolController);
 
 spaceEditor=createSpaceEditorModule({runtimeModel,moduleRegistry,
-  $,mm,m,nice,toast,escapeHtml,rootBounds:(...a)=>moduleRegistry.callIfReady('spacesCuts','rootBounds',...a),cellAxisMin,cellAxisMax,cellBox,activeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','activeSpaceRoot',...a),parseDecimalInput:(...a)=>moduleRegistry.callIfReady('machiningShapes','parseDecimalInput',...a),getBounds:(...a)=>moduleRegistry.callIfReady('tapeMovement','getBounds',...a),mergeIntervals:(...a)=>moduleRegistry.callIfReady('library','mergeIntervals',...a)??[],tangentAxesForSpace,productionMaterialById:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialById',...a),cellSize:(...a)=>moduleRegistry.callIfReady('spacesCuts','cellSize',...a),getSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','getSpaceRoot',...a),getSpaceCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','getSpaceCell',...a),remapMachiningForPieceResize:(...a)=>moduleRegistry.callIfReady('machiningShapes','remapMachiningForPieceResize',...a),rebuildFormGeometry:(...a)=>moduleRegistry.callIfReady('machiningShapes','rebuildFormGeometry',...a),updateAutoMachiningAfterPieceResize:(...a)=>moduleRegistry.callIfReady('spacesCuts','updateAutoMachiningAfterPieceResize',...a),sanitizeMachiningForPiece:(...a)=>moduleRegistry.callIfReady('machiningShapes','sanitizeMachiningForPiece',...a),fixedIntervalsFromSpace:(...a)=>moduleRegistry.callIfReady('library','fixedIntervalsFromSpace',...a)??[],objectInsideSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','objectInsideSpaceRoot',...a),isVerticalDivisionPiece:(...a)=>moduleRegistry.callIfReady('spacesCuts','isVerticalDivisionPiece',...a),registerVerticalDivisionFixedBand:(...a)=>moduleRegistry.callIfReady('spacesCuts','registerVerticalDivisionFixedBand',...a),rebuildDrawerSetsForRoot:(...a)=>moduleRegistry.callIfReady('doorsDrawers','rebuildDrawerSetsForRoot',...a),renderSpaces:(...a)=>moduleRegistry.callIfReady('spacesCuts','renderSpaces',...a),applyDoorVisibility:(...a)=>moduleRegistry.callIfReady('doorsDrawers','applyDoorVisibility',...a),renderMachiningVisuals:(...a)=>moduleRegistry.callIfReady('machiningShapes','renderMachiningVisuals',...a),updateMeasureBadge:(...a)=>moduleRegistry.callIfReady('pieceInspector','updateMeasureBadge',...a),commitHistory:(...a)=>moduleRegistry.callIfReady('editorHistory','commitHistory',...a),makeFixedAxisMapper:(...a)=>moduleRegistry.callIfReady('library','makeFixedAxisMapper',...a),selectSpaceCellByIds:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceCellByIds',...a),resizeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','resizeSpaceRoot',...a),fillSpaceMaterialSelect:(...a)=>moduleRegistry.callIfReady('productionMaterials','fillSpaceMaterialSelect',...a),updateEditSpaceMaterialPreview:(...a)=>moduleRegistry.callIfReady('productionMaterials','updateEditSpaceMaterialPreview',...a),applySpaceMaterialToExistingPieces:(...a)=>moduleRegistry.callIfReady('productionMaterials','applySpaceMaterialToExistingPieces',...a),preferredDefaultMaterialId:(...a)=>moduleRegistry.callIfReady('productionMaterials','preferredDefaultMaterialId',...a),selectedCellInfo:(...a)=>moduleRegistry.callIfReady('library','selectedCellInfo',...a),updateSpaceMaterialPreview:(...a)=>moduleRegistry.callIfReady('productionMaterials','updateSpaceMaterialPreview',...a),projectCurrentOwnerId:(...a)=>moduleRegistry.callIfReady('projects','projectCurrentOwnerId',...a),createSpace:(...a)=>moduleRegistry.callIfReady('spacesCuts','createSpace',...a),setVisualMode,applySelectedSpaceCut:(...a)=>moduleRegistry.callIfReady('spacesCuts','applySelectedSpaceCut',...a),
+  $,mm,m,nice,toast,escapeHtml,rootBounds:(...a)=>moduleRegistry.callIfReady('spacesCuts','rootBounds',...a),cellAxisMin,cellAxisMax,cellBox,activeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','activeSpaceRoot',...a),parseDecimalInput:(...a)=>moduleRegistry.callIfReady('machiningShapes','parseDecimalInput',...a),getBounds:(...a)=>moduleRegistry.callIfReady('tapeMovement','getBounds',...a),mergeIntervals:(...a)=>moduleRegistry.call('library','mergeIntervals',...a),tangentAxesForSpace,productionMaterialById:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialById',...a),cellSize:(...a)=>moduleRegistry.callIfReady('spacesCuts','cellSize',...a),getSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','getSpaceRoot',...a),getSpaceCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','getSpaceCell',...a),remapMachiningForPieceResize:(...a)=>moduleRegistry.callIfReady('machiningShapes','remapMachiningForPieceResize',...a),rebuildFormGeometry:(...a)=>moduleRegistry.callIfReady('machiningShapes','rebuildFormGeometry',...a),updateAutoMachiningAfterPieceResize:(...a)=>moduleRegistry.callIfReady('spacesCuts','updateAutoMachiningAfterPieceResize',...a),sanitizeMachiningForPiece:(...a)=>moduleRegistry.callIfReady('machiningShapes','sanitizeMachiningForPiece',...a),fixedIntervalsFromSpace:(...a)=>moduleRegistry.call('library','fixedIntervalsFromSpace',...a),objectInsideSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','objectInsideSpaceRoot',...a),isVerticalDivisionPiece:(...a)=>moduleRegistry.callIfReady('spacesCuts','isVerticalDivisionPiece',...a),registerVerticalDivisionFixedBand:(...a)=>moduleRegistry.callIfReady('spacesCuts','registerVerticalDivisionFixedBand',...a),rebuildDrawerSetsForRoot:(...a)=>moduleRegistry.callIfReady('doorsDrawers','rebuildDrawerSetsForRoot',...a),renderSpaces:(...a)=>moduleRegistry.callIfReady('spacesCuts','renderSpaces',...a),applyDoorVisibility:(...a)=>moduleRegistry.callIfReady('doorsDrawers','applyDoorVisibility',...a),renderMachiningVisuals:(...a)=>moduleRegistry.callIfReady('machiningShapes','renderMachiningVisuals',...a),updateMeasureBadge:(...a)=>moduleRegistry.callIfReady('pieceInspector','updateMeasureBadge',...a),commitHistory:(...a)=>moduleRegistry.callIfReady('editorHistory','commitHistory',...a),makeFixedAxisMapper:(...a)=>moduleRegistry.callIfReady('library','makeFixedAxisMapper',...a),selectSpaceCellByIds:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceCellByIds',...a),resizeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','resizeSpaceRoot',...a),fillSpaceMaterialSelect:(...a)=>moduleRegistry.callIfReady('productionMaterials','fillSpaceMaterialSelect',...a),updateEditSpaceMaterialPreview:(...a)=>moduleRegistry.callIfReady('productionMaterials','updateEditSpaceMaterialPreview',...a),applySpaceMaterialToExistingPieces:(...a)=>moduleRegistry.callIfReady('productionMaterials','applySpaceMaterialToExistingPieces',...a),preferredDefaultMaterialId:(...a)=>moduleRegistry.callIfReady('productionMaterials','preferredDefaultMaterialId',...a),selectedCellInfo:(...a)=>moduleRegistry.callIfReady('library','selectedCellInfo',...a),updateSpaceMaterialPreview:(...a)=>moduleRegistry.callIfReady('productionMaterials','updateSpaceMaterialPreview',...a),projectCurrentOwnerId:(...a)=>moduleRegistry.callIfReady('projects','projectCurrentOwnerId',...a),createSpace:(...a)=>moduleRegistry.callIfReady('spacesCuts','createSpace',...a),setVisualMode,applySelectedSpaceCut:(...a)=>moduleRegistry.callIfReady('spacesCuts','applySelectedSpaceCut',...a),
   get selectedSpaceCell(){return selectedSpaceCell;},get visualMode(){return visualMode;}
 });
 ({axisCellMinKey,axisCellMaxKey,addFixedBandForCell,cellTangentWithin,cellTangentOverlapArea,cellTangentFaceArea,selectedCellEditPair,openEditSelectedSpaceDialog,openEditSpaceDialog,openNewSpaceDialog,applyCutSpacePrefs,cutSpaceCountValue,cutSideName,getCutSide,setCutSide,updateCutPreview,updateEditSpacePreview,updateEditSelectedSpacePreview,resizeSelectedSpaceCell,closeEditSelectedSpaceDialog,updateNewSpacePreview}=spaceEditor);
@@ -420,7 +420,19 @@ moduleRegistry.register('uiOverlays',uiOverlays);
 
 toolDockUi=createToolDockModule({runtimeModel,moduleRegistry,
   $,state:{get cadShadowsVisible(){return cadShadowsVisible;},set cadShadowsVisible(v){cadShadowsVisible=!!v;},get current2DView(){return current2DView;},set current2DView(v){current2DView=v;},get cutSide(){return getCutSide();},set cutSide(v){setCutSide(v);},get selectedSpaceCell(){return selectedSpaceCell;},set selectedSpaceCell(v){selectedSpaceCell=v;},get selected(){return selected;},set selected(v){selected=v;},get toolMode(){return toolMode;},set toolMode(v){toolMode=v;},get viewMode2D(){return viewMode2D;},set viewMode2D(v){viewMode2D=!!v;},get visualMode(){return visualMode;},set visualMode(v){visualMode=!!v;},get xray3DEnabled(){return xray3DEnabled;},set xray3DEnabled(v){xray3DEnabled=!!v;},get cadHardwareVisible(){return cadHardwareVisible;},set cadHardwareVisible(v){cadHardwareVisible=!!v;},get cadMachiningVisible(){return cadMachiningVisible;},set cadMachiningVisible(v){cadMachiningVisible=!!v;}},
-  activeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','activeSpaceRoot',...a),applyCadShadows,applyCutSpacePrefs,applySelectedSpaceCut,applyTechnical2DTransparency,cutSideName,cutSpaceCountValue,deleteSelected,deleteSelectedSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','deleteSelectedSpaceRoot',...a),duplicateSelected,elementIsVisible,exportProjectAspireZip:(...a)=>moduleRegistry.callIfReady('cutPlanUi','exportProjectAspireZip',...a),exportSelectedAspireDxf:(...a)=>moduleRegistry.callIfReady('cutPlanUi','exportSelectedAspireDxf',...a),exportSelectedFurniture:(...a)=>moduleRegistry.callIfReady('cadIo','exportSelectedFurniture',...a),largestVisibleCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','largestVisibleCell',...a),m,openCopyHardwareTool:(...a)=>moduleRegistry.callIfReady('productionMaterials','openCopyHardwareTool',...a),openCopyShapeTool:(...a)=>moduleRegistry.callIfReady('machiningShapes','openCopyShapeTool',...a),openCurvedStructureDialog:(...a)=>moduleRegistry.callIfReady('curvedFurniture','openCurvedStructureDialog',...a),openDeleteSelectedSpaceCellDialog:(...a)=>moduleRegistry.callIfReady('spacesCuts','openDeleteSelectedSpaceCellDialog',...a),openDoorSystemDialog:(...a)=>moduleRegistry.callIfReady('doorsDrawers','openDoorSystemDialog',...a),openDrawerSystemDialog:(...a)=>moduleRegistry.callIfReady('doorsDrawers','openDrawerSystemDialog',...a),openEditSpaceDialog,openLabelsDialog:(...a)=>moduleRegistry.callIfReady('productionMaterials','openLabelsDialog',...a),openMachiningDialog:(...a)=>moduleRegistry.callIfReady('machiningShapes','openMachiningDialog',...a),openNewSpaceDialog,openPartsListDialog:(...a)=>moduleRegistry.callIfReady('cutPlanUi','openPartsListDialog',...a),openProductionDialog:(...a)=>moduleRegistry.callIfReady('productionMaterials','openProductionDialog',...a),openShapeDialog:(...a)=>moduleRegistry.callIfReady('machiningShapes','openShapeDialog',...a),openSlattedPanelDialog:(...a)=>moduleRegistry.callIfReady('library','openSlattedPanelDialog',...a),openSpaceFromObject:(...a)=>moduleRegistry.callIfReady('spacesCuts','openSpaceFromObject',...a),openTapeModeChooser,openTechnicalLayoutDialog:(...a)=>moduleRegistry.callIfReady('technicalLayout','openTechnicalLayoutDialog',...a),parseDecimalInput:(...a)=>moduleRegistry.callIfReady('machiningShapes','parseDecimalInput',...a),quickCreatePieceFromTypeButton:(...a)=>moduleRegistry.callIfReady('pieceEditor','quickCreatePieceFromTypeButton',...a),redo,returnTo3D,selectPieceCreateTypeButton:(...a)=>moduleRegistry.callIfReady('pieceEditor','selectPieceCreateTypeButton',...a),selectSpaceCellByIds:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceCellByIds',...a),setFrontWorldView,setPieceVisualEdgesVisible,setTool,setVisualMode,showAllHiddenSpaces:(...a)=>moduleRegistry.callIfReady('spacesCuts','showAllHiddenSpaces',...a),toast,toggleActiveSpaceVisibility:(...a)=>moduleRegistry.callIfReady('spacesCuts','toggleActiveSpaceVisibility',...a),toggleCadHardwareVisibility,toggleCadMachiningVisibility,toggleDoorsForActiveSpace:(...a)=>moduleRegistry.callIfReady('doorsDrawers','toggleDoorsForActiveSpace',...a),undo,updateCutPreview,updateSpaceSelectionVisuals:(...a)=>moduleRegistry.callIfReady('spacesCuts','updateSpaceSelectionVisuals',...a),updateXray3DButton,viewSpace,worldAxisX,worldAxisY,worldAxisZ,XRAY_3D_KEY:CAD_APPEARANCE_KEYS.xray
+  activeSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','activeSpaceRoot',...a),applyCadShadows,applyCutSpacePrefs,
+  // r6: tool-dock nasce antes de spacesCuts/cameraNavigation. Dependências desses
+  // módulos precisam ser resolvidas no momento do clique; referências diretas
+  // congelavam undefined e faziam o corte rápido/vistas falharem silenciosamente.
+  applySelectedSpaceCut:(...a)=>moduleRegistry.callIfReady('spacesCuts','applySelectedSpaceCut',...a),
+  applyTechnical2DTransparency:(...a)=>moduleRegistry.callIfReady('cameraNavigation','applyTechnical2DTransparency',...a),
+  cutSideName,cutSpaceCountValue,deleteSelected,deleteSelectedSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','deleteSelectedSpaceRoot',...a),duplicateSelected,elementIsVisible,exportProjectAspireZip:(...a)=>moduleRegistry.callIfReady('cutPlanUi','exportProjectAspireZip',...a),exportSelectedAspireDxf:(...a)=>moduleRegistry.callIfReady('cutPlanUi','exportSelectedAspireDxf',...a),exportSelectedFurniture:(...a)=>moduleRegistry.callIfReady('cadIo','exportSelectedFurniture',...a),largestVisibleCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','largestVisibleCell',...a),m,openCopyHardwareTool:(...a)=>moduleRegistry.callIfReady('productionMaterials','openCopyHardwareTool',...a),openCopyShapeTool:(...a)=>moduleRegistry.callIfReady('machiningShapes','openCopyShapeTool',...a),openCurvedStructureDialog:(...a)=>moduleRegistry.callIfReady('curvedFurniture','openCurvedStructureDialog',...a),openDeleteSelectedSpaceCellDialog:(...a)=>moduleRegistry.callIfReady('spacesCuts','openDeleteSelectedSpaceCellDialog',...a),openDoorSystemDialog:(...a)=>moduleRegistry.callIfReady('doorsDrawers','openDoorSystemDialog',...a),openDrawerSystemDialog:(...a)=>moduleRegistry.callIfReady('doorsDrawers','openDrawerSystemDialog',...a),openEditSpaceDialog,openLabelsDialog:(...a)=>moduleRegistry.callIfReady('productionMaterials','openLabelsDialog',...a),openMachiningDialog:(...a)=>moduleRegistry.callIfReady('machiningShapes','openMachiningDialog',...a),openNewSpaceDialog,openPartsListDialog:(...a)=>moduleRegistry.callIfReady('cutPlanUi','openPartsListDialog',...a),openProductionDialog:(...a)=>moduleRegistry.callIfReady('productionMaterials','openProductionDialog',...a),openShapeDialog:(...a)=>moduleRegistry.callIfReady('machiningShapes','openShapeDialog',...a),openSlattedPanelDialog:(...a)=>moduleRegistry.callIfReady('library','openSlattedPanelDialog',...a),openSpaceFromObject:(...a)=>moduleRegistry.callIfReady('spacesCuts','openSpaceFromObject',...a),openTapeModeChooser,openTechnicalLayoutDialog:(...a)=>moduleRegistry.callIfReady('technicalLayout','openTechnicalLayoutDialog',...a),parseDecimalInput:(...a)=>moduleRegistry.callIfReady('machiningShapes','parseDecimalInput',...a),quickCreatePieceFromTypeButton:(...a)=>moduleRegistry.callIfReady('pieceEditor','quickCreatePieceFromTypeButton',...a),redo,
+  returnTo3D:(...a)=>moduleRegistry.callIfReady('cameraNavigation','returnTo3D',...a),
+  selectPieceCreateTypeButton:(...a)=>moduleRegistry.callIfReady('pieceEditor','selectPieceCreateTypeButton',...a),selectSpaceCellByIds:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceCellByIds',...a),
+  setFrontWorldView:(...a)=>moduleRegistry.callIfReady('spacesCuts','setFrontWorldView',...a),
+  setPieceVisualEdgesVisible,setTool,setVisualMode,showAllHiddenSpaces:(...a)=>moduleRegistry.callIfReady('spacesCuts','showAllHiddenSpaces',...a),toast,toggleActiveSpaceVisibility:(...a)=>moduleRegistry.callIfReady('spacesCuts','toggleActiveSpaceVisibility',...a),toggleCadHardwareVisibility,toggleCadMachiningVisibility,toggleDoorsForActiveSpace:(...a)=>moduleRegistry.callIfReady('doorsDrawers','toggleDoorsForActiveSpace',...a),undo,updateCutPreview,updateSpaceSelectionVisuals:(...a)=>moduleRegistry.callIfReady('spacesCuts','updateSpaceSelectionVisuals',...a),updateXray3DButton,
+  viewSpace:(...a)=>moduleRegistry.callIfReady('spacesCuts','viewSpace',...a),
+  worldAxisX,worldAxisY,worldAxisZ,XRAY_3D_KEY:CAD_APPEARANCE_KEYS.xray
 });
 TOOL_DOCK_CATALOG=toolDockUi.TOOL_DOCK_CATALOG;toolDockPrefs=toolDockUi.toolDockPrefs;
 ({syncToolDockButtons,renderToolDock,applyXray3D,toggleDockXray,closeToolDockBeforeMenu,quickDockSubmenuVisible,closeQuickDockSubmenu,initQuickDock,setToolDockOpen,initSpaceActionsDrag,restorePieceInspectorPosition,initPieceInspectorFloating,initToolDock,saveToolDockPrefs}=toolDockUi);
@@ -463,9 +475,20 @@ spacesCuts=createSpacesCutsModule({runtimeModel,moduleRegistry,
   updateSpaceMultiSelectBar:(...a)=>moduleRegistry.callIfReady('doorsDrawers','updateSpaceMultiSelectBar',...a),applyVisualSceneState,applyAllDoorVisibility:(...a)=>moduleRegistry.callIfReady('doorsDrawers','applyAllDoorVisibility',...a),renderMachiningVisuals:(...a)=>moduleRegistry.callIfReady('machiningShapes','renderMachiningVisuals',...a),
   isDoorObject:(...a)=>moduleRegistry.callIfReady('doorsDrawers','isDoorObject',...a),doorObjectShouldBeVisible:(...a)=>moduleRegistry.callIfReady('doorsDrawers','doorObjectShouldBeVisible',...a),restoreBaseColor,selectObject,commitHistory,designLabVisualizationOnlyActive,openPieceInspector,hideGuides,updateDoorsToggleButton:(...a)=>moduleRegistry.callIfReady('doorsDrawers','updateDoorsToggleButton',...a),updateMeasureBadge,
   objectBelongsToRoot:(...a)=>moduleRegistry.callIfReady('cadIo','objectBelongsToRoot',...a),selectedFurnitureRoot:(...a)=>moduleRegistry.callIfReady('cadIo','selectedFurnitureRoot',...a),canonicalFactoryMaterialId:(...a)=>moduleRegistry.callIfReady('productionMaterials','canonicalFactoryMaterialId',...a),resetSpaceDoubleTap,restoreTechnical2DTransparency,setVisualMode,frameFurnitureVisual,remember3DView,orthographicFrustum,useCamera,setViewModeBadge,applyTechnical2DTransparency,returnTo3D,
-  cellBox,addFixedBandForCell,mergeIntervals,pieceThicknessInfo:(...a)=>moduleRegistry.callIfReady('machiningShapes','pieceThicknessInfo',...a),productionMaterialById:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialById',...a),productionMaterialUsesPieceThickness:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialUsesPieceThickness',...a),fixedIntervalsFromSpace,structuralFixedIntervalsFromRoot,makeBalancedSpaceAxisMapper,normalizePieceManualGeometryDelta,remapMachiningForPieceResize:(...a)=>moduleRegistry.callIfReady('machiningShapes','remapMachiningForPieceResize',...a),rebuildFormGeometry:(...a)=>moduleRegistry.callIfReady('machiningShapes','rebuildFormGeometry',...a),sanitizeMachiningForPiece:(...a)=>moduleRegistry.callIfReady('machiningShapes','sanitizeMachiningForPiece',...a),rebuildDrawerSetsForRoot:(...a)=>moduleRegistry.callIfReady('doorsDrawers','rebuildDrawerSetsForRoot',...a),applyDoorVisibility:(...a)=>moduleRegistry.callIfReady('doorsDrawers','applyDoorVisibility',...a),getBounds,removeHardwareLinkedToObjects:(...a)=>moduleRegistry.callIfReady('productionMaterials','removeHardwareLinkedToObjects',...a),sameCellTangents,almostSpace,cellAxisMax,cellAxisMin,boxAxisMin,axisCellMinKey,axisCellMaxKey,selectedCellEditPair,cellTangentWithin,cellTangentOverlapArea,cellTangentFaceArea,mergedCellFromPair,setCellAxisMin,setCellAxisMax,removeDrawerSet:(...a)=>moduleRegistry.callIfReady('doorsDrawers','removeDrawerSet',...a),
+  cellBox,addFixedBandForCell,
+  // r5: library é inicializada depois de spaces-cuts. Estes helpers precisam
+  // ser resolvidos no momento da chamada; passar as variáveis por shorthand
+  // congelava `undefined` dentro do módulo e causava `mergeIntervals is not a function`.
+  mergeIntervals:(...a)=>moduleRegistry.call('library','mergeIntervals',...a),
+  fixedIntervalsFromSpace:(...a)=>moduleRegistry.call('library','fixedIntervalsFromSpace',...a),
+  structuralFixedIntervalsFromRoot:(...a)=>moduleRegistry.call('library','structuralFixedIntervalsFromRoot',...a),
+  makeBalancedSpaceAxisMapper:(...a)=>moduleRegistry.call('library','makeBalancedSpaceAxisMapper',...a),
+  pieceThicknessInfo:(...a)=>moduleRegistry.callIfReady('machiningShapes','pieceThicknessInfo',...a),productionMaterialById:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialById',...a),productionMaterialUsesPieceThickness:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialUsesPieceThickness',...a),normalizePieceManualGeometryDelta,remapMachiningForPieceResize:(...a)=>moduleRegistry.callIfReady('machiningShapes','remapMachiningForPieceResize',...a),rebuildFormGeometry:(...a)=>moduleRegistry.callIfReady('machiningShapes','rebuildFormGeometry',...a),sanitizeMachiningForPiece:(...a)=>moduleRegistry.callIfReady('machiningShapes','sanitizeMachiningForPiece',...a),rebuildDrawerSetsForRoot:(...a)=>moduleRegistry.callIfReady('doorsDrawers','rebuildDrawerSetsForRoot',...a),applyDoorVisibility:(...a)=>moduleRegistry.callIfReady('doorsDrawers','applyDoorVisibility',...a),getBounds,removeHardwareLinkedToObjects:(...a)=>moduleRegistry.callIfReady('productionMaterials','removeHardwareLinkedToObjects',...a),sameCellTangents,almostSpace,cellAxisMax,cellAxisMin,boxAxisMin,axisCellMinKey,axisCellMaxKey,selectedCellEditPair,cellTangentWithin,cellTangentOverlapArea,cellTangentFaceArea,mergedCellFromPair,setCellAxisMin,setCellAxisMax,removeDrawerSet:(...a)=>moduleRegistry.callIfReady('doorsDrawers','removeDrawerSet',...a),
   get selectedSpaceCell(){return selectedSpaceCell;},set selectedSpaceCell(v){selectedSpaceCell=v;},get activeSpaceRootId(){return activeSpaceRootId;},set activeSpaceRootId(v){activeSpaceRootId=v;},
-  get quickSpacesHidden(){return quickSpacesHidden;},set quickSpacesHidden(v){quickSpacesHidden=!!v;},get quickFrontFacesHidden(){return quickFrontFacesHidden;},get cadHardwareVisible(){return cadHardwareVisible;},
+  get quickSpacesHidden(){return quickSpacesHidden;},set quickSpacesHidden(v){quickSpacesHidden=!!v;},
+  // r6: applyQuickFrontVisibility altera este estado. Sem setter, o clique em
+  // “Ocultar portas/frentes” lançava TypeError em módulo ES (strict mode).
+  get quickFrontFacesHidden(){return quickFrontFacesHidden;},set quickFrontFacesHidden(v){quickFrontFacesHidden=!!v;},get cadHardwareVisible(){return cadHardwareVisible;},
   get doorRegionSelectionMode(){return doorRegionSelectionMode;},set doorRegionSelectionMode(v){doorRegionSelectionMode=!!v;},get lastEdit(){return lastEdit;},set lastEdit(v){lastEdit=v;},
   get visualMode(){return visualMode;},get current2DView(){return current2DView;},set current2DView(v){current2DView=v;},get viewMode2D(){return viewMode2D;},get camera(){return camera;},
   get selected(){return selected;},set selected(v){selected=v;}
@@ -614,12 +637,22 @@ $('pieceDivisionSide').addEventListener('change',updateCreatePiecesUI);
   updateDoorCreationVisibility();updateCreatePiecesUI();
 }));
 ['doorCreateHingeHoles','doorCreateSideHoles'].forEach(id=>$(id).addEventListener('change',()=>{updateDoorCreationVisibility();updateCreatePiecesUI();}));
+let createPiecesConfirmBusy=false;
 $('confirmCreatePieces').onclick=()=>{
-  if(createPiecesInSelectedCell()){
-    savePieceThicknessPreference({silent:true});
-    $('createPiecesDialog').style.display='none';
-    pieceEditor.state.pieceTypeLastClickButton=null;
-    pieceEditor.state.pieceTypeLastClickAt=0;
+  if(createPiecesConfirmBusy)return;
+  createPiecesConfirmBusy=true;
+  const btn=$('confirmCreatePieces');
+  if(btn)btn.disabled=true;
+  try{
+    if(createPiecesInSelectedCell()){
+      savePieceThicknessPreference({silent:true});
+      $('createPiecesDialog').style.display='none';
+      pieceEditor.state.pieceTypeLastClickButton=null;
+      pieceEditor.state.pieceTypeLastClickAt=0;
+    }
+  }finally{
+    // Evita duas criações quando há duplo clique/toque rápido no botão Criar.
+    setTimeout(()=>{createPiecesConfirmBusy=false;if(btn)btn.disabled=false;},250);
   }
 };
 
