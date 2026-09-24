@@ -13,7 +13,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.310.00';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.310.00-r4';
+const DESIGNLAB_JS_BUILD='1.310.00-r6';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
