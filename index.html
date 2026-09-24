@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.310.00-r8">
+<meta name="designlab-build" content="1.310.00-r12">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.310.00-r8';
+  const BUILD='1.310.00-r12';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.310.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/editor.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/materials.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/labels.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/layout.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/projects.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/settings.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/home.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/mobile.css?v=1.310.00-r8">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.310.00-r8">
+<link rel="stylesheet" href="css/base.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/editor.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/materials.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/labels.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/layout.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/projects.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/settings.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/home.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/mobile.css?v=1.310.00-r12">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.310.00-r12">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1983,9 +1983,41 @@
       <label id="pieceFrontInsetLabel">Recuo frente (mm)<input id="pieceFrontInset" type="text" value="0" inputmode="decimal" autocomplete="off"></label>
     </div>
     <div class="spaceFields two" style="margin-top:8px">
-      <label id="pieceBackInsetLabel">Recuo fundo (mm)<input id="pieceBackInset" type="text" value="0" inputmode="decimal" autocomplete="off"></label>
+      <label id="pieceBackInsetLabel"><span id="pieceBackInsetCaption">Recuo fundo (mm)</span><input id="pieceBackInset" type="text" value="0" inputmode="decimal" autocomplete="off"></label>
       <label id="piecePositionLabel">Posição do piso (mm)<input id="piecePosition" type="text" value="0" inputmode="decimal" autocomplete="off"><span class="dialogHelp" style="display:block;margin-top:3px">0 = centralizar no vão livre</span></label>
     </div>
+    <div id="backMachiningFields" class="hiddenField" style="margin-top:10px;padding:10px;border:1px solid rgba(83,214,232,.28);border-radius:12px">
+      <label style="display:flex;gap:9px;align-items:center;font-weight:800">
+        <input id="pieceBackMachine" type="checkbox" checked style="width:auto"> Usinar encaixe do fundo
+      </label>
+      <p class="dialogHelp" style="margin:6px 0 8px">O fundo aumenta para entrar nas peças ao redor. O valor informado em cada lado também vira a profundidade do rasgo correspondente.</p>
+      <div class="spaceFields two">
+        <label>Passa à esquerda (mm)<input id="pieceBackPassLeft" type="text" value="10" inputmode="decimal" autocomplete="off"></label>
+        <label>Passa à direita (mm)<input id="pieceBackPassRight" type="text" value="10" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <div class="spaceFields two" style="margin-top:8px">
+        <label>Passa para cima (mm)<input id="pieceBackPassTop" type="text" value="10" inputmode="decimal" autocomplete="off"></label>
+        <label>Passa para baixo (mm)<input id="pieceBackPassBottom" type="text" value="10" inputmode="decimal" autocomplete="off"></label>
+      </div>
+      <div class="spaceFields two" style="margin-top:8px">
+        <label>Folga do rasgo (mm)<input id="pieceBackGrooveClearance" type="text" value="0.5" inputmode="decimal" autocomplete="off"></label>
+        <label>Profundidade do rasgo<input value="Igual ao quanto o fundo passa" readonly></label>
+      </div>
+      <div style="margin-top:9px;padding:9px;border:1px solid #34393d;border-radius:10px;background:#111315">
+        <div class="machiningPresetHead">
+          <strong>Peças que recebem o rasgo</strong>
+          <span class="dialogHelp" style="margin:0">selecione os lados</span>
+        </div>
+        <div class="drawerGrooveGrid">
+          <label class="drawerGrooveChoice"><input id="pieceBackGrooveLeft" type="checkbox" checked><div><strong>Lateral esquerda</strong><span>Usina somente se este lado estiver marcado.</span></div></label>
+          <label class="drawerGrooveChoice"><input id="pieceBackGrooveRight" type="checkbox" checked><div><strong>Lateral direita</strong><span>Usina somente se este lado estiver marcado.</span></div></label>
+          <label class="drawerGrooveChoice"><input id="pieceBackGrooveTop" type="checkbox" checked><div><strong>Chapéu · cima</strong><span>Rasgo superior para encaixe do fundo.</span></div></label>
+          <label class="drawerGrooveChoice"><input id="pieceBackGrooveBottom" type="checkbox" checked><div><strong>Base · baixo</strong><span>Rasgo inferior para encaixe do fundo.</span></div></label>
+        </div>
+      </div>
+      <div id="pieceBackMachiningPreview" class="spaceCreatePreview" style="margin-top:8px">Encaixe do fundo: —</div>
+    </div>
+
     <div id="pieceExtraFields">
       <div class="spaceFields two" style="margin-top:8px">
         <label id="pieceCountLabel" class="hiddenField">Quantidade<input id="pieceCount" type="number" value="3" min="1" max="50" step="1"></label>
@@ -2754,6 +2786,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.310.00-r8"></script>
+<script type="module" src="js/app.js?v=1.310.00-r12"></script>
 </body>
 </html>
