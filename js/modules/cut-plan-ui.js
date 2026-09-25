@@ -1,9 +1,13 @@
 // DesignLabMoveis 1.310.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.310.00-r12';
+import { createCutPlanEngine } from './cut-plan.js?v=1.310.00-r14';
 
 export function createCutPlanUiModule(ctx){
-  const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
+  const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
   const runtimeModel=ctx.runtimeModel;
+  // r14: cutPlanUi nasce antes do módulo projects. A referência `projects` recebida
+  // na criação pode ser null para sempre; resolvemos o módulo atual apenas no uso.
+  const currentProjects=()=>getProjects?.()||projects||null;
+  const currentProjectRecord=()=>currentProjects()?.state?.currentProjectRecord||null;
 // ============================================================================
 // v95 · PRÉVIA ASPIRE
 // A tela e o DXF consomem esta mesma função de entidades.
@@ -1154,7 +1158,7 @@ function buildLabelsBaseCsv(groups){
     'Fita_U_menos','Fita_U_mais','Fita_V_menos','Fita_V_mais',
     'Fitas_resumo','Furos','Rasgos','Etiqueta_schema'
   ]);
-  const project=typeof projects.state.currentProjectRecord!=='undefined'?projects.state.currentProjectRecord:null;
+  const project=currentProjectRecord();
   for(const g of groups)for(const p of g.parts){
     const holes=p.machining.filter(o=>o.type==='hole').reduce((n,o)=>n+holeSeriesInstances(p.object,o).length,0);
     const grooves=p.machining.filter(o=>o.type==='groove').length;
@@ -2062,18 +2066,18 @@ function cutPlanPrintLinearPages(){
       const usedArea=pl.placements.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),pct=usedArea/Math.max(1,stockLength*stockWidth)*100;
       return `<tr><td><b>Prancha ${i+1}</b><small>${nice(stockLength)} × ${nice(stockWidth)} mm</small></td><td>${pl.placements.map(p=>`${escapeHtml(p.name||'Peça')} · ${nice(p.faceW)}×${nice(p.faceH)}×${nice(p.thickness)} mm`).join('<br>')}</td><td>${nice(pct)}%</td></tr>`;
     }).join('');
-    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(projects.state.currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>🪵 Plano de corte · Madeira maciça</h2></div><div class="sheetTag"><span>PRANCHA</span><b>${planks.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Madeira maciça')}</b></div><div><span>Espessura</span><b>${nice(g.thickness)} mm</b></div><div><span>Matéria-prima</span><b>${nice(stockLength)} × ${nice(stockWidth)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Prancha</th><th>Peças / cortes</th><th>Aproveit.</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Madeira maciça · plano separado das chapas</span><span>DesignLabMoveis 1.310.00</span></footer></section>`);
+    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord()?.name||'DesignLabMoveis')}</h1><h2>🪵 Plano de corte · Madeira maciça</h2></div><div class="sheetTag"><span>PRANCHA</span><b>${planks.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Madeira maciça')}</b></div><div><span>Espessura</span><b>${nice(g.thickness)} mm</b></div><div><span>Matéria-prima</span><b>${nice(stockLength)} × ${nice(stockWidth)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Prancha</th><th>Peças / cortes</th><th>Aproveit.</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Madeira maciça · plano separado das chapas</span><span>DesignLabMoveis 1.310.00</span></footer></section>`);
   }
   for(const g of dlMetalPlanGroups()){
     const mat=g.material||{},stockLength=Number(mat.stockLength||mat.sheetWidth||6000),profile=mat.profileWidth&&mat.profileHeight?`${nice(mat.profileWidth)} × ${nice(mat.profileHeight)} mm`:'perfil cadastrado';
     let bars=[],err='';try{bars=dlPackMetalBars(g.parts,stockLength,3);}catch(e){err=String(e?.message||e||'Falha no plano de ferro');}
     const rows=bars.map(b=>`<tr><td><b>Barra ${b.index}</b><small>${nice(stockLength)} mm</small></td><td>${b.parts.map(p=>`${escapeHtml(p.name||'Peça')} · ${nice(dlLinearPieceLengthMm(p))} mm`).join('<br>')}</td><td>${nice(b.waste)} mm</td></tr>`).join('');
-    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(projects.state.currentProjectRecord?.name||'DesignLabMoveis')}</h1><h2>▰ Plano de corte · Ferro / Metalon</h2></div><div class="sheetTag"><span>BARRA</span><b>${bars.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Perfil metálico')}</b></div><div><span>Perfil</span><b>${escapeHtml(profile)}</b></div><div><span>Barra</span><b>${nice(stockLength)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Barra</th><th>Peças / comprimentos</th><th>Sobra</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Ferro / Metalon · plano separado das chapas</span><span>DesignLabMoveis 1.310.00</span></footer></section>`);
+    pages.push(`<section class="printCutPage linearPrintPage"><header class="reportHead"><div><div class="brand">DESIGNLABMÓVEIS</div><h1>${escapeHtml(currentProjectRecord()?.name||'DesignLabMoveis')}</h1><h2>▰ Plano de corte · Ferro / Metalon</h2></div><div class="sheetTag"><span>BARRA</span><b>${bars.length}</b><small>${g.parts.length} peça(s)</small></div></header><div class="summaryGrid linearSummary"><div><span>Material</span><b>${escapeHtml(mat.name||'Perfil metálico')}</b></div><div><span>Perfil</span><b>${escapeHtml(profile)}</b></div><div><span>Barra</span><b>${nice(stockLength)} mm</b></div><div><span>Corte</span><b>3 mm</b></div></div><div class="linearReportBody">${err?`<div class="linearError">${escapeHtml(err)}</div>`:`<table class="linearTable"><thead><tr><th>Barra</th><th>Peças / comprimentos</th><th>Sobra</th></tr></thead><tbody>${rows}</tbody></table>`}</div><footer><span>Ferro / Metalon · plano separado das chapas</span><span>DesignLabMoveis 1.310.00</span></footer></section>`);
   }
   return pages;
 }
 function cutPlanPrintDocument(groups){
-  const project=escapeHtml(projects.state.currentProjectRecord?.name||'DesignLabMoveis'),sheetPages=groups.map((g,i)=>{
+  const project=escapeHtml(currentProjectRecord()?.name||'DesignLabMoveis'),sheetPages=groups.map((g,i)=>{
     const st=g.stats,mach=sheetPreviewStats(g),machTotal=mach.holesA+mach.holesB+mach.edge+mach.groovesA+mach.groovesB+mach.slots;
     const unique=new Set((g.parts||[]).map(p=>p.cutCode||p.name)).size;
     return `<section class="printCutPage">
@@ -2094,7 +2098,7 @@ function printCutPlan(){
     const hasLinear=dlWoodPlanGroups().length||dlMetalPlanGroups().length;
     if(!groups.length&&!hasLinear)throw new Error('Não há peças de chapa, madeira ou ferro para imprimir.');
     const html=cutPlanPrintDocument(groups),w=window.open('','_blank');
-    if(!w){downloadText(`${safeFileName(projects.state.currentProjectRecord?.name||'projeto')}-plano-de-corte.html`,html,'text/html;charset=utf-8');toast('O navegador bloqueou a impressão · salvei o plano de corte em HTML');return;}
+    if(!w){downloadText(`${safeFileName(currentProjectRecord()?.name||'projeto')}-plano-de-corte.html`,html,'text/html;charset=utf-8');toast('O navegador bloqueou a impressão · salvei o plano de corte em HTML');return;}
     w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print()}catch(_){}},400);
   }catch(err){toast(err.message||'Não foi possível imprimir o plano de corte');}
 }
@@ -2106,7 +2110,7 @@ function exportPanelSawSequenceCsv(){
     const groups=prepareSheetPreviewGroups().filter(g=>g.planMode==='panel');
     if(!groups.length)throw new Error('Não há chapas de seccionadora para exportar.');
     const csv=buildPanelSawCutsCsv(groups,cfg);
-    const name=`${safeFileName(projects.state.currentProjectRecord?.name||'projeto')}-sequencia-seccionadora.csv`;
+    const name=`${safeFileName(currentProjectRecord()?.name||'projeto')}-sequencia-seccionadora.csv`;
     downloadText(name,'\ufeff'+csv,'text/csv;charset=utf-8');
     toast(`Sequência da seccionadora gerada · ${groups.length} chapa(s). CSV de integração/conferência.`);
   }catch(err){toast(err.message||'Não foi possível gerar a sequência da seccionadora');}
@@ -2121,7 +2125,7 @@ async function exportPanelSawMingliZaw(){
     const groups=prepareSheetPreviewGroups().filter(g=>g.planMode==='panel'||g.cutMode==='panel');
     if(!groups.length)throw new Error('Não há chapas de seccionadora para exportar.');
     const files=buildMingliZawFiles(groups,cfg);
-    const filename=`${safeFileName(projects.state.currentProjectRecord?.name||'projeto')}-MINGLI-ZAW-1-POR-CHAPA-TESTE.zip`;
+    const filename=`${safeFileName(currentProjectRecord()?.name||'projeto')}-MINGLI-ZAW-1-POR-CHAPA-TESTE.zip`;
     target=await pickExportTarget(filename,'designlab-export-mingli-zaw','application/zip');
     const result=await writeExportTarget(target,zipStore(files),filename);
     const zawCount=files.filter(f=>/\.zaw$/i.test(f.name)).length;

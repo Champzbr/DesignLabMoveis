@@ -13,7 +13,7 @@ function designLabRuntimeVersion(){
   return tm?.[1]||'1.310.00';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.310.00-r12';
+const DESIGNLAB_JS_BUILD='1.310.00-r14';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.
@@ -71,6 +71,15 @@ let designLabSwRegistration=null;
 let designLabDeferredInstallPrompt=null;
 let designLabInstallHintShown=false;
 
+function designLabDesktopMode(){
+  try{
+    const q=new URLSearchParams(location.search);
+    return q.get('desktop')==='windows' || /DesignLabMoveisWindows\//i.test(navigator.userAgent||'');
+  }catch{
+    return /DesignLabMoveisWindows\//i.test(navigator.userAgent||'');
+  }
+}
+
 function designLabStandaloneMode(){
   return !!(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true);
 }
@@ -87,6 +96,7 @@ function designLabInstallInstructions(){
   return 'Abra este endereço no Chrome e use ⋮ → Instalar app (ou Adicionar à tela inicial). Depois abra pelo ícone DesignLabMoveis.';
 }
 function showDesignLabInstallCard(force=false){
+  if(designLabDesktopMode()){removeDesignLabInstallCard();return;}
   if(designLabStandaloneMode() || !designLabIsMobile())return;
   if(document.getElementById('designLabInstallCard'))return;
   if(!force && designLabInstallHintShown)return;
@@ -116,6 +126,7 @@ function showDesignLabInstallCard(force=false){
   };
 }
 function initDesignLabInstallExperience(){
+  if(designLabDesktopMode()){removeDesignLabInstallCard();return;}
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
     designLabDeferredInstallPrompt=e;
@@ -153,6 +164,7 @@ function updateCacheStatusUI(message=null){
   const el=$('appCacheStatus');
   if(!el)return;
   if(message){el.textContent=message;return;}
+  if(designLabDesktopMode()){el.textContent='Modo Windows · atualização direta pelo Netlify';return;}
   if(!('serviceWorker' in navigator)){
     el.textContent='Cache offline não suportado neste navegador.';
     return;
@@ -365,6 +377,16 @@ async function forceDesignLabServerRefresh(){
 async function initDesignLabServiceWorker(){
   updateCacheStatusUI();
 
+  if(designLabDesktopMode()){
+    if('serviceWorker' in navigator){
+      try{
+        const regs=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r=>r.unregister().catch(()=>false)));
+      }catch{}
+    }
+    return;
+  }
+
   if(!('serviceWorker' in navigator)||!/^https?:$/.test(location.protocol))return;
   try{
     designLabSwRegistration=await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'});
@@ -405,5 +427,5 @@ function showBannedAccount(reason=''){
 
 
 
-  return {DESIGNLAB_APP_VERSION,DESIGNLAB_JS_BUILD,designLabRuntimeBuild,setDesignLabVisualizationOnly,designLabVisualizationOnlyActive,markDesignLabUpdateAvailable,notifyDesignLabUpdateOnce,designLabStandaloneMode,designLabIsMobile,removeDesignLabInstallCard,designLabInstallInstructions,showDesignLabInstallCard,initDesignLabInstallExperience,compareAppVersions,setUpdateDialogStatus,updateCacheStatusUI,openUpdateDialog,closeUpdateDialog,checkDesignLabUpdate,applyDesignLabUpdate,forceDesignLabServerRefresh,initDesignLabServiceWorker,showBannedAccount};
+  return {DESIGNLAB_APP_VERSION,DESIGNLAB_JS_BUILD,designLabRuntimeBuild,setDesignLabVisualizationOnly,designLabVisualizationOnlyActive,markDesignLabUpdateAvailable,notifyDesignLabUpdateOnce,designLabDesktopMode,designLabStandaloneMode,designLabIsMobile,removeDesignLabInstallCard,designLabInstallInstructions,showDesignLabInstallCard,initDesignLabInstallExperience,compareAppVersions,setUpdateDialogStatus,updateCacheStatusUI,openUpdateDialog,closeUpdateDialog,checkDesignLabUpdate,applyDesignLabUpdate,forceDesignLabServerRefresh,initDesignLabServiceWorker,showBannedAccount};
 }
