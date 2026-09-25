@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.310.00-r18">
+<meta name="designlab-build" content="1.310.00-r19">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.310.00-r18';
+  const BUILD='1.310.00-r19';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.310.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/editor.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/materials.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/labels.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/layout.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/projects.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/settings.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/home.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/mobile.css?v=1.310.00-r18">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.310.00-r18">
+<link rel="stylesheet" href="css/base.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/editor.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/materials.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/labels.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/layout.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/projects.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/settings.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/home.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/mobile.css?v=1.310.00-r19">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.310.00-r19">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1971,6 +1971,7 @@
       <button class="secondary" data-piece-type="top">Chapéu · cima</button>
       <button class="secondary" data-piece-type="shelf">Prateleira · meio</button>
       <button class="secondary" data-piece-type="shelves">Prateleiras múltiplas</button>
+      <button class="secondary" data-piece-type="slat">Ripas</button>
       <button class="secondary" data-piece-type="back">Fundo</button>
       <button class="secondary" data-piece-type="front">Frente</button>
       <button class="secondary" data-piece-type="doors" style="grid-column:1 / -1">Portas</button>
@@ -1986,6 +1987,23 @@
       <label id="pieceBackInsetLabel"><span id="pieceBackInsetCaption">Recuo fundo (mm)</span><input id="pieceBackInset" type="text" value="0" inputmode="decimal" autocomplete="off"></label>
       <label id="piecePositionLabel">Posição do piso (mm)<input id="piecePosition" type="text" value="0" inputmode="decimal" autocomplete="off"><span class="dialogHelp" style="display:block;margin-top:3px">0 = centralizar no vão livre</span></label>
     </div>
+    <div id="pieceSlatFields" class="hiddenField" style="margin-top:10px;padding:10px;border:1px solid rgba(83,214,232,.28);border-radius:12px">
+      <p class="dialogHelp" style="margin:0 0 8px"><strong>Ripas</strong> · toque cria com a última configuração; segure no botão Ripas para abrir estas opções.</p>
+      <div class="spaceFields two">
+        <label>Orientação
+          <select id="pieceSlatOrientation"><option value="horizontal">Horizontal</option><option value="vertical">Vertical</option></select>
+        </label>
+        <label>Posição na profundidade
+          <select id="pieceSlatFace"><option value="front">Frente</option><option value="back">Fundo</option></select>
+        </label>
+      </div>
+      <div class="spaceFields two" style="margin-top:8px">
+        <label>Tamanho da ripa (mm)<input id="pieceSlatSize" type="text" value="100" inputmode="decimal" autocomplete="off"></label>
+        <label>Posição no vão (mm)<input id="pieceSlatPosition" type="text" value="0" inputmode="decimal" autocomplete="off"><span class="dialogHelp" style="display:block;margin-top:3px">0 = centralizar</span></label>
+      </div>
+      <p class="dialogHelp" style="margin:8px 0 0">Horizontal: o tamanho define a altura da ripa. Vertical: o tamanho define a largura. A espessura usa o campo principal acima. A região ocupada é removida dos espaços livres automaticamente.</p>
+    </div>
+
     <div id="backMachiningFields" class="hiddenField" style="margin-top:10px;padding:10px;border:1px solid rgba(83,214,232,.28);border-radius:12px">
       <label style="display:flex;gap:9px;align-items:center;font-weight:800">
         <input id="pieceBackMachine" type="checkbox" checked style="width:auto"> Usinar encaixe do fundo
@@ -2786,6 +2804,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.310.00-r18"></script>
+<script type="module" src="js/app.js?v=1.310.00-r19"></script>
 </body>
 </html>

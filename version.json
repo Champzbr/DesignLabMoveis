@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r18",
-  "released_at": "2026-09-24T22:20:00-03:00",
-  "message": "r18: Aspire mantém o plano de corte completo e adiciona DXFs auxiliares por operação/layer com as mesmas coordenadas do nesting, sem reposicionar peças."
+  "version": "1.310.00-r19",
+  "date": "2026-09-25",
+  "message": "r19: adiciona Ripas em Criar peças. Toque cria direto com a configuração salva; segurar abre opções horizontal/vertical, frente/fundo, tamanho e posição. A ripa recorta automaticamente o espaço ocupado."
 }
