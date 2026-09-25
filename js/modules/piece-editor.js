@@ -372,14 +372,17 @@ function updateCreatePiecesUI(){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
     const face=$('pieceRailFace')?.value==='back'?'back':'front';
     const sizeMm=Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100);
-    // Sarrafo sempre atravessa a LARGURA do vão e fica na parte SUPERIOR.
-    // A orientação descreve o próprio sarrafo (seção):
-    // horizontal = deitado (tamanho na profundidade, espessura na altura)
-    // vertical   = em pé   (espessura na profundidade, tamanho na altura)
-    const fits=orient==='horizontal'?sizeMm<=mm(s.depth)+.001:sizeMm<=mm(s.height)+.001;
+    // Sarrafo atravessa a LARGURA do vão e fica na parte SUPERIOR.
+    // Horizontal = deitado: tamanho ocupa a profundidade e a espessura ocupa a altura.
+    // Vertical   = em pé: espessura ocupa a profundidade e tamanho ocupa a altura.
+    const cutDepthMm=orient==='horizontal'?sizeMm:mm(t);
+    const cutHeightMm=orient==='horizontal'?mm(t):sizeMm;
+    const fits=cutDepthMm<=mm(s.depth)+.001 && cutHeightMm<=mm(s.height)+.001;
+    const remainDepth=Math.max(0,mm(s.depth)-cutDepthMm);
+    const remainHeight=Math.max(0,mm(s.height)-cutHeightMm);
     text=!fits
-      ? `O sarrafo de ${nice(sizeMm)} mm não cabe ${orient==='horizontal'?'na profundidade':'na altura'} deste espaço.`
-      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · tamanho ${nice(sizeMm)} mm · espessura ${nice(mm(t))} mm · reforço estrutural, sem dividir o espaço`;
+      ? `O sarrafo de ${nice(sizeMm)} mm não cabe neste espaço.`
+      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · ocupa ${nice(cutDepthMm)} mm da profundidade e ${nice(cutHeightMm)} mm da altura · espaço restante ${nice(mm(s.width))} × ${nice(remainDepth)} × ${nice(remainHeight)} mm`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -570,28 +573,36 @@ function createPiecesInSelectedCell(){
       const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
       const face=$('pieceRailFace')?.value==='back'?'back':'front';
       const size=m(Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100));
-      // r21: posição no móvel e orientação do sarrafo são conceitos separados.
-      // O sarrafo é sempre uma travessa SUPERIOR atravessando toda a largura.
-      // Frente/Fundo escolhe onde a travessa fica na profundidade.
-      // Horizontal = deitada; Vertical = em pé.
-      if(t>s.depth+PIECE_FIT_TOL) throw new Error('A espessura do sarrafo é maior que a profundidade deste espaço');
+      // r23: o sarrafo continua sendo uma travessa SUPERIOR na frente ou atrás,
+      // mas agora recorta o ESPAÇO útil nas duas dimensões da sua seção.
+      // Ex.: horizontal 100 mm com MDF 18 mm em vão P600 => P500 e A-18.
       let pieceW=s.width,pieceD,pieceH;
       if(orient==='horizontal'){
         if(size>s.depth+PIECE_FIT_TOL) throw new Error('O tamanho do sarrafo é maior que a profundidade deste espaço');
+        if(t>s.height+PIECE_FIT_TOL) throw new Error('A espessura do sarrafo é maior que a altura deste espaço');
         pieceD=Math.min(size,s.depth);
         pieceH=Math.min(t,s.height);
       }else{
+        if(t>s.depth+PIECE_FIT_TOL) throw new Error('A espessura do sarrafo é maior que a profundidade deste espaço');
         if(size>s.height+PIECE_FIT_TOL) throw new Error('O tamanho do sarrafo é maior que a altura deste espaço');
         pieceD=Math.min(t,s.depth);
         pieceH=Math.min(size,s.height);
       }
+      if(s.depth-pieceD<MIN_SIZE) throw new Error('O sarrafo não deixa profundidade livre suficiente');
+      if(s.height-pieceH<MIN_SIZE) throw new Error('O sarrafo não deixa altura livre suficiente');
       const x=info.center.x;
       const yBase=c.maxY-pieceH;
       const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
       const localLabel=face==='front'?'superior frontal':'superior traseiro';
-      const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${localLabel}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:false,spaceCutParentBounds:cellBox(c)},false);
-      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:false};
-      affectsSpace=false;
+      const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${localLabel}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:true,spaceCutParentBounds:cellBox(c)},false);
+      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:true,cutDepthMm:mm(pieceD),cutHeightMm:mm(pieceH)};
+      // O vão útil fica simultaneamente abaixo do sarrafo e fora da faixa de profundidade dele.
+      // Não criamos uma segunda célula estreita atrás/na frente da peça: o objetivo é que
+      // o espaço selecionável restante já seja o volume realmente utilizável para novas peças.
+      const remaining={...c,maxY:c.maxY-pieceH};
+      if(face==='front') remaining.maxZ=c.maxZ-pieceD;
+      else remaining.minZ=c.minZ+pieceD;
+      newFree.push(remaining);
       createdCount=1;
     } else if(pieceCreateType==='back'){
       // Para Fundo, o campo "Recuo fundo" é a distância entre a traseira do
@@ -708,7 +719,7 @@ function createPiecesInSelectedCell(){
   else if(pieceCreateType==='rail'){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
     const face=$('pieceRailFace')?.value==='back'?'traseiro':'frontal';
-    toast(`Sarrafo ${orient} criado no superior ${face} · espaço mantido`);
+    toast(`Sarrafo ${orient} criado no superior ${face} · espaço recortado`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];
