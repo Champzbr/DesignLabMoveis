@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r20",
+  "version": "1.310.00-r21",
   "date": "2026-09-25",
-  "message": "r20: adiciona Sarrafos em Criar peças, separados de Ripas. Horizontal/vertical, frente/fundo, tamanho e posição; sarrafo é reforço estrutural, pode sobrepor peças existentes e não recorta nem divide o espaço."
+  "message": "r21: corrige Sarrafos. O local no móvel agora é Superior frontal ou Superior traseiro; Horizontal/Vertical passa a definir a orientação física do próprio sarrafo (deitado/em pé). O sarrafo atravessa a largura, fica no topo e não recorta o espaço."
 }
