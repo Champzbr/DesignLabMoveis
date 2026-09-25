@@ -1,6 +1,6 @@
 // DesignLabMoveis 1.310.00 · módulo machining-shapes.
 export function createMachiningShapesModule(ctx){
-// 1.310.00-r16 · corrige referência de cor de seleção após migração state→ctx.
+// 1.310.00-r17 · corrige referência de cor de seleção após migração state→ctx.
 // COLORS.ctx.selected era inválido e quebrava ao aplicar/reconstruir uma Forma.
   const { $, COLORS, MM_TO_M, M_TO_MM, THREE, adminAllowed, cloudApiFetch, commitHistory, controls, m, makeBoxVisualEdges, makeCadEdgeMaterial, nice, perspectiveCamera, referenceMeshes, restoreBaseColor, returnTo3D, roundMmNumber, scene, selectObject, setAllFaces, setDesignLabVisualizationOnly, setDimensions, setTool, setVisualMode, toast, uid, updateInspector, xray3DActive }=ctx;
   const runtimeModel=ctx.runtimeModel;
