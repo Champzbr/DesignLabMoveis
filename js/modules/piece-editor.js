@@ -77,6 +77,7 @@ function capturePieceCreatePrefs(type=pieceCreateType){
     thickness:val('pieceThickness'),frontInset:val('pieceFrontInset'),backInset:val('pieceBackInset'),
     backMachine:!!$('pieceBackMachine')?.checked,backPassLeft:val('pieceBackPassLeft'),backPassRight:val('pieceBackPassRight'),backPassTop:val('pieceBackPassTop'),backPassBottom:val('pieceBackPassBottom'),backGrooveClearance:val('pieceBackGrooveClearance'),backGrooveLeft:!!$('pieceBackGrooveLeft')?.checked,backGrooveRight:!!$('pieceBackGrooveRight')?.checked,backGrooveTop:!!$('pieceBackGrooveTop')?.checked,backGrooveBottom:!!$('pieceBackGrooveBottom')?.checked,
     position:val('piecePosition'),count:val('pieceCount'),divisionMeasure:val('pieceDivisionMeasure'),divisionSide:val('pieceDivisionSide'),
+    slatOrientation:val('pieceSlatOrientation'),slatFace:val('pieceSlatFace'),slatSize:val('pieceSlatSize'),slatPosition:val('pieceSlatPosition'),
     savedAt:new Date().toISOString()
   };
 }
@@ -106,6 +107,7 @@ function applyPieceCreateConfig(type=pieceCreateType){
   if($('pieceBackGrooveTop')&&cfg.backGrooveTop!==undefined)$('pieceBackGrooveTop').checked=!!cfg.backGrooveTop;
   if($('pieceBackGrooveBottom')&&cfg.backGrooveBottom!==undefined)$('pieceBackGrooveBottom').checked=!!cfg.backGrooveBottom;
   set('piecePosition',cfg.position);set('pieceCount',cfg.count);set('pieceDivisionMeasure',cfg.divisionMeasure);set('pieceDivisionSide',cfg.divisionSide);
+  set('pieceSlatOrientation',cfg.slatOrientation);set('pieceSlatFace',cfg.slatFace);set('pieceSlatSize',cfg.slatSize);set('pieceSlatPosition',cfg.slatPosition);
   if(type==='doors')applyDoorCreateConfig();
   return true;
 }
@@ -140,7 +142,7 @@ function quickCreatePieceFromTypeButton(button){
   }
 }
 function pieceTypeName(type){
-  return ({left:'Lateral esquerda',right:'Lateral direita',division:'Divisão vertical',base:'Base',top:'Chapéu',shelf:'Prateleira',shelves:'Prateleiras',back:'Fundo',front:'Frente',doors:'Portas'})[type]||'Peça';
+  return ({left:'Lateral esquerda',right:'Lateral direita',division:'Divisão vertical',base:'Base',top:'Chapéu',shelf:'Prateleira',shelves:'Prateleiras',slat:'Ripas',back:'Fundo',front:'Frente',doors:'Portas'})[type]||'Peça';
 }
 
 function backMachiningConfig(){
@@ -234,6 +236,7 @@ function openCreatePiecesDialog(initialType='left',{doorRegion=false}={}){
   $('pieceFrontInset').value=0;$('pieceBackInset').value=0;$('piecePosition').value=0;$('pieceCount').value=3;
   if($('pieceBackMachine'))$('pieceBackMachine').checked=true;['pieceBackPassLeft','pieceBackPassRight','pieceBackPassTop','pieceBackPassBottom'].forEach(id=>{if($(id))$(id).value=10;});if($('pieceBackGrooveClearance'))$('pieceBackGrooveClearance').value=.5;['pieceBackGrooveLeft','pieceBackGrooveRight','pieceBackGrooveTop','pieceBackGrooveBottom'].forEach(id=>{if($(id))$(id).checked=true;});
   $('pieceDivisionMeasure').value=0;$('pieceDivisionSide').value='gap1';
+  if($('pieceSlatOrientation'))$('pieceSlatOrientation').value='horizontal';if($('pieceSlatFace'))$('pieceSlatFace').value='front';if($('pieceSlatSize'))$('pieceSlatSize').value=100;if($('pieceSlatPosition'))$('pieceSlatPosition').value=0;
   $('doorCount').value=2;$('doorGapLeft').value=2;$('doorGapRight').value=2;$('doorGapTop').value=2;$('doorGapBottom').value=2;$('doorGapMiddle').value=2;
   $('doorHandleType').value='none';$('doorHandleSize').value=20;$('doorHandleOrientation').value='horizontal';$('doorCavaPosition').value='top';
   $('doorCreateHingeHoles').checked=true;$('doorHingeCount').value='auto';$('doorHingeSide').value='auto';
@@ -290,10 +293,12 @@ function updateCreatePiecesUI(){
   const isDepthPiece=pieceCreateType==='back'||pieceCreateType==='front';
   const isDoors=pieceCreateType==='doors';
   const isDivision=pieceCreateType==='division';
+  const isSlat=pieceCreateType==='slat';
   $('piecePositionLabel').classList.toggle('hiddenField',!isShelf);
   $('pieceCountLabel').classList.toggle('hiddenField',!isMulti);
   $('pieceDistributionLabel').classList.toggle('hiddenField',!isMulti);
   $('pieceDivisionFields').classList.toggle('hiddenField',!isDivision);
+  $('pieceSlatFields')?.classList.toggle('hiddenField',!isSlat);
   $('doorGapFields').classList.toggle('hiddenField',!isDoors);
   $('backMachiningFields')?.classList.toggle('hiddenField',pieceCreateType!=='back');
   updateDoorCreationVisibility();
@@ -301,8 +306,8 @@ function updateCreatePiecesUI(){
   // traseira. Nesse caso o campo "Recuo fundo" passa a significar a distância
   // livre atrás do painel. Frente continua sem recuos próprios.
   // A divisão usa os mesmos recuos das laterais, para poder ser mais rasa que o móvel.
-  $('pieceFrontInsetLabel').classList.toggle('hiddenField',isDepthPiece||isDoors);
-  $('pieceBackInsetLabel').classList.toggle('hiddenField',pieceCreateType==='front'||isDoors);
+  $('pieceFrontInsetLabel').classList.toggle('hiddenField',isDepthPiece||isDoors||isSlat);
+  $('pieceBackInsetLabel').classList.toggle('hiddenField',pieceCreateType==='front'||isDoors||isSlat);
   const backCaption=$('pieceBackInsetCaption');
   if(backCaption)backCaption.textContent=pieceCreateType==='back'?'Afastar da traseira (mm)':'Recuo fundo (mm)';
   $('pieceTarget').textContent=info.isDoorRegion
@@ -345,6 +350,19 @@ function updateCreatePiecesUI(){
     if($('doorHingePreview'))$('doorHingePreview').textContent=dc.hingeEnabled
       ? `${dc.hingeCount} dobradiça(s) por porta · copo Ø${nice(dc.cupDiameter)} mm · ${dc.mountEnabled?`placa: linha ${nice(dc.mountFrontOffset)} mm da frente / ${nice(dc.mountSpacing)} mm entre furos`:'somente furo na porta'}`
       : 'Furação de dobradiça desativada';
+  } else if(isSlat){
+    const orient=$('pieceSlatOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const face=$('pieceSlatFace')?.value==='back'?'back':'front';
+    const sizeMm=Math.max(1,parseDecimalInput($('pieceSlatSize')?.value)||100);
+    let posMm=Math.max(0,parseDecimalInput($('pieceSlatPosition')?.value)||0);
+    const axisMm=orient==='horizontal'?mm(s.height):mm(s.width);
+    const maxPos=Math.max(0,axisMm-sizeMm);
+    const actualPos=posMm<=.000001?maxPos/2:Math.min(posMm,maxPos);
+    const orientLabel=orient==='horizontal'?'horizontal':'vertical';
+    const faceLabel=face==='front'?'frente':'fundo';
+    text=sizeMm>axisMm+.001
+      ? `A ripa de ${nice(sizeMm)} mm não cabe neste espaço.`
+      : `Ripa ${orientLabel} · ${faceLabel} · ${nice(sizeMm)} mm · ${nice(mm(t))} mm de espessura · ${posMm<=.000001?'centralizada':`posição ${nice(actualPos)} mm`} · corta o espaço automaticamente`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -410,6 +428,25 @@ function replaceCellWithFreeRegions(root, oldCell, regions, preferred='largest')
 const PIECE_FIT_TOL=.0005;
 function pieceFitsWholeAxis(pieceSize,cellSizeM){
   return Math.abs(pieceSize-cellSizeM)<=PIECE_FIT_TOL;
+}
+
+function subtractBoxFromCell(cell,box){
+  const b={
+    minX:Math.max(cell.minX,box.minX),maxX:Math.min(cell.maxX,box.maxX),
+    minY:Math.max(cell.minY,box.minY),maxY:Math.min(cell.maxY,box.maxY),
+    minZ:Math.max(cell.minZ,box.minZ),maxZ:Math.min(cell.maxZ,box.maxZ)
+  };
+  if(b.maxX<=b.minX||b.maxY<=b.minY||b.maxZ<=b.minZ)return [{...cell}];
+  const out=[];
+  if(b.minX-cell.minX>=MIN_SIZE)out.push({...cell,maxX:b.minX});
+  if(cell.maxX-b.maxX>=MIN_SIZE)out.push({...cell,minX:b.maxX});
+  const mx0=b.minX,mx1=b.maxX;
+  if(b.minY-cell.minY>=MIN_SIZE)out.push({...cell,minX:mx0,maxX:mx1,maxY:b.minY});
+  if(cell.maxY-b.maxY>=MIN_SIZE)out.push({...cell,minX:mx0,maxX:mx1,minY:b.maxY});
+  const my0=b.minY,my1=b.maxY;
+  if(b.minZ-cell.minZ>=MIN_SIZE)out.push({...cell,minX:mx0,maxX:mx1,minY:my0,maxY:my1,maxZ:b.minZ});
+  if(cell.maxZ-b.maxZ>=MIN_SIZE)out.push({...cell,minX:mx0,maxX:mx1,minY:my0,maxY:my1,minZ:b.maxZ});
+  return out;
 }
 
 function createPiecesInSelectedCell(){
@@ -486,6 +523,31 @@ function createPiecesInSelectedCell(){
       const pieceH=fillsWhole?s.height:t;
       createBox({...common,width:s.width,height:pieceH,x:info.center.x,yBase:fillsWhole?c.minY:c.maxY-pieceH,z,name:'Chapéu'},false);
       if(!fillsWhole) newFree.push({...c,maxY:c.maxY-pieceH});
+      createdCount=1;
+    } else if(pieceCreateType==='slat'){
+      const orient=$('pieceSlatOrientation')?.value==='vertical'?'vertical':'horizontal';
+      const face=$('pieceSlatFace')?.value==='back'?'back':'front';
+      const size=m(Math.max(1,parseDecimalInput($('pieceSlatSize')?.value)||100));
+      let posRaw=Math.max(0,parseDecimalInput($('pieceSlatPosition')?.value)||0);
+      if(t>s.depth+PIECE_FIT_TOL) throw new Error('A espessura da ripa é maior que a profundidade deste espaço');
+      if(orient==='horizontal'&&size>s.height+PIECE_FIT_TOL) throw new Error('A altura da ripa é maior que este espaço');
+      if(orient==='vertical'&&size>s.width+PIECE_FIT_TOL) throw new Error('A largura da ripa é maior que este espaço');
+      const pieceD=Math.min(t,s.depth);
+      const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
+      let pieceW,pieceH,x,yBase;
+      if(orient==='horizontal'){
+        pieceW=s.width;pieceH=Math.min(size,s.height);x=info.center.x;
+        const free=Math.max(0,s.height-pieceH),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
+        yBase=c.minY+pos;
+      }else{
+        pieceW=Math.min(size,s.width);pieceH=s.height;yBase=c.minY;
+        const free=Math.max(0,s.width-pieceW),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
+        x=c.minX+pos+pieceW/2;
+      }
+      const slat=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Ripa ${orient==='horizontal'?'horizontal':'vertical'} · ${face==='front'?'frente':'fundo'}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:true,spaceCutParentBounds:cellBox(c)},false);
+      slat.userData.slatConfig={orientation:orient,face,sizeMm:mm(size),positionMm:posRaw};
+      const box={minX:x-pieceW/2,maxX:x+pieceW/2,minY:yBase,maxY:yBase+pieceH,minZ:zc-pieceD/2,maxZ:zc+pieceD/2};
+      newFree.push(...subtractBoxFromCell(c,box));
       createdCount=1;
     } else if(pieceCreateType==='back'){
       // Para Fundo, o campo "Recuo fundo" é a distância entre a traseira do
@@ -593,6 +655,11 @@ function createPiecesInSelectedCell(){
   }
   else if(pieceCreateType==='shelf' && parseDecimalInput($('piecePosition').value)<=0){
     toast('Prateleira criada no centro · espessura descontada do vão');
+  }
+  else if(pieceCreateType==='slat'){
+    const orient=$('pieceSlatOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const face=$('pieceSlatFace')?.value==='back'?'fundo':'frente';
+    toast(`Ripa ${orient} criada na ${face} · espaço recortado automaticamente`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];

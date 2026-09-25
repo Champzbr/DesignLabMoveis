@@ -378,7 +378,8 @@ const QUICK_DOCK_SUBMENUS={
       {label:'Frente',pieceType:'front',pieceIcon:'front'},
       {label:'Fundo',pieceType:'back',pieceIcon:'back'},
       {label:'Prateleira',pieceType:'shelf',pieceIcon:'shelf'},
-      {label:'Divisão',pieceType:'division',pieceIcon:'division'}
+      {label:'Divisão',pieceType:'division',pieceIcon:'division'},
+      {label:'Ripas',pieceType:'slat',pieceIcon:'slat'}
     ]
   },
   machining:{
@@ -450,7 +451,8 @@ function quickDockPieceIcon(kind){
     front:'13,22 44,22 44,49 13,49',
     back:'20,14 49,22 49,46 20,38',
     shelf:'10,31 32,43 54,31 32,19',
-    division:'27,14 37,20 37,48 27,42'
+    division:'27,14 37,20 37,48 27,42',
+    slat:'10,27 54,27 54,37 10,37'
   };
   const fill=faces[kind]||faces.left;
   w.innerHTML=`<svg viewBox="0 0 64 64" focusable="false" aria-hidden="true">
@@ -459,6 +461,7 @@ function quickDockPieceIcon(kind){
     <path class="quickPieceWire" d="M32 6 54 18 54 44 32 56 10 44 10 18 32 6Zm0 24L10 18m22 12 22-12m-22 12v26"/>
     ${kind==='shelf'?'<path class="quickPieceAccent" d="M10 31 32 43 54 31"/>':''}
     ${kind==='division'?'<path class="quickPieceAccent" d="M32 7v49"/>':''}
+    ${kind==='slat'?'<path class="quickPieceAccent" d="M10 27 54 27M10 37 54 37"/>':''}
   </svg>`;
   return w;
 }
