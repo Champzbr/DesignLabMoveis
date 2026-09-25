@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r21",
+  "version": "1.310.00-r22",
   "date": "2026-09-25",
-  "message": "r21: corrige Sarrafos. O local no móvel agora é Superior frontal ou Superior traseiro; Horizontal/Vertical passa a definir a orientação física do próprio sarrafo (deitado/em pé). O sarrafo atravessa a largura, fica no topo e não recorta o espaço."
+  "message": "r22: corrige travamento na tela de login após r21. O campo antigo pieceRailPosition foi removido da interface dos Sarrafos, mas o bootstrap ainda tentava registrar evento nele e interrompia a inicialização antes da autenticação. Listeners de controles opcionais agora usam guarda segura."
 }

@@ -140,7 +140,7 @@ O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `modu
 
 Build: **1.310.00-r8**.
 
-## Hotfix 1.310.00-r21
+## Hotfix 1.310.00-r22
 - Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
 - Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
 
@@ -162,7 +162,7 @@ Build: **1.310.00-r8**.
 - Exportação Aspire: fallback automático para download quando File System Access perde a ativação do usuário (User activation required), comum em PWA/WebView/Electron.
 
 
-## Hotfix 1.310.00-r21
+## Hotfix 1.310.00-r22
 - Remove layers-base vazias como `CORTE_EXTERNO`/`CORTE_INTERNO` do DXF Aspire.
 - Contornos passam a aparecer somente como `CORTE_EXTERNO_E<espessura>_P<profundidade>`.
 - Corte interno e encaixes seguem o mesmo padrão.
@@ -170,7 +170,7 @@ Build: **1.310.00-r8**.
 - Não altera posição, contorno ou quantidade de vetores; muda somente o nome/organização das layers.
 
 
-## 1.310.00-r21 · Ripas
+## 1.310.00-r22 · Ripas
 - Novo botão **Ripas** no submenu Criar peças.
 - Toque curto: cria diretamente usando a última configuração.
 - Pressionar/segurar: abre configuração da ripa.
@@ -193,3 +193,9 @@ Build: **1.310.00-r8**.
 - Horizontal = deitado (tamanho na profundidade, espessura na altura).
 - Vertical = em pé (espessura na profundidade, tamanho na altura).
 - Continua estrutural, pode sobrepor peças e não recorta/divide o espaço.
+
+
+## r22 — correção de inicialização/login
+- Corrige boot interrompido por `pieceRailPosition` removido da UI na r21.
+- Registro de eventos de controles opcionais agora usa guarda segura, evitando `null.addEventListener`.
+- Nenhuma alteração na lógica de login/conta Netlify; a falha acontecia antes do bootstrap da autenticação.
