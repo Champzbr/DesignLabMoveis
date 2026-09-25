@@ -248,7 +248,12 @@ function openQuickSelectedConfiguration(){
   if(ctx.selectedSpaceCell){
     const root=getSpaceRoot(ctx.selectedSpaceCell.rootId),cell=getSpaceCell(ctx.selectedSpaceCell.rootId,ctx.selectedSpaceCell.cellId);
     if(root&&cell){
-      selectSpaceCellByIds(root.id,cell.id,{showMenu:true});
+      selectSpaceCellByIds(root.id,cell.id,{showMenu:false});
+      const sz=cellSize(cell);
+      const info=$('spaceMoreInfo');
+      if(info)info.textContent=`${root.name} · L ${mm(sz.width)} · P ${mm(sz.depth)} · A ${mm(sz.height)} mm`;
+      const dlg=$('spaceMoreDialog');
+      if(dlg)dlg.style.display='flex';
       toast('Configuração do espaço');
       return true;
     }
@@ -260,7 +265,12 @@ function openQuickSelectedConfiguration(){
   }
   if(ctx.activeSpaceRootId){
     const root=getSpaceRoot(ctx.activeSpaceRootId);
-    if(root){selectSpaceRootOnly(root,{showMenu:true});toast('Configuração do móvel');return true;}
+    if(root){
+      selectSpaceRootOnly(root,{showMenu:false});
+      const info=$('spaceMoreInfo');if(info)info.textContent=`${root.name} · L ${mm(root.width)} · P ${mm(root.depth)} · A ${mm(root.height)} mm · móvel completo`;
+      const dlg=$('spaceMoreDialog');if(dlg)dlg.style.display='flex';
+      toast('Configuração do móvel');return true;
+    }
   }
   toast('Selecione um espaço ou uma peça');
   return false;

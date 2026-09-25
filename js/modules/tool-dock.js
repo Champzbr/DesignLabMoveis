@@ -380,8 +380,10 @@ const QUICK_DOCK_SUBMENUS={
       {label:'Prateleira',pieceType:'shelf',pieceIcon:'shelf'},
       {label:'Divisão',pieceType:'division',pieceIcon:'division'},
       {label:'Ripas',pieceType:'slat',pieceIcon:'slat'},
-      {label:'Sarrafo frontal',pieceType:'rail',railFace:'front',pieceIcon:'railFront'},
-      {label:'Sarrafo traseiro',pieceType:'rail',railFace:'back',pieceIcon:'railBack'}
+      {label:'Sarr. sup. frente',pieceType:'rail',railFace:'front',railLevel:'top',pieceIcon:'railFront'},
+      {label:'Sarr. sup. trás',pieceType:'rail',railFace:'back',railLevel:'top',pieceIcon:'railBack'},
+      {label:'Sarr. inf. frente',pieceType:'rail',railFace:'front',railLevel:'bottom',pieceIcon:'railFrontBottom'},
+      {label:'Sarr. inf. trás',pieceType:'rail',railFace:'back',railLevel:'bottom',pieceIcon:'railBackBottom'}
     ]
   },
   machining:{
@@ -457,7 +459,9 @@ function quickDockPieceIcon(kind){
     slat:'10,27 54,27 54,37 10,37',
     rail:'10,24 54,24 54,40 10,40',
     railFront:'13,20 44,20 44,31 13,31',
-    railBack:'20,13 49,21 49,31 20,23'
+    railBack:'20,13 49,21 49,31 20,23',
+    railFrontBottom:'13,33 44,33 44,44 13,44',
+    railBackBottom:'20,34 49,42 49,52 20,44'
   };
   const fill=faces[kind]||faces.left;
   w.innerHTML=`<svg viewBox="0 0 64 64" focusable="false" aria-hidden="true">
@@ -470,28 +474,30 @@ function quickDockPieceIcon(kind){
     ${kind==='rail'?'<path class="quickPieceAccent" d="M10 24 54 24M10 40 54 40"/>':''}
     ${kind==='railFront'?'<path class="quickPieceAccent" d="M13 20 44 20M13 31 44 31"/>':''}
     ${kind==='railBack'?'<path class="quickPieceAccent" d="M20 13 49 21M20 23 49 31"/>':''}
+    ${kind==='railFrontBottom'?'<path class="quickPieceAccent" d="M13 33 44 33M13 44 44 44"/>':''}
+    ${kind==='railBackBottom'?'<path class="quickPieceAccent" d="M20 34 49 42M20 44 49 52"/>':''}
   </svg>`;
   return w;
 }
-function quickDockPreparePieceType(type,railFace=null){
+function quickDockPreparePieceType(type,railFace=null,railLevel=null){
   if(!dockEnsureSpace(true))return null;
   closeToolDockBeforeMenu();
   const opener=$('createPiecesBtn');if(!opener){toast('Criar peças indisponível');return null;}
   opener.click();
   const selector=type==='rail'&&railFace
-    ? `[data-piece-type="rail"][data-rail-face="${railFace}"]`
+    ? `[data-piece-type="rail"][data-rail-face="${railFace}"]${railLevel?`[data-rail-level="${railLevel}"]`:''}`
     : `[data-piece-type="${type}"]`;
   const b=document.querySelector(selector)||document.querySelector(`[data-piece-type="${type}"]`);
   if(b)selectPieceCreateTypeButton(b);
   return b||null;
 }
-function quickDockOpenPieceType(type,railFace=null){
+function quickDockOpenPieceType(type,railFace=null,railLevel=null){
   closeQuickDockSubmenu();
-  quickDockPreparePieceType(type,railFace);
+  quickDockPreparePieceType(type,railFace,railLevel);
 }
-function quickDockDirectCreatePieceType(type,railFace=null){
+function quickDockDirectCreatePieceType(type,railFace=null,railLevel=null){
   closeQuickDockSubmenu();
-  const b=quickDockPreparePieceType(type,railFace);
+  const b=quickDockPreparePieceType(type,railFace,railLevel);
   if(!b)return;
   quickCreatePieceFromTypeButton(b);
 }
@@ -501,18 +507,18 @@ function bindQuickDockPieceSubTool(button,item){
   button.addEventListener('pointerdown',e=>{
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.stopPropagation();longPress=false;clearHold();
-    holdTimer=setTimeout(()=>{holdTimer=0;longPress=true;quickDockOpenPieceType(item.pieceType,item.railFace||null);},520);
+    holdTimer=setTimeout(()=>{holdTimer=0;longPress=true;quickDockOpenPieceType(item.pieceType,item.railFace||null,item.railLevel||null);},520);
   });
   button.addEventListener('pointerup',e=>{
     e.stopPropagation();const wasLong=longPress;clearHold();
-    if(!wasLong)quickDockDirectCreatePieceType(item.pieceType,item.railFace||null);
+    if(!wasLong)quickDockDirectCreatePieceType(item.pieceType,item.railFace||null,item.railLevel||null);
     longPress=false;
   });
   button.addEventListener('pointercancel',()=>{clearHold();longPress=false;});
   button.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')clearHold();});
   button.addEventListener('contextmenu',e=>e.preventDefault());
   // Teclado/acessibilidade: Enter/Espaço equivalem ao toque simples.
-  button.addEventListener('click',e=>{if(e.detail===0){e.stopPropagation();quickDockDirectCreatePieceType(item.pieceType,item.railFace||null);}});
+  button.addEventListener('click',e=>{if(e.detail===0){e.stopPropagation();quickDockDirectCreatePieceType(item.pieceType,item.railFace||null,item.railLevel||null);}});
 }
 function quickDockPrepareCutSide(side){
   if(!dockEnsureSpace(true))return false;
@@ -552,7 +558,7 @@ function bindQuickDockCutSubTool(button,item){
 }
 function runQuickDockSubItem(item){
   if(!item)return;
-  if(item.pieceType){quickDockDirectCreatePieceType(item.pieceType,item.railFace||null);return;}
+  if(item.pieceType){quickDockDirectCreatePieceType(item.pieceType,item.railFace||null,item.railLevel||null);return;}
   if(item.cutSide){quickDockDirectCutSide(item.cutSide);return;}
   closeQuickDockSubmenu();
   if(item.tool==='createPiecesDirect'){runDockTool('createPieces');return;}

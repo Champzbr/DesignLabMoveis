@@ -78,7 +78,7 @@ function capturePieceCreatePrefs(type=pieceCreateType){
     backMachine:!!$('pieceBackMachine')?.checked,backPassLeft:val('pieceBackPassLeft'),backPassRight:val('pieceBackPassRight'),backPassTop:val('pieceBackPassTop'),backPassBottom:val('pieceBackPassBottom'),backGrooveClearance:val('pieceBackGrooveClearance'),backGrooveLeft:!!$('pieceBackGrooveLeft')?.checked,backGrooveRight:!!$('pieceBackGrooveRight')?.checked,backGrooveTop:!!$('pieceBackGrooveTop')?.checked,backGrooveBottom:!!$('pieceBackGrooveBottom')?.checked,
     position:val('piecePosition'),count:val('pieceCount'),divisionMeasure:val('pieceDivisionMeasure'),divisionSide:val('pieceDivisionSide'),
     slatOrientation:val('pieceSlatOrientation'),slatFace:val('pieceSlatFace'),slatSize:val('pieceSlatSize'),slatPosition:val('pieceSlatPosition'),
-    railOrientation:val('pieceRailOrientation'),railFace:val('pieceRailFace'),railSize:val('pieceRailSize'),railPosition:val('pieceRailPosition'),
+    railOrientation:val('pieceRailOrientation'),railLevel:val('pieceRailLevel'),railFace:val('pieceRailFace'),railSize:val('pieceRailSize'),railPosition:val('pieceRailPosition'),
     savedAt:new Date().toISOString()
   };
 }
@@ -109,7 +109,7 @@ function applyPieceCreateConfig(type=pieceCreateType){
   if($('pieceBackGrooveBottom')&&cfg.backGrooveBottom!==undefined)$('pieceBackGrooveBottom').checked=!!cfg.backGrooveBottom;
   set('piecePosition',cfg.position);set('pieceCount',cfg.count);set('pieceDivisionMeasure',cfg.divisionMeasure);set('pieceDivisionSide',cfg.divisionSide);
   set('pieceSlatOrientation',cfg.slatOrientation);set('pieceSlatFace',cfg.slatFace);set('pieceSlatSize',cfg.slatSize);set('pieceSlatPosition',cfg.slatPosition);
-  set('pieceRailOrientation',cfg.railOrientation);set('pieceRailFace',cfg.railFace);set('pieceRailSize',cfg.railSize);set('pieceRailPosition',cfg.railPosition);
+  set('pieceRailOrientation',cfg.railOrientation);set('pieceRailLevel',cfg.railLevel);set('pieceRailFace',cfg.railFace);set('pieceRailSize',cfg.railSize);set('pieceRailPosition',cfg.railPosition);
   if(type==='doors')applyDoorCreateConfig();
   return true;
 }
@@ -127,8 +127,9 @@ function selectPieceCreateTypeButton(button,{loadSaved=true}={}){
   if(loadSaved)applyPieceCreateConfig(pieceCreateType);
   // r24: frontal e traseiro são atalhos separados, mas compartilham a mesma
   // configuração do sarrafo. O botão escolhido sempre define o lado.
-  if(pieceCreateType==='rail'&&button.dataset.railFace&&$('pieceRailFace')){
-    $('pieceRailFace').value=button.dataset.railFace==='back'?'back':'front';
+  if(pieceCreateType==='rail'){
+    if(button.dataset.railFace&&$('pieceRailFace'))$('pieceRailFace').value=button.dataset.railFace==='back'?'back':'front';
+    if(button.dataset.railLevel&&$('pieceRailLevel'))$('pieceRailLevel').value=button.dataset.railLevel==='bottom'?'bottom':'top';
   }
   updateCreatePiecesUI();
 }
@@ -244,7 +245,7 @@ function openCreatePiecesDialog(initialType='left',{doorRegion=false}={}){
   if($('pieceBackMachine'))$('pieceBackMachine').checked=true;['pieceBackPassLeft','pieceBackPassRight','pieceBackPassTop','pieceBackPassBottom'].forEach(id=>{if($(id))$(id).value=10;});if($('pieceBackGrooveClearance'))$('pieceBackGrooveClearance').value=.5;['pieceBackGrooveLeft','pieceBackGrooveRight','pieceBackGrooveTop','pieceBackGrooveBottom'].forEach(id=>{if($(id))$(id).checked=true;});
   $('pieceDivisionMeasure').value=0;$('pieceDivisionSide').value='gap1';
   if($('pieceSlatOrientation'))$('pieceSlatOrientation').value='horizontal';if($('pieceSlatFace'))$('pieceSlatFace').value='front';if($('pieceSlatSize'))$('pieceSlatSize').value=100;if($('pieceSlatPosition'))$('pieceSlatPosition').value=0;
-  if($('pieceRailOrientation'))$('pieceRailOrientation').value='horizontal';if($('pieceRailFace'))$('pieceRailFace').value='front';if($('pieceRailSize'))$('pieceRailSize').value=100;if($('pieceRailPosition'))$('pieceRailPosition').value=0;
+  if($('pieceRailOrientation'))$('pieceRailOrientation').value='horizontal';if($('pieceRailLevel'))$('pieceRailLevel').value='top';if($('pieceRailFace'))$('pieceRailFace').value='front';if($('pieceRailSize'))$('pieceRailSize').value=100;if($('pieceRailPosition'))$('pieceRailPosition').value=0;
   $('doorCount').value=2;$('doorGapLeft').value=2;$('doorGapRight').value=2;$('doorGapTop').value=2;$('doorGapBottom').value=2;$('doorGapMiddle').value=2;
   $('doorHandleType').value='none';$('doorHandleSize').value=20;$('doorHandleOrientation').value='horizontal';$('doorCavaPosition').value='top';
   $('doorCreateHingeHoles').checked=true;$('doorHingeCount').value='auto';$('doorHingeSide').value='auto';
@@ -375,22 +376,20 @@ function updateCreatePiecesUI(){
       : `Ripa ${orientLabel} · ${faceLabel} · ${nice(sizeMm)} mm · ${nice(mm(t))} mm de espessura · ${posMm<=.000001?'centralizada':`posição ${nice(actualPos)} mm`} · corta o espaço automaticamente`;
   } else if(isRail){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const level=$('pieceRailLevel')?.value==='bottom'?'bottom':'top';
     const face=$('pieceRailFace')?.value==='back'?'back':'front';
     const sizeMm=Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100);
-    // Sarrafo atravessa a LARGURA do vão e fica na parte SUPERIOR.
-    // Horizontal = deitado: tamanho ocupa a profundidade e a espessura ocupa a altura.
-    // Vertical   = em pé: espessura ocupa a profundidade e tamanho ocupa a altura.
+    // r25: orientação define a SEÇÃO do sarrafo, não o local no móvel.
+    // Deitado: tamanho ocupa Z/profundidade e espessura ocupa Y/altura.
+    // Em pé: espessura ocupa Z/profundidade e tamanho ocupa Y/altura.
     const cutDepthMm=orient==='horizontal'?sizeMm:mm(t);
     const cutHeightMm=orient==='horizontal'?mm(t):sizeMm;
     const fits=cutDepthMm<=mm(s.depth)+.001 && cutHeightMm<=mm(s.height)+.001;
-    // r24: o sarrafo ocupa fisicamente só a frente ou o fundo, mas o recorte
-    // lógico do espaço é SOMENTE no topo e vale pela profundidade inteira.
-    // Deitado => corta a espessura. Em pé => corta a largura/tamanho do sarrafo.
-    const remainDepth=mm(s.depth);
-    const remainHeight=Math.max(0,mm(s.height)-cutHeightMm);
+    const oppositeDepth=Math.max(0,mm(s.depth)-cutDepthMm);
+    const mainHeight=Math.max(0,mm(s.height)-cutHeightMm);
     text=!fits
       ? `O sarrafo de ${nice(sizeMm)} mm não cabe neste espaço.`
-      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · peça ocupa ${nice(cutDepthMm)} mm na profundidade · corte do vão somente no topo: ${nice(cutHeightMm)} mm · espaço restante ${nice(mm(s.width))} × ${nice(remainDepth)} × ${nice(remainHeight)} mm`;
+      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · ${level==='top'?'superior':'inferior'} ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · ocupa ${nice(cutDepthMm)} mm na profundidade × ${nice(cutHeightMm)} mm na altura. O recorte acompanha só o volume da peça: sobra vão principal de ${nice(mainHeight)} mm de altura e uma faixa ${level==='top'?'no mesmo nível superior':'no mesmo nível inferior'} de ${nice(oppositeDepth)} mm na profundidade para outra peça.`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -579,11 +578,9 @@ function createPiecesInSelectedCell(){
       createdCount=1;
     } else if(pieceCreateType==='rail'){
       const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+      const level=$('pieceRailLevel')?.value==='bottom'?'bottom':'top';
       const face=$('pieceRailFace')?.value==='back'?'back':'front';
       const size=m(Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100));
-      // r23: o sarrafo continua sendo uma travessa SUPERIOR na frente ou atrás,
-      // mas agora recorta o ESPAÇO útil nas duas dimensões da sua seção.
-      // Ex.: horizontal 100 mm com MDF 18 mm em vão P600 => P500 e A-18.
       let pieceW=s.width,pieceD,pieceH;
       if(orient==='horizontal'){
         if(size>s.depth+PIECE_FIT_TOL) throw new Error('O tamanho do sarrafo é maior que a profundidade deste espaço');
@@ -596,17 +593,16 @@ function createPiecesInSelectedCell(){
         pieceD=Math.min(t,s.depth);
         pieceH=Math.min(size,s.height);
       }
-      if(s.height-pieceH<MIN_SIZE) throw new Error('O sarrafo não deixa altura livre suficiente');
       const x=info.center.x;
-      const yBase=c.maxY-pieceH;
+      const yBase=level==='top'?c.maxY-pieceH:c.minY;
       const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
-      const localLabel=face==='front'?'superior frontal':'superior traseiro';
+      const localLabel=`${level==='top'?'superior':'inferior'} ${face==='front'?'frontal':'traseiro'}`;
       const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${localLabel}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:true,spaceCutParentBounds:cellBox(c)},false);
-      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:true,cutDepthMm:0,physicalDepthMm:mm(pieceD),cutHeightMm:mm(pieceH),spaceCutMode:'top-band-full-depth'};
-      // r24: não mexe em minZ/maxZ. Ex.: P600 permanece P600.
-      // Horizontal/deitado: A diminui pela espessura (18 mm).
-      // Vertical/em pé: A diminui pelo tamanho do sarrafo (ex.: 60 mm).
-      newFree.push({...c,maxY:c.maxY-pieceH});
+      const occupied={minX:c.minX,maxX:c.maxX,minY:yBase,maxY:yBase+pieceH,minZ:zc-pieceD/2,maxZ:zc+pieceD/2};
+      rail.userData.railConfig={orientation:orient,level,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:true,cutDepthMm:mm(pieceD),physicalDepthMm:mm(pieceD),cutHeightMm:mm(pieceH),spaceCutMode:'occupied-box'};
+      // r25: recorta SOMENTE o volume realmente ocupado. Isso cria uma faixa
+      // livre na profundidade oposta, permitindo outro sarrafo no mesmo nível.
+      newFree.push(...subtractBoxFromCell(c,occupied));
       createdCount=1;
     } else if(pieceCreateType==='back'){
       // Para Fundo, o campo "Recuo fundo" é a distância entre a traseira do
@@ -722,8 +718,9 @@ function createPiecesInSelectedCell(){
   }
   else if(pieceCreateType==='rail'){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const level=$('pieceRailLevel')?.value==='bottom'?'inferior':'superior';
     const face=$('pieceRailFace')?.value==='back'?'traseiro':'frontal';
-    toast(`Sarrafo ${orient} criado no superior ${face} · corte somente no topo`);
+    toast(`Sarrafo ${orient} criado no ${level} ${face} · espaço recortado só onde a peça ocupa`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];

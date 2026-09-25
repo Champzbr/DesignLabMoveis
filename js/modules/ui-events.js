@@ -10,12 +10,12 @@ $('spaceMoreBtn').onclick=()=>{const info=selectedCellInfo();const root=info?.ro
 $('closeSpaceMore').onclick=()=>{$('spaceMoreDialog').style.display='none';};
 $('spaceMoreDialog').addEventListener('pointerdown',e=>{if(e.target===$('spaceMoreDialog'))$('spaceMoreDialog').style.display='none';});
 $('editSpaceBtn').onclick=()=>{if(state.visualMode)setVisualMode(false,{notify:false,frame:false});$('spaceMoreDialog').style.display='none';openEditSpaceDialog();};
-$('frontSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'front');$('spaceMoreDialog').style.display='none';};
-$('backSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'back');$('spaceMoreDialog').style.display='none';};
-$('leftSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'left');$('spaceMoreDialog').style.display='none';};
-$('rightSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'right');$('spaceMoreDialog').style.display='none';};
-$('topSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'top');$('spaceMoreDialog').style.display='none';};
-$('bottomSpaceBtn').onclick=()=>{const root=activeSpaceRoot();if(root)viewSpace(root,'bottom');$('spaceMoreDialog').style.display='none';};
+$('frontSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'front');else toast('Selecione um espaço');};
+$('backSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'back');else toast('Selecione um espaço');};
+$('leftSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'left');else toast('Selecione um espaço');};
+$('rightSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'right');else toast('Selecione um espaço');};
+$('topSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'top');else toast('Selecione um espaço');};
+$('bottomSpaceBtn').onclick=()=>{const root=selectedCellInfo()?.root||activeSpaceRoot();$('spaceMoreDialog').style.display='none';if(root)viewSpace(root,'bottom');else toast('Selecione um espaço');};
 $('toggleSpaceBtn').onclick=()=>{toggleActiveSpaceVisibility();$('spaceMoreDialog').style.display='none';};
 $('hideSelectedSpaceBtn').onclick=()=>toggleActiveSpaceVisibility();
 $('deleteSelectedSpaceBtn').onclick=()=>deleteSelectedSpaceRoot();
