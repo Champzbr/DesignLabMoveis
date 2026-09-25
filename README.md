@@ -140,7 +140,7 @@ O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `modu
 
 Build: **1.310.00-r8**.
 
-## Hotfix 1.310.00-r19
+## Hotfix 1.310.00-r20
 - Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
 - Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
 
@@ -162,7 +162,7 @@ Build: **1.310.00-r8**.
 - Exportação Aspire: fallback automático para download quando File System Access perde a ativação do usuário (User activation required), comum em PWA/WebView/Electron.
 
 
-## Hotfix 1.310.00-r19
+## Hotfix 1.310.00-r20
 - Remove layers-base vazias como `CORTE_EXTERNO`/`CORTE_INTERNO` do DXF Aspire.
 - Contornos passam a aparecer somente como `CORTE_EXTERNO_E<espessura>_P<profundidade>`.
 - Corte interno e encaixes seguem o mesmo padrão.
@@ -170,7 +170,7 @@ Build: **1.310.00-r8**.
 - Não altera posição, contorno ou quantidade de vetores; muda somente o nome/organização das layers.
 
 
-## 1.310.00-r19 · Ripas
+## 1.310.00-r20 · Ripas
 - Novo botão **Ripas** no submenu Criar peças.
 - Toque curto: cria diretamente usando a última configuração.
 - Pressionar/segurar: abre configuração da ripa.
@@ -178,3 +178,10 @@ Build: **1.310.00-r8**.
 - 0 mm na posição centraliza a ripa.
 - A espessura usa a espessura padrão da peça/material.
 - A caixa ocupada pela ripa é subtraída da célula selecionada, gerando automaticamente os novos espaços livres sem encavalar a peça.
+
+## r20 · Sarrafos estruturais
+- Novo botão **Sarrafos** em **Criar peças** e no menu rápido inferior.
+- Toque cria com a última configuração; segurar abre as opções.
+- Configuração independente das Ripas: horizontal/vertical, frente/fundo, tamanho e posição no vão.
+- O sarrafo é uma peça fabricável normal, pode sobrepor peças existentes e entra na lista/plano de corte/Aspire.
+- Diferente de Ripas, **Sarrafos não recortam nem dividem os espaços**. São tratados como reforço estrutural.

@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r19",
+  "version": "1.310.00-r20",
   "date": "2026-09-25",
-  "message": "r19: adiciona Ripas em Criar peças. Toque cria direto com a configuração salva; segurar abre opções horizontal/vertical, frente/fundo, tamanho e posição. A ripa recorta automaticamente o espaço ocupado."
+  "message": "r20: adiciona Sarrafos em Criar peças, separados de Ripas. Horizontal/vertical, frente/fundo, tamanho e posição; sarrafo é reforço estrutural, pode sobrepor peças existentes e não recorta nem divide o espaço."
 }
