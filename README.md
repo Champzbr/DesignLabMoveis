@@ -199,3 +199,8 @@ Build: **1.310.00-r8**.
 - Corrige boot interrompido por `pieceRailPosition` removido da UI na r21.
 - Registro de eventos de controles opcionais agora usa guarda segura, evitando `null.addEventListener`.
 - Nenhuma alteração na lógica de login/conta Netlify; a falha acontecia antes do bootstrap da autenticação.
+
+
+## 1.310.00-r23 — sarrafo recorta o espaço útil
+
+Sarrafos superiores agora recortam simultaneamente a profundidade e a altura úteis do vão. Em sarrafo horizontal de 100 mm com MDF 18 mm, um vão de profundidade 600 mm passa a ter 500 mm de profundidade útil e perde 18 mm na altura. Frente/traseira define de qual lado a profundidade é descontada.
