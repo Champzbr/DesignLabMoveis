@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.310.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.310.00-r14';
+import { createCutPlanEngine } from './cut-plan.js?v=1.310.00-r16';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -8,6 +8,11 @@ export function createCutPlanUiModule(ctx){
   // na criação pode ser null para sempre; resolvemos o módulo atual apenas no uso.
   const currentProjects=()=>getProjects?.()||projects||null;
   const currentProjectRecord=()=>currentProjects()?.state?.currentProjectRecord||null;
+  // r16 · Aspire: layers carregam a profundidade real sem alterar a geometria.
+  // Mantemos a layer-base declarada no DXF para compatibilidade com fluxos antigos,
+  // mas cada vetor de corte passa a usar uma sublayer com espessura/profundidade.
+  const aspireLayerIs=(layer,base)=>layer===base||String(layer||'').startsWith(base+'_');
+  const aspireThroughLayer=(base,part)=>normalizedLayer(`${base}_E${layerNum(part?.thickness||0)}_P${layerNum(part?.thickness||0)}`);
 // ============================================================================
 // v95 · PRÉVIA ASPIRE
 // A tela e o DXF consomem esta mesma função de entidades.
@@ -19,10 +24,10 @@ function buildAspireSheetEntities(placed,cfg,cuts=[]){
   for(const p of placed){
     if(p.customOutline){
       const mapPt=([u,v])=>p.rotated?[p.x+v,p.y+p.faceW-u]:[p.x+u,p.y+v];
-      entities.push({kind:'poly',layer:'CORTE_EXTERNO',points:p.customOutline.map(mapPt),part:p,role:'outline'});
-      if(p.customSlots?.length){layers.add('ENCAIXE_MONTANTE');for(const slot of p.customSlots)entities.push({kind:'poly',layer:'ENCAIXE_MONTANTE',points:slot.map(mapPt),part:p,role:'slot'});}
-    }else entities.push({kind:'rect',layer:'CORTE_EXTERNO',x:p.x,y:p.y,w:p.placedW,h:p.placedH,part:p,role:'outline'});
-    if(p.customCutouts?.length){const mapCut=([u,v])=>p.rotated?[p.x+v,p.y+p.faceW-u]:[p.x+u,p.y+v];layers.add('CORTE_INTERNO');for(const cut of p.customCutouts)entities.push({kind:'poly',layer:'CORTE_INTERNO',points:cut.map(mapCut),part:p,role:'cutout'});}
+      entities.push({kind:'poly',layer:aspireThroughLayer('CORTE_EXTERNO',p),points:p.customOutline.map(mapPt),part:p,role:'outline'});layers.add(aspireThroughLayer('CORTE_EXTERNO',p));
+      if(p.customSlots?.length){layers.add('ENCAIXE_MONTANTE');const slotLayer=aspireThroughLayer('ENCAIXE_MONTANTE',p);layers.add(slotLayer);for(const slot of p.customSlots)entities.push({kind:'poly',layer:slotLayer,points:slot.map(mapPt),part:p,role:'slot'});}
+    }else{const outlineLayer=aspireThroughLayer('CORTE_EXTERNO',p);layers.add(outlineLayer);entities.push({kind:'rect',layer:outlineLayer,x:p.x,y:p.y,w:p.placedW,h:p.placedH,part:p,role:'outline'});}
+    if(p.customCutouts?.length){const mapCut=([u,v])=>p.rotated?[p.x+v,p.y+p.faceW-u]:[p.x+u,p.y+v];layers.add('CORTE_INTERNO');const cutLayer=aspireThroughLayer('CORTE_INTERNO',p);layers.add(cutLayer);for(const cut of p.customCutouts)entities.push({kind:'poly',layer:cutLayer,points:cut.map(mapCut),part:p,role:'cutout'});}
     for(const op of p.machining)for(const e of projectOperation(p,op,p)){if(e){e.part=p;e.op=op;e.role='machining';entities.push(e);layers.add(e.layer);}}
   }
   if(cfg.cutMode==='panel'&&cuts.length){
@@ -72,7 +77,7 @@ function sheetPreviewStats(group){
   return {holesA,holesB,edge,groovesA,groovesB,slots,mismatch,errors:mismatch?1:0};
 }
 function sheetPreviewFaceVisible(e){
-  if(e.layer==='CHAPA_REFERENCIA'||e.layer==='CORTE_EXTERNO'||e.layer==='ENCAIXE_MONTANTE'||e.layer==='CORTE_SECCIONADORA')return true;
+  if(e.layer==='CHAPA_REFERENCIA'||aspireLayerIs(e.layer,'CORTE_EXTERNO')||aspireLayerIs(e.layer,'ENCAIXE_MONTANTE')||e.layer==='CORTE_SECCIONADORA')return true;
   return sheetPreviewFace==='ALL'||previewEntityFace(e)===sheetPreviewFace;
 }
 function sheetPreviewPlacedOutline(p){
@@ -188,7 +193,7 @@ function legacyV41_sheetPreviewDraw(){
   for(const e of group.previewEntities||[]){
     if(e.layer==='CHAPA_REFERENCIA'||e.layer==='CORTE_SECCIONADORA'||!sheetPreviewFaceVisible(e))continue;
     let stroke='#25292c',fill=null,line=1.1;
-    if(e.layer==='CORTE_EXTERNO'){
+    if(aspireLayerIs(e.layer,'CORTE_EXTERNO')){
       stroke=e.part===sheetPreviewSelectedPart?'#1677d2':'#2f3437';
       fill=e.part===sheetPreviewSelectedPart?'rgba(22,119,210,.14)':'rgba(40,45,48,.035)';
       line=e.part===sheetPreviewSelectedPart?2.2:1.05;
@@ -547,7 +552,7 @@ function buildAspireDxfForSheet(placed,cfg,cuts=[]){
   const built=buildAspireSheetEntities(placed,cfg,cuts),entities=built.entities,layers=new Set(built.layers);
   let d=''; d+=dxfPair(0,'SECTION')+dxfPair(2,'HEADER')+dxfPair(9,'$ACADVER')+dxfPair(1,'AC1009')+dxfPair(9,'$MEASUREMENT')+dxfPair(70,1)+dxfPair(9,'$INSUNITS')+dxfPair(70,4)+dxfPair(0,'ENDSEC');
   d+=dxfPair(0,'SECTION')+dxfPair(2,'TABLES')+dxfPair(0,'TABLE')+dxfPair(2,'LAYER')+dxfPair(70,layers.size);
-  for(const layer of layers){const color=layer==='CORTE_EXTERNO'?7:layer==='CHAPA_REFERENCIA'?8:layer==='CORTE_SECCIONADORA'?4:layer.startsWith('FURO_')?1:5;d+=dxfPair(0,'LAYER')+dxfPair(2,layer)+dxfPair(70,0)+dxfPair(62,color)+dxfPair(6,'CONTINUOUS');}
+  for(const layer of layers){const color=aspireLayerIs(layer,'CORTE_EXTERNO')?7:layer==='CHAPA_REFERENCIA'?8:layer==='CORTE_SECCIONADORA'?4:layer.startsWith('FURO_')?1:5;d+=dxfPair(0,'LAYER')+dxfPair(2,layer)+dxfPair(70,0)+dxfPair(62,color)+dxfPair(6,'CONTINUOUS');}
   d+=dxfPair(0,'ENDTAB')+dxfPair(0,'ENDSEC')+dxfPair(0,'SECTION')+dxfPair(2,'ENTITIES');
   for(const e of entities)d+=e.kind==='circle'?dxfCircle(e.layer,e.x,e.y,e.r):e.kind==='poly'?dxfClosedPolyline(e.layer,e.points):e.kind==='line'?dxfLine(e.layer,e.x1,e.y1,e.x2,e.y2):dxfClosedRect(e.layer,e.x,e.y,e.w,e.h);
   d+=dxfPair(0,'ENDSEC')+dxfPair(0,'EOF');
@@ -1193,6 +1198,32 @@ function buildSheetsCsv(groups,cfg){
   }
   return c;
 }
+function buildAspireLayerDepthsCsv(groups){
+  let c=csvLine(['Arquivo_DXF','Layer','Tipo','Espessura_peca_mm','Profundidade_mm','Face','Observacao']);
+  const seen=new Set();
+  for(const g of groups){
+    for(const p of (g.parts||[])){
+      const through=[
+        ['CORTE_EXTERNO','CORTE_CONTORNO',!!p.customOutline||true],
+        ['CORTE_INTERNO','CORTE_INTERNO',!!p.customCutouts?.length],
+        ['ENCAIXE_MONTANTE','ENCAIXE',!!p.customSlots?.length]
+      ];
+      for(const [base,type,active] of through){
+        if(!active)continue;
+        const layer=aspireThroughLayer(base,p),key=`${g.file}|${layer}`;
+        if(seen.has(key))continue;seen.add(key);
+        c+=csvLine([g.file,layer,type,p.thickness,p.thickness,'',`Profundidade vem automaticamente da espessura real da peça (${nice(p.thickness)} mm)`]);
+      }
+      for(const op of (p.machining||[])){
+        const layer=machiningLayer(p,op),depth=operationDepthMm(p.object,op),face=entryAxisName(op.entryAxis)===p.thicknessAxis?(entryAxisSign(op.entryAxis)>0?'A':'B'):'BORDA',key=`${g.file}|${layer}`;
+        if(seen.has(key))continue;seen.add(key);
+        c+=csvLine([g.file,layer,op.type==='hole'?'FURO':'RASGO',p.thickness,depth,face,'Profundidade cadastrada na usinagem do DesignLab']);
+      }
+    }
+  }
+  return c;
+}
+
 function groupPartArrayForAspire(parts,cfg=getSheetPrefs(),emptyMessage='Não existem peças para exportar'){
   cfg=normalizedSheetPrefs(cfg);
   if(!parts.length)throw new Error(emptyMessage);
@@ -1400,7 +1431,7 @@ async function writeExportTarget(target,blob,filename='arquivo'){
 function buildAspireReadme(root,groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
-  return `DesignLabMoveis 1.310.00 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face.\r\n`;
+  return `DesignLabMoveis 1.310.00 - Pacote Aspire\r\nMóvel: ${root.name}\r\nUnidade: milímetros\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = posição, medidas e identificação de cada peça\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real\r\n- profundidades-layers.csv = mapa automático layer → profundidade para conferência/configuração no Aspire\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath de corte nesta layer\r\nCORTE_EXTERNO_E18_P18 (exemplo) = contorno final; E = espessura da peça e P = profundidade real de corte\r\nCORTE_INTERNO_E18_P18 (exemplo) = recorte interno atravessando a peça\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nCada DXF representa UMA chapa física. Se o móvel precisar de 3 chapas MDF 18 mm, serão criados 3 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\nNo Aspire, associe toolpaths às layers conforme ferramenta, profundidade e estratégia de face. As medidas Pxx são lidas automaticamente do projeto; nenhum vetor é duplicado e a geometria do plano não muda.\r\n`;
 }
 function groupedPartRows(parts){
   const map=new Map();
@@ -1415,7 +1446,7 @@ function buildProjectAspireReadme(groups,cfg){
   const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0),totalParts=groups.reduce((n,g)=>n+g.parts.length,0);
   const byKey=new Map();for(const g of groups)byKey.set(g.key,Math.max(byKey.get(g.key)||0,g.sheetNo));
   const spaces=[...new Set(groups.flatMap(g=>g.parts.map(p=>p.spaceName).filter(Boolean)))];
-  return `DesignLabMoveis 1.310.00 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO = contorno final REAL das peças, incluindo curvas e Formas paramétricas\r\nCORTE_INTERNO = recortes fechados criados pelo Mini CAD de Formas\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
+  return `DesignLabMoveis 1.310.00 - Pacote Aspire do projeto completo\r\nUnidade: milímetros\r\nEspaços incluídos: ${spaces.length}\r\n${spaces.map(x=>'- '+x).join('\r\n')}\r\n\r\nChapa padrão/fallback: ${cfg.width} x ${cfg.height} mm\r\nMargem: ${cfg.margin} mm | Folga: ${cfg.gap} mm | Veio padrão: ${(cfg.grainDirection||'length')==='width'?'LARGURA':'COMPRIMENTO'}\r\n${cutModeReadmeText(cfg)}\r\n\r\nCHAPAS\r\n${[...byKey.entries()].map(([k,n])=>{const g=groups.find(x=>x.key===k),gc=g?.cfg||cfg;return '- '+k+': '+n+' chapa(s) · '+gc.width+' x '+gc.height+' mm'+(g?.parts?.some(p=>p.materialGrain)?' · veio '+((gc.grainDirection||'length')==='width'?'na largura':'no comprimento'):'');}).join('\r\n')}\r\n\r\nARQUIVOS DXF\r\n${groups.map(g=>'- '+g.file+' = '+g.key+' / chapa '+g.sheetNo+' ('+g.parts.length+' peça(s))').join('\r\n')}\r\n- lista-pecas.csv = todas as peças do projeto, com espaço de origem\r\n- etiquetas-base.csv = dados estruturados para a futura geração de etiquetas (material, fita por lado, medidas e ID)\r\n- plano-chapas.csv = resumo das chapas e aproveitamento por área\r\n- usinagens.csv = uma linha por furo/rasgo real, com espaço de origem\r\n- profundidades-layers.csv = mapa automático layer → profundidade para conferência/configuração no Aspire\r\n\r\nLAYERS\r\nCHAPA_REFERENCIA = contorno da chapa; NÃO criar toolpath nesta layer\r\nCORTE_EXTERNO_E18_P18 (exemplo) = contorno final; E = espessura da peça e P = profundidade real de corte\r\nCORTE_INTERNO_E18_P18 (exemplo) = recorte interno atravessando a peça\r\nFURO_A_Dx_Py / FURO_B_Dx_Py = furos por face, diâmetro e profundidade; no DXF são entidades CIRCLE\r\nRASGO_A_Wx_Py / RASGO_B_Wx_Py = rasgos manuais\r\nRASGO_FUNDO_A_Wx_Py / RASGO_FUNDO_B_Wx_Py = rasgos de fundo automáticos\r\nENCAIXE_MONTANTE = encaixes das nervuras curvas para os montantes\r\nCORTE_SECCIONADORA = linhas retas numeradas do modo seccionadora; ignore esta layer no modo CNC\r\n\r\nIMPORTANTE\r\nO plano de corte é calculado com TODAS as peças de TODOS os espaços juntas. Peças do mesmo material e espessura podem compartilhar a mesma chapa, melhorando o aproveitamento.\r\nCada DXF representa UMA chapa física. Se forem necessárias 4 chapas MDF 18 mm, serão gerados 4 DXFs MDF 18 mm. Materiais e espessuras diferentes nunca são misturados.\r\nQuando “Material madeirado / manter sentido do veio” estiver marcado, nenhuma peça gira 90°. Quando estiver desmarcado, o CAD pode girar automaticamente para melhorar o aproveitamento.\r\nSem rotação, o DXF preserva os eixos naturais da peça: portas/fundos usam X horizontal e Y vertical; bases/prateleiras usam X/Z; laterais usam Z/Y.\r\nCoordenadas negativas são referências do lado oposto: Y=-100 mantém a operação 100 mm do topo mesmo se a peça for redimensionada. O usinagens.csv traz coordenadas reais e também X_ref/Y_ref/Z_ref.\r\nFerragens podem criar FUROS DE BORDA (entrada em eixo diferente da espessura). Esses furos ficam identificados como FURO_BORDA no usinagens.csv e não viram círculo no DXF da face principal, pois exigem usinagem lateral ou virar a peça; isso evita gerar um toolpath vertical incorreto.\r\n\r\nTotal: ${totalParts} peça(s), ${groups.length} chapa(s), ${ops} operação(ões) geométrica(s).\r\n`;
 }
 function legacyV41_renderPartsList(){
   const cfg=sheetPrefsFromUi();setSheetPrefs(cfg);
@@ -1467,6 +1498,7 @@ async function exportProjectAspireZip(){
     files.push({name:'plano-chapas.csv',data:buildSheetsCsv(groups,cfg)});
     if(cfg.cutMode==='panel'){files.push({name:'cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)});files.push(...buildMingliZawFiles(groups,cfg));}
     files.push({name:'usinagens.csv',data:buildMachiningCsv(groups)});
+    files.push({name:'profundidades-layers.csv',data:buildAspireLayerDepthsCsv(groups)});
     files.push({name:'LEIA-ME.txt',data:buildProjectAspireReadme(groups,cfg)});
     const saveResult=await writeExportTarget(target,zipStore(files),'projeto-completo-aspire.zip');
     const ops=groups.reduce((n,g)=>n+g.parts.reduce((m,p)=>m+actualMachiningCount(p),0),0);
@@ -1497,6 +1529,7 @@ async function exportSelectedAspireDxf(){
     files.push({name:'plano-chapas.csv',data:buildSheetsCsv(groups,cfg)});
     if(cfg.cutMode==='panel'){files.push({name:'cortes-seccionadora.csv',data:buildPanelSawCutsCsv(groups,cfg)});files.push(...buildMingliZawFiles(groups,cfg));}
     files.push({name:'usinagens.csv',data:buildMachiningCsv(groups)});
+    files.push({name:'profundidades-layers.csv',data:buildAspireLayerDepthsCsv(groups)});
     files.push({name:'LEIA-ME.txt',data:buildAspireReadme(root,groups,cfg)});
     const saveResult=await writeExportTarget(target,zipStore(files),filename);
 
@@ -2191,7 +2224,7 @@ $('sheetPreviewCanvas').addEventListener('dblclick',e=>{const w=sheetPreviewPoin
 
   return {
     buildAspireSheetEntities, previewEntityFace, previewEdgeHoleMarkers, sheetPreviewStats, sheetPreviewPlacedOutline, sheetPreviewPartBounds, pointInPreviewPart, polygonAreaMm2, cutPlanPartAreaMm2, sheetPreviewViewport, sheetPreviewPointerToWorld,
-    normalizedSheetPrefs, getSheetPrefs, setSheetPrefs, sheetPrefsFromUi, applySheetPrefsToUi, sheetPrefsForPartGroup, partOrientations, csvLine, buildMingliZawFiles, buildPanelSawCutsCsv, buildPartsCsv, buildLabelsBaseCsv, buildMachiningCsv, buildSheetsCsv, groupPartArrayForAspire, allProjectFurnitureParts, allProjectProductionPartsByKind, groupAspireProjectParts, zipStore, isExportPickerCancel, exportLeafName, pickExportTarget, downloadExportFallback, writeExportTarget, exportProjectAspireZip, exportSelectedAspireDxf,
+    normalizedSheetPrefs, getSheetPrefs, setSheetPrefs, sheetPrefsFromUi, applySheetPrefsToUi, sheetPrefsForPartGroup, partOrientations, csvLine, buildMingliZawFiles, buildPanelSawCutsCsv, buildPartsCsv, buildLabelsBaseCsv, buildMachiningCsv, buildSheetsCsv, buildAspireLayerDepthsCsv, groupPartArrayForAspire, allProjectFurnitureParts, allProjectProductionPartsByKind, groupAspireProjectParts, zipStore, isExportPickerCancel, exportLeafName, pickExportTarget, downloadExportFallback, writeExportTarget, exportProjectAspireZip, exportSelectedAspireDxf,
     cutPlanPartSignature, cutPlanAssignCodes, cutPlanPackOpen, renderPartsList, openPartsListDialog, prepareSheetPreviewGroups, refreshSheetPreviewSelect, openSheetPreview, closeSheetPreview, sheetPreviewDraw, updateSheetCutModeUi, exportPanelSawSequenceCsv, exportPanelSawMingliZaw, printCutPlan
   };
 }
