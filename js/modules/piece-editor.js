@@ -372,13 +372,14 @@ function updateCreatePiecesUI(){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
     const face=$('pieceRailFace')?.value==='back'?'back':'front';
     const sizeMm=Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100);
-    let posMm=Math.max(0,parseDecimalInput($('pieceRailPosition')?.value)||0);
-    const axisMm=orient==='horizontal'?mm(s.height):mm(s.width);
-    const maxPos=Math.max(0,axisMm-sizeMm);
-    const actualPos=posMm<=.000001?maxPos/2:Math.min(posMm,maxPos);
-    text=sizeMm>axisMm+.001
-      ? `O sarrafo de ${nice(sizeMm)} mm não cabe neste espaço.`
-      : `Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${face==='front'?'frente':'fundo'} · ${nice(sizeMm)} mm · ${nice(mm(t))} mm de espessura · ${posMm<=.000001?'centralizado':`posição ${nice(actualPos)} mm`} · reforço estrutural, sem dividir o espaço`;
+    // Sarrafo sempre atravessa a LARGURA do vão e fica na parte SUPERIOR.
+    // A orientação descreve o próprio sarrafo (seção):
+    // horizontal = deitado (tamanho na profundidade, espessura na altura)
+    // vertical   = em pé   (espessura na profundidade, tamanho na altura)
+    const fits=orient==='horizontal'?sizeMm<=mm(s.depth)+.001:sizeMm<=mm(s.height)+.001;
+    text=!fits
+      ? `O sarrafo de ${nice(sizeMm)} mm não cabe ${orient==='horizontal'?'na profundidade':'na altura'} deste espaço.`
+      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · tamanho ${nice(sizeMm)} mm · espessura ${nice(mm(t))} mm · reforço estrutural, sem dividir o espaço`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -569,24 +570,27 @@ function createPiecesInSelectedCell(){
       const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
       const face=$('pieceRailFace')?.value==='back'?'back':'front';
       const size=m(Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100));
-      let posRaw=Math.max(0,parseDecimalInput($('pieceRailPosition')?.value)||0);
+      // r21: posição no móvel e orientação do sarrafo são conceitos separados.
+      // O sarrafo é sempre uma travessa SUPERIOR atravessando toda a largura.
+      // Frente/Fundo escolhe onde a travessa fica na profundidade.
+      // Horizontal = deitada; Vertical = em pé.
       if(t>s.depth+PIECE_FIT_TOL) throw new Error('A espessura do sarrafo é maior que a profundidade deste espaço');
-      if(orient==='horizontal'&&size>s.height+PIECE_FIT_TOL) throw new Error('A altura do sarrafo é maior que este espaço');
-      if(orient==='vertical'&&size>s.width+PIECE_FIT_TOL) throw new Error('A largura do sarrafo é maior que este espaço');
-      const pieceD=Math.min(t,s.depth);
-      const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
-      let pieceW,pieceH,x,yBase;
+      let pieceW=s.width,pieceD,pieceH;
       if(orient==='horizontal'){
-        pieceW=s.width;pieceH=Math.min(size,s.height);x=info.center.x;
-        const free=Math.max(0,s.height-pieceH),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
-        yBase=c.minY+pos;
+        if(size>s.depth+PIECE_FIT_TOL) throw new Error('O tamanho do sarrafo é maior que a profundidade deste espaço');
+        pieceD=Math.min(size,s.depth);
+        pieceH=Math.min(t,s.height);
       }else{
-        pieceW=Math.min(size,s.width);pieceH=s.height;yBase=c.minY;
-        const free=Math.max(0,s.width-pieceW),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
-        x=c.minX+pos+pieceW/2;
+        if(size>s.height+PIECE_FIT_TOL) throw new Error('O tamanho do sarrafo é maior que a altura deste espaço');
+        pieceD=Math.min(t,s.depth);
+        pieceH=Math.min(size,s.height);
       }
-      const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${face==='front'?'frente':'fundo'}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:false,spaceCutParentBounds:cellBox(c)},false);
-      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),positionMm:posRaw,structural:true,affectsSpace:false};
+      const x=info.center.x;
+      const yBase=c.maxY-pieceH;
+      const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
+      const localLabel=face==='front'?'superior frontal':'superior traseiro';
+      const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${localLabel}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:false,spaceCutParentBounds:cellBox(c)},false);
+      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:false};
       affectsSpace=false;
       createdCount=1;
     } else if(pieceCreateType==='back'){
@@ -703,8 +707,8 @@ function createPiecesInSelectedCell(){
   }
   else if(pieceCreateType==='rail'){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
-    const face=$('pieceRailFace')?.value==='back'?'fundo':'frente';
-    toast(`Sarrafo ${orient} criado na ${face} · espaço mantido`);
+    const face=$('pieceRailFace')?.value==='back'?'traseiro':'frontal';
+    toast(`Sarrafo ${orient} criado no superior ${face} · espaço mantido`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];
