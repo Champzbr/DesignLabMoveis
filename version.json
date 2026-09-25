@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r17",
-  "released_at": "2026-09-24T21:10:00-03:00",
-  "message": "r17: Aspire exporta somente layers usadas e inclui espessura/profundidade também em CORTE_EXTERNO, CORTE_INTERNO, ENCAIXE_MONTANTE e CORTE_SECCIONADORA."
+  "version": "1.310.00-r18",
+  "released_at": "2026-09-24T22:20:00-03:00",
+  "message": "r18: Aspire mantém o plano de corte completo e adiciona DXFs auxiliares por operação/layer com as mesmas coordenadas do nesting, sem reposicionar peças."
 }
