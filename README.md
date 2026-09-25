@@ -156,3 +156,7 @@ Build: **1.310.00-r8**.
 - Quando aberto com `?desktop=windows` ou pelo user-agent do app Windows, o banner **Abrir como aplicativo / Instalar** é desativado.
 - O app Windows não registra Service Worker/PWA duplicado; continua usando o Netlify diretamente para login, conta e projetos.
 - Essa mudança evita trabalho duplicado de PWA/cache dentro de um programa que já é desktop, sem reduzir a qualidade do render 3D.
+
+
+### r15
+- Exportação Aspire: fallback automático para download quando File System Access perde a ativação do usuário (User activation required), comum em PWA/WebView/Electron.
