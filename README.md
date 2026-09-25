@@ -140,7 +140,7 @@ O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `modu
 
 Build: **1.310.00-r8**.
 
-## Hotfix 1.310.00-r14
+## Hotfix 1.310.00-r16
 - Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
 - Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
 

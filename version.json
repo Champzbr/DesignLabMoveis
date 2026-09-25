@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00",
-  "released_at": "2026-09-24T19:45:00-03:00",
-  "message": "r14: modo Windows não exibe mais o banner de instalar PWA e não registra Service Worker dentro do aplicativo desktop; login e dados continuam usando o mesmo site/conta Netlify."
+  "version": "1.310.00-r16",
+  "released_at": "2026-09-24T21:10:00-03:00",
+  "message": "r16: exportação Aspire mantém a geometria e grava profundidades reais nas layers de corte/usinagem; adiciona profundidades-layers.csv para conferência."
 }
