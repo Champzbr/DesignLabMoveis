@@ -78,6 +78,7 @@ function capturePieceCreatePrefs(type=pieceCreateType){
     backMachine:!!$('pieceBackMachine')?.checked,backPassLeft:val('pieceBackPassLeft'),backPassRight:val('pieceBackPassRight'),backPassTop:val('pieceBackPassTop'),backPassBottom:val('pieceBackPassBottom'),backGrooveClearance:val('pieceBackGrooveClearance'),backGrooveLeft:!!$('pieceBackGrooveLeft')?.checked,backGrooveRight:!!$('pieceBackGrooveRight')?.checked,backGrooveTop:!!$('pieceBackGrooveTop')?.checked,backGrooveBottom:!!$('pieceBackGrooveBottom')?.checked,
     position:val('piecePosition'),count:val('pieceCount'),divisionMeasure:val('pieceDivisionMeasure'),divisionSide:val('pieceDivisionSide'),
     slatOrientation:val('pieceSlatOrientation'),slatFace:val('pieceSlatFace'),slatSize:val('pieceSlatSize'),slatPosition:val('pieceSlatPosition'),
+    railOrientation:val('pieceRailOrientation'),railFace:val('pieceRailFace'),railSize:val('pieceRailSize'),railPosition:val('pieceRailPosition'),
     savedAt:new Date().toISOString()
   };
 }
@@ -108,6 +109,7 @@ function applyPieceCreateConfig(type=pieceCreateType){
   if($('pieceBackGrooveBottom')&&cfg.backGrooveBottom!==undefined)$('pieceBackGrooveBottom').checked=!!cfg.backGrooveBottom;
   set('piecePosition',cfg.position);set('pieceCount',cfg.count);set('pieceDivisionMeasure',cfg.divisionMeasure);set('pieceDivisionSide',cfg.divisionSide);
   set('pieceSlatOrientation',cfg.slatOrientation);set('pieceSlatFace',cfg.slatFace);set('pieceSlatSize',cfg.slatSize);set('pieceSlatPosition',cfg.slatPosition);
+  set('pieceRailOrientation',cfg.railOrientation);set('pieceRailFace',cfg.railFace);set('pieceRailSize',cfg.railSize);set('pieceRailPosition',cfg.railPosition);
   if(type==='doors')applyDoorCreateConfig();
   return true;
 }
@@ -142,7 +144,7 @@ function quickCreatePieceFromTypeButton(button){
   }
 }
 function pieceTypeName(type){
-  return ({left:'Lateral esquerda',right:'Lateral direita',division:'Divisão vertical',base:'Base',top:'Chapéu',shelf:'Prateleira',shelves:'Prateleiras',slat:'Ripas',back:'Fundo',front:'Frente',doors:'Portas'})[type]||'Peça';
+  return ({left:'Lateral esquerda',right:'Lateral direita',division:'Divisão vertical',base:'Base',top:'Chapéu',shelf:'Prateleira',shelves:'Prateleiras',slat:'Ripas',rail:'Sarrafos',back:'Fundo',front:'Frente',doors:'Portas'})[type]||'Peça';
 }
 
 function backMachiningConfig(){
@@ -237,6 +239,7 @@ function openCreatePiecesDialog(initialType='left',{doorRegion=false}={}){
   if($('pieceBackMachine'))$('pieceBackMachine').checked=true;['pieceBackPassLeft','pieceBackPassRight','pieceBackPassTop','pieceBackPassBottom'].forEach(id=>{if($(id))$(id).value=10;});if($('pieceBackGrooveClearance'))$('pieceBackGrooveClearance').value=.5;['pieceBackGrooveLeft','pieceBackGrooveRight','pieceBackGrooveTop','pieceBackGrooveBottom'].forEach(id=>{if($(id))$(id).checked=true;});
   $('pieceDivisionMeasure').value=0;$('pieceDivisionSide').value='gap1';
   if($('pieceSlatOrientation'))$('pieceSlatOrientation').value='horizontal';if($('pieceSlatFace'))$('pieceSlatFace').value='front';if($('pieceSlatSize'))$('pieceSlatSize').value=100;if($('pieceSlatPosition'))$('pieceSlatPosition').value=0;
+  if($('pieceRailOrientation'))$('pieceRailOrientation').value='horizontal';if($('pieceRailFace'))$('pieceRailFace').value='front';if($('pieceRailSize'))$('pieceRailSize').value=100;if($('pieceRailPosition'))$('pieceRailPosition').value=0;
   $('doorCount').value=2;$('doorGapLeft').value=2;$('doorGapRight').value=2;$('doorGapTop').value=2;$('doorGapBottom').value=2;$('doorGapMiddle').value=2;
   $('doorHandleType').value='none';$('doorHandleSize').value=20;$('doorHandleOrientation').value='horizontal';$('doorCavaPosition').value='top';
   $('doorCreateHingeHoles').checked=true;$('doorHingeCount').value='auto';$('doorHingeSide').value='auto';
@@ -294,11 +297,13 @@ function updateCreatePiecesUI(){
   const isDoors=pieceCreateType==='doors';
   const isDivision=pieceCreateType==='division';
   const isSlat=pieceCreateType==='slat';
+  const isRail=pieceCreateType==='rail';
   $('piecePositionLabel').classList.toggle('hiddenField',!isShelf);
   $('pieceCountLabel').classList.toggle('hiddenField',!isMulti);
   $('pieceDistributionLabel').classList.toggle('hiddenField',!isMulti);
   $('pieceDivisionFields').classList.toggle('hiddenField',!isDivision);
   $('pieceSlatFields')?.classList.toggle('hiddenField',!isSlat);
+  $('pieceRailFields')?.classList.toggle('hiddenField',!isRail);
   $('doorGapFields').classList.toggle('hiddenField',!isDoors);
   $('backMachiningFields')?.classList.toggle('hiddenField',pieceCreateType!=='back');
   updateDoorCreationVisibility();
@@ -306,8 +311,8 @@ function updateCreatePiecesUI(){
   // traseira. Nesse caso o campo "Recuo fundo" passa a significar a distância
   // livre atrás do painel. Frente continua sem recuos próprios.
   // A divisão usa os mesmos recuos das laterais, para poder ser mais rasa que o móvel.
-  $('pieceFrontInsetLabel').classList.toggle('hiddenField',isDepthPiece||isDoors||isSlat);
-  $('pieceBackInsetLabel').classList.toggle('hiddenField',pieceCreateType==='front'||isDoors||isSlat);
+  $('pieceFrontInsetLabel').classList.toggle('hiddenField',isDepthPiece||isDoors||isSlat||isRail);
+  $('pieceBackInsetLabel').classList.toggle('hiddenField',pieceCreateType==='front'||isDoors||isSlat||isRail);
   const backCaption=$('pieceBackInsetCaption');
   if(backCaption)backCaption.textContent=pieceCreateType==='back'?'Afastar da traseira (mm)':'Recuo fundo (mm)';
   $('pieceTarget').textContent=info.isDoorRegion
@@ -363,6 +368,17 @@ function updateCreatePiecesUI(){
     text=sizeMm>axisMm+.001
       ? `A ripa de ${nice(sizeMm)} mm não cabe neste espaço.`
       : `Ripa ${orientLabel} · ${faceLabel} · ${nice(sizeMm)} mm · ${nice(mm(t))} mm de espessura · ${posMm<=.000001?'centralizada':`posição ${nice(actualPos)} mm`} · corta o espaço automaticamente`;
+  } else if(isRail){
+    const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const face=$('pieceRailFace')?.value==='back'?'back':'front';
+    const sizeMm=Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100);
+    let posMm=Math.max(0,parseDecimalInput($('pieceRailPosition')?.value)||0);
+    const axisMm=orient==='horizontal'?mm(s.height):mm(s.width);
+    const maxPos=Math.max(0,axisMm-sizeMm);
+    const actualPos=posMm<=.000001?maxPos/2:Math.min(posMm,maxPos);
+    text=sizeMm>axisMm+.001
+      ? `O sarrafo de ${nice(sizeMm)} mm não cabe neste espaço.`
+      : `Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${face==='front'?'frente':'fundo'} · ${nice(sizeMm)} mm · ${nice(mm(t))} mm de espessura · ${posMm<=.000001?'centralizado':`posição ${nice(actualPos)} mm`} · reforço estrutural, sem dividir o espaço`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -549,6 +565,30 @@ function createPiecesInSelectedCell(){
       const box={minX:x-pieceW/2,maxX:x+pieceW/2,minY:yBase,maxY:yBase+pieceH,minZ:zc-pieceD/2,maxZ:zc+pieceD/2};
       newFree.push(...subtractBoxFromCell(c,box));
       createdCount=1;
+    } else if(pieceCreateType==='rail'){
+      const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+      const face=$('pieceRailFace')?.value==='back'?'back':'front';
+      const size=m(Math.max(1,parseDecimalInput($('pieceRailSize')?.value)||100));
+      let posRaw=Math.max(0,parseDecimalInput($('pieceRailPosition')?.value)||0);
+      if(t>s.depth+PIECE_FIT_TOL) throw new Error('A espessura do sarrafo é maior que a profundidade deste espaço');
+      if(orient==='horizontal'&&size>s.height+PIECE_FIT_TOL) throw new Error('A altura do sarrafo é maior que este espaço');
+      if(orient==='vertical'&&size>s.width+PIECE_FIT_TOL) throw new Error('A largura do sarrafo é maior que este espaço');
+      const pieceD=Math.min(t,s.depth);
+      const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
+      let pieceW,pieceH,x,yBase;
+      if(orient==='horizontal'){
+        pieceW=s.width;pieceH=Math.min(size,s.height);x=info.center.x;
+        const free=Math.max(0,s.height-pieceH),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
+        yBase=c.minY+pos;
+      }else{
+        pieceW=Math.min(size,s.width);pieceH=s.height;yBase=c.minY;
+        const free=Math.max(0,s.width-pieceW),pos=posRaw<=.000001?free/2:Math.min(m(posRaw),free);
+        x=c.minX+pos+pieceW/2;
+      }
+      const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${face==='front'?'frente':'fundo'}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:false,spaceCutParentBounds:cellBox(c)},false);
+      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),positionMm:posRaw,structural:true,affectsSpace:false};
+      affectsSpace=false;
+      createdCount=1;
     } else if(pieceCreateType==='back'){
       // Para Fundo, o campo "Recuo fundo" é a distância entre a traseira do
       // vão e a face traseira do painel. A faixa ocupada pelo próprio painel é
@@ -660,6 +700,11 @@ function createPiecesInSelectedCell(){
     const orient=$('pieceSlatOrientation')?.value==='vertical'?'vertical':'horizontal';
     const face=$('pieceSlatFace')?.value==='back'?'fundo':'frente';
     toast(`Ripa ${orient} criada na ${face} · espaço recortado automaticamente`);
+  }
+  else if(pieceCreateType==='rail'){
+    const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
+    const face=$('pieceRailFace')?.value==='back'?'fundo':'frente';
+    toast(`Sarrafo ${orient} criado na ${face} · espaço mantido`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];

@@ -257,7 +257,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.310.00-r19');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.310.00-r20');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
