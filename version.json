@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r22",
+  "version": "1.310.00-r25",
   "date": "2026-09-25",
-  "message": "r22: corrige travamento na tela de login após r21. O campo antigo pieceRailPosition foi removido da interface dos Sarrafos, mas o bootstrap ainda tentava registrar evento nele e interrompia a inicialização antes da autenticação. Listeners de controles opcionais agora usam guarda segura."
+  "message": "r25: sarrafos recortam somente o volume realmente ocupado, permitindo segundo sarrafo na faixa oposta; adiciona superior/inferior frontal/traseiro; Configuração do espaço abre diretamente as vistas e corrige botões 2D."
 }

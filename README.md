@@ -211,3 +211,11 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Deitado: reduz a altura do vão apenas pela espessura (ex.: 18 mm).
 - Em pé: reduz a altura apenas pela largura/tamanho do sarrafo (ex.: 60 mm).
 - A profundidade do espaço não é reduzida.
+
+
+## r25 · Sarrafos por volume + vistas do espaço
+- Sarrafo deitado: altura ocupada = espessura; profundidade ocupada = tamanho do sarrafo.
+- Sarrafo em pé: altura ocupada = tamanho; profundidade ocupada = espessura.
+- O recorte do espaço usa apenas a caixa física do sarrafo, preservando uma faixa oposta na profundidade para outro sarrafo.
+- Quatro atalhos: superior frontal/traseiro e inferior frontal/traseiro.
+- Configuração do espaço abre diretamente o painel com vistas Frontal/Traseira/Laterais/Cima/Baixo.
