@@ -125,6 +125,11 @@ function selectPieceCreateTypeButton(button,{loadSaved=true}={}){
   pieceCreateType=button.dataset.pieceType||'left';
   document.querySelectorAll('[data-piece-type]').forEach(x=>x.classList.toggle('active',x===button));
   if(loadSaved)applyPieceCreateConfig(pieceCreateType);
+  // r24: frontal e traseiro são atalhos separados, mas compartilham a mesma
+  // configuração do sarrafo. O botão escolhido sempre define o lado.
+  if(pieceCreateType==='rail'&&button.dataset.railFace&&$('pieceRailFace')){
+    $('pieceRailFace').value=button.dataset.railFace==='back'?'back':'front';
+  }
   updateCreatePiecesUI();
 }
 function quickCreatePieceFromTypeButton(button){
@@ -378,11 +383,14 @@ function updateCreatePiecesUI(){
     const cutDepthMm=orient==='horizontal'?sizeMm:mm(t);
     const cutHeightMm=orient==='horizontal'?mm(t):sizeMm;
     const fits=cutDepthMm<=mm(s.depth)+.001 && cutHeightMm<=mm(s.height)+.001;
-    const remainDepth=Math.max(0,mm(s.depth)-cutDepthMm);
+    // r24: o sarrafo ocupa fisicamente só a frente ou o fundo, mas o recorte
+    // lógico do espaço é SOMENTE no topo e vale pela profundidade inteira.
+    // Deitado => corta a espessura. Em pé => corta a largura/tamanho do sarrafo.
+    const remainDepth=mm(s.depth);
     const remainHeight=Math.max(0,mm(s.height)-cutHeightMm);
     text=!fits
       ? `O sarrafo de ${nice(sizeMm)} mm não cabe neste espaço.`
-      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · ocupa ${nice(cutDepthMm)} mm da profundidade e ${nice(cutHeightMm)} mm da altura · espaço restante ${nice(mm(s.width))} × ${nice(remainDepth)} × ${nice(remainHeight)} mm`;
+      : `Sarrafo ${orient==='horizontal'?'horizontal (deitado)':'vertical (em pé)'} · superior ${face==='front'?'frontal':'traseiro'} · comprimento ${nice(mm(s.width))} mm · peça ocupa ${nice(cutDepthMm)} mm na profundidade · corte do vão somente no topo: ${nice(cutHeightMm)} mm · espaço restante ${nice(mm(s.width))} × ${nice(remainDepth)} × ${nice(remainHeight)} mm`;
   } else if(isShelf){
     let rawPos=parseDecimalInput($('piecePosition').value);
     if(!Number.isFinite(rawPos)||rawPos<0)rawPos=0;
@@ -588,21 +596,17 @@ function createPiecesInSelectedCell(){
         pieceD=Math.min(t,s.depth);
         pieceH=Math.min(size,s.height);
       }
-      if(s.depth-pieceD<MIN_SIZE) throw new Error('O sarrafo não deixa profundidade livre suficiente');
       if(s.height-pieceH<MIN_SIZE) throw new Error('O sarrafo não deixa altura livre suficiente');
       const x=info.center.x;
       const yBase=c.maxY-pieceH;
       const zc=face==='front'?c.maxZ-pieceD/2:c.minZ+pieceD/2;
       const localLabel=face==='front'?'superior frontal':'superior traseiro';
       const rail=createBox({width:pieceW,depth:pieceD,height:pieceH,x,yBase,z:zc,name:`Sarrafo ${orient==='horizontal'?'horizontal':'vertical'} · ${localLabel}`,kind:'panel',materialType:'MDF',baseColor:COLORS.panel,spaceRootId:root.id,spaceCutting:true,spaceCutParentBounds:cellBox(c)},false);
-      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:true,cutDepthMm:mm(pieceD),cutHeightMm:mm(pieceH)};
-      // O vão útil fica simultaneamente abaixo do sarrafo e fora da faixa de profundidade dele.
-      // Não criamos uma segunda célula estreita atrás/na frente da peça: o objetivo é que
-      // o espaço selecionável restante já seja o volume realmente utilizável para novas peças.
-      const remaining={...c,maxY:c.maxY-pieceH};
-      if(face==='front') remaining.maxZ=c.maxZ-pieceD;
-      else remaining.minZ=c.minZ+pieceD;
-      newFree.push(remaining);
+      rail.userData.railConfig={orientation:orient,face,sizeMm:mm(size),placement:localLabel,structural:true,affectsSpace:true,cutDepthMm:0,physicalDepthMm:mm(pieceD),cutHeightMm:mm(pieceH),spaceCutMode:'top-band-full-depth'};
+      // r24: não mexe em minZ/maxZ. Ex.: P600 permanece P600.
+      // Horizontal/deitado: A diminui pela espessura (18 mm).
+      // Vertical/em pé: A diminui pelo tamanho do sarrafo (ex.: 60 mm).
+      newFree.push({...c,maxY:c.maxY-pieceH});
       createdCount=1;
     } else if(pieceCreateType==='back'){
       // Para Fundo, o campo "Recuo fundo" é a distância entre a traseira do
@@ -719,7 +723,7 @@ function createPiecesInSelectedCell(){
   else if(pieceCreateType==='rail'){
     const orient=$('pieceRailOrientation')?.value==='vertical'?'vertical':'horizontal';
     const face=$('pieceRailFace')?.value==='back'?'traseiro':'frontal';
-    toast(`Sarrafo ${orient} criado no superior ${face} · espaço recortado`);
+    toast(`Sarrafo ${orient} criado no superior ${face} · corte somente no topo`);
   }
   else if(pieceCreateType==='back'){
     const warn=Array.isArray(window.__lastBackMachiningWarning)?window.__lastBackMachiningWarning:[];
