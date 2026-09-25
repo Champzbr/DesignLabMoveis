@@ -204,3 +204,10 @@ Build: **1.310.00-r8**.
 ## 1.310.00-r23 — sarrafo recorta o espaço útil
 
 Sarrafos superiores agora recortam simultaneamente a profundidade e a altura úteis do vão. Em sarrafo horizontal de 100 mm com MDF 18 mm, um vão de profundidade 600 mm passa a ter 500 mm de profundidade útil e perde 18 mm na altura. Frente/traseira define de qual lado a profundidade é descontada.
+
+
+## r24 — Sarrafo frontal/traseiro + corte só no topo
+- Atalhos separados: Sarrafo frontal e Sarrafo traseiro, com ícones próprios.
+- Deitado: reduz a altura do vão apenas pela espessura (ex.: 18 mm).
+- Em pé: reduz a altura apenas pela largura/tamanho do sarrafo (ex.: 60 mm).
+- A profundidade do espaço não é reduzida.

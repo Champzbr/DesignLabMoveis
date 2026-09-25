@@ -1972,7 +1972,8 @@
       <button class="secondary" data-piece-type="shelf">Prateleira · meio</button>
       <button class="secondary" data-piece-type="shelves">Prateleiras múltiplas</button>
       <button class="secondary" data-piece-type="slat">Ripas</button>
-      <button class="secondary" data-piece-type="rail">Sarrafos</button>
+      <button class="secondary" data-piece-type="rail" data-rail-face="front">Sarrafo frontal</button>
+      <button class="secondary" data-piece-type="rail" data-rail-face="back">Sarrafo traseiro</button>
       <button class="secondary" data-piece-type="back">Fundo</button>
       <button class="secondary" data-piece-type="front">Frente</button>
       <button class="secondary" data-piece-type="doors" style="grid-column:1 / -1">Portas</button>
@@ -2007,7 +2008,7 @@
 
 
     <div id="pieceRailFields" class="hiddenField" style="margin-top:10px;padding:10px;border:1px solid rgba(83,214,232,.28);border-radius:12px">
-      <p class="dialogHelp" style="margin:0 0 8px"><strong>Sarrafos</strong> · reforço estrutural. Toque cria com a última configuração; segure no botão Sarrafos para abrir estas opções.</p>
+      <p class="dialogHelp" style="margin:0 0 8px"><strong>Sarrafos</strong> · reforço estrutural. Use Sarrafo frontal ou Sarrafo traseiro; segure o botão escolhido para abrir estas opções.</p>
       <div class="spaceFields two">
         <label>Orientação do sarrafo
           <select id="pieceRailOrientation"><option value="horizontal">Horizontal / deitado</option><option value="vertical">Vertical / em pé</option></select>
@@ -2019,7 +2020,7 @@
       <div class="spaceFields two" style="margin-top:8px">
         <label>Tamanho do sarrafo (mm)<input id="pieceRailSize" type="text" value="100" inputmode="decimal" autocomplete="off"></label>
       </div>
-      <p class="dialogHelp" style="margin:8px 0 0">O sarrafo sempre atravessa a largura do vão e fica na parte superior. <strong>Horizontal</strong> = deitado: o tamanho ocupa a profundidade e a espessura fica na altura. <strong>Vertical</strong> = em pé: a espessura ocupa a profundidade e o tamanho fica na altura. Superior frontal/traseiro escolhe apenas o local no móvel. Pode sobrepor peças existentes e <strong>não divide nem recorta o espaço</strong>.</p>
+      <p class="dialogHelp" style="margin:8px 0 0">O sarrafo sempre atravessa a largura do vão e fica na parte superior. <strong>Horizontal/deitado</strong>: o vão perde somente a espessura da chapa no topo (ex.: 18 mm). <strong>Vertical/em pé</strong>: o vão perde somente a largura do sarrafo no topo (ex.: 60 mm). Frontal/traseiro muda só a posição física na profundidade; a profundidade útil do vão permanece inteira.</p>
     </div>
 
     <div id="backMachiningFields" class="hiddenField" style="margin-top:10px;padding:10px;border:1px solid rgba(83,214,232,.28);border-radius:12px">
