@@ -119,4 +119,40 @@ O smoke test real no Windows encontrou `mergeIntervals is not a function` ao cri
 
 O runtime agora resolve esses quatro helpers pelo `moduleRegistry` no momento da chamada. O botão **Criar** também ganhou trava curta contra duplo clique/toque para não duplicar a peça por reenvio rápido.
 
-Build: **1.310.00-r6**.
+Build: **1.310.00-r5**.
+
+
+## 1.310.00-r7 — seleção de vãos no touch
+
+- Celular: duplo toque em um vão adiciona/remove esse vão da seleção de porta.
+- Celular: toque longo abre o menu Porta/Gaveta usando os vãos já selecionados; o último vão pressionado é incluído se ainda não estiver na seleção.
+- O `dblclick` sintético gerado pelo Android/WebView após dois toques é bloqueado para não abrir o menu antes da hora.
+- PC mantém Ctrl+clique para seleção múltipla e duplo clique para abrir o menu rápido.
+
+
+## Hotfix r8 — Trena por ponto
+
+No smoke test real no celular, a Trena em modo **por ponto** lançava `referenceMeshes is not a function`, enquanto a Trena por peça seguia funcionando.
+
+A causa era novamente late-binding de bootstrap: `tapeMovement` é criado antes de `spacesCuts`, porém recebia `referenceMeshes` por shorthand. Nesse instante a variável ainda era `undefined` e esse valor ficava congelado dentro do módulo. Os caminhos da Trena por ponto usam `referenceMeshes()` para snap/raycast em cantos, arestas e linhas de referência; por isso o erro aparecia ao escolher o ponto.
+
+O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `moduleRegistry` no momento da chamada, com fallback seguro para `[]`. A Trena por peça não foi alterada.
+
+Build: **1.310.00-r8**.
+
+## Hotfix 1.310.00-r14
+- Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
+- Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
+
+
+### r12 · Fundo com seleção de lados de usinagem
+- Criar Fundo agora repete o padrão visual/funcional usado em Gavetas: checkboxes individuais para escolher quais peças recebem rasgo.
+- Lados disponíveis: lateral esquerda, lateral direita, chapéu/cima e base/baixo.
+- O fundo continua podendo passar medidas independentes em cada lado; somente os lados marcados recebem usinagem automática.
+- A seleção é salva junto da configuração do tipo Fundo.
+
+
+## r14 · Windows sem banner PWA
+- Quando aberto com `?desktop=windows` ou pelo user-agent do app Windows, o banner **Abrir como aplicativo / Instalar** é desativado.
+- O app Windows não registra Service Worker/PWA duplicado; continua usando o Netlify diretamente para login, conta e projetos.
+- Essa mudança evita trabalho duplicado de PWA/cache dentro de um programa que já é desktop, sem reduzir a qualidade do render 3D.

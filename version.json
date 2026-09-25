@@ -1,5 +1,5 @@
 {
   "version": "1.310.00",
-  "released_at": "2026-09-24T13:05:00-03:00",
-  "message": "Fase 10 r12: Criar Fundo usa o mesmo padrão de seleção de usinagem das gavetas. O usuário escolhe exatamente quais lados recebem rasgo: lateral esquerda, lateral direita, chapéu/cima e base/baixo. Os valores de quanto o fundo passa continuam independentes e a usinagem só é criada nos lados marcados."
+  "released_at": "2026-09-24T19:45:00-03:00",
+  "message": "r14: modo Windows não exibe mais o banner de instalar PWA e não registra Service Worker dentro do aplicativo desktop; login e dados continuam usando o mesmo site/conta Netlify."
 }
