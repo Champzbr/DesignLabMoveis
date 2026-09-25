@@ -1250,6 +1250,10 @@ function exportMimeAccept(filename,mime='application/octet-stream'){
   return ext?{[mime]:[ext]}:{[mime]:[]};
 }
 function isExportPickerCancel(err){return err?.name==='AbortError';}
+function isExportPickerActivationError(err){
+  const msg=String(err?.message||'').toLowerCase();
+  return err?.name==='NotAllowedError'&&(msg.includes('user activation')||msg.includes('activation required')||msg.includes('gesture'));
+}
 function exportLeafName(filename){
   const raw=String(filename||'arquivo').replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/[. ]+$/g,'').trim();
   return (raw||'arquivo').slice(0,180);
@@ -1292,16 +1296,22 @@ async function pickDirectoryFileTarget(filename,pickerId){
   }
 }
 async function pickExportTarget(filename,pickerId='designlab-export',mime='application/octet-stream'){
-  if(!window.isSecureContext){
-    throw new Error('Para escolher uma pasta de exportação, abra o DesignLabMoveis pelo endereço HTTPS do site.');
-  }
+  const downloadTarget=()=>({kind:'download',locationLabel:'Downloads · modo compatibilidade'});
+  if(!window.isSecureContext)return downloadTarget();
   const mobileLike=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(navigator.maxTouchPoints>1&&innerWidth<900);
-  // No Android o seletor de diretório pode devolver um FileSystemDirectoryHandle que não aceita
-  // getFileHandle(). O seletor de salvar usa o gerenciador de arquivos do sistema e permite escolher
-  // a pasta/local sem cair no download automático do navegador.
+  const activationActive=navigator.userActivation?.isActive!==false;
+  // File System Access exige uma ativação de usuário ainda válida. Em WebView/Electron/PWA ela pode
+  // se perder mesmo tendo vindo de um clique real. Nessa situação usamos download compatível em vez
+  // de deixar a exportação falhar com "User activation required".
+  if(!activationActive)return downloadTarget();
   if(mobileLike&&typeof window.showSaveFilePicker==='function'){
-    const direct=await pickSaveFileTarget(filename,pickerId,mime);
-    if(direct)return direct;
+    try{
+      const direct=await pickSaveFileTarget(filename,pickerId,mime);
+      if(direct)return direct;
+    }catch(err){
+      if(isExportPickerCancel(err))throw err;
+      if(isExportPickerActivationError(err))return downloadTarget();
+    }
   }
   let directoryError=null;
   if(typeof window.showDirectoryPicker==='function'){
@@ -1310,17 +1320,24 @@ async function pickExportTarget(filename,pickerId='designlab-export',mime='appli
       if(target)return target;
     }catch(err){
       if(isExportPickerCancel(err))throw err;
+      if(isExportPickerActivationError(err))return downloadTarget();
       directoryError=err;
     }
   }
   if(typeof window.showSaveFilePicker==='function'){
-    const target=await pickSaveFileTarget(filename,pickerId,mime);
-    if(target)return target;
+    try{
+      const target=await pickSaveFileTarget(filename,pickerId,mime);
+      if(target)return target;
+    }catch(err){
+      if(isExportPickerCancel(err))throw err;
+      if(isExportPickerActivationError(err))return downloadTarget();
+      directoryError=directoryError||err;
+    }
   }
-  if(directoryError){
+  if(directoryError&&mobileLike){
     throw new Error('A pasta foi escolhida, mas o Android/navegador não permitiu criar o arquivo nela. Escolha outro local de salvamento.');
   }
-  throw new Error('Este navegador não permite salvar direto em uma pasta/local. Use uma versão compatível do Chrome ou Edge.');
+  return downloadTarget();
 }
 function downloadExportFallback(blob,filename){
   const leaf=exportLeafName(filename||'arquivo');
@@ -1352,6 +1369,7 @@ async function shareExportFallback(blob,filename){
 }
 async function writeExportTarget(target,blob,filename='arquivo'){
   if(!(blob instanceof Blob)||blob.size<=0)throw new Error('O arquivo gerado está vazio; exportação cancelada.');
+  if(target?.kind==='download')return downloadExportFallback(blob,filename);
   let writable=null;
   try{
     if(!target?.handle||typeof target.handle.createWritable!=='function')throw new Error('Destino sem suporte a gravação direta.');
