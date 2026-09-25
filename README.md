@@ -219,3 +219,8 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - O recorte do espaço usa apenas a caixa física do sarrafo, preservando uma faixa oposta na profundidade para outro sarrafo.
 - Quatro atalhos: superior frontal/traseiro e inferior frontal/traseiro.
 - Configuração do espaço abre diretamente o painel com vistas Frontal/Traseira/Laterais/Cima/Baixo.
+
+
+## r26
+- Gavetas: espessura da caixa agora é escolhida explicitamente entre 15 mm e 18 mm.
+- Conjuntos antigos com espessura diferente continuam editáveis sem perda de dados.
