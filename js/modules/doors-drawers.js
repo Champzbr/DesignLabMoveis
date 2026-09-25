@@ -1356,7 +1356,7 @@ export function createDoorsDrawersModule(ctx){
           if (Math.max(Math.abs(frontGapLeft), Math.abs(frontGapRight), Math.abs(frontGapTop), Math.abs(frontGapBottom), Math.abs(frontGapBetween)) > 1000)
               throw new Error('Folga das frentes fora do limite');
       }
-      // 1.310.00-r21: quando houver frente de gaveta, ela passa a ocupar o
+      // 1.310.00-r22: quando houver frente de gaveta, ela passa a ocupar o
       // próprio vão (não fica mais do lado de fora). Portanto a profundidade útil
       // da caixa/corrediça também desconta a espessura da frente.
       const frontReserve = frontInset + (createFronts ? frontThickness : 0);
