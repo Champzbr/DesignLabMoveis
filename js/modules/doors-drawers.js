@@ -1543,7 +1543,21 @@ export function createDoorsDrawersModule(ctx){
       $('drawerCount').value = cfg?.count ?? 3;
       $('drawerBoxHeight').value = cfg?.boxHeight ?? 120;
       const rootMaterial = spaceDefaultMaterial(target.root);
-      $('drawerBoxThickness').value = cfg?.boxThickness ?? rootMaterial?.thickness ?? 15;
+      // Espessura estrutural da caixa: escolha explícita 15 ou 18 mm.
+      // Projetos antigos com outra medida continuam editáveis sem perder a configuração.
+      const boxThicknessSelect = $('drawerBoxThickness');
+      const savedBoxThickness = Number(cfg?.boxThickness);
+      const initialBoxThickness = Number.isFinite(savedBoxThickness) ? savedBoxThickness : 15;
+      if (boxThicknessSelect) {
+          const value = String(initialBoxThickness);
+          if (![...boxThicknessSelect.options].some(o => o.value === value)) {
+              const legacy = document.createElement('option');
+              legacy.value = value;
+              legacy.textContent = `${nice(initialBoxThickness)} mm · projeto existente`;
+              boxThicknessSelect.appendChild(legacy);
+          }
+          boxThicknessSelect.value = value;
+      }
       $('drawerBottomThickness2').value = cfg?.bottomThickness ?? 6;
       $('drawerBottomOffset').value = cfg?.bottomOffset ?? 0;
       $('drawerBottomPassLeft').value = cfg?.bottomPassLeft ?? 0;
