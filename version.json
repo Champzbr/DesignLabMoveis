@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r28",
+  "version": "1.311.00-r1",
   "date": "2026-09-25",
-  "message": "r28: tamponamento usa ripas internas curtas com comprimento e recuos frontal/traseiro independentes; painel Ferramentas ganhou rolagem vertical."
+  "message": "1.311.00-r1: tamponamento de gaveta formalizado como ripas internas curtas; profundidade da ripa e afastamento lateral são independentes; caixa inicia após o afastamento lateral + folga da corrediça."
 }

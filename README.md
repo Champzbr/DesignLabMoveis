@@ -1,4 +1,4 @@
-# DesignLabMoveis 1.310.00 — Fase 10: runtimeModel + moduleRegistry
+# DesignLabMoveis 1.311.00 — Fase 10: runtimeModel + moduleRegistry
 
 Esta fase prioriza **estabilidade do wiring**, não redução artificial de linhas. O `js/app.js` continua sendo o bootstrap mínimo e `js/editor-runtime.js` permanece como orquestrador explícito. A quantidade de linhas do runtime pode crescer um pouco nesta fase porque dependências antes escondidas em optional chaining passaram a ficar nomeadas e auditáveis.
 
@@ -21,7 +21,7 @@ Também foram removidos dos argumentos das factories os aliases redundantes como
 
 O levantamento da base 1.309.00 encontrou **332 ocorrências reais** do padrão ad-hoc `(...a) => func?.(...a)`. A contagem de 67 era parcial/mais antiga; esta fase auditou todas as ocorrências encontradas no arquivo atual.
 
-Classificação canônica em `LATE_BINDING_AUDIT_1.310.00.csv`:
+Classificação canônica em `LATE_BINDING_AUDIT_1.311.00.csv`:
 
 - **303 — `i-registry`**: dependências de bootstrap/ciclos funcionais que não podem ser resolvidos só movendo a factory.
 - **24 — `ii-direct`**: o fornecedor já existia antes do consumidor; o wrapper tardio não era necessário.
@@ -54,7 +54,7 @@ Há **305 chamadas `callIfReady`** no runtime final: as 303 da categoria `i-regi
 
 ## 5. Offline / Service Worker
 
-`sw.js` foi atualizado para `1.310.00-r4` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
+`sw.js` foi atualizado para `1.311.00-r1` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
 
 ## Validação automática executada
 
@@ -99,7 +99,7 @@ Durante o smoke test real no navegador foi encontrado um erro de wiring que a va
 
 A mesma auditoria de escopo encontrou três referências que seriam os próximos `ReferenceError`: `mmPrec`, `shapeCopyPieceEligible` e `shapeDeepClone`. As três já eram exportadas por `machining-shapes.js`, mas não eram desestruturadas no runtime antes de serem passadas a `production-materials.js`. Isso foi corrigido no mesmo hotfix.
 
-Build: **1.310.00-r4**.
+Build: **1.311.00-r1**.
 
 ## Hotfix r4 — portas e menu de espaço
 
@@ -110,7 +110,7 @@ O smoke test real encontrou dois problemas no fluxo de Porta/Gaveta:
 
 A seleção múltipla continua disponível: no PC, `Ctrl + clique` adiciona/remove referências e o duplo clique abre o menu central; no celular, toque longo adiciona a referência e abre o mesmo menu.
 
-Build: **1.310.00-r4**.
+Build: **1.311.00-r1**.
 
 
 ## Hotfix r5 — divisão vertical centralizada
@@ -119,10 +119,10 @@ O smoke test real no Windows encontrou `mergeIntervals is not a function` ao cri
 
 O runtime agora resolve esses quatro helpers pelo `moduleRegistry` no momento da chamada. O botão **Criar** também ganhou trava curta contra duplo clique/toque para não duplicar a peça por reenvio rápido.
 
-Build: **1.310.00-r5**.
+Build: **1.311.00-r1**.
 
 
-## 1.310.00-r7 — seleção de vãos no touch
+## 1.311.00-r1 — seleção de vãos no touch
 
 - Celular: duplo toque em um vão adiciona/remove esse vão da seleção de porta.
 - Celular: toque longo abre o menu Porta/Gaveta usando os vãos já selecionados; o último vão pressionado é incluído se ainda não estiver na seleção.
@@ -138,9 +138,9 @@ A causa era novamente late-binding de bootstrap: `tapeMovement` é criado antes 
 
 O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `moduleRegistry` no momento da chamada, com fallback seguro para `[]`. A Trena por peça não foi alterada.
 
-Build: **1.310.00-r8**.
+Build: **1.311.00-r1**.
 
-## Hotfix 1.310.00-r22
+## Hotfix 1.311.00-r1
 - Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
 - Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
 
@@ -162,7 +162,7 @@ Build: **1.310.00-r8**.
 - Exportação Aspire: fallback automático para download quando File System Access perde a ativação do usuário (User activation required), comum em PWA/WebView/Electron.
 
 
-## Hotfix 1.310.00-r22
+## Hotfix 1.311.00-r1
 - Remove layers-base vazias como `CORTE_EXTERNO`/`CORTE_INTERNO` do DXF Aspire.
 - Contornos passam a aparecer somente como `CORTE_EXTERNO_E<espessura>_P<profundidade>`.
 - Corte interno e encaixes seguem o mesmo padrão.
@@ -170,7 +170,7 @@ Build: **1.310.00-r8**.
 - Não altera posição, contorno ou quantidade de vetores; muda somente o nome/organização das layers.
 
 
-## 1.310.00-r22 · Ripas
+## 1.311.00-r1 · Ripas
 - Novo botão **Ripas** no submenu Criar peças.
 - Toque curto: cria diretamente usando a última configuração.
 - Pressionar/segurar: abre configuração da ripa.
@@ -201,7 +201,7 @@ Build: **1.310.00-r8**.
 - Nenhuma alteração na lógica de login/conta Netlify; a falha acontecia antes do bootstrap da autenticação.
 
 
-## 1.310.00-r23 — sarrafo recorta o espaço útil
+## 1.311.00-r1 — sarrafo recorta o espaço útil
 
 Sarrafos superiores agora recortam simultaneamente a profundidade e a altura úteis do vão. Em sarrafo horizontal de 100 mm com MDF 18 mm, um vão de profundidade 600 mm passa a ter 500 mm de profundidade útil e perde 18 mm na altura. Frente/traseira define de qual lado a profundidade é descontada.
 
@@ -225,7 +225,7 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Gavetas: espessura da caixa agora é escolhida explicitamente entre 15 mm e 18 mm.
 - Conjuntos antigos com espessura diferente continuam editáveis sem perda de dados.
 
-## 1.310.00-r28 · Presets completos de gavetas + tamponamento
+## 1.311.00-r1 · Presets completos de gavetas + tamponamento
 
 - A biblioteca de gavetas agora salva a configuração completa: corrediça, quantidade, caixa, frentes, fundo, usinagens, furação e tamponamento.
 - Novo tamponamento para dobradiças: esquerdo, direito ou ambos, com espessura/afastamento e recuos frontal/traseiro.
@@ -233,9 +233,16 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Quando o tamponamento existe, a furação automática da corrediça usa o próprio tamponamento como apoio lateral.
 
 
-## 1.310.00-r28 · Tamponamento por ripas internas + rolagem em Ferramentas
+## 1.311.00-r1 · Tamponamento por ripas internas + rolagem em Ferramentas
 - O recuo frontal/traseiro passa a posicionar a ripa interna do tamponamento, em vez de encurtar uma peça de profundidade inteira.
 - Novo comprimento da ripa interna (padrão 60 mm); exemplo: 60 mm com recuo frontal 50 mm começa 50 mm após a frente.
 - Ripa frontal e traseira podem ser ativadas de forma independente.
 - A espessura/afastamento lateral continua descontando a largura útil da gaveta.
 - O painel flutuante Ferramentas agora possui rolagem vertical para acessar todos os menus.
+
+
+## 1.311.00-r1 · geometria do tamponamento confirmada pelo MCAD
+- A ripa frontal/traseira usa a medida de profundidade (ex. 60 mm) apenas no eixo frente↔trás.
+- O afastamento lateral (ex. 18 mm) desloca o conjunto da gaveta para dentro.
+- A caixa começa após `afastamento lateral + folga da corrediça`; a profundidade de 60 mm da ripa não entra nesse cálculo lateral.
+- Configuração de gavetas continua salvando esses valores no preset.
