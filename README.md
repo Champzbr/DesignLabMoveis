@@ -224,3 +224,18 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 ## r26
 - Gavetas: espessura da caixa agora é escolhida explicitamente entre 15 mm e 18 mm.
 - Conjuntos antigos com espessura diferente continuam editáveis sem perda de dados.
+
+## 1.310.00-r28 · Presets completos de gavetas + tamponamento
+
+- A biblioteca de gavetas agora salva a configuração completa: corrediça, quantidade, caixa, frentes, fundo, usinagens, furação e tamponamento.
+- Novo tamponamento para dobradiças: esquerdo, direito ou ambos, com espessura/afastamento e recuos frontal/traseiro.
+- O tamponamento é peça MDF real, entra em lista de peças/plano de corte/Aspire e reduz automaticamente a largura útil das gavetas/frentes.
+- Quando o tamponamento existe, a furação automática da corrediça usa o próprio tamponamento como apoio lateral.
+
+
+## 1.310.00-r28 · Tamponamento por ripas internas + rolagem em Ferramentas
+- O recuo frontal/traseiro passa a posicionar a ripa interna do tamponamento, em vez de encurtar uma peça de profundidade inteira.
+- Novo comprimento da ripa interna (padrão 60 mm); exemplo: 60 mm com recuo frontal 50 mm começa 50 mm após a frente.
+- Ripa frontal e traseira podem ser ativadas de forma independente.
+- A espessura/afastamento lateral continua descontando a largura útil da gaveta.
+- O painel flutuante Ferramentas agora possui rolagem vertical para acessar todos os menus.

@@ -1,5 +1,5 @@
 {
-  "version": "1.310.00-r25",
+  "version": "1.310.00-r28",
   "date": "2026-09-25",
-  "message": "r25: sarrafos recortam somente o volume realmente ocupado, permitindo segundo sarrafo na faixa oposta; adiciona superior/inferior frontal/traseiro; Configuração do espaço abre diretamente as vistas e corrige botões 2D."
+  "message": "r28: tamponamento usa ripas internas curtas com comprimento e recuos frontal/traseiro independentes; painel Ferramentas ganhou rolagem vertical."
 }

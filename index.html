@@ -2194,13 +2194,13 @@
       <div class="machiningPresetHead"><strong>Corrediça</strong><span class="dialogHelp" style="margin:0">Comprimento automático</span></div>
 
       <div style="margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid #30363a">
-        <label>Biblioteca de corrediças
+        <label>Biblioteca de configurações de gaveta
           <select id="drawerSavedSlideSelect">
             <option value="">Configuração atual / padrão</option>
           </select>
         </label>
         <div class="spaceFields two" style="margin-top:7px">
-          <label>Nome para salvar<input id="drawerSavedSlideName" value="" placeholder="Ex.: Telescópica Hafele 450"></label>
+          <label>Nome para salvar<input id="drawerSavedSlideName" value="" placeholder="Ex.: Gaveta padrão 15 mm"></label>
           <label>Ação
             <div style="display:grid;grid-template-columns:1fr 42px;gap:6px">
               <button id="saveDrawerSlidePreset" type="button" class="secondary">💾 Salvar configuração</button>
@@ -2208,7 +2208,7 @@
             </div>
           </label>
         </div>
-        <p class="dialogHelp" style="margin:6px 0 0">Configure a corrediça e aperte <strong>Salvar configuração</strong>. Se o nome ficar vazio, o CAD cria um nome automático. Se uma configuração salva estiver selecionada, o botão atualiza ela. Também salva caixa, fundo, lados de usinagem e o padrão completo de furação da corrediça.</p>
+        <p class="dialogHelp" style="margin:6px 0 0">Configure a gaveta inteira e aperte <strong>Salvar configuração</strong>. O preset guarda corrediça, quantidade, caixa, frentes, fundo, usinagens, furação e tamponamento. Se o nome ficar vazio, o CAD cria um nome automático.</p>
       </div>
 
       <div class="spaceFields two">
@@ -2247,6 +2247,33 @@
     <div class="spaceFields two" style="margin-top:8px">
       <label>Folga caixa cima/baixo (mm)<input id="drawerEdgeGap" type="number" value="20" min="0" step="1"></label>
       <label>Distribuição<input value="Automática e uniforme" readonly></label>
+    </div>
+
+    <div class="drawerPresetBox" style="margin-top:10px">
+      <div class="machiningPresetHead"><strong>Tamponamento para dobradiça</strong><span class="dialogHelp" style="margin:0">afasta a caixa da lateral</span></div>
+      <label class="fixedChoice" style="margin:0">
+        <input id="drawerCreateTampon" type="checkbox">
+        <div><strong>Adicionar tamponamento</strong><span>Cria peça(s) lateral(is) reais para livrar dobradiças e desconta automaticamente essa medida da largura útil das gavetas.</span></div>
+      </label>
+      <div id="drawerTamponFields" style="margin-top:8px;display:none">
+        <div class="spaceFields two">
+          <label>Lado<select id="drawerTamponSide"><option value="left">Esquerdo</option><option value="right">Direito</option><option value="both">Esquerdo + direito</option></select></label>
+          <label>Espessura / afastamento (mm)<input id="drawerTamponThickness" type="number" value="18" min="1" step="1"></label>
+        </div>
+        <div class="spaceFields two" style="margin-top:8px">
+          <label>Comprimento da ripa interna (mm)<input id="drawerTamponStripDepth" type="number" value="60" min="1" step="1"></label>
+          <label>Uso<input value="Apoio interno para corrediça" readonly></label>
+        </div>
+        <div class="spaceFields two" style="margin-top:8px">
+          <label class="fixedChoice" style="margin:0"><input id="drawerTamponFrontStrip" type="checkbox" checked><div><strong>Ripa frontal</strong><span>medida a partir da frente do espaço</span></div></label>
+          <label>Recuo da frente (mm)<input id="drawerTamponFrontInset" type="number" value="50" min="0" step="1"></label>
+        </div>
+        <div class="spaceFields two" style="margin-top:8px">
+          <label class="fixedChoice" style="margin:0"><input id="drawerTamponRearStrip" type="checkbox"><div><strong>Ripa traseira</strong><span>medida a partir de trás do espaço</span></div></label>
+          <label>Recuo de trás (mm)<input id="drawerTamponRearInset" type="number" value="50" min="0" step="1"></label>
+        </div>
+        <p class="dialogHelp" style="margin:7px 0 0">Ex.: ripa 60 mm + recuo frontal 50 mm → a ripa começa 50 mm depois da frente e ocupa somente 60 mm da profundidade. O afastamento lateral continua descontado da largura útil da gaveta.</p>
+      </div>
     </div>
 
     <div class="drawerPresetBox" style="margin-top:10px">
@@ -2332,7 +2359,7 @@
 
     <label class="fixedChoice">
       <input id="drawerCreateDrilling" type="checkbox" checked>
-      <div><strong>Gerar furação no gabinete</strong><span>Cria os furos das corrediças nas laterais do móvel. O padrão abaixo é ajustável e também é salvo na Biblioteca de corrediças.</span></div>
+      <div><strong>Gerar furação no gabinete</strong><span>Cria os furos das corrediças nas laterais do móvel. O padrão abaixo é ajustável e também é salvo na Biblioteca de configurações de gaveta.</span></div>
     </label>
 
     <div id="drawerDrillingFields" class="drawerDrillBox">
