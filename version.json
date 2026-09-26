@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r3",
+  "version": "1.311.00-r4",
   "date": "2026-09-26",
-  "message": "1.311.00-r3: tamponamento com ripas de afastamento + lateral interna inteira; gaveta e frente embutidas após a lateral; presets restauram a folga da corrediça; layout dos recuos corrigido."
+  "message": "1.311.00-r4: Windows com zoom estilo SketchUp por gesto — ponto 3D travado durante a rolagem, mantendo o foco no mesmo lugar da tela; mobile/web comum inalterados."
 }
