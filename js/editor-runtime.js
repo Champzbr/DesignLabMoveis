@@ -1,58 +1,58 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.310.00-r25';
-import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.310.00-r25';
-import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.310.00-r25';
-import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.310.00-r25';
-import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.310.00-r25';
-import { createAdminModule } from './modules/admin.js?v=1.310.00-r25';
-import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.310.00-r25';
-import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.310.00-r25';
-import { createProjectsModule } from './modules/projects.js?v=1.310.00-r25';
-import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.310.00-r25';
-import { createLibraryModule } from './modules/library.js?v=1.310.00-r25';
-import { createCadIoModule } from './modules/cad-io.js?v=1.310.00-r25';
-import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.310.00-r25';
-import { createTapeMovementModule } from './modules/tape-movement.js?v=1.310.00-r25';
-import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.310.00-r25';
-import { createSelection3DModule } from './modules/selection-3d.js?v=1.310.00-r25';
-import { createPieceEditorModule } from './modules/piece-editor.js?v=1.310.00-r25';
-import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.310.00-r25';
-import { createProductionSuiteModule } from './modules/production-suite.js?v=1.310.00-r25';
-import { createToolDockModule } from './modules/tool-dock.js?v=1.310.00-r25';
-import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.310.00-r25';
-import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.310.00-r25';
-import { createEditorHistoryModule } from './modules/editor-history.js?v=1.310.00-r25';
-import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.310.00-r25';
-import { createAppUpdateModule } from './modules/app-update.js?v=1.310.00-r25';
-import { createCloudAccountModule } from './modules/cloud-account.js?v=1.310.00-r25';
-import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.310.00-r25';
-import { createBackNavigationModule } from './modules/back-navigation.js?v=1.310.00-r25';
-import { bindUiEvents } from './modules/ui-events.js?v=1.310.00-r25';
-import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.310.00-r25';
-import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.310.00-r25';
-import { createAppThemeModule } from './modules/app-theme.js?v=1.310.00-r25';
-import { createSpaceHealingModule } from './modules/space-healing.js?v=1.310.00-r25';
-import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.310.00-r25';
-import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.310.00-r25';
-import { createToolController } from './modules/tool-controller.js?v=1.310.00-r25';
-import { createSpaceEditorModule } from './modules/space-editor.js?v=1.310.00-r25';
-import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.310.00-r25';
-import { createCadScene } from './modules/cad-scene.js?v=1.310.00-r25';
-import { createRuntimeModel } from './modules/runtime-model.js?v=1.310.00-r25';
-import { createModuleRegistry } from './modules/module-registry.js?v=1.310.00-r25';
-import { installCadInputNavigation } from './modules/cad-input.js?v=1.310.00-r25';
-import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.310.00-r25';
-import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.310.00-r25';
+import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.311.00-r1';
+import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.311.00-r1';
+import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.311.00-r1';
+import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.311.00-r1';
+import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.311.00-r1';
+import { createAdminModule } from './modules/admin.js?v=1.311.00-r1';
+import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.311.00-r1';
+import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.311.00-r1';
+import { createProjectsModule } from './modules/projects.js?v=1.311.00-r1';
+import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.311.00-r1';
+import { createLibraryModule } from './modules/library.js?v=1.311.00-r1';
+import { createCadIoModule } from './modules/cad-io.js?v=1.311.00-r1';
+import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.311.00-r1';
+import { createTapeMovementModule } from './modules/tape-movement.js?v=1.311.00-r1';
+import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.311.00-r1';
+import { createSelection3DModule } from './modules/selection-3d.js?v=1.311.00-r1';
+import { createPieceEditorModule } from './modules/piece-editor.js?v=1.311.00-r1';
+import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.311.00-r1';
+import { createProductionSuiteModule } from './modules/production-suite.js?v=1.311.00-r1';
+import { createToolDockModule } from './modules/tool-dock.js?v=1.311.00-r1';
+import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.311.00-r1';
+import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.311.00-r1';
+import { createEditorHistoryModule } from './modules/editor-history.js?v=1.311.00-r1';
+import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.311.00-r1';
+import { createAppUpdateModule } from './modules/app-update.js?v=1.311.00-r1';
+import { createCloudAccountModule } from './modules/cloud-account.js?v=1.311.00-r1';
+import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.311.00-r1';
+import { createBackNavigationModule } from './modules/back-navigation.js?v=1.311.00-r1';
+import { bindUiEvents } from './modules/ui-events.js?v=1.311.00-r1';
+import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.311.00-r1';
+import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.311.00-r1';
+import { createAppThemeModule } from './modules/app-theme.js?v=1.311.00-r1';
+import { createSpaceHealingModule } from './modules/space-healing.js?v=1.311.00-r1';
+import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.311.00-r1';
+import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.311.00-r1';
+import { createToolController } from './modules/tool-controller.js?v=1.311.00-r1';
+import { createSpaceEditorModule } from './modules/space-editor.js?v=1.311.00-r1';
+import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.311.00-r1';
+import { createCadScene } from './modules/cad-scene.js?v=1.311.00-r1';
+import { createRuntimeModel } from './modules/runtime-model.js?v=1.311.00-r1';
+import { createModuleRegistry } from './modules/module-registry.js?v=1.311.00-r1';
+import { installCadInputNavigation } from './modules/cad-input.js?v=1.311.00-r1';
+import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.311.00-r1';
+import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.311.00-r1';
 
-// 1.310.00 · constantes compartilhadas em js/modules/runtime-config.js.
+// 1.311.00 · constantes compartilhadas em js/modules/runtime-config.js.
 
 const $ = id => document.getElementById(id);
 const runtimeHelpers=createRuntimeHelpers({THREE,roundMmNumber,M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,$});
 const {mm,m,clampSize,toast}=runtimeHelpers;
 const moduleRegistry=createModuleRegistry();
-window.__DESIGNLAB_APP_BOOTED='1.310.00-r22';
+window.__DESIGNLAB_APP_BOOTED='1.311.00-r1';
 let auth=null;
 let projects=null;
 let projectIsoMs,cloudSaveProjectRecord,syncCloudProjects,claimLegacyProject,claimAllLegacyProjects,projectNow,projectStateHasContent,updateProjectHomeWelcome,scrollProjectHomeTo,openHomeModeling,openHomeMaterials,projectCurrentOwnerId,projectBelongsToCurrentOwner,projectEmergencyKey,prepareProjectAccountSwitch,applyProjectAccountScope,projectDbGet,projectDbPut,captureProjectCamera,restoreProjectCamera,captureProjectThumbnail,updateProjectChrome,markCurrentProjectDirty,projectAutosaveNow,applyProjectPresentationScene,resetProjectHistory,enterProjectEditor,renderProjectHome,showProjectHome,openProjectMetaDialog,closeProjectMetaDialog,readProjectMeta,createNewProject,saveCurrentProject,saveAsCurrentProject,renameCurrentProject,duplicateProjectById,deleteProjectById,exportProjectRecordFile,exportCurrentProjectFile,importProjectFile,requestOpenProject,recoverPendingProject,discardPendingRecovery,closeProjectCardMenu,initProjectHub;
@@ -98,11 +98,11 @@ let remapMachiningForPieceResize,cloneMachiningForTargetSize,cloneMachining,piec
 let canonicalFactoryMaterialId,defaultProjectProduction,productionClone,productionColorInt,setProjectProductionState,mergeProjectProductionState,captureProductionState,productionMaterialById,productionMaterialUsesPieceThickness,productionMaterialKind,productionObjectKind,normalizePieceEdgeBands,applyPieceProductionEdgeColors,pieceEdgeBandSignature,pieceEdgeBandSummary,spaceDefaultMaterial,applySpaceDefaultMaterialToObject,applySpaceMaterialToExistingPieces,spaceMaterialText,normalizePieceGrainRotation,makeMaterials,refreshPieceNamePresetSelect,applyPieceNamePreset,createPieceNamePreset,fillPieceMaterialSelect,updatePieceMaterialQuickInfo,applySelectedPieceMaterialFromInspector,productionUpdateMaterialKindFields,productionLoadMaterialFields,productionLoadBandFields,openProductionDialog,closeProductionDialog,labelsPrefs,labelsSavePrefs,labelsApplyPrefs,labelsBuildItems,renderLabelsPreview,openLabelsDialog,closeLabelsDialog,labelsPrintDocument,labelsPrint,labelsSaveHtml,productionEditMaterialStock,productionNewMaterial,productionSaveMaterial,productionDeleteMaterial,productionApplyMaterial,productionNewBand,productionSaveBand,productionDeleteBand,productionAssignEdge,productionClearSelectedBands,fillSpaceMaterialSelect,preferredDefaultMaterialId,updateSpaceMaterialPreview,updateEditSpaceMaterialPreview,findHardwarePreset,setHardwareScope,objectBoundsMm,pointWithinPieceTangents,hardwareHoleOp,updateHardwarePanel,updateHardwareBuilderUi,openHardwareBuilder,saveHardwareBuilder,publishSelectedHardwarePreset,removeHardwareLinkedToObjects,deleteSelectedHardwarePreset,previewHardware3D,applySelectedHardware,fillHardwareShelfPinExample,fillHardwareDowelExample,openCopyHardwareTool,closeCopyHardwareTool,hardwareCopyHandlePick;
 let spaceMultiSelectionEntries,spaceMultiSelectionInfo,ensureSpaceMultiSelectBar,updateSpaceMultiSelectBar,clearSpaceMultiSelection,setSingleSpaceDoorReference,toggleSpaceMultiSelection,pieceCreationTargetInfo,openDoorFromSpaceSelection,ensureSpaceQuickCreateMenu,closeSpaceQuickCreateMenu,prepareSpaceQuickMenuTarget,openSpaceQuickCreateMenu,pickSpaceCellAtClient,openDrawerFromSpaceSelection,isDoorObject,doorObjectsForRoot,doorObjectShouldBeVisible,syncQuickFrontVisibilityButton,applyDoorVisibility,applyAllDoorVisibility,updateDoorsToggleButton,toggleDoorsForActiveSpace,captureDoorCreateConfig,readDoorCreateConfig,applyDoorCreateConfig,saveDoorCreateConfig,doorFieldNumber,doorAutoHingeCount,doorHingeCountResolved,syncDoorCavaPositionOptions,doorCreationConfig,doorHingeSideForIndex,doorHingePositionsMm,doorHandleOwnerForVisual,doorHandleVisualSpec,updateDoorHandleVisualTransform,updateDoorHandleVisuals,createDoorHandleVisual,removeDoorHandleVisualsForOwners,doorMountPanelCandidate,appendDoorHingeDrilling,doorInspectorRuntimeConfig,removeDoorAutomaticHinges,setSelectedDoorHingeSide,updateDoorCreationVisibility,getDrawerSlideLibrary,setDrawerSlideLibrary,refreshDrawerSlideLibrarySelect,captureDrawerSlidePreset,saveDrawerSlidePresetLibrary,applyDrawerSlidePresetLibrary,deleteDrawerSlidePresetLibrary,drawerParseDrillOffsets,drawerDrillTableOffsets,drawerCatalogCodeForLength,drawerDrillDefaults,drawerDrillValuesFromUi,drawerAbsoluteDrillPositions,drawerSetDrillingUiFromPreset,updateDrawerDrillingFields,drawerPreset,drawerSetObjects,drawerSetRepresentative,drawerSetIdsForTarget,drawerPrimarySetIdForTarget,removeDrawerSetsForTarget,drawerConfigFromSet,drawerUniqueConfigsForRoot,drawerTarget,drawerAutoLengthMm,drawerResolvedLengthMm,drawerApplyPresetDefaults,drawerReadConfig,updateDrawerSystemPreview,updateDrawerBottomMachiningFields,updateDrawerFrontFields,openDrawerSystemDialog,drawerReferenceGeometry,drawerFindSidePanel,drawerRemoveMachining,drawerRemoveCabinetDrilling,removeDrawerSet,drawerCreatePiece,drawerAddBottomGroove,drawerRemoveBottomGrooves,drawerExpectedBottomGrooves,drawerBottomGrooveCount,drawerEnsureBottomGroovesForSet,repairDrawerBottomGroovesForRoot,repairAllDrawerBottomGrooves,drawerAddCabinetDrilling,createDrawerSetFromConfig,sanitizeDrawerSet,saveDrawerSystem,deleteDrawerSystem,rebuildDrawerSetsForRoot,doorSystemReadOversizePrefs,doorSystemPreferredOversize,doorSystemRememberOversize,persistDoorLibrary,doorSystemBuiltinRecord,doorSystemBoundsFromParts,doorSystemDetectFacePartIds,doorSystemBuiltinModels,doorSystemIsBuiltinId,doorSystemGlobalMeta,doorSystemHiddenBuiltinIds,doorSystemVisibleOfficialItems,doorSystemModels,doorSystemModelById,doorSystemTemplateItem,doorSystemSelectedRoot,doorSystemDefaultPosition,doorSystemCloudStatusText,doorSystemUpdateAdminUi,doorSystemUpdateModelInfo,renderDoorSystemModels,loadGlobalDoorModels,doorSystemEnsureModelRecord,openDoorSystemDialog,closeDoorSystemDialog,doorSystemUseSelectedDimensions,doorSystemCreate,doorSystemModelPayloadFromRoot,doorSystemPayloadFromModel,doorSystemAdminAddNew,doorSystemAdminReplaceSelected,doorSystemAdminRenameSelected,doorSystemAdminDeleteSelected,doorSystemAdminRestoreBuiltin,saveSelectedDoorModel,deleteSelectedDoorModel,drawerLevelsFromSet,drawerForceNearestSidePair,drawerAddCabinetDrillingOnOwners,repairDrawerDrillingForRoot,repairAllDrawerDrillingForAspire,createDoorsInRegion,resetDrawerDialogState,bindDoorsDrawersUI;
 
-// 1.310.00 · estado do gerenciador de projetos movido para js/modules/projects.js.
+// 1.311.00 · estado do gerenciador de projetos movido para js/modules/projects.js.
 
-// 1.310.00 · atualização/PWA extraídos para js/modules/app-update.js.
+// 1.311.00 · atualização/PWA extraídos para js/modules/app-update.js.
 let appUpdate=null;
-let DESIGNLAB_APP_VERSION='1.310.00',DESIGNLAB_JS_BUILD='1.310.00-r22';
+let DESIGNLAB_APP_VERSION='1.311.00',DESIGNLAB_JS_BUILD='1.311.00-r1';
 let designLabRuntimeBuild=()=>'',setDesignLabVisualizationOnly=()=>{},designLabVisualizationOnlyActive=()=>false,checkDesignLabUpdate=async()=>null,applyDesignLabUpdate=async()=>{},forceDesignLabServerRefresh=async()=>{},initDesignLabInstallExperience=()=>{},initDesignLabServiceWorker=async()=>null,showBannedAccount=()=>{},updateCacheStatusUI=()=>{},closeUpdateDialog=()=>{};
 
 let isLocalAuthDevelopment,offlineLicensePublicKey,offlineLicenseStoredToken,offlineLicenseLastSeenKey,clearOfflinePremiumLicense,verifyOfflinePremiumToken,loadOfflinePremiumLicense,storeOfflinePremiumLicense,offlineLicenseRecheckDue,scheduleOfflineLicenseExpiry,handleOfflineLicenseDeadline,showOfflineLicenseExpired,activateOfflinePremiumAccess,tryOfflinePremiumStartup,setAuthStatus,ensurePremiumAccessPanel,hidePremiumAccessPanel,premiumRenderQr,premiumMoney,premiumPurchaseSetStatus,closePremiumPurchase,renderPremiumPurchase,openPremiumPurchase,copyPremiumPix,markPremiumPaymentPaid,verifyPremiumPayment,stopPremiumAccessWatch,premiumWorkspaceAllowed,premiumUntilText,showPremiumAccessRequired,schedulePremiumAccessWatch,verifyPremiumWorkspaceAccess,updateIdentityChrome,lockOnlineApp,unlockOnlineApp,localAuthContinue,waitForNetlifyIdentity,bindIdentityEvents,initOnlineIdentity,authFriendlyError,showAuthInlineForm,authSetBusy,getReadyGoTrue,authSubmitLogin,authSubmitSignup,authSubmitForgot,openIdentityMode,logoutOnlineIdentity;
@@ -156,9 +156,9 @@ const {
 }=admin;
 moduleRegistry.register('admin',admin);
 
-// 1.310.00 · sincronização e persistência de projetos movidas para js/modules/projects.js.
+// 1.311.00 · sincronização e persistência de projetos movidas para js/modules/projects.js.
 
-// 1.310.00 · preferências visuais, palco 3D e coleções centrais separados do runtime.
+// 1.311.00 · preferências visuais, palco 3D e coleções centrais separados do runtime.
 const appearancePrefs=loadCadAppearancePreferences();
 let cadHardwareVisible=appearancePrefs.cadHardwareVisible;
 let cadMachiningVisible=appearancePrefs.cadMachiningVisible;
@@ -273,23 +273,23 @@ appUpdate=createAppUpdateModule({runtimeModel,moduleRegistry,
 ({DESIGNLAB_APP_VERSION,DESIGNLAB_JS_BUILD,designLabRuntimeBuild,setDesignLabVisualizationOnly,designLabVisualizationOnlyActive,checkDesignLabUpdate,applyDesignLabUpdate,forceDesignLabServerRefresh,initDesignLabInstallExperience,initDesignLabServiceWorker,showBannedAccount,updateCacheStatusUI,closeUpdateDialog}=appUpdate);
 moduleRegistry.register('appUpdate',appUpdate);
 
-// 1.310.00 · cad-input é instalado depois de camera-navigation.
+// 1.311.00 · cad-input é instalado depois de camera-navigation.
 const cadZoomRaycaster=new THREE.Raycaster();
 const cadZoomNdc=new THREE.Vector2();
 
-// 1.310.00 · mm/m/clamp/toast em js/modules/runtime-helpers.js.
+// 1.311.00 · mm/m/clamp/toast em js/modules/runtime-helpers.js.
 
 // ============================================================================
 // 1.100.16 · PRODUÇÃO: MATERIAIS, FITAS E BASE PARA ETIQUETAS
 // ============================================================================
-// 1.310.00 · domínio movido para módulo (3697-4187).
-// 1.310.00 · bloco movido para módulo dedicado.
+// 1.311.00 · domínio movido para módulo (3697-4187).
+// 1.311.00 · bloco movido para módulo dedicado.
 
-// 1.310.00 · bloco movido para módulo dedicado.
+// 1.311.00 · bloco movido para módulo dedicado.
 
-// 1.310.00 · Trena/guias/inferência movidas para js/modules/tape-movement.js.
+// 1.311.00 · Trena/guias/inferência movidas para js/modules/tape-movement.js.
 
-// 1.310.00 · bloco movido para módulo dedicado.
+// 1.311.00 · bloco movido para módulo dedicado.
 
 
 
@@ -303,31 +303,31 @@ const cadZoomNdc=new THREE.Vector2();
 // alterou pela configuração da peça. É propositalmente independente do tamanho
 // do móvel: no redimensionamento/Biblioteca primeiro recalculamos a peça-base e
 // só então reaplicamos estes deltas em metros (e rotações em radianos).
-// 1.310.00 · bloco movido para módulo dedicado.
+// 1.311.00 · bloco movido para módulo dedicado.
 
-// 1.310.00 · reparo de vãos/exclusão em js/modules/space-healing.js.
+// 1.311.00 · reparo de vãos/exclusão em js/modules/space-healing.js.
 
-// 1.310.00 · helpers de interação em js/modules/interaction-helpers.js.
+// 1.311.00 · helpers de interação em js/modules/interaction-helpers.js.
 
-// 1.310.00 · seleção 3D e gestos movidos para js/modules/selection-3d.js.
+// 1.311.00 · seleção 3D e gestos movidos para js/modules/selection-3d.js.
 
-// 1.310.00 · criação de peças movida para js/modules/piece-editor.js.
+// 1.311.00 · criação de peças movida para js/modules/piece-editor.js.
 
 // ---------- Biblioteca / modelos ----------
-// 1.310.00 · domínio movido para js/modules/library.js.
+// 1.311.00 · domínio movido para js/modules/library.js.
 
 // ---------- Importação / exportação CAD ----------
-// 1.310.00 · domínio movido para js/modules/cad-io.js.
+// 1.311.00 · domínio movido para js/modules/cad-io.js.
 
-// 1.310.00 · helpers de produção/DXF em js/modules/production-export-helpers.js.
+// 1.311.00 · helpers de produção/DXF em js/modules/production-export-helpers.js.
 
-// 1.310.00 · prévia/exportação/plano de corte movidos para js/modules/cut-plan-ui.js.
+// 1.311.00 · prévia/exportação/plano de corte movidos para js/modules/cut-plan-ui.js.
 
-// 1.310.00 · controle de ferramentas/Trena em js/modules/tool-controller.js.
+// 1.311.00 · controle de ferramentas/Trena em js/modules/tool-controller.js.
 
-// 1.310.00 · edição/criação/corte de espaços em js/modules/space-editor.js.
+// 1.311.00 · edição/criação/corte de espaços em js/modules/space-editor.js.
 
-// 1.310.00 · helpers centrais extraídos do runtime.
+// 1.311.00 · helpers centrais extraídos do runtime.
 spaceHealing=createSpaceHealingModule({runtimeModel,moduleRegistry,
   state:{get selected(){return selected;},set selected(v){selected=v;}},
   objectInsideSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','objectInsideSpaceRoot',...a),pieceThicknessInfo:(...a)=>moduleRegistry.callIfReady('machiningShapes','pieceThicknessInfo',...a),getBounds:(...a)=>moduleRegistry.callIfReady('tapeMovement','getBounds',...a),uid,rootBounds:(...a)=>moduleRegistry.callIfReady('spacesCuts','rootBounds',...a),renderSpaces:(...a)=>moduleRegistry.callIfReady('spacesCuts','renderSpaces',...a),distanceSqPointToCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','distanceSqPointToCell',...a),isDoorObject:(...a)=>moduleRegistry.callIfReady('doorsDrawers','isDoorObject',...a),isVerticalDivisionPiece:(...a)=>moduleRegistry.callIfReady('spacesCuts','isVerticalDivisionPiece',...a),rootForObject:(...a)=>moduleRegistry.callIfReady('spacesCuts','rootForObject',...a),removeHardwareLinkedToObjects:(...a)=>moduleRegistry.callIfReady('productionMaterials','removeHardwareLinkedToObjects',...a),removeDoorHandleVisualsForOwners:(...a)=>moduleRegistry.callIfReady('doorsDrawers','removeDoorHandleVisualsForOwners',...a),disposeObject:(...a)=>moduleRegistry.callIfReady('spacesCuts','disposeObject',...a),selectObject:(...a)=>moduleRegistry.callIfReady('pieceInspector','selectObject',...a),removeDrawerSet:(...a)=>moduleRegistry.callIfReady('doorsDrawers','removeDrawerSet',...a),toast,renderMachiningVisuals:(...a)=>moduleRegistry.callIfReady('machiningShapes','renderMachiningVisuals',...a),commitHistory:(...a)=>moduleRegistry.callIfReady('editorHistory','commitHistory',...a),largestVisibleCell:(...a)=>moduleRegistry.callIfReady('spacesCuts','largestVisibleCell',...a),selectSpaceCellByIds:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceCellByIds',...a),selectSpaceRootOnly:(...a)=>moduleRegistry.callIfReady('spacesCuts','selectSpaceRootOnly',...a)
@@ -360,7 +360,7 @@ spaceEditor=createSpaceEditorModule({runtimeModel,moduleRegistry,
 ({axisCellMinKey,axisCellMaxKey,addFixedBandForCell,cellTangentWithin,cellTangentOverlapArea,cellTangentFaceArea,selectedCellEditPair,openEditSelectedSpaceDialog,openEditSpaceDialog,openNewSpaceDialog,applyCutSpacePrefs,cutSpaceCountValue,cutSideName,getCutSide,setCutSide,updateCutPreview,updateEditSpacePreview,updateEditSelectedSpacePreview,resizeSelectedSpaceCell,closeEditSelectedSpaceDialog,updateNewSpacePreview}=spaceEditor);
 moduleRegistry.register('spaceEditor',spaceEditor);
 
-// 1.310.00 · binding da interface de móvel curvo movido para js/modules/curved-ui.js.
+// 1.311.00 · binding da interface de móvel curvo movido para js/modules/curved-ui.js.
 
 const doorsDrawersState={};
 Object.defineProperties(doorsDrawersState,{
@@ -376,9 +376,9 @@ Object.defineProperties(doorsDrawersState,{
   visualMode:{get:()=>visualMode,set:v=>{visualMode=v}}
 });
 // ============================================================================
-// 1.310.00 · DOMÍNIOS EXTRAÍDOS DO RUNTIME
+// 1.311.00 · DOMÍNIOS EXTRAÍDOS DO RUNTIME
 // ============================================================================
-// 1.310.00 · núcleo do runtime agora também é modular.
+// 1.311.00 · núcleo do runtime agora também é modular.
 geometryCore=createGeometryCoreModule({runtimeModel,moduleRegistry,
   $,THREE,COLORS,clampSize,
   canonicalFactoryMaterialId:(...a)=>moduleRegistry.callIfReady('productionMaterials','canonicalFactoryMaterialId',...a),productionMaterialById:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionMaterialById',...a),productionColorInt:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionColorInt',...a),makeMaterials:(...a)=>moduleRegistry.callIfReady('productionMaterials','makeMaterials',...a),normalizePieceGrainRotation:(...a)=>moduleRegistry.callIfReady('productionMaterials','normalizePieceGrainRotation',...a)??0,normalizePieceEdgeBands:(...a)=>moduleRegistry.callIfReady('productionMaterials','normalizePieceEdgeBands',...a)??{},uid,productionClone:(...a)=>moduleRegistry.callIfReady('productionMaterials','productionClone',...a)??JSON.parse(JSON.stringify(a[0]??null)),applySpaceDefaultMaterialToObject:(...a)=>moduleRegistry.callIfReady('productionMaterials','applySpaceDefaultMaterialToObject',...a),makeCadEdgeMaterial,makeBoxVisualEdges,xray3DActive,scene,isDoorObject:(...a)=>moduleRegistry.callIfReady('doorsDrawers','isDoorObject',...a),getSpaceRoot:(...a)=>moduleRegistry.callIfReady('spacesCuts','getSpaceRoot',...a),doorObjectShouldBeVisible:(...a)=>moduleRegistry.callIfReady('doorsDrawers','doorObjectShouldBeVisible',...a)??true,rebuildFormGeometry:(...a)=>moduleRegistry.callIfReady('machiningShapes','rebuildFormGeometry',...a),applyPieceProductionEdgeColors:(...a)=>moduleRegistry.callIfReady('productionMaterials','applyPieceProductionEdgeColors',...a),renderMachiningVisuals:(...a)=>moduleRegistry.callIfReady('machiningShapes','renderMachiningVisuals',...a),selectObject:(...a)=>moduleRegistry.callIfReady('pieceInspector','selectObject',...a),commitHistory:(...a)=>moduleRegistry.callIfReady('editorHistory','commitHistory',...a)
@@ -683,7 +683,7 @@ $('confirmCreatePieces').onclick=()=>{
 
 
 
-// 1.310.00 · navegação Voltar/History movida para js/modules/back-navigation.js.
+// 1.311.00 · navegação Voltar/History movida para js/modules/back-navigation.js.
 backNavigation=createBackNavigationModule({runtimeModel,moduleRegistry,
   $,
   state:{get machiningPreviewActive(){return machiningPreviewActive;},get toolMode(){return toolMode;},get viewMode2D(){return viewMode2D;},get camera(){return camera;},get visualMode(){return visualMode;}},
@@ -692,14 +692,14 @@ backNavigation=createBackNavigationModule({runtimeModel,moduleRegistry,
 moduleRegistry.register('backNavigation',backNavigation);
 ({designLabRouteEnterWorkspace,designLabRouteMarkHomeTop,designLabRouteEnsureHomeRoot,designLabRunNativeBackCascade}=backNavigation);
 
-// 1.310.00 · eventos da interface movidos para js/modules/ui-events.js.
+// 1.311.00 · eventos da interface movidos para js/modules/ui-events.js.
 bindUiEvents({runtimeModel,moduleRegistry,
   $,
   state:{get visualMode(){return visualMode;},get selectedSpaceCell(){return selectedSpaceCell;},get selected(){return selected;},get quickFrontFacesHidden(){return quickFrontFacesHidden;},get cadGridVisible(){return cadGridVisible;},get machiningPreviewActive(){return machiningPreviewActive;},set machiningPreviewActive(v){machiningPreviewActive=!!v;},get machiningPreviewOwner(){return machiningPreviewOwner;},set machiningPreviewOwner(v){machiningPreviewOwner=v;}},
   COLORS,activateOfflinePremiumAccess,activeSpaceRoot,applyBackGroovePreset,applyCadBackground,applyCadGridVisibility,applyCadShadows,applyDesignLabAppTheme,applyDesignLabUpdate,applyExactPanel,applyHole32Preset,applyParametricFormatToPiece,applyPieceNamePreset,applyPieceRelativeConfig,applyQuickFrontVisibility,applySelectedHardware,applySelectedMachiningPreset,applySelectedPieceMaterialFromInspector,applyShapeToPiece,applyState,applyXray3D,auth,authSubmitForgot,authSubmitLogin,authSubmitSignup,cancelDuplicateConfirmation,checkDesignLabUpdate,claimAllLegacyProjects,claimLegacyProject,clampSize,clearConstructionGuides,clearMachiningDraftPreview,clearScene,closeAppSettings,closeLabelsDialog,closeMachining3DPreview,closePremiumPurchase,closeProductionDialog,closeProjectCardMenu,closeProjectMetaDialog,closeShapeDialog,closeUpdateDialog,cloudAccount,commitHistory,confirmDuplicateSelected,copyPremiumPix,createBox,createNewProject,createPieceNamePreset,deleteActiveLibraryFolder,deleteProjectById,deleteSelected,deleteSelectedFromInspector,deleteSelectedHardwarePreset,deleteSelectedMachiningPreset,deleteSelectedSpaceCell,deleteSelectedSpaceRoot,deleteShapePresetLibrary,designLabFurnitureRecordFromFile,designLabRouteEnterWorkspace,discardPendingRecovery,duplicateProjectById,editSelectedShapePreset,enterProjectEditor,exportCurrentProjectFile,exportProjectAspireZip,exportProjectRecordFile,exportSelectedAspireDxf,exportSelectedFurniture,fillHardwareDowelExample,fillHardwareShelfPinExample,fillPieceMaterialSelect,findHardwarePreset,forceDesignLabServerRefresh,globalLibraryFolderById,grooveLengthIsFull,hideQuickSelectedSpace,hideSelectedPieceQuick,importFurnitureData,importLibraryFile,importProjectFile,initOnlineIdentity,labelsApplyPrefs,labelsPrint,labelsSaveHtml,labelsSavePrefs,library,libraryFolderById,loadOfflinePremiumLicense,loadSelectedShapePresetToEditor,localAuthContinue,localCoordField,lockOnlineApp,logoutOnlineIdentity,m,machiningShapes,markPremiumPaymentPaid,newLibraryFolder,newShapePreset,openAppSettings,openCopyHardwareTool,openCopyShapeTool,openDeleteSelectedSpaceCellDialog,openDoorSystemDialog,openEditSelectedSpaceDialog,openEditSpaceDialog,openHardwareBuilder,openHomeMaterials,openHomeModeling,openLabelsDialog,openLibraryRoot,openMachiningDialog,openNewSpaceDialog,openPieceInspector,openProductionDialog,openProjectMetaDialog,openQuickSelectedConfiguration,openShapeDialog,openSlattedPanelDialog,openSpaceFromObject,parseDecimalInput,previewHardware3D,previewShape3D,productionApplyMaterial,productionAssignEdge,productionClearSelectedBands,productionDeleteBand,productionDeleteMaterial,productionEditMaterialStock,productionLoadBandFields,productionLoadMaterialFields,productionMaterials,productionNewBand,productionNewMaterial,productionSaveBand,productionSaveMaterial,productionUpdateMaterialKindFields,projectAutosaveNow,projectDbGet,projects,publishSelectedHardwarePreset,publishSelectedShapePresetGlobal,quickToggleAllSpaces,readProjectMeta,recoverPendingProject,redo,refreshShapeCornerLabels,renameActiveLibraryFolder,renameCurrentProject,renderLabelsPreview,renderLibrary,requestDuplicateSelected,resetPieceRelativeConfig,returnShapePreview,returnTo3D,rotateBox,rotateSelectedPieceGrain,saveAsCurrentProject,saveCloudPreferences,saveCurrentFurnitureToLibrary,saveCurrentMachiningPreset,saveCurrentProject,saveHardwareBuilder,saveMachining,saveShapePresetLibrary,scrollProjectHomeTo,setAuthStatus,setDesignLabVisualizationOnly,setFrontWorldView,setGrooveLengthFull,setHardwareScope,setLibraryScope,setMachiningSurfaceCoordinate,setMachiningType,setSelectedPieceDoNotProduce,setShapeLibraryScope,setSheetPrefs,setVisualMode,shapeApplyCornerEdit,shapeCadClear,shapeCadCloseContour,shapeCadFitView,shapeCadPointerDown,shapeCadPointerLeave,shapeCadPointerMove,shapeCadPointerUp,shapeCadRedo,shapeCadRender,shapeCadSetTool,shapeCadSyncUi,shapeCadUndo,shapeCadZoomBy,shapeCadZoomWheel,shapeCornerSelectFromEvent,shapeFormatTypeChanged,shapeResetCorners,shapeSetCornerStyle,shapeSetMode,shapeTransformEditor,sheetPrefsFromUi,showAllHiddenSpaces,showAllManuallyHiddenPieces,showAuthInlineForm,showMachining3DPreview,showProjectHome,syncCloudAccount,syncGrooveLengthButton,syncManualPieceVisibilityButtons,syncQuickSpaceVisibilityButton,toast,toggleActiveSpaceVisibility,toggleCadHardwareVisibility,toggleCadMachiningVisibility,toggleDockXray,toggleDoorsForActiveSpace,toggleMachiningCoordSign,undo,unlockOnlineApp,updateBackGrooveVisibility,updateHardwareBuilderUi,updateHardwarePanel,updateHoleSeriesVisibility,updateInspector,updateMachiningPresetInfo,updateMachiningUI,updatePieceMaterialQuickInfo,updateShapePreview,verifyPremiumPayment,viewSpace,selectedCellInfo,mm,nice,adminAllowed,openAdminPanel,closeAdminPanel,adminSetTab,refreshAdminPanel,saveAdminSettings,adminPanelState,loadAdminUsers,loadAdminPayments,loadAdminStats,adminPremium,adminRevokePremium,adminBanUser,adminPaymentAction
 });
 
-// 1.310.00 · ciclo de vida e inicialização final movidos para js/modules/runtime-bootstrap.js.
+// 1.311.00 · ciclo de vida e inicialização final movidos para js/modules/runtime-bootstrap.js.
 startRuntimeBootstrap({runtimeModel,moduleRegistry,
   $,
   state:{get viewMode2D(){return viewMode2D;},get current2DView(){return current2DView;},get camera(){return camera;},get dragMode(){return dragMode;}},
@@ -707,12 +707,12 @@ startRuntimeBootstrap({runtimeModel,moduleRegistry,
   setHistory:v=>{history=v;},setHistoryIndex:v=>{historyIndex=v;},initToolDock,initSpaceActionsDrag,initPieceInspectorFloating,initProjectHub,toast,initOnlineIdentity,setAuthStatus,controls,updateLiveLabel,updateMachiningVisualTransforms,updateDoorHandleVisuals,scene,updateXray3DButton,applyCadDetailVisibility,setPieceVisualEdgesVisible
 });
 
-// 1.310.00 · layout técnico movido para js/modules/technical-layout.js.
+// 1.311.00 · layout técnico movido para js/modules/technical-layout.js.
 
-// 1.310.00 · produção/histórico/montagem movidos para js/modules/production-suite.js.
+// 1.311.00 · produção/histórico/montagem movidos para js/modules/production-suite.js.
 
 // ============================================================================
-// 1.310.00 · LAYOUT TÉCNICO + PRODUÇÃO EM MÓDULOS
+// 1.311.00 · LAYOUT TÉCNICO + PRODUÇÃO EM MÓDULOS
 // ============================================================================
 technicalLayout=createTechnicalLayoutModule({runtimeModel,moduleRegistry,
   $,THREE,objectBelongsToRoot,getSpaceRoot,selectedFurnitureRoot,activeSpaceRoot,rootBounds,projects,safeFileName,downloadText,toast,setToolDockOpen,
