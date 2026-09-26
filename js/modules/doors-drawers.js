@@ -61,7 +61,7 @@ export function createDoorsDrawersModule(ctx){
       };
   }
   
-  // 1.311.00-r1 · o menu persistente inferior de seleção foi aposentado.
+  // 1.311.00-r2 · o menu persistente inferior de seleção foi aposentado.
   // A API é mantida para compatibilidade com os módulos existentes, mas a única
   // interface visível para Porta/Gaveta passa a ser o menu rápido central
   // (duplo clique no PC / toque longo no celular). No celular, a seleção múltipla
@@ -963,12 +963,17 @@ export function createDoorsDrawersModule(ctx){
       $('deleteDrawerSlidePreset').disabled = !sel.value;
   }
   
+  function drawerNumberInputValue(value, fallback = '') {
+      const n = Number(value);
+      return Number.isFinite(n) ? String(roundMmNumber(n, 3)) : String(fallback ?? '');
+  }
+  
   function captureDrawerSlidePreset() {
       return {
-          version: 5,
+          version: 6,
           slideType: $('drawerSlideType').value,
           lengthMode: $('drawerLengthMode').value,
-          sideClearance: Number($('drawerSideClearance').value),
+          sideClearance: (()=>{ const v=Number(String($('drawerSideClearance')?.value ?? '').replace(',', '.')); return Number.isFinite(v) ? v : drawerPreset($('drawerSlideType')?.value).sideClearance; })(),
           frontInset: Number($('drawerFrontInset').value),
           rearClearance: Number($('drawerRearClearance').value),
           createSlides: !!$('drawerCreateSlides').checked,
@@ -989,6 +994,7 @@ export function createDoorsDrawersModule(ctx){
           createTampon: !!$('drawerCreateTampon')?.checked,
           tamponSide: $('drawerTamponSide')?.value || 'left',
           tamponThickness: Number($('drawerTamponThickness')?.value),
+          tamponPanelThickness: Number($('drawerTamponPanelThickness')?.value),
           tamponStripDepth: Number($('drawerTamponStripDepth')?.value),
           tamponFrontStrip: !!$('drawerTamponFrontStrip')?.checked,
           tamponRearStrip: !!$('drawerTamponRearStrip')?.checked,
@@ -1057,58 +1063,60 @@ export function createDoorsDrawersModule(ctx){
       $('drawerSavedSlideName').value = item.name;
       $('drawerSlideType').value = item.slideType || 'telescopic';
       $('drawerLengthMode').value = item.lengthMode || 'auto';
-      $('drawerSideClearance').value = nice(item.sideClearance ?? drawerPreset(item.slideType).sideClearance);
-      $('drawerFrontInset').value = nice(item.frontInset ?? 5);
-      $('drawerRearClearance').value = nice(item.rearClearance ?? 10);
+      { const savedGap = Number(item.sideClearance); const defGap = drawerPreset(item.slideType).sideClearance; $('drawerSideClearance').value = drawerNumberInputValue(Number.isFinite(savedGap) && savedGap > 0 ? savedGap : defGap, defGap); }
+      $('drawerFrontInset').value = drawerNumberInputValue(item.frontInset ?? 5, 5);
+      $('drawerRearClearance').value = drawerNumberInputValue(item.rearClearance ?? 10, 10);
       $('drawerCreateSlides').checked = item.createSlides !== false;
       $('drawerCreateDrilling').checked = item.createDrilling !== false;
       if (Number.isFinite(Number(item.count))) $('drawerCount').value = Math.max(1, Math.min(20, Math.round(Number(item.count))));
       if (typeof item.createFronts === 'boolean') $('drawerCreateFronts').checked = item.createFronts;
-      if (Number.isFinite(Number(item.frontThickness))) $('drawerFrontThickness').value = nice(item.frontThickness);
-      if (Number.isFinite(Number(item.frontGapLeft))) $('drawerFrontGapLeft').value = nice(item.frontGapLeft);
-      if (Number.isFinite(Number(item.frontGapRight))) $('drawerFrontGapRight').value = nice(item.frontGapRight);
-      if (Number.isFinite(Number(item.frontGapTop))) $('drawerFrontGapTop').value = nice(item.frontGapTop);
-      if (Number.isFinite(Number(item.frontGapBottom))) $('drawerFrontGapBottom').value = nice(item.frontGapBottom);
-      if (Number.isFinite(Number(item.frontGapBetween))) $('drawerFrontGapBetween').value = nice(item.frontGapBetween);
+      if (Number.isFinite(Number(item.frontThickness))) $('drawerFrontThickness').value = drawerNumberInputValue(item.frontThickness);
+      if (Number.isFinite(Number(item.frontGapLeft))) $('drawerFrontGapLeft').value = drawerNumberInputValue(item.frontGapLeft);
+      if (Number.isFinite(Number(item.frontGapRight))) $('drawerFrontGapRight').value = drawerNumberInputValue(item.frontGapRight);
+      if (Number.isFinite(Number(item.frontGapTop))) $('drawerFrontGapTop').value = drawerNumberInputValue(item.frontGapTop);
+      if (Number.isFinite(Number(item.frontGapBottom))) $('drawerFrontGapBottom').value = drawerNumberInputValue(item.frontGapBottom);
+      if (Number.isFinite(Number(item.frontGapBetween))) $('drawerFrontGapBetween').value = drawerNumberInputValue(item.frontGapBetween);
       if ($('drawerCreateTampon')) $('drawerCreateTampon').checked = item.createTampon === true;
       if ($('drawerTamponSide')) $('drawerTamponSide').value = ['left','right','both'].includes(item.tamponSide) ? item.tamponSide : 'left';
-      if (Number.isFinite(Number(item.tamponThickness)) && $('drawerTamponThickness')) $('drawerTamponThickness').value = nice(item.tamponThickness);
-      if (Number.isFinite(Number(item.tamponStripDepth)) && $('drawerTamponStripDepth')) $('drawerTamponStripDepth').value = nice(item.tamponStripDepth);
+      if (Number.isFinite(Number(item.tamponThickness)) && $('drawerTamponThickness')) $('drawerTamponThickness').value = drawerNumberInputValue(item.tamponThickness);
+      if (Number.isFinite(Number(item.tamponPanelThickness)) && $('drawerTamponPanelThickness')) $('drawerTamponPanelThickness').value = drawerNumberInputValue(item.tamponPanelThickness);
+      else if ($('drawerTamponPanelThickness')) $('drawerTamponPanelThickness').value = '18';
+      if (Number.isFinite(Number(item.tamponStripDepth)) && $('drawerTamponStripDepth')) $('drawerTamponStripDepth').value = drawerNumberInputValue(item.tamponStripDepth);
       if ($('drawerTamponFrontStrip')) $('drawerTamponFrontStrip').checked = item.tamponFrontStrip !== false;
       if ($('drawerTamponRearStrip')) $('drawerTamponRearStrip').checked = item.tamponRearStrip === true;
-      if (Number.isFinite(Number(item.tamponFrontInset)) && $('drawerTamponFrontInset')) $('drawerTamponFrontInset').value = nice(item.tamponFrontInset);
-      if (Number.isFinite(Number(item.tamponRearInset)) && $('drawerTamponRearInset')) $('drawerTamponRearInset').value = nice(item.tamponRearInset);
+      if (Number.isFinite(Number(item.tamponFrontInset)) && $('drawerTamponFrontInset')) $('drawerTamponFrontInset').value = drawerNumberInputValue(item.tamponFrontInset);
+      if (Number.isFinite(Number(item.tamponRearInset)) && $('drawerTamponRearInset')) $('drawerTamponRearInset').value = drawerNumberInputValue(item.tamponRearInset);
       if (Number.isFinite(Number(item.boxHeight)))
-          $('drawerBoxHeight').value = nice(item.boxHeight);
+          $('drawerBoxHeight').value = drawerNumberInputValue(item.boxHeight);
       if (Number.isFinite(Number(item.boxThickness)))
-          $('drawerBoxThickness').value = nice(item.boxThickness);
+          $('drawerBoxThickness').value = drawerNumberInputValue(item.boxThickness);
       if (Number.isFinite(Number(item.edgeGap)))
-          $('drawerEdgeGap').value = nice(item.edgeGap);
+          $('drawerEdgeGap').value = drawerNumberInputValue(item.edgeGap);
       if (Number.isFinite(Number(item.bottomThickness)))
-          $('drawerBottomThickness2').value = nice(item.bottomThickness);
+          $('drawerBottomThickness2').value = drawerNumberInputValue(item.bottomThickness);
       if (Number.isFinite(Number(item.bottomOffset)))
-          $('drawerBottomOffset').value = nice(item.bottomOffset);
+          $('drawerBottomOffset').value = drawerNumberInputValue(item.bottomOffset);
       if (Number.isFinite(Number(item.bottomPassLeft)))
-          $('drawerBottomPassLeft').value = nice(item.bottomPassLeft);
+          $('drawerBottomPassLeft').value = drawerNumberInputValue(item.bottomPassLeft);
       if (Number.isFinite(Number(item.bottomPassRight)))
-          $('drawerBottomPassRight').value = nice(item.bottomPassRight);
+          $('drawerBottomPassRight').value = drawerNumberInputValue(item.bottomPassRight);
       if (Number.isFinite(Number(item.bottomPassFront)))
-          $('drawerBottomPassFront').value = nice(item.bottomPassFront);
+          $('drawerBottomPassFront').value = drawerNumberInputValue(item.bottomPassFront);
       if (Number.isFinite(Number(item.bottomPassBack)))
-          $('drawerBottomPassBack').value = nice(item.bottomPassBack);
+          $('drawerBottomPassBack').value = drawerNumberInputValue(item.bottomPassBack);
       if (typeof item.machineBottom === 'boolean')
           $('drawerMachineBottom').checked = item.machineBottom;
       if (Number.isFinite(Number(item.bottomGrooveClearance)))
-          $('drawerBottomGrooveClearance').value = nice(item.bottomGrooveClearance);
+          $('drawerBottomGrooveClearance').value = drawerNumberInputValue(item.bottomGrooveClearance);
       if (Number.isFinite(Number(item.bottomGrooveDepth)))
-          $('drawerBottomGrooveDepth').value = nice(item.bottomGrooveDepth);
+          $('drawerBottomGrooveDepth').value = drawerNumberInputValue(item.bottomGrooveDepth);
       $('drawerGrooveLeft').checked = item.grooveLeft !== false;
       $('drawerGrooveRight').checked = item.grooveRight !== false;
       $('drawerGrooveFront').checked = item.grooveFront === true;
       $('drawerGrooveBack').checked = item.grooveBack === true;
       const savedDrillPreset = drawerPreset(item.slideType || 'telescopic');
       const drillDefault = drawerDrillDefaults(savedDrillPreset);
-      $('drawerDrillFrontRef').value = nice(Number.isFinite(Number(item.drillFrontRef)) ? Number(item.drillFrontRef) : drillDefault.frontRef);
+      $('drawerDrillFrontRef').value = drawerNumberInputValue(Number.isFinite(Number(item.drillFrontRef)) ? Number(item.drillFrontRef) : drillDefault.frontRef);
       $('drawerDrillOffsets').value = drawerParseDrillOffsets(item.drillOffsets?.length ? item.drillOffsets : drillDefault.offsets).map(n => nice(n)).join(', ');
       $('drawerDrillAutoByLength').checked = typeof item.drillAutoByLength === 'boolean'
           ? item.drillAutoByLength
@@ -1116,9 +1124,9 @@ export function createDoorsDrawersModule(ctx){
       // Configurações antigas continuam em medida fixa para não deslocar furos já existentes.
       $('drawerDrillVerticalMode').value = item.drillVerticalMode === 'center' ? 'center' : 'fixed';
       $('drawerDrillSide').value = ['left', 'right'].includes(item.drillSide) ? item.drillSide : 'both';
-      $('drawerDrillMountY').value = nice(Number.isFinite(Number(item.drillMountY)) ? Number(item.drillMountY) : drillDefault.mountY);
-      $('drawerDrillDiameter').value = nice(Number.isFinite(Number(item.drillDiameter)) ? Number(item.drillDiameter) : drillDefault.diameter);
-      $('drawerDrillDepth').value = nice(Number.isFinite(Number(item.drillDepth)) ? Number(item.drillDepth) : drillDefault.depth);
+      $('drawerDrillMountY').value = drawerNumberInputValue(Number.isFinite(Number(item.drillMountY)) ? Number(item.drillMountY) : drillDefault.mountY);
+      $('drawerDrillDiameter').value = drawerNumberInputValue(Number.isFinite(Number(item.drillDiameter)) ? Number(item.drillDiameter) : drillDefault.diameter);
+      $('drawerDrillDepth').value = drawerNumberInputValue(Number.isFinite(Number(item.drillDepth)) ? Number(item.drillDepth) : drillDefault.depth);
       drawerApplyPresetDefaults(false);
       updateDrawerBottomMachiningFields();
       updateDrawerDrillingFields();
@@ -1367,15 +1375,15 @@ export function createDoorsDrawersModule(ctx){
       const createFronts = !!$('drawerCreateFronts').checked, frontThickness = Number($('drawerFrontThickness').value), frontGapLeft = Number($('drawerFrontGapLeft').value), frontGapRight = Number($('drawerFrontGapRight').value), frontGapTop = Number($('drawerFrontGapTop').value), frontGapBottom = Number($('drawerFrontGapBottom').value), frontGapBetween = Number($('drawerFrontGapBetween').value);
       const createTampon = !!$('drawerCreateTampon')?.checked;
       const tamponSide = ['left','right','both'].includes($('drawerTamponSide')?.value) ? $('drawerTamponSide').value : 'left';
-      const tamponThickness = Number($('drawerTamponThickness')?.value), tamponStripDepth = Number($('drawerTamponStripDepth')?.value), tamponFrontInset = Number($('drawerTamponFrontInset')?.value), tamponRearInset = Number($('drawerTamponRearInset')?.value);
+      const tamponThickness = Number($('drawerTamponThickness')?.value), tamponPanelThickness = Number($('drawerTamponPanelThickness')?.value), tamponStripDepth = Number($('drawerTamponStripDepth')?.value), tamponFrontInset = Number($('drawerTamponFrontInset')?.value), tamponRearInset = Number($('drawerTamponRearInset')?.value);
       const tamponFrontStrip = !!$('drawerTamponFrontStrip')?.checked, tamponRearStrip = !!$('drawerTamponRearStrip')?.checked;
       const tamponLeft = createTampon && (tamponSide === 'left' || tamponSide === 'both') ? tamponThickness : 0;
       const tamponRight = createTampon && (tamponSide === 'right' || tamponSide === 'both') ? tamponThickness : 0;
       const drillUi = drawerDrillValuesFromUi();
       const drillFrontRef = drillUi.frontRef, drillOffsets = drillUi.offsets, drillAutoByLength = drillUi.autoByLength, drillVerticalMode = drillUi.verticalMode, drillSide = drillUi.side, drillMountY = drillUi.mountY, drillDiameter = drillUi.diameter, drillDepth = drillUi.depth;
-      if (![sideClearance, boxHeight, boxThickness, bottomThickness, frontInset, rearClearance, edgeGap, bottomOffset, bottomPassLeft, bottomPassRight, bottomPassFront, bottomPassBack, bottomGrooveClearance, bottomGrooveDepth, drillFrontRef, drillMountY, drillDiameter, drillDepth, tamponThickness, tamponStripDepth, tamponFrontInset, tamponRearInset].every(Number.isFinite))
+      if (![sideClearance, boxHeight, boxThickness, bottomThickness, frontInset, rearClearance, edgeGap, bottomOffset, bottomPassLeft, bottomPassRight, bottomPassFront, bottomPassBack, bottomGrooveClearance, bottomGrooveDepth, drillFrontRef, drillMountY, drillDiameter, drillDepth, tamponThickness, tamponPanelThickness, tamponStripDepth, tamponFrontInset, tamponRearInset].every(Number.isFinite))
           throw new Error('Confira as medidas das gavetas');
-      if (createTampon && (tamponThickness <= 0 || tamponStripDepth <= 0 || tamponFrontInset < 0 || tamponRearInset < 0))
+      if (createTampon && (tamponThickness <= 0 || tamponPanelThickness <= 0 || tamponStripDepth <= 0 || tamponFrontInset < 0 || tamponRearInset < 0))
           throw new Error('Confira as medidas do tamponamento');
       if (createTampon && !tamponFrontStrip && !tamponRearStrip)
           throw new Error('Marque ripa frontal e/ou ripa traseira no tamponamento');
@@ -1400,7 +1408,7 @@ export function createDoorsDrawersModule(ctx){
           if (Math.max(Math.abs(frontGapLeft), Math.abs(frontGapRight), Math.abs(frontGapTop), Math.abs(frontGapBottom), Math.abs(frontGapBetween)) > 1000)
               throw new Error('Folga das frentes fora do limite');
       }
-      // 1.311.00-r1: quando houver frente de gaveta, ela passa a ocupar o
+      // 1.311.00-r2: quando houver frente de gaveta, ela passa a ocupar o
       // próprio vão (não fica mais do lado de fora). Portanto a profundidade útil
       // da caixa/corrediça também desconta a espessura da frente.
       const frontReserve = frontInset + (createFronts ? frontThickness : 0);
@@ -1412,14 +1420,17 @@ export function createDoorsDrawersModule(ctx){
       if (resolved.length > resolved.available + .001)
           throw new Error(`Corrediça de ${nice(resolved.length)} mm não cabe. Disponível: ${nice(resolved.available)} mm`);
       const openingW = mm(target.size.width), openingH = mm(target.size.height), openingD = mm(target.size.depth);
-      const usableW = openingW - tamponLeft - tamponRight;
-      // 1.311.00-r1 · geometria do tamponamento confirmada pelo MCAD de referência:
-      // a ripa curta (ex. 60 mm) atua somente na PROFUNDIDADE; o valor de
-      // tamponThickness (ex. 18 mm) é o afastamento LATERAL. A caixa começa
-      // depois desse afastamento + a folga da corrediça, sem somar os 60 mm
-      // à largura da gaveta.
-      const drawerStartLeft = tamponLeft + sideClearance;
-      const drawerStartRight = tamponRight + sideClearance;
+      // 1.311.00-r2 · tamponamento em duas etapas, como no conjunto físico:
+      // 1) a ripa curta frontal/traseira cria o afastamento lateral (ex. 18 mm);
+      // 2) depois dela existe uma LATERAL INTERNA inteira (ex. MDF 18 mm),
+      //    com altura e profundidade do vão. Só então começam corrediça e gaveta.
+      const tamponPanelLeft = createTampon && (tamponSide === 'left' || tamponSide === 'both') ? tamponPanelThickness : 0;
+      const tamponPanelRight = createTampon && (tamponSide === 'right' || tamponSide === 'both') ? tamponPanelThickness : 0;
+      const tamponTotalLeft = tamponLeft + tamponPanelLeft;
+      const tamponTotalRight = tamponRight + tamponPanelRight;
+      const usableW = openingW - tamponTotalLeft - tamponTotalRight;
+      const drawerStartLeft = tamponTotalLeft + sideClearance;
+      const drawerStartRight = tamponTotalRight + sideClearance;
       const outerW = usableW - sideClearance * 2, innerW = outerW - boxThickness * 2;
       if (createTampon && tamponFrontStrip && tamponFrontInset + tamponStripDepth > openingD + .001)
           throw new Error('Ripa frontal do tamponamento ultrapassa a profundidade do vão');
@@ -1469,7 +1480,7 @@ export function createDoorsDrawersModule(ctx){
           bottomOffset, bottomPassLeft, bottomPassRight, bottomPassFront, bottomPassBack, bottomW, bottomD, bottomCutFront, bottomCutBack,
           machineBottom, bottomGrooveClearance, bottomGrooveDepth, grooveLeft, grooveRight, grooveFront, grooveBack,
           createFronts, frontThickness, frontGapLeft, frontGapRight, frontGapTop, frontGapBottom, frontGapBetween, frontW, frontH,
-          createTampon, tamponSide, tamponThickness, tamponStripDepth, tamponFrontStrip, tamponRearStrip, tamponFrontInset, tamponRearInset, tamponLeft, tamponRight, usableW, drawerStartLeft, drawerStartRight,
+          createTampon, tamponSide, tamponThickness, tamponPanelThickness, tamponStripDepth, tamponFrontStrip, tamponRearStrip, tamponFrontInset, tamponRearInset, tamponLeft, tamponRight, tamponPanelLeft, tamponPanelRight, tamponTotalLeft, tamponTotalRight, usableW, drawerStartLeft, drawerStartRight,
           createSlides: !!$('drawerCreateSlides').checked, createDrilling: !!$('drawerCreateDrilling').checked,
           drillFrontRef, drillOffsets, drillAutoByLength, drillVerticalMode, drillSide, drillMountY, drillDiameter, drillDepth,
           openingW, openingH, openingD, outerW, innerW,
@@ -1512,7 +1523,7 @@ export function createDoorsDrawersModule(ctx){
               : '';
           const bottomTxt = `<br><strong>Fundo:</strong> ${nice(cfg.bottomW)} × ${nice(cfg.bottomD)} × ${nice(cfg.bottomThickness)} mm · posição ${nice(cfg.bottomOffset)} mm · passa E ${nice(cfg.bottomPassLeft)} / D ${nice(cfg.bottomPassRight)} / F ${nice(cfg.bottomPassFront)} / T ${nice(cfg.bottomPassBack)} mm${autoCutTxt}${grooveTxt}`;
           const tamponTxt = cfg.createTampon
-              ? `<br><strong>Tamponamento:</strong> ${cfg.tamponSide === 'both' ? 'esquerdo + direito' : cfg.tamponSide === 'right' ? 'direito' : 'esquerdo'} · ripa ${nice(cfg.tamponStripDepth)} mm de profundidade × ${nice(cfg.tamponThickness)} mm de afastamento lateral${cfg.tamponFrontStrip ? ` · frontal após ${nice(cfg.tamponFrontInset)} mm` : ''}${cfg.tamponRearStrip ? ` · traseira após ${nice(cfg.tamponRearInset)} mm` : ''} · largura útil ${nice(cfg.usableW)} mm`
+              ? `<br><strong>Tamponamento:</strong> ${cfg.tamponSide === 'both' ? 'esquerdo + direito' : cfg.tamponSide === 'right' ? 'direito' : 'esquerdo'} · ripa ${nice(cfg.tamponStripDepth)} mm de profundidade × ${nice(cfg.tamponThickness)} mm de afastamento · lateral interna MDF ${nice(cfg.tamponPanelThickness)} mm${cfg.tamponFrontStrip ? ` · frontal após ${nice(cfg.tamponFrontInset)} mm` : ''}${cfg.tamponRearStrip ? ` · traseira após ${nice(cfg.tamponRearInset)} mm` : ''} · largura útil ${nice(cfg.usableW)} mm`
                 + `<br><strong>Início da caixa:</strong> esquerda ${nice(cfg.drawerStartLeft)} mm / direita ${nice(cfg.drawerStartRight)} mm a partir da borda do vão (tamponamento + folga da corrediça).`
               : '';
           preview.innerHTML = `<strong>Caixa externa:</strong> ${nice(cfg.outerW)} × ${nice(cfg.resolvedLength)} × ${nice(cfg.boxHeight)} mm<br><strong>Contra frente/fundo entre laterais:</strong> ${nice(cfg.innerW)} mm · MDF ${nice(cfg.boxThickness)} mm${tamponTxt}${bottomTxt}${frontTxt}<br><strong>Distribuição:</strong> ${cfg.count} gaveta(s)${!cfg.createFronts && cfg.count > 1 ? ` · passo vertical ${nice(step)} mm` : cfg.createFronts ? ' · caixas centralizadas atrás das frentes' : ''}<br><strong>Corrediça:</strong> ${p.name} · ${nice(cfg.resolvedLength)} mm · folga ${nice(cfg.sideClearance)} mm por lado`;
@@ -1645,6 +1656,7 @@ export function createDoorsDrawersModule(ctx){
       if ($('drawerCreateTampon')) $('drawerCreateTampon').checked = cfg?.createTampon === true;
       if ($('drawerTamponSide')) $('drawerTamponSide').value = ['left','right','both'].includes(cfg?.tamponSide) ? cfg.tamponSide : 'left';
       if ($('drawerTamponThickness')) $('drawerTamponThickness').value = cfg?.tamponThickness ?? 18;
+      if ($('drawerTamponPanelThickness')) $('drawerTamponPanelThickness').value = cfg?.tamponPanelThickness ?? 18;
       if ($('drawerTamponStripDepth')) $('drawerTamponStripDepth').value = cfg?.tamponStripDepth ?? 60;
       if ($('drawerTamponFrontStrip')) $('drawerTamponFrontStrip').checked = cfg?.tamponFrontStrip !== false;
       if ($('drawerTamponRearStrip')) $('drawerTamponRearStrip').checked = cfg?.tamponRearStrip === true;
@@ -2146,13 +2158,25 @@ export function createDoorsDrawersModule(ctx){
       cfg.createTampon = cfg.createTampon === true;
       cfg.tamponSide = ['left','right','both'].includes(cfg.tamponSide) ? cfg.tamponSide : 'left';
       cfg.tamponThickness = Number.isFinite(Number(cfg.tamponThickness)) ? Number(cfg.tamponThickness) : 18;
+      cfg.tamponPanelThickness = Number.isFinite(Number(cfg.tamponPanelThickness)) ? Number(cfg.tamponPanelThickness) : 18;
+      cfg.tamponStripDepth = Number.isFinite(Number(cfg.tamponStripDepth)) ? Number(cfg.tamponStripDepth) : 60;
+      cfg.tamponFrontStrip = cfg.tamponFrontStrip !== false;
+      cfg.tamponRearStrip = cfg.tamponRearStrip === true;
       cfg.tamponFrontInset = Number.isFinite(Number(cfg.tamponFrontInset)) ? Number(cfg.tamponFrontInset) : 0;
       cfg.tamponRearInset = Number.isFinite(Number(cfg.tamponRearInset)) ? Number(cfg.tamponRearInset) : 0;
       cfg.tamponLeft = cfg.createTampon && (cfg.tamponSide === 'left' || cfg.tamponSide === 'both') ? cfg.tamponThickness : 0;
       cfg.tamponRight = cfg.createTampon && (cfg.tamponSide === 'right' || cfg.tamponSide === 'both') ? cfg.tamponThickness : 0;
-      cfg.usableW = cfg.openingW - cfg.tamponLeft - cfg.tamponRight;
-      if (cfg.createTampon && (cfg.tamponThickness <= 0 || cfg.tamponFrontInset < 0 || cfg.tamponRearInset < 0 || cfg.tamponFrontInset + cfg.tamponRearInset >= cfg.openingD - 1))
-          throw new Error('Confira espessura e recuos do tamponamento');
+      cfg.tamponPanelLeft = cfg.createTampon && (cfg.tamponSide === 'left' || cfg.tamponSide === 'both') ? cfg.tamponPanelThickness : 0;
+      cfg.tamponPanelRight = cfg.createTampon && (cfg.tamponSide === 'right' || cfg.tamponSide === 'both') ? cfg.tamponPanelThickness : 0;
+      cfg.tamponTotalLeft = cfg.tamponLeft + cfg.tamponPanelLeft;
+      cfg.tamponTotalRight = cfg.tamponRight + cfg.tamponPanelRight;
+      cfg.usableW = cfg.openingW - cfg.tamponTotalLeft - cfg.tamponTotalRight;
+      if (cfg.createTampon && (cfg.tamponThickness <= 0 || cfg.tamponPanelThickness <= 0 || cfg.tamponStripDepth <= 0 || cfg.tamponFrontInset < 0 || cfg.tamponRearInset < 0))
+          throw new Error('Confira espessuras, ripa e recuos do tamponamento');
+      if (cfg.createTampon && cfg.tamponFrontStrip && cfg.tamponFrontInset + cfg.tamponStripDepth > cfg.openingD + .001)
+          throw new Error('Ripa frontal do tamponamento ultrapassa a profundidade do vão');
+      if (cfg.createTampon && cfg.tamponRearStrip && cfg.tamponRearInset + cfg.tamponStripDepth > cfg.openingD + .001)
+          throw new Error('Ripa traseira do tamponamento ultrapassa a profundidade do vão');
       const frontReserve = Number(cfg.frontInset || 0) + (cfg.createFronts ? Number(cfg.frontThickness || 0) : 0);
       const rr = drawerResolvedLengthMm(cell, preset, cfg.lengthMode, frontReserve, cfg.rearClearance);
       cfg.resolvedLength = rr.length;
@@ -2195,32 +2219,38 @@ export function createDoorsDrawersModule(ctx){
       // espessura da frente + recuo configurado, evitando qualquer sobreposição.
       const frontFaceReserve = Number(cfg.frontInset || 0) + (cfg.createFronts ? Number(cfg.frontThickness || 0) : 0);
       const frontZ = cell.maxZ - m(frontFaceReserve), backZ = frontZ - len, zCenter = (frontZ + backZ) / 2;
-      const usableMinX = cell.minX + m(cfg.tamponLeft || 0), usableMaxX = cell.maxX - m(cfg.tamponRight || 0);
+      const usableMinX = cell.minX + m(cfg.tamponTotalLeft || 0), usableMaxX = cell.maxX - m(cfg.tamponTotalRight || 0);
       const leftX = usableMinX + m(cfg.sideClearance) + t / 2, rightX = usableMaxX - m(cfg.sideClearance) - t / 2;
       const levels = [];
       state.historyMuted = true;
       try {
-          // Tamponamento r28: o afastamento lateral continua determinando a
-          // largura útil da gaveta, mas a peça física é uma ripa curta interna.
-          // Ex.: ripa 60 mm + recuo frontal 50 mm => começa 50 mm depois da frente.
+          // 1.311.00-r2 · conjunto físico do tamponamento:
+          // [lateral do móvel] -> [ripas curtas de afastamento] -> [lateral interna inteira]
+          // -> [corrediça] -> [caixa da gaveta]. A frente também respeita essa lateral,
+          // ficando embutida no vão útil restante.
           if (cfg.createTampon) {
               const td = m(cfg.tamponStripDepth || 60);
-              const ty = cell.minY, th = m(cfg.openingH), tw = m(cfg.tamponThickness);
-              const createAt = (side, placement) => {
+              const ty = cell.minY, th = m(cfg.openingH), spacer = m(cfg.tamponThickness || 18);
+              const panelT = m(cfg.tamponPanelThickness || 18), fullDepth = Math.max(m(.001), cell.maxZ - cell.minZ);
+              const centerZ = (cell.minZ + cell.maxZ) / 2;
+              const createSide = (side) => {
                   const isLeft = side === 'left';
-                  const x = isLeft ? cell.minX + tw / 2 : cell.maxX - tw / 2;
-                  const role = isLeft ? 'tampon-left' : 'tampon-right';
-                  if (placement === 'front' && cfg.tamponFrontStrip) {
+                  const enabled = isLeft ? cfg.tamponLeft > 0 : cfg.tamponRight > 0;
+                  if (!enabled) return;
+                  const stripX = isLeft ? cell.minX + spacer / 2 : cell.maxX - spacer / 2;
+                  const panelX = isLeft ? cell.minX + spacer + panelT / 2 : cell.maxX - spacer - panelT / 2;
+                  if (cfg.tamponFrontStrip) {
                       const z = cell.maxZ - m(cfg.tamponFrontInset) - td / 2;
-                      drawerCreatePiece({ width: tw, depth: td, height: th, x, yBase: ty, z, name: `Tamponamento ${isLeft ? 'esquerdo' : 'direito'} · ripa frontal` }, cfg, role, -1);
+                      drawerCreatePiece({ width: spacer, depth: td, height: th, x: stripX, yBase: ty, z, name: `Tamponamento ${isLeft ? 'esquerdo' : 'direito'} · ripa frontal` }, cfg, `tampon-strip-${side}-front`, -1);
                   }
-                  if (placement === 'rear' && cfg.tamponRearStrip) {
+                  if (cfg.tamponRearStrip) {
                       const z = cell.minZ + m(cfg.tamponRearInset) + td / 2;
-                      drawerCreatePiece({ width: tw, depth: td, height: th, x, yBase: ty, z, name: `Tamponamento ${isLeft ? 'esquerdo' : 'direito'} · ripa traseira` }, cfg, role, -1);
+                      drawerCreatePiece({ width: spacer, depth: td, height: th, x: stripX, yBase: ty, z, name: `Tamponamento ${isLeft ? 'esquerdo' : 'direito'} · ripa traseira` }, cfg, `tampon-strip-${side}-rear`, -1);
                   }
+                  drawerCreatePiece({ width: panelT, depth: fullDepth, height: th, x: panelX, yBase: ty, z: centerZ, name: `Tamponamento ${isLeft ? 'esquerdo' : 'direito'} · lateral interna` }, cfg, isLeft ? 'tampon-left' : 'tampon-right', -1);
               };
-              if (cfg.tamponLeft > 0) { createAt('left','front'); createAt('left','rear'); }
-              if (cfg.tamponRight > 0) { createAt('right','front'); createAt('right','rear'); }
+              createSide('left');
+              createSide('right');
           }
           for (let i = 0; i < cfg.count; i++) {
               let frontYBase = null;
@@ -3232,7 +3262,7 @@ export function createDoorsDrawersModule(ctx){
     $('drawerMoreBtn')?.addEventListener('click',()=>{if($('spaceMoreDialog'))$('spaceMoreDialog').style.display='none';openDrawerSystemDialog();});
     $('editDrawerSetBtn')?.addEventListener('click',()=>openDrawerSystemDialog(state.selected));
     $('drawerSlideType')?.addEventListener('change',()=>{drawerApplyPresetDefaults(true);updateDrawerDrillingFields();});
-    ['drawerLengthMode','drawerSideClearance','drawerCount','drawerBoxHeight','drawerBoxThickness','drawerBottomThickness2','drawerBottomOffset','drawerBottomPassLeft','drawerBottomPassRight','drawerBottomPassFront','drawerBottomPassBack','drawerBottomGrooveClearance','drawerBottomGrooveDepth','drawerFrontInset','drawerRearClearance','drawerEdgeGap','drawerFrontThickness','drawerFrontGapLeft','drawerFrontGapRight','drawerFrontGapTop','drawerFrontGapBottom','drawerFrontGapBetween','drawerTamponThickness','drawerTamponStripDepth','drawerTamponFrontInset','drawerTamponRearInset'].forEach(id=>$(id)?.addEventListener('input',updateDrawerSystemPreview));
+    ['drawerLengthMode','drawerSideClearance','drawerCount','drawerBoxHeight','drawerBoxThickness','drawerBottomThickness2','drawerBottomOffset','drawerBottomPassLeft','drawerBottomPassRight','drawerBottomPassFront','drawerBottomPassBack','drawerBottomGrooveClearance','drawerBottomGrooveDepth','drawerFrontInset','drawerRearClearance','drawerEdgeGap','drawerFrontThickness','drawerFrontGapLeft','drawerFrontGapRight','drawerFrontGapTop','drawerFrontGapBottom','drawerFrontGapBetween','drawerTamponThickness','drawerTamponPanelThickness','drawerTamponStripDepth','drawerTamponFrontInset','drawerTamponRearInset'].forEach(id=>$(id)?.addEventListener('input',updateDrawerSystemPreview));
     ['drawerDrillFrontRef','drawerDrillOffsets','drawerDrillMountY','drawerDrillDiameter','drawerDrillDepth'].forEach(id=>$(id)?.addEventListener('input',updateDrawerDrillingFields));
     $('drawerDrillAutoByLength')?.addEventListener('change',updateDrawerDrillingFields);$('drawerDrillVerticalMode')?.addEventListener('change',updateDrawerDrillingFields);$('drawerDrillSide')?.addEventListener('change',updateDrawerDrillingFields);$('drawerLengthMode')?.addEventListener('change',updateDrawerDrillingFields);
     $('drawerCreateSlides')?.addEventListener('change',updateDrawerSystemPreview);$('drawerCreateDrilling')?.addEventListener('change',updateDrawerDrillingFields);
