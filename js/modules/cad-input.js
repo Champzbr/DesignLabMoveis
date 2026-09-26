@@ -13,7 +13,7 @@ export function installCadInputNavigation(ctx){
   controls.minDistance=.001;
   controls.maxDistance=250;
 
-  // 1.311.00-r4 · Windows: zoom estilo SketchUp com ponto 3D travado por gesto.
+  // 1.311.00-r5 · Windows: zoom estilo SketchUp com ponto 3D travado pelo cursor.
   // O primeiro passo da roda escolhe o ponto sob o cursor. Enquanto a sequência de
   // rolagem continua, esse mesmo ponto fica ancorado no mundo e na mesma posição da
   // tela: a câmera e o target são transladados juntos, sem "perseguir" o mouse.
@@ -26,9 +26,10 @@ export function installCadInputNavigation(ctx){
   const winZoomNormal=windowsDesktopZoom?new THREE.Vector3():null;
   const winZoomFallback=windowsDesktopZoom?new THREE.Vector3():null;
   const winZoomDelta=windowsDesktopZoom?new THREE.Vector3():null;
-  const WIN_ZOOM_GESTURE_MS=300;
+  const WIN_ZOOM_CURSOR_RELEASE_PX=7;
   let winZoomAnchor=null;
-  let winZoomLastAt=-Infinity;
+  let winZoomAnchorClientX=NaN;
+  let winZoomAnchorClientY=NaN;
   function windowsZoomObjects(){
     const list=ctx.runtimeModel?.objects;
     if(!Array.isArray(list))return [];
@@ -50,12 +51,22 @@ export function installCadInputNavigation(ctx){
     winZoomPlane.setFromNormalAndCoplanarPoint(winZoomNormal,controls.target);
     return winZoomRaycaster.ray.intersectPlane(winZoomPlane,winZoomFallback)?winZoomFallback.clone():controls.target.clone();
   }
+  function windowsZoomResetAnchor(){
+    winZoomAnchor=null;
+    winZoomAnchorClientX=NaN;
+    winZoomAnchorClientY=NaN;
+  }
   function windowsZoomGestureAnchor(e){
-    const now=performance.now();
-    if(!winZoomAnchor || now-winZoomLastAt>WIN_ZOOM_GESTURE_MS){
+    // 1.311.00-r5 · A âncora não expira por tempo. Em mouse com roda física,
+    // dois "dentes" podem ficar separados por mais de 300 ms e o r4 acabava
+    // escolhendo outro ponto 3D sob o mesmo pixel. Resultado: parecia que o zoom
+    // continuava seguindo o ponteiro. Agora o ponto 3D só muda quando o usuário
+    // realmente move o cursor para outro lugar (ou inicia outra navegação).
+    if(!winZoomAnchor){
       winZoomAnchor=windowsZoomFocus(e.clientX,e.clientY);
+      winZoomAnchorClientX=e.clientX;
+      winZoomAnchorClientY=e.clientY;
     }
-    winZoomLastAt=now;
     return winZoomAnchor;
   }
   function windowsSketchZoom(e){
@@ -103,6 +114,20 @@ export function installCadInputNavigation(ctx){
       }
     }else cadZoomResetOut();
   },{passive:false,capture:true});
+
+  if(windowsDesktopZoom){
+    renderer.domElement.addEventListener('pointermove',e=>{
+      if(e.pointerType&&e.pointerType!=='mouse')return;
+      if(!winZoomAnchor||!Number.isFinite(winZoomAnchorClientX)||!Number.isFinite(winZoomAnchorClientY))return;
+      if(Math.hypot(e.clientX-winZoomAnchorClientX,e.clientY-winZoomAnchorClientY)>=WIN_ZOOM_CURSOR_RELEASE_PX){
+        windowsZoomResetAnchor();
+      }
+    },{capture:true,passive:true});
+    // Orbitar/panear significa que o usuário mudou a intenção de câmera; o próximo
+    // giro escolhe um novo ponto sob o cursor. Sair do canvas também libera o foco.
+    controls.addEventListener('start',windowsZoomResetAnchor);
+    renderer.domElement.addEventListener('mouseleave',windowsZoomResetAnchor,{passive:true});
+  }
 
   const touchPointers=new Map();
   let lastPinchDistance=0;
