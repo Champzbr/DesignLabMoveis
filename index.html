@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.311.00-r1">
+<meta name="designlab-build" content="1.311.00-r2">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.311.00-r1';
+  const BUILD='1.311.00-r2';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/editor.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/materials.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/labels.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/layout.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/projects.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/settings.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/home.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r1">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r1">
+<link rel="stylesheet" href="css/base.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/editor.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/materials.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/labels.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/layout.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/projects.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/settings.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/home.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r2">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r2">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -2258,21 +2258,21 @@
       <div id="drawerTamponFields" style="margin-top:8px;display:none">
         <div class="spaceFields two">
           <label>Lado<select id="drawerTamponSide"><option value="left">Esquerdo</option><option value="right">Direito</option><option value="both">Esquerdo + direito</option></select></label>
-          <label>Afastamento lateral da gaveta (mm)<input id="drawerTamponThickness" type="number" value="18" min="1" step="1"></label>
+          <label>Afastamento criado pelas ripas (mm)<input id="drawerTamponThickness" type="number" value="18" min="1" step="1"></label>
         </div>
         <div class="spaceFields two" style="margin-top:8px">
           <label>Profundidade da ripa interna (mm)<input id="drawerTamponStripDepth" type="number" value="60" min="1" step="1"></label>
-          <label>Uso<input value="Apoio interno para corrediça" readonly></label>
+          <label>Espessura da lateral interna (mm)<input id="drawerTamponPanelThickness" type="number" value="18" min="1" step="1"></label>
         </div>
-        <div class="spaceFields two" style="margin-top:8px">
-          <label class="fixedChoice" style="margin:0"><input id="drawerTamponFrontStrip" type="checkbox" checked><div><strong>Ripa frontal</strong><span>medida a partir da frente do espaço</span></div></label>
-          <label>Recuo da frente (mm)<input id="drawerTamponFrontInset" type="number" value="50" min="0" step="1"></label>
+        <div class="drawerTamponStripCard">
+          <label class="fixedChoice drawerTamponChoice"><input id="drawerTamponFrontStrip" type="checkbox" checked><div><strong>Ripa frontal</strong><span>Peça curta de apoio na frente do vão.</span></div></label>
+          <label class="drawerTamponInset">Recuo da frente (mm)<input id="drawerTamponFrontInset" type="number" value="50" min="0" step="1"><span>Distância entre a frente do espaço e o início da ripa.</span></label>
         </div>
-        <div class="spaceFields two" style="margin-top:8px">
-          <label class="fixedChoice" style="margin:0"><input id="drawerTamponRearStrip" type="checkbox"><div><strong>Ripa traseira</strong><span>medida a partir de trás do espaço</span></div></label>
-          <label>Recuo de trás (mm)<input id="drawerTamponRearInset" type="number" value="50" min="0" step="1"></label>
+        <div class="drawerTamponStripCard">
+          <label class="fixedChoice drawerTamponChoice"><input id="drawerTamponRearStrip" type="checkbox"><div><strong>Ripa traseira</strong><span>Peça curta de apoio na traseira do vão.</span></div></label>
+          <label class="drawerTamponInset">Recuo de trás (mm)<input id="drawerTamponRearInset" type="number" value="50" min="0" step="1"><span>Distância entre o fundo do espaço e o início da ripa.</span></label>
         </div>
-        <p class="dialogHelp" style="margin:7px 0 0">Ex.: ripa com 60 mm de profundidade e afastamento lateral de 18 mm. A ripa pode começar 50 mm depois da frente; lateralmente, a caixa da gaveta só começa depois dos 18 mm + a folga da corrediça.</p>
+        <p class="dialogHelp" style="margin:7px 0 0">Ordem física: lateral do móvel → ripa(s) de afastamento → lateral interna inteira → corrediça → gaveta. Ex.: ripa de 60 mm, afastamento 18 mm e lateral interna MDF 18 mm. A frente da gaveta fica embutida depois dessa lateral.</p>
       </div>
     </div>
 
@@ -2855,6 +2855,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.311.00-r1"></script>
+<script type="module" src="js/app.js?v=1.311.00-r2"></script>
 </body>
 </html>

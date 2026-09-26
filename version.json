@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r1",
-  "date": "2026-09-25",
-  "message": "1.311.00-r1: tamponamento de gaveta formalizado como ripas internas curtas; profundidade da ripa e afastamento lateral são independentes; caixa inicia após o afastamento lateral + folga da corrediça."
+  "version": "1.311.00-r2",
+  "date": "2026-09-26",
+  "message": "1.311.00-r2: tamponamento com ripas de afastamento + lateral interna inteira; gaveta e frente embutidas após a lateral; presets restauram a folga da corrediça; layout dos recuos corrigido."
 }
