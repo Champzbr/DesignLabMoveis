@@ -13,11 +13,11 @@ export function installCadInputNavigation(ctx){
   controls.minDistance=.001;
   controls.maxDistance=250;
 
-  // 1.311.00-r3 · Windows: zoom estilo CAD/SketchUp, ancorado no ponto sob o mouse.
-  // O OrbitControls calcula o dolly principalmente em relação ao `target`. Quando o móvel
-  // foi deslocado para longe do XYZ, esse target podia continuar distante e a roda parecia
-  // ficar progressivamente lenta. No app Windows usamos a superfície real sob o cursor como
-  // pivô do zoom; mobile/web continuam exatamente com a navegação anterior.
+  // 1.311.00-r4 · Windows: zoom estilo SketchUp com ponto 3D travado por gesto.
+  // O primeiro passo da roda escolhe o ponto sob o cursor. Enquanto a sequência de
+  // rolagem continua, esse mesmo ponto fica ancorado no mundo e na mesma posição da
+  // tela: a câmera e o target são transladados juntos, sem "perseguir" o mouse.
+  // Uma pausa curta libera a âncora; o próximo giro escolhe um novo ponto.
   const windowsDesktopZoom=!!(window.DesignLabDesktop?.isDesktop &&
     (window.DesignLabDesktop?.platform==='win32' || document.documentElement.classList.contains('designlab-windows')));
   const winZoomRaycaster=windowsDesktopZoom?new THREE.Raycaster():null;
@@ -25,6 +25,10 @@ export function installCadInputNavigation(ctx){
   const winZoomPlane=windowsDesktopZoom?new THREE.Plane():null;
   const winZoomNormal=windowsDesktopZoom?new THREE.Vector3():null;
   const winZoomFallback=windowsDesktopZoom?new THREE.Vector3():null;
+  const winZoomDelta=windowsDesktopZoom?new THREE.Vector3():null;
+  const WIN_ZOOM_GESTURE_MS=300;
+  let winZoomAnchor=null;
+  let winZoomLastAt=-Infinity;
   function windowsZoomObjects(){
     const list=ctx.runtimeModel?.objects;
     if(!Array.isArray(list))return [];
@@ -41,11 +45,18 @@ export function installCadInputNavigation(ctx){
     winZoomRaycaster.setFromCamera(winZoomNdc,perspectiveCamera);
     const hits=winZoomRaycaster.intersectObjects(windowsZoomObjects(),false);
     if(hits.length)return hits[0].point.clone();
-    // Se o cursor estiver no vazio, mantém o comportamento "zoom para o cursor"
-    // projetando o raio no plano que passa pelo target atual.
+    // No vazio, usa o plano perpendicular à câmera que passa pelo target atual.
     perspectiveCamera.getWorldDirection(winZoomNormal);
     winZoomPlane.setFromNormalAndCoplanarPoint(winZoomNormal,controls.target);
     return winZoomRaycaster.ray.intersectPlane(winZoomPlane,winZoomFallback)?winZoomFallback.clone():controls.target.clone();
+  }
+  function windowsZoomGestureAnchor(e){
+    const now=performance.now();
+    if(!winZoomAnchor || now-winZoomLastAt>WIN_ZOOM_GESTURE_MS){
+      winZoomAnchor=windowsZoomFocus(e.clientX,e.clientY);
+    }
+    winZoomLastAt=now;
+    return winZoomAnchor;
   }
   function windowsSketchZoom(e){
     if(!windowsDesktopZoom||getCamera()!==perspectiveCamera||getViewMode2D())return false;
@@ -55,26 +66,25 @@ export function installCadInputNavigation(ctx){
     const unit=e.deltaMode===1?3:(e.deltaMode===2?12:100);
     const steps=THREE.MathUtils.clamp(raw/Math.max(1,unit),.18,5);
     const zoomIn=e.deltaY<0;
-    if(zoomIn){
-      const focus=windowsZoomFocus(e.clientX,e.clientY);
-      const offset=perspectiveCamera.position.clone().sub(focus);
-      const dist=Math.max(offset.length(),1e-7);
-      // 0,78 por passo mantém rapidez de longe e precisão conforme se aproxima.
-      const nextDist=Math.max(.00035,dist*Math.pow(.78,steps));
-      perspectiveCamera.position.copy(focus).add(offset.multiplyScalar(nextDist/dist));
-      // Reancora gradualmente o pivô no próprio móvel. É isso que elimina a
-      // dependência da distância até a origem XYZ depois de mover o projeto.
-      const pivotBlend=1-Math.pow(.50,steps);
-      controls.target.lerp(focus,pivotBlend);
-      const near=THREE.MathUtils.clamp(nextDist*.025,.00008,.001);
-      if(Math.abs(perspectiveCamera.near-near)>1e-7){perspectiveCamera.near=near;perspectiveCamera.updateProjectionMatrix();}
-    }else{
-      const pivot=controls.target;
-      const offset=perspectiveCamera.position.clone().sub(pivot);
-      const dist=Math.max(offset.length(),1e-7);
-      const nextDist=Math.min(250,dist*Math.pow(1.28,steps));
-      perspectiveCamera.position.copy(pivot).add(offset.multiplyScalar(nextDist/dist));
-      if(perspectiveCamera.near!==.001){perspectiveCamera.near=.001;perspectiveCamera.updateProjectionMatrix();}
+    const focus=windowsZoomGestureAnchor(e);
+    const oldPos=perspectiveCamera.position.clone();
+    const offset=oldPos.clone().sub(focus);
+    const dist=Math.max(offset.length(),1e-7);
+    const factor=Math.pow(zoomIn ? .80 : 1.25,steps);
+    const nextDist=zoomIn?Math.max(.00035,dist*factor):Math.min(250,dist*factor);
+    const newPos=focus.clone().add(offset.multiplyScalar(nextDist/dist));
+
+    // A diferença para o r3: não gira/recentra a câmera em direção ao ponto.
+    // Transladar position e target pelo mesmo delta conserva a orientação e faz o
+    // ponto escolhido permanecer no mesmo pixel durante toda a sequência da roda.
+    winZoomDelta.copy(newPos).sub(oldPos);
+    perspectiveCamera.position.copy(newPos);
+    controls.target.add(winZoomDelta);
+
+    const near=zoomIn?THREE.MathUtils.clamp(nextDist*.025,.00008,.001):.001;
+    if(Math.abs(perspectiveCamera.near-near)>1e-7){
+      perspectiveCamera.near=near;
+      perspectiveCamera.updateProjectionMatrix();
     }
     perspectiveCamera.updateMatrixWorld(true);
     controls.update();
