@@ -13,7 +13,7 @@ export function installCadInputNavigation(ctx){
   controls.minDistance=.001;
   controls.maxDistance=250;
 
-  // 1.311.00-r5 · Windows: zoom estilo SketchUp com ponto 3D travado pelo cursor.
+  // 1.311.00-r6 · Windows: zoom estilo SketchUp com ponto 3D travado pelo cursor.
   // O primeiro passo da roda escolhe o ponto sob o cursor. Enquanto a sequência de
   // rolagem continua, esse mesmo ponto fica ancorado no mundo e na mesma posição da
   // tela: a câmera e o target são transladados juntos, sem "perseguir" o mouse.
@@ -57,7 +57,7 @@ export function installCadInputNavigation(ctx){
     winZoomAnchorClientY=NaN;
   }
   function windowsZoomGestureAnchor(e){
-    // 1.311.00-r5 · A âncora não expira por tempo. Em mouse com roda física,
+    // 1.311.00-r6 · A âncora não expira por tempo. Em mouse com roda física,
     // dois "dentes" podem ficar separados por mais de 300 ms e o r4 acabava
     // escolhendo outro ponto 3D sob o mesmo pixel. Resultado: parecia que o zoom
     // continuava seguindo o ponteiro. Agora o ponto 3D só muda quando o usuário
@@ -127,6 +127,90 @@ export function installCadInputNavigation(ctx){
     // giro escolhe um novo ponto sob o cursor. Sair do canvas também libera o foco.
     controls.addEventListener('start',windowsZoomResetAnchor);
     renderer.domElement.addEventListener('mouseleave',windowsZoomResetAnchor,{passive:true});
+
+    // 1.311.00-r6 · Windows: órbita estilo SketchUp no botão do meio.
+    // O pivô é o ponto 3D sob o cursor no instante em que a rodinha é pressionada.
+    // Durante o arraste, posição E orientação da câmera são rotacionadas ao redor
+    // desse pivô. Assim o ponto escolhido permanece visualmente estável na tela,
+    // em vez de o móvel inteiro girar em torno de um target global distante.
+    const orbitWorldUp=new THREE.Vector3(0,1,0);
+    const orbitRight=new THREE.Vector3();
+    const orbitOffset=new THREE.Vector3();
+    const orbitForward=new THREE.Vector3();
+    const orbitForwardTest=new THREE.Vector3();
+    const orbitQYaw=new THREE.Quaternion();
+    const orbitQPitch=new THREE.Quaternion();
+    let winOrbit=null;
+    function syncControlsTargetToCamera(distance){
+      perspectiveCamera.getWorldDirection(orbitForward);
+      controls.target.copy(perspectiveCamera.position).addScaledVector(orbitForward,Math.max(.01,distance||1));
+    }
+    function beginWindowsPivotOrbit(e){
+      if(e.pointerType&&e.pointerType!=='mouse')return false;
+      if(e.button!==1||e.shiftKey||e.ctrlKey||e.metaKey||e.altKey)return false;
+      if(getCamera()!==perspectiveCamera||getViewMode2D())return false;
+      const pivot=windowsZoomFocus(e.clientX,e.clientY);
+      const lookDistance=Math.max(.01,perspectiveCamera.position.distanceTo(controls.target));
+      winOrbit={id:e.pointerId,pivot,lastX:e.clientX,lastY:e.clientY,lookDistance};
+      windowsZoomResetAnchor();
+      try{renderer.domElement.setPointerCapture(e.pointerId);}catch{}
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return true;
+    }
+    function moveWindowsPivotOrbit(e){
+      if(!winOrbit||e.pointerId!==winOrbit.id)return false;
+      const dx=e.clientX-winOrbit.lastX,dy=e.clientY-winOrbit.lastY;
+      winOrbit.lastX=e.clientX;winOrbit.lastY=e.clientY;
+      if(!dx&&!dy){e.preventDefault();e.stopImmediatePropagation();return true;}
+      const rect=renderer.domElement.getBoundingClientRect();
+      const speed=(Math.PI*1.55)/Math.max(280,Math.min(rect.width||800,rect.height||600));
+
+      // Yaw em torno do eixo vertical global.
+      orbitQYaw.setFromAxisAngle(orbitWorldUp,-dx*speed);
+      orbitOffset.copy(perspectiveCamera.position).sub(winOrbit.pivot).applyQuaternion(orbitQYaw);
+      perspectiveCamera.position.copy(winOrbit.pivot).add(orbitOffset);
+      perspectiveCamera.quaternion.premultiply(orbitQYaw);
+
+      // Pitch em torno do eixo horizontal atual da câmera. Limitamos antes de
+      // chegar ao polo para evitar a inversão "de cabeça para baixo".
+      orbitRight.set(1,0,0).applyQuaternion(perspectiveCamera.quaternion).normalize();
+      orbitQPitch.setFromAxisAngle(orbitRight,-dy*speed);
+      perspectiveCamera.getWorldDirection(orbitForward);
+      orbitForwardTest.copy(orbitForward).applyQuaternion(orbitQPitch);
+      if(Math.abs(orbitForwardTest.dot(orbitWorldUp))<.985){
+        orbitOffset.copy(perspectiveCamera.position).sub(winOrbit.pivot).applyQuaternion(orbitQPitch);
+        perspectiveCamera.position.copy(winOrbit.pivot).add(orbitOffset);
+        perspectiveCamera.quaternion.premultiply(orbitQPitch);
+      }
+
+      // O render loop chama controls.update() em todo frame. Mantemos o target
+      // alinhado com a orientação resultante para o OrbitControls não desfazer a
+      // órbita customizada no frame seguinte.
+      perspectiveCamera.updateMatrixWorld(true);
+      syncControlsTargetToCamera(winOrbit.lookDistance);
+      controls.update();
+      remember3DView();
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return true;
+    }
+    function endWindowsPivotOrbit(e){
+      if(!winOrbit||e.pointerId!==winOrbit.id)return false;
+      try{renderer.domElement.releasePointerCapture(e.pointerId);}catch{}
+      winOrbit=null;
+      remember3DView();
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return true;
+    }
+    renderer.domElement.addEventListener('pointerdown',e=>{beginWindowsPivotOrbit(e);},{capture:true,passive:false});
+    renderer.domElement.addEventListener('pointermove',e=>{moveWindowsPivotOrbit(e);},{capture:true,passive:false});
+    renderer.domElement.addEventListener('pointerup',e=>{endWindowsPivotOrbit(e);},{capture:true,passive:false});
+    renderer.domElement.addEventListener('pointercancel',e=>{endWindowsPivotOrbit(e);},{capture:true,passive:false});
+    renderer.domElement.addEventListener('lostpointercapture',e=>{
+      if(winOrbit&&e.pointerId===winOrbit.id){winOrbit=null;remember3DView();}
+    },{capture:true,passive:true});
   }
 
   const touchPointers=new Map();
