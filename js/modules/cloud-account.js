@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · conta em nuvem e preferências sincronizadas.
+// DesignLabMoveis 1.311.00 · conta em nuvem e preferências sincronizadas.
 export function createCloudAccountModule(ctx){
   const { $, escapeHtml, toast, authUserName, updateAdminVisibility, getAuth, storeOfflinePremiumLicense, premiumWorkspaceAllowed, clearOfflinePremiumLicense, showPremiumAccessRequired, syncCloudProjects, renderProjectHome, showBannedAccount } = ctx;
   const auth=new Proxy({}, {get(_t,p){const a=getAuth?.();const v=a?.[p];return typeof v==='function'?v.bind(a):v;}});

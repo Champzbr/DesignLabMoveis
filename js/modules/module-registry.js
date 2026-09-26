@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · registry explícito para dependências funcionais circulares.
+// DesignLabMoveis 1.311.00 · registry explícito para dependências funcionais circulares.
 // Estado mutável do editor NÃO pertence aqui; ele vive em runtimeModel.
 export function createModuleRegistry(){
   const modules=new Map();

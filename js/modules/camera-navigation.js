@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Navegação, zoom e vistas 2D/3D.
+// DesignLabMoveis 1.311.00 · Navegação, zoom e vistas 2D/3D.
 export function createCameraNavigationModule(ctx){
   const { THREE, perspectiveCamera, renderer, controls, cadZoomNdc, cadZoomRaycaster, CAD_ZOOM_DEFAULT_SPEED, CAD_ZOOM_TOUCH_SPEED, CAD_ZOOM_CLOSE_SPEED, CAD_ZOOM_SLOW_ZONE, CAD_ZOOM_SURFACE_GAP, CAD_ZOOM_NEAR_DEFAULT, CAD_ZOOM_NEAR_MIN, last3DView, orthoCamera, objectInsideSpaceRoot, getBounds, pieceThicknessInfo, $, setPieceVisualEdgesVisible, updateXray3DButton, toast }=ctx;
   const runtimeModel=ctx.runtimeModel;

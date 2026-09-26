@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · aparência global do aplicativo.
+// DesignLabMoveis 1.311.00 · aparência global do aplicativo.
 export function createAppThemeModule({toast}){
   const THEME_KEY='designLabAppThemeV2';
   const USER_CHOICE_KEY='designLabAppThemeUserChoiceV2';

@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · projetos, salvamento local e sincronização de projetos.
+// DesignLabMoveis 1.311.00 · projetos, salvamento local e sincronização de projetos.
 export function createProjectsModule(ctx){
   const { $, DESIGNLAB_APP_VERSION, STORAGE_KEY, LEGACY_STORAGE_KEY_V22, LEGACY_STORAGE_KEY_V18, LEGACY_STORAGE_KEY_V15, LEGACY_STORAGE_KEY, LEGACY_STORAGE_KEY_V13, LEGACY_STORAGE_KEY_V12, LEGACY_STORAGE_KEY_V11, LEGACY_STORAGE_KEY_V10, LEGACY_STORAGE_KEY_V9, activeSpaceRoot, applyState, authUserName, captureState, clearScene, closeCopyHardwareTool, closeCopyShapeTool, controls, cloudApiFetch, designLabRouteEnterWorkspace, designLabRouteMarkHomeTop, escapeHtml, frameFurnitureVisual, last3DView, remember3DView, openProductionDialog, orthoCamera, perspectiveCamera, renderer, returnTo3D, scene, setDesignLabVisualizationOnly, setFrontWorldView, setPieceVisualEdgesVisible, setVisualMode, stateString, toast, viewSpace }=ctx;
   const runtimeModel=ctx.runtimeModel;

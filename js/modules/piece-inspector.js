@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Seleção e inspetor de peças.
+// DesignLabMoveis 1.311.00 · Seleção e inspetor de peças.
 export function createPieceInspectorModule(ctx){
   const { $, state, clearSpaceSelection, restoreBaseColor, hideGuides, setAllFaces, COLORS, cancelDuplicateConfirmation, syncManualPieceVisibilityButtons, designLabVisualizationOnlyActive, setVisualMode, restorePieceInspectorPosition, pieceThicknessInfo, normalizePieceEdgeBands, fillPieceMaterialSelect, refreshPieceNamePresetSelect, rootForObject, doorAutoHingeCount, normalizePieceGrainRotation, loadPieceRelativeInputs, getSpaceCell, cellSize, mm }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -30,7 +30,7 @@ function selectObject(mesh){
 }
 
 // 1.200.18 · nomes rápidos de peças + biblioteca pessoal de nomes.
-// 1.310.00 · domínio movido para módulo (6218-6323).
+// 1.311.00 · domínio movido para módulo (6218-6323).
 
 function openPieceInspector(mesh=state.selected){
   if(!mesh)return;

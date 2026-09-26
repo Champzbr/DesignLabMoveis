@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Espaços, cortes e redimensionamento estrutural.
+// DesignLabMoveis 1.311.00 · Espaços, cortes e redimensionamento estrutural.
 export function createSpacesCutsModule(ctx){
   const { $, THREE, scene, COLORS, controls, perspectiveCamera, orthoCamera, m, mm, nice, escapeHtml, spaceMaterialText, toast, clampSize, uid, spaceSelectionKey, SPACE_HEAL_TOL, updateSpaceMultiSelectBar, applyVisualSceneState, applyAllDoorVisibility, renderMachiningVisuals, isDoorObject, doorObjectShouldBeVisible, restoreBaseColor, selectObject, commitHistory, designLabVisualizationOnlyActive, openPieceInspector, hideGuides, updateDoorsToggleButton, updateMeasureBadge, objectBelongsToRoot, selectedFurnitureRoot, canonicalFactoryMaterialId, resetSpaceDoubleTap, restoreTechnical2DTransparency, setVisualMode, frameFurnitureVisual, remember3DView, orthographicFrustum, useCamera, setViewModeBadge, applyTechnical2DTransparency, returnTo3D, cellBox, addFixedBandForCell, mergeIntervals, pieceThicknessInfo, productionMaterialById, productionMaterialUsesPieceThickness, fixedIntervalsFromSpace, structuralFixedIntervalsFromRoot, makeBalancedSpaceAxisMapper, normalizePieceManualGeometryDelta, remapMachiningForPieceResize, rebuildFormGeometry, sanitizeMachiningForPiece, rebuildDrawerSetsForRoot, applyDoorVisibility, getBounds, removeHardwareLinkedToObjects, sameCellTangents, almostSpace, cellAxisMax, cellAxisMin, boxAxisMin, axisCellMinKey, axisCellMaxKey, selectedCellEditPair, cellTangentWithin, cellTangentOverlapArea, cellTangentFaceArea, mergedCellFromPair, setCellAxisMin, setCellAxisMax, removeDrawerSet }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -692,7 +692,7 @@ function repairVerticalDivisionThickness(root){
 
 
 // ============================================================================
-// 1.310.00 · domínio movido para módulo (4877-4952).
+// 1.311.00 · domínio movido para módulo (4877-4952).
 
 
 function resizeSpaceRoot(root,{width,depth,height,yBase,name}={}){

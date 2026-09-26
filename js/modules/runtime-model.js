@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · coleções e objetos mutáveis centrais do editor.
+// DesignLabMoveis 1.311.00 · coleções e objetos mutáveis centrais do editor.
 export function createRuntimeModel({THREE,scene,$}){
   const objects=[];
 

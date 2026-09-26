@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · helpers pequenos e estáveis do runtime.
+// DesignLabMoveis 1.311.00 · helpers pequenos e estáveis do runtime.
 export function createRuntimeHelpers({THREE,roundMmNumber,M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,$}){
   let toastTimer=null;
   const mm=v=>roundMmNumber(Number(v)*M_TO_MM,3);

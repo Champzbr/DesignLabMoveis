@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Trena, guias e inferência de movimento.
+// DesignLabMoveis 1.311.00 · Trena, guias e inferência de movimento.
 export function createTapeMovementModule(ctx){
   const { $, THREE, referenceMeshes, SNAP_THRESHOLD, CORNER_PICK_PX, EDGE_PICK_PX, GUIDE_SNAP_PX, TAPE_AIM_SNAP_PX, COLORS, scene, commitHistory, getPointerNDC, camera, worldToClient, mm, nice, toast, controls, syncToolDockButtons, renderer, TAPE_POINT_TOUCH_OFFSET_PX, axisVector, GUIDE_EXTENT, closestParamOnAxis, worldAxisX, worldAxisY, worldAxisZ, worldAxisForFace, groundPlane, TAPE_POINT_CORNER_SNAP_TOUCH_PX, TAPE_POINT_CORNER_SNAP_MOUSE_PX, TAPE_POINT_EDGE_SNAP_TOUCH_PX, TAPE_POINT_EDGE_SNAP_MOUSE_PX, TAPE_POINT_LINE_SNAP_TOUCH_PX, TAPE_POINT_LINE_SNAP_MOUSE_PX, TAPE_AXIS_ANGLE, MIN_SIZE, CORNER_SNAP_PX, EDGE_SNAP_PX, GUIDE_OBJECT_SNAP_WORLD}=ctx;
   const runtimeModel=ctx.runtimeModel;

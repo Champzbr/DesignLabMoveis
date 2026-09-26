@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · troca de ferramentas e seletor da Trena.
+// DesignLabMoveis 1.311.00 · troca de ferramentas e seletor da Trena.
 export function createToolController(ctx){
   const {$,THREE,controls,toast,state}=ctx;
   const runtimeModel=ctx.runtimeModel;

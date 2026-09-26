@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · navegação Voltar/History isolada do runtime.
+// DesignLabMoveis 1.311.00 · navegação Voltar/History isolada do runtime.
 export function createBackNavigationModule(ctx){
   const { $, state, clearSpaceMultiSelection, quickDockSubmenuVisible, closeQuickDockSubmenu, productionMaterials, closeCopyHardwareTool, machiningShapes, closeCopyShapeTool, curvedFurniture, returnCurvedStructurePreview, returnShapePreview, closeMachining3DPreview, elementIsVisible, closeInspectorOutside, closeSpaceActionsOutside, closeProjectCardMenu, setToolDockOpen, setTool, orthoCamera, returnTo3D, setVisualMode, showAuthInlineForm, projects, showProjectHome }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -138,7 +138,7 @@ function designLabRouteKind(st=window.history.state||{}){
 }
 function designLabRouteState(kind,extra={}){
   const st=Object.assign({},window.history.state||{},extra);
-  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.310.00';
+  st[DESIGNLAB_ROUTE_KEY]=kind;st.__designLabRouteVersion='1.311.00';
   return st;
 }
 function designLabRouteReplace(kind,extra={}){

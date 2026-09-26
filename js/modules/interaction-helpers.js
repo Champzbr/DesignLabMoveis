@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · helpers geométricos de ponteiro/movimento.
+// DesignLabMoveis 1.311.00 · helpers geométricos de ponteiro/movimento.
 export function createInteractionHelpers({THREE,renderer,runtimeModel,groundPlane,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,getCamera}){
   function getClientPoint(event){return {x:event.clientX,y:event.clientY};}
   function getPointerNDC(event){

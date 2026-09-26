@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · constantes centrais do runtime/editor.
+// DesignLabMoveis 1.311.00 · constantes centrais do runtime/editor.
 export const M_TO_MM = 1000;
 export const MM_TO_M = 0.001;
 export const MIN_SIZE = 0.001;

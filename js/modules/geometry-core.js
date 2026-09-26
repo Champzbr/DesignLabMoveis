@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Núcleo geométrico de peças.
+// DesignLabMoveis 1.311.00 · Núcleo geométrico de peças.
 export function createGeometryCoreModule(ctx){
   const { $, THREE, COLORS, clampSize, canonicalFactoryMaterialId, productionMaterialById, productionColorInt, makeMaterials, normalizePieceGrainRotation, normalizePieceEdgeBands, uid, productionClone, applySpaceDefaultMaterialToObject, makeCadEdgeMaterial, makeBoxVisualEdges, xray3DActive, scene, isDoorObject, getSpaceRoot, doorObjectShouldBeVisible, rebuildFormGeometry, applyPieceProductionEdgeColors, renderMachiningVisuals, selectObject, commitHistory }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -12,7 +12,7 @@ function setAllFaces(mesh, color){
 function restoreBaseColor(mesh){ setAllFaces(mesh, mesh.userData.baseColor ?? COLORS.default); }
 
 
-// 1.310.00 · Espaços/cortes movidos para js/modules/spaces-cuts.js.
+// 1.311.00 · Espaços/cortes movidos para js/modules/spaces-cuts.js.
 
 function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', kind='box', materialType='genérico', baseColor=COLORS.default, materialId=null, materialCode='', materialGrain=false, materialGrainRotation=0, materialCoreColor=null, edgeBands={}, partId=null, labelMeta=null, spaceRootId=null, machining=[], forms=[], rotationX=0, rotationY=0, rotationZ=0, divisionNominalThicknessM=null, curvedRole=null, curvedConfig=null, drawerSetId=null, drawerRole=null, drawerIndex=null, drawerConfig=null, doorConfig=null, doorSystem=null, doorHandleVisual=false, doorHandleOwnerPartId=null, hiddenByUser=false, excludeFromCutList=false, spaceCutting=false, spaceCutParentBounds=null, manualGeometryDelta=null, pieceSavedConfig=null}={}, doHistory=true){
   // 1.200.95 · migra automaticamente IDs antigos (Branco TX 6/15/18 etc.)
@@ -110,7 +110,7 @@ function createBox({width=1, depth=1, height=1, x=0, yBase=0, z=0, name='Cubo', 
   return mesh;
 }
 
-// 1.310.00 · móveis curvos movidos para js/modules/curved-furniture.js
+// 1.311.00 · móveis curvos movidos para js/modules/curved-furniture.js
 
 function createCylinder({diameter=1,height=1,x=0,yBase=0,z=0,name='Cilindro'}={}, doHistory=true){
   diameter=clampSize(diameter); height=clampSize(height);

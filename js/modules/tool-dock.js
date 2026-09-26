@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Barra de ferramentas, barra rápida e painéis flutuantes.
+// DesignLabMoveis 1.311.00 · Barra de ferramentas, barra rápida e painéis flutuantes.
 export function createToolDockModule(ctx){
   const {
     $, state, activeSpaceRoot, applyCadShadows, applyCutSpacePrefs, applySelectedSpaceCut, applyTechnical2DTransparency,

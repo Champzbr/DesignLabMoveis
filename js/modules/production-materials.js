@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · módulo production-materials.
+// DesignLabMoveis 1.311.00 · módulo production-materials.
 export function createProductionMaterialsModule(ctx){
   const { $, COLORS, THREE, adminAllowed, allProjectFurnitureParts, axisLabel, cadMachiningVisible, clearMachiningDraftPreview, closeCopyShapeTool, cloudAccountState, cloudApiFetch, commitHistory, controls, cutPlanAssignCodes, cutPlanPartSignature, downloadText, entryAxisName, entryAxisSign, escapeHtml, flatPartInfo, furnitureObjects, getSpaceRoot, holeSeriesInstances, machiningRawCoord, mmPrec, nice, objectBelongsToRoot, operationDepthMm, parseDecimalInput, perspectiveCamera, pieceThicknessInfo, referenceMeshes, renderMachiningList, renderMachiningVisuals, renderSpaces, resolvedMachiningCoords, restoreBaseColor, returnTo3D, rootForObject, roundMmNumber, safeFileName, sanitizeMachiningForPiece, scene, selectObject, selectedFurnitureRoot, setAllFaces, setDesignLabVisualizationOnly, setTool, setVisualMode, shapeCopyPieceEligible, shapeDeepClone, toast, uid, updateDraftPreviewTransforms, updateInspector, updateMeasureBadge }=ctx;
   const runtimeModel=ctx.runtimeModel;

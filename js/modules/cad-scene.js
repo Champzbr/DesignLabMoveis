@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · criação do palco Three.js, câmeras, luzes, grade e eixos.
+// DesignLabMoveis 1.311.00 · criação do palco Three.js, câmeras, luzes, grade e eixos.
 export function createCadScene({THREE,OrbitControls,container,cadBackgroundHex,cadFloorHex,cadShadowsVisible}){
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(cadBackgroundHex());

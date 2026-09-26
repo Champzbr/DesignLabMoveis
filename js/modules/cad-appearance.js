@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · aparência do CAD, visual limpo, sombras, grade e Raio-X.
+// DesignLabMoveis 1.311.00 · aparência do CAD, visual limpo, sombras, grade e Raio-X.
 export const CAD_APPEARANCE_KEYS={
   background:'miniCadProCadBackgroundV2',
   grid:'miniCadProCadGridVisibleV1',

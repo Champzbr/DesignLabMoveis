@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Geometria/configuração manual das peças.
+// DesignLabMoveis 1.311.00 · Geometria/configuração manual das peças.
 export function createPieceGeometryModule(ctx){
   const { $, THREE, state, nice, m, MIN_SIZE, MAX_SIZE, toast, openDrawerSystemDialog, renderMachiningVisuals, updateInspector, updateMeasureBadge, commitHistory, clampSize, rebuildFormGeometry, remapMachiningForPieceResize, sanitizeMachiningForPiece, remapMachiningAxes, normalizePieceGrainRotation, productionClone, createCylinder, createCurvedRib, createCurvedCover, createCurvedPost, createBox, openPieceInspector, deleteSelected } = ctx;
 

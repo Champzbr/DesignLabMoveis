@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · helpers de produção/DXF compartilhados.
+// DesignLabMoveis 1.311.00 · helpers de produção/DXF compartilhados.
 export function createProductionExportHelpers(ctx){
   const { roundMmNumber, pieceThicknessInfo, curvedPostOutlineMm, productionObjectKind, productionClone, productionMaterialById, normalizePieceGrainRotation, pieceEdgeBandSignature, pieceEdgeBandSummary, cloneMachining, entryAxisName, entryAxisSign, axisLabel, operationDepthMm, holeSeriesInstances, resolvedMachiningCoords } = ctx;
 function flatPartInfo(o,index,{production=false}={}){
@@ -63,6 +63,6 @@ function projectOperation(part,op,placed){
   const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y); return [{kind:'rect',layer:machiningLayer(part,op),x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}];
 }
 
-// 1.310.00 · prévia/exportação/plano de corte movidos para js/modules/cut-plan-ui.js.
+// 1.311.00 · prévia/exportação/plano de corte movidos para js/modules/cut-plan-ui.js.
   return {flatPartInfo,layerNum,normalizedLayer,dxfPair,dxfLine,dxfClosedRect,dxfClosedPolyline,dxfCircle,machiningLayer,mapPlacedUV,projectOperation};
 }

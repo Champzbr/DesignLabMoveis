@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Layout técnico, impressão e exportações 2D.
+// DesignLabMoveis 1.311.00 · Layout técnico, impressão e exportações 2D.
 export function createTechnicalLayoutModule(ctx){
   const { $, THREE, objectBelongsToRoot, getSpaceRoot, selectedFurnitureRoot, activeSpaceRoot, rootBounds, projects, safeFileName, downloadText, toast, setToolDockOpen } = ctx;
   const runtimeModel=ctx.runtimeModel;

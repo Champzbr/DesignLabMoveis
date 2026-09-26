@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · binding da interface de móvel curvo.
+// DesignLabMoveis 1.311.00 · binding da interface de móvel curvo.
 export function bindCurvedFurnitureUi(ctx){
   const {$,nice,parseDecimalInput,curvedFieldNumber,curvedFurniture,updateCurvedStructurePreview,returnCurvedStructurePreview,previewCurvedStructure3D,createCurvedStructure,openCurvedStructureDialog}=ctx;
 

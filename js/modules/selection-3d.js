@@ -1,8 +1,8 @@
-// DesignLabMoveis 1.310.00 · Seleção 3D, gestos e manipulação interativa.
+// DesignLabMoveis 1.311.00 · Seleção 3D, gestos e manipulação interativa.
 export function createSelection3DModule(ctx){
   const { $, THREE, renderer, controls, getPointerNDC, designLabVisualizationOnlyActive, selectObject, clearSpaceSelection, rootForObject, openSpaceFromObject, openPieceInspector, isDoorObject, objectInsideSpaceRoot, worldAxisForFace, nearestCornerToClient, nearestEdgeOnMeshToClient, worldToClient, getBounds, updateMeasureBadge, updateInspector, renderSpaces, setAllFaces, commitHistory, renderMachiningVisuals, stateString, intersectPlane, axisVector, closestParamOnAxis, inferMoveAxis, showInference, hideInference, findMoveInferenceTarget, snapMovingObjectFeaturesToGuide, setMoveTargetMarker, snapFaceCoordinate, hideGuides, showGuide, moveGrip, cornerMarker, COLORS, clampSize, REAIM_THRESHOLD_PX, updateTapePreview, tapePointAimClient, tapePointAimEvent, handleTapeTap, desktopCadNavigation, getSpaceRoot, getSpaceCell, selectSpaceCellByIds, toggleSpaceMultiSelection, clearSpaceMultiSelection, openSpaceQuickCreateMenu, referenceMeshes, hardwareCopyHandlePick, shapeCopyHandlePick, CORNER_PICK_PX, EDGE_PICK_PX, findMoveSnap, guideX, guideY, guideZ, mm, toast, pickSpaceCellAtClient, spaceSelectionKey }=ctx;
   const runtimeModel=ctx.runtimeModel;
-// 1.310.00-r7 · interação dos ESPAÇOS no celular:
+// 1.311.00-r1 · interação dos ESPAÇOS no celular:
 // - 1 toque mantém o fluxo normal de seleção;
 // - 2 toques rápidos adicionam/removem o vão da seleção de porta;
 // - toque longo abre Porta/Gaveta usando a seleção já montada.
@@ -37,7 +37,7 @@ function registerSpaceDoubleTap(rootId,cellId){
   return false;
 }
 
-// 1.310.00-r7 · no celular, o duplo toque alterna a seleção múltipla.
+// 1.311.00-r1 · no celular, o duplo toque alterna a seleção múltipla.
 // O toque longo NÃO seleciona por si só: ele abre o menu e, se necessário,
 // acrescenta o vão pressionado como última referência. No PC usa Ctrl + clique.
 let spaceLongPressTimer=null;

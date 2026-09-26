@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Criação e preferências de peças.
+// DesignLabMoveis 1.311.00 · Criação e preferências de peças.
 export function createPieceEditorModule(ctx){
   const { $, toast, MIN_SIZE, parseDecimalInput, m, createBox, mm, nice, cellSize, selectSpaceCellByIds, projectCurrentOwnerId, selectedCellInfo, activeSpaceRoot, pieceCreationTargetInfo, clearSpaceSelection, spaceDefaultMaterial, productionMaterialUsesPieceThickness, saveDoorCreateConfig, applyDoorCreateConfig, setVisualMode, spaceMultiSelectionInfo, getSpaceRoot, ensureSpaceMultiSelectBar, updateDoorCreationVisibility, doorCreationConfig, COLORS, uid, renderSpaces, createDoorsInRegion, getSpaceCell, registerVerticalDivisionFixedBand, commitHistory, cellBox } = ctx;
   const moduleRegistry=ctx.moduleRegistry;

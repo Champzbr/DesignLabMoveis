@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · reparo de vãos e exclusão estrutural de peças.
+// DesignLabMoveis 1.311.00 · reparo de vãos e exclusão estrutural de peças.
 export function createSpaceHealingModule(ctx){
   const { state, objectInsideSpaceRoot, pieceThicknessInfo, getBounds, uid, rootBounds, renderSpaces, distanceSqPointToCell, isDoorObject, isVerticalDivisionPiece, rootForObject, removeHardwareLinkedToObjects, removeDoorHandleVisualsForOwners, disposeObject, selectObject, removeDrawerSet, toast, renderMachiningVisuals, commitHistory, largestVisibleCell, selectSpaceCellByIds, selectSpaceRootOnly }=ctx;
   const runtimeModel=ctx.runtimeModel;

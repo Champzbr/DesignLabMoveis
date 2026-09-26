@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// DesignLabMoveis 1.310.00 · domínio de móveis curvos separado do runtime principal.
+// DesignLabMoveis 1.311.00 · domínio de móveis curvos separado do runtime principal.
 export function createCurvedFurnitureModule(ctx){
   const { $, COLORS, MM_TO_M, applySpaceDefaultMaterialToObject, applyState, commitHistory,
     disposeObject, frameFurnitureVisual, getSpaceCell, getSpaceRoot, mm, nice,

@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · edição/criação/corte de espaços e seus diálogos.
+// DesignLabMoveis 1.311.00 · edição/criação/corte de espaços e seus diálogos.
 export function createSpaceEditorModule(ctx){
   const { $, mm, m, nice, toast, escapeHtml, rootBounds, cellAxisMin, cellAxisMax, cellBox, activeSpaceRoot, parseDecimalInput, getBounds, mergeIntervals, tangentAxesForSpace, productionMaterialById, cellSize, getSpaceRoot, getSpaceCell, remapMachiningForPieceResize, rebuildFormGeometry, updateAutoMachiningAfterPieceResize, sanitizeMachiningForPiece, fixedIntervalsFromSpace, objectInsideSpaceRoot, isVerticalDivisionPiece, registerVerticalDivisionFixedBand, rebuildDrawerSetsForRoot, renderSpaces, applyDoorVisibility, renderMachiningVisuals, updateMeasureBadge, commitHistory, makeFixedAxisMapper, selectSpaceCellByIds, resizeSpaceRoot, fillSpaceMaterialSelect, updateEditSpaceMaterialPreview, applySpaceMaterialToExistingPieces, preferredDefaultMaterialId, selectedCellInfo, updateSpaceMaterialPreview, projectCurrentOwnerId, createSpace, setVisualMode, applySelectedSpaceCut }=ctx;
   const runtimeModel=ctx.runtimeModel;

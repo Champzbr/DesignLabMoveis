@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Importação/exportação DXF/STL e serialização de móveis.
+// DesignLabMoveis 1.311.00 · Importação/exportação DXF/STL e serialização de móveis.
 export function createCadIoModule(ctx){
   const { $, THREE, COLORS, MM_TO_M, scene, getSpaceRoot, getBounds, captureSpaces, normalizePieceGrainRotation, productionClone, captureProductionState, mm, adminAllowed, globalLibraryFolderById, cloudApiFetch, loadGlobalLibraryItems, loadGlobalLibraryFolders, renderLibrary, toast, importLibraryTemplate, exportLeafName, downloadExportFallback, isExportPickerCancel, pickExportTarget, mergeProjectProductionState, uid, createSpaceFromState, createCylinder, createCurvedRib, createCurvedCover, curvedPostSamplesMm, curvedPostPlacementFromSampleMm, createCurvedPost, createBox, copyLibraryPartMeta, repairOrphanSpaceGaps, renderSpaces, applyAllDoorVisibility, renderMachiningVisuals, selectSpaceCellByIds, frontViewToSpace, commitHistory } = ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -373,7 +373,7 @@ function buildFurnitureModelStl(root){
   }
   if(![min.x,min.y,min.z].every(Number.isFinite))throw new Error('Não foi possível calcular a geometria STL');
   const buffer=new ArrayBuffer(84+triangleCount*50),view=new DataView(buffer),header=new Uint8Array(buffer,0,80);
-  const headerText=new TextEncoder().encode('DesignLabMoveis 1.310.00 STL 3D | metadata after triangles');
+  const headerText=new TextEncoder().encode('DesignLabMoveis 1.311.00 STL 3D | metadata after triangles');
   header.set(headerText.subarray(0,80));
   view.setUint32(80,triangleCount,true);
   let off=84,written=0;

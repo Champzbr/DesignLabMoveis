@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · utilidades de overlays, painéis flutuantes e clique fora.
+// DesignLabMoveis 1.311.00 · utilidades de overlays, painéis flutuantes e clique fora.
 export function createUiOverlaysModule(ctx){
   const { $, cancelDuplicateConfirmation, closeCopyHardwareTool, closeCopyShapeTool, closeProjectCardMenu, setToolDockOpen, getProductionMaterials, getMachiningShapes } = ctx;
 function installMinusButtons(){

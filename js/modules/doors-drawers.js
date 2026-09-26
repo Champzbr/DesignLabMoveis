@@ -29,7 +29,7 @@ export function buildDoorRegionEnvelope(entries,{frontTol=.006}={}){
   };
 }
 
-// 1.310.00 · domínio completo de portas e gavetas.
+// 1.311.00 · domínio completo de portas e gavetas.
 export function createDoorsDrawersModule(ctx){
   const { $, COLORS, MM_TO_M, THREE, activeSpaceRoot, adminAllowed, applyState, buildDoorRegionEnvelope, camera, captureFurniture, captureState, cellCenter, cellSize, cloudAccountState, cloudApiFetch, commitHistory, createBox, createSpace, designLabBase64ToUtf8, disposeObject, escapeHtml, flatPartInfo, frontViewToSpace, furnitureObjects, getBounds, getSheetPrefs, getSpaceCell, getSpaceRoot, groupPartArrayForAspire, hardwareHoleOp, hideGuides, largestVisibleCell, layoutBoundsFromSpace, m, mm, nice, objectBoundsMm, openCreatePiecesDialog, parseDecimalInput, pieceThicknessInfo, placeCustomTemplate, pointWithinPieceTangents, productionObjectKind, projectMaxX, referenceMeshes, removeHardwareLinkedToObjects, renderMachiningVisuals, renderSpaces, renderer, resolvedMachiningCoords, restoreBaseColor, rootForObject, roundMmNumber, sanitizeMachiningForPiece, savePieceThicknessPreference, selectObject, selectSpaceCellByIds, selectedCellInfo, selectedFurnitureRoot, setVisualMode, spaceDefaultMaterial, spaceSelectionKey, toast, uid, updateInspector, updateMeasureBadge, updateSpaceSelectionVisuals }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -61,7 +61,7 @@ export function createDoorsDrawersModule(ctx){
       };
   }
   
-  // 1.310.00-r4 · o menu persistente inferior de seleção foi aposentado.
+  // 1.311.00-r1 · o menu persistente inferior de seleção foi aposentado.
   // A API é mantida para compatibilidade com os módulos existentes, mas a única
   // interface visível para Porta/Gaveta passa a ser o menu rápido central
   // (duplo clique no PC / toque longo no celular). No celular, a seleção múltipla
@@ -1400,7 +1400,7 @@ export function createDoorsDrawersModule(ctx){
           if (Math.max(Math.abs(frontGapLeft), Math.abs(frontGapRight), Math.abs(frontGapTop), Math.abs(frontGapBottom), Math.abs(frontGapBetween)) > 1000)
               throw new Error('Folga das frentes fora do limite');
       }
-      // 1.310.00-r22: quando houver frente de gaveta, ela passa a ocupar o
+      // 1.311.00-r1: quando houver frente de gaveta, ela passa a ocupar o
       // próprio vão (não fica mais do lado de fora). Portanto a profundidade útil
       // da caixa/corrediça também desconta a espessura da frente.
       const frontReserve = frontInset + (createFronts ? frontThickness : 0);
@@ -1413,6 +1413,13 @@ export function createDoorsDrawersModule(ctx){
           throw new Error(`Corrediça de ${nice(resolved.length)} mm não cabe. Disponível: ${nice(resolved.available)} mm`);
       const openingW = mm(target.size.width), openingH = mm(target.size.height), openingD = mm(target.size.depth);
       const usableW = openingW - tamponLeft - tamponRight;
+      // 1.311.00-r1 · geometria do tamponamento confirmada pelo MCAD de referência:
+      // a ripa curta (ex. 60 mm) atua somente na PROFUNDIDADE; o valor de
+      // tamponThickness (ex. 18 mm) é o afastamento LATERAL. A caixa começa
+      // depois desse afastamento + a folga da corrediça, sem somar os 60 mm
+      // à largura da gaveta.
+      const drawerStartLeft = tamponLeft + sideClearance;
+      const drawerStartRight = tamponRight + sideClearance;
       const outerW = usableW - sideClearance * 2, innerW = outerW - boxThickness * 2;
       if (createTampon && tamponFrontStrip && tamponFrontInset + tamponStripDepth > openingD + .001)
           throw new Error('Ripa frontal do tamponamento ultrapassa a profundidade do vão');
@@ -1462,11 +1469,11 @@ export function createDoorsDrawersModule(ctx){
           bottomOffset, bottomPassLeft, bottomPassRight, bottomPassFront, bottomPassBack, bottomW, bottomD, bottomCutFront, bottomCutBack,
           machineBottom, bottomGrooveClearance, bottomGrooveDepth, grooveLeft, grooveRight, grooveFront, grooveBack,
           createFronts, frontThickness, frontGapLeft, frontGapRight, frontGapTop, frontGapBottom, frontGapBetween, frontW, frontH,
-          createTampon, tamponSide, tamponThickness, tamponStripDepth, tamponFrontStrip, tamponRearStrip, tamponFrontInset, tamponRearInset, tamponLeft, tamponRight, usableW,
+          createTampon, tamponSide, tamponThickness, tamponStripDepth, tamponFrontStrip, tamponRearStrip, tamponFrontInset, tamponRearInset, tamponLeft, tamponRight, usableW, drawerStartLeft, drawerStartRight,
           createSlides: !!$('drawerCreateSlides').checked, createDrilling: !!$('drawerCreateDrilling').checked,
           drillFrontRef, drillOffsets, drillAutoByLength, drillVerticalMode, drillSide, drillMountY, drillDiameter, drillDepth,
           openingW, openingH, openingD, outerW, innerW,
-          version: 8
+          version: 9
       };
   }
   
@@ -1505,7 +1512,8 @@ export function createDoorsDrawersModule(ctx){
               : '';
           const bottomTxt = `<br><strong>Fundo:</strong> ${nice(cfg.bottomW)} × ${nice(cfg.bottomD)} × ${nice(cfg.bottomThickness)} mm · posição ${nice(cfg.bottomOffset)} mm · passa E ${nice(cfg.bottomPassLeft)} / D ${nice(cfg.bottomPassRight)} / F ${nice(cfg.bottomPassFront)} / T ${nice(cfg.bottomPassBack)} mm${autoCutTxt}${grooveTxt}`;
           const tamponTxt = cfg.createTampon
-              ? `<br><strong>Tamponamento:</strong> ${cfg.tamponSide === 'both' ? 'esquerdo + direito' : cfg.tamponSide === 'right' ? 'direito' : 'esquerdo'} · afastamento ${nice(cfg.tamponThickness)} mm · ripa ${nice(cfg.tamponStripDepth)} mm${cfg.tamponFrontStrip ? ` · frontal após ${nice(cfg.tamponFrontInset)} mm` : ''}${cfg.tamponRearStrip ? ` · traseira após ${nice(cfg.tamponRearInset)} mm` : ''} · largura útil ${nice(cfg.usableW)} mm`
+              ? `<br><strong>Tamponamento:</strong> ${cfg.tamponSide === 'both' ? 'esquerdo + direito' : cfg.tamponSide === 'right' ? 'direito' : 'esquerdo'} · ripa ${nice(cfg.tamponStripDepth)} mm de profundidade × ${nice(cfg.tamponThickness)} mm de afastamento lateral${cfg.tamponFrontStrip ? ` · frontal após ${nice(cfg.tamponFrontInset)} mm` : ''}${cfg.tamponRearStrip ? ` · traseira após ${nice(cfg.tamponRearInset)} mm` : ''} · largura útil ${nice(cfg.usableW)} mm`
+                + `<br><strong>Início da caixa:</strong> esquerda ${nice(cfg.drawerStartLeft)} mm / direita ${nice(cfg.drawerStartRight)} mm a partir da borda do vão (tamponamento + folga da corrediça).`
               : '';
           preview.innerHTML = `<strong>Caixa externa:</strong> ${nice(cfg.outerW)} × ${nice(cfg.resolvedLength)} × ${nice(cfg.boxHeight)} mm<br><strong>Contra frente/fundo entre laterais:</strong> ${nice(cfg.innerW)} mm · MDF ${nice(cfg.boxThickness)} mm${tamponTxt}${bottomTxt}${frontTxt}<br><strong>Distribuição:</strong> ${cfg.count} gaveta(s)${!cfg.createFronts && cfg.count > 1 ? ` · passo vertical ${nice(step)} mm` : cfg.createFronts ? ' · caixas centralizadas atrás das frentes' : ''}<br><strong>Corrediça:</strong> ${p.name} · ${nice(cfg.resolvedLength)} mm · folga ${nice(cfg.sideClearance)} mm por lado`;
           const left = drawerFindSidePanel(cfg, 'left'), right = drawerFindSidePanel(cfg, 'right');

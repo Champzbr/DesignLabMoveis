@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Estado, serialização e histórico Desfazer/Refazer.
+// DesignLabMoveis 1.311.00 · Estado, serialização e histórico Desfazer/Refazer.
 export function createEditorHistoryModule(ctx){
   const { state, THREE, canonicalFactoryMaterialId, normalizePieceGrainRotation, productionClone, captureProductionState, STORAGE_KEY, markCurrentProjectDirty, scene, resetTapeMeasure, clearMachiningVisuals, getProductionMaterials, defaultProjectProduction, disposeObject, disposeSpaceMeshes, clearSpaceSelection, selectObject, setProjectProductionState, createCylinder, createCurvedRib, createCurvedCover, createCurvedPost, createBox, createConstructionGuide, createSpaceFromState, repairVerticalDivisionThickness, repairOrphanSpaceGaps, removeDrawerSet, drawerEnsureBottomGroovesForSet, renderSpaces, applyAllDoorVisibility, applyManualVisibilityToObject, renderMachiningVisuals, applyCadDetailVisibility, syncManualPieceVisibilityButtons, toast }=ctx;
   const runtimeModel=ctx.runtimeModel;

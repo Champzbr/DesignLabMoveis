@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · bootstrap final do editor e ciclo de vida global.
+// DesignLabMoveis 1.311.00 · bootstrap final do editor e ciclo de vida global.
 export function startRuntimeBootstrap(ctx){
   const { $, state, installOutsideMenuClose, sheetPreviewDraw, renderer, updateCadEdgeResolution, perspectiveCamera, activeSpaceRoot, viewSpace, designLabRuntimeBuild, DESIGNLAB_JS_BUILD, updateCacheStatusUI, initDesignLabInstallExperience, initDesignLabServiceWorker, checkDesignLabUpdate, auth, offlineLicenseRecheckDue, verifyPremiumWorkspaceAccess, cloudAccount, syncCloudPreferences, saveCloudPreferences, loadOfflinePremiumLicense, showOfflineLicenseExpired, designLabRouteEnsureHomeRoot, setFrontWorldView, stateString, setHistory, setHistoryIndex, initToolDock, initSpaceActionsDrag, initPieceInspectorFloating, initProjectHub, toast, initOnlineIdentity, setAuthStatus, controls, updateLiveLabel, updateMachiningVisualTransforms, updateDoorHandleVisuals, scene, updateXray3DButton, applyCadDetailVisibility, setPieceVisualEdgesVisible } = ctx;
 installOutsideMenuClose();

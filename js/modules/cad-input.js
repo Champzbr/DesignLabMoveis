@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · gestos de navegação/zoom do canvas CAD.
+// DesignLabMoveis 1.311.00 · gestos de navegação/zoom do canvas CAD.
 export function installCadInputNavigation(ctx){
   const {
     THREE,renderer,controls,perspectiveCamera,

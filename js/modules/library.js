@@ -1,4 +1,4 @@
-// DesignLabMoveis 1.310.00 · Biblioteca de modelos/componentes.
+// DesignLabMoveis 1.311.00 · Biblioteca de modelos/componentes.
 export function createLibraryModule(ctx){
   const { $, uid, toast, nice, adminDate, getSpaceRoot, getSpaceCell, cellSize, cellCenter, createBox, COLORS, commitHistory, mm, isSpaceCuttingPieceForHeal, objectInsideSpaceRoot, rootBounds, curvedPostSamplesMm, curvedPostPlacementFromSampleMm, MM_TO_M, normalizePieceGrainRotation, normalizePieceEdgeBands, productionClone, restoreBaseColor, cloneMachiningForTargetSize, createCylinder, createCurvedRib, createCurvedCover, createCurvedPost, pieceMappedGeometryWithManualDelta, renderSpaces, selectSpaceCellByIds, pieceParametricBaseFromRecord, renderMachiningVisuals, cloudApiFetch, adminAllowed, selectedFurnitureRoot, safeFileName, captureFurniture, pieceThicknessInfo, parseDecimalInput, setVisualMode, roundMmNumber, pieceLocalAxisVector, selectObject, disposeObject, updateMeasureBadge, m }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -1151,22 +1151,22 @@ $('createSlattedPanel')?.addEventListener('click',createSlattedPanel);
 $('slattedPanelDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('slattedPanelDialog'))closeSlattedPanelDialog();});
 
 // ---------- Usinagem de peças: furos e rasgos ----------
-// 1.310.00 · domínio movido para módulo (10867-10963).
+// 1.311.00 · domínio movido para módulo (10867-10963).
 
 
 
 
 // ---------- Interface de materiais / fitas ----------
-// 1.310.00 · domínio movido para módulo (10969-11555).
+// 1.311.00 · domínio movido para módulo (10969-11555).
 
 
 // ---------- v78: Forma paramétrica / contorno externo ----------
-// 1.310.00 · domínio movido para módulo (11559-11817).
+// 1.311.00 · domínio movido para módulo (11559-11817).
 
 // ---------- Ferragens inteligentes por contato ----------
-// 1.310.00 · domínio movido para módulo (11820-12208).
+// 1.311.00 · domínio movido para módulo (11820-12208).
 
-// 1.310.00 · domínio movido para módulo (12210-13439).
+// 1.311.00 · domínio movido para módulo (12210-13439).
 
 // ============================================================================
 // 1.200.51 · COPIAR FERRAGENS EM LOTE
@@ -1174,7 +1174,7 @@ $('slattedPanelDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('sla
 // várias peças destino. Ferragem não é escalada: as medidas em milímetros e as
 // referências de borda são preservadas. Cada destino recebe instâncias próprias.
 // ============================================================================
-// 1.310.00 · domínio movido para módulo (13447-13592).
+// 1.311.00 · domínio movido para módulo (13447-13592).
 
 
   const state={

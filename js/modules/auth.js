@@ -39,7 +39,7 @@ export function authUserInitials(user){
   return name.slice(0,2).toUpperCase()||'MC';
 }
 
-// 1.310.00 · Autenticação/Premium isolados do editor.
+// 1.311.00 · Autenticação/Premium isolados do editor.
 export function createAuthModule(ctx){
   const { $, applyProjectAccountScope, cloudApiFetch, escapeHtml, prepareProjectAccountSwitch, projectAutosaveNow, syncCloudAccount, updateCloudAccountChrome, updateProjectHomeWelcome } = ctx;
   
@@ -257,7 +257,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.310.00-r25');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.311.00-r1');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
