@@ -54,7 +54,7 @@ Há **305 chamadas `callIfReady`** no runtime final: as 303 da categoria `i-regi
 
 ## 5. Offline / Service Worker
 
-`sw.js` foi atualizado para `1.311.00-r5` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
+`sw.js` foi atualizado para `1.311.00-r6` e inclui `js/modules/module-registry.js` no App Shell. O grafo de imports locais foi comparado com o cache do Service Worker para impedir módulo novo ausente no modo offline.
 
 ## Validação automática executada
 
@@ -99,7 +99,7 @@ Durante o smoke test real no navegador foi encontrado um erro de wiring que a va
 
 A mesma auditoria de escopo encontrou três referências que seriam os próximos `ReferenceError`: `mmPrec`, `shapeCopyPieceEligible` e `shapeDeepClone`. As três já eram exportadas por `machining-shapes.js`, mas não eram desestruturadas no runtime antes de serem passadas a `production-materials.js`. Isso foi corrigido no mesmo hotfix.
 
-Build: **1.311.00-r5**.
+Build: **1.311.00-r6**.
 
 ## Hotfix r4 — portas e menu de espaço
 
@@ -110,7 +110,7 @@ O smoke test real encontrou dois problemas no fluxo de Porta/Gaveta:
 
 A seleção múltipla continua disponível: no PC, `Ctrl + clique` adiciona/remove referências e o duplo clique abre o menu central; no celular, toque longo adiciona a referência e abre o mesmo menu.
 
-Build: **1.311.00-r5**.
+Build: **1.311.00-r6**.
 
 
 ## Hotfix r5 — divisão vertical centralizada
@@ -119,10 +119,10 @@ O smoke test real no Windows encontrou `mergeIntervals is not a function` ao cri
 
 O runtime agora resolve esses quatro helpers pelo `moduleRegistry` no momento da chamada. O botão **Criar** também ganhou trava curta contra duplo clique/toque para não duplicar a peça por reenvio rápido.
 
-Build: **1.311.00-r5**.
+Build: **1.311.00-r6**.
 
 
-## 1.311.00-r5 — seleção de vãos no touch
+## 1.311.00-r6 — seleção de vãos no touch
 
 - Celular: duplo toque em um vão adiciona/remove esse vão da seleção de porta.
 - Celular: toque longo abre o menu Porta/Gaveta usando os vãos já selecionados; o último vão pressionado é incluído se ainda não estiver na seleção.
@@ -138,9 +138,9 @@ A causa era novamente late-binding de bootstrap: `tapeMovement` é criado antes 
 
 O wiring de `tapeMovement` agora resolve `spacesCuts.referenceMeshes` pelo `moduleRegistry` no momento da chamada, com fallback seguro para `[]`. A Trena por peça não foi alterada.
 
-Build: **1.311.00-r5**.
+Build: **1.311.00-r6**.
 
-## Hotfix 1.311.00-r5
+## Hotfix 1.311.00-r6
 - Frentes de gaveta com opção de criar frentes agora ficam inteiramente dentro do vão; a caixa e a corrediça descontam a espessura da frente para não sobrepor.
 - Criar Fundo: o campo de recuo vira “Afastar da traseira (mm)” e o painel corta o espaço em duas regiões livres (atrás e à frente), evitando encavalamento.
 
@@ -162,7 +162,7 @@ Build: **1.311.00-r5**.
 - Exportação Aspire: fallback automático para download quando File System Access perde a ativação do usuário (User activation required), comum em PWA/WebView/Electron.
 
 
-## Hotfix 1.311.00-r5
+## Hotfix 1.311.00-r6
 - Remove layers-base vazias como `CORTE_EXTERNO`/`CORTE_INTERNO` do DXF Aspire.
 - Contornos passam a aparecer somente como `CORTE_EXTERNO_E<espessura>_P<profundidade>`.
 - Corte interno e encaixes seguem o mesmo padrão.
@@ -170,7 +170,7 @@ Build: **1.311.00-r5**.
 - Não altera posição, contorno ou quantidade de vetores; muda somente o nome/organização das layers.
 
 
-## 1.311.00-r5 · Ripas
+## 1.311.00-r6 · Ripas
 - Novo botão **Ripas** no submenu Criar peças.
 - Toque curto: cria diretamente usando a última configuração.
 - Pressionar/segurar: abre configuração da ripa.
@@ -201,7 +201,7 @@ Build: **1.311.00-r5**.
 - Nenhuma alteração na lógica de login/conta Netlify; a falha acontecia antes do bootstrap da autenticação.
 
 
-## 1.311.00-r5 — sarrafo recorta o espaço útil
+## 1.311.00-r6 — sarrafo recorta o espaço útil
 
 Sarrafos superiores agora recortam simultaneamente a profundidade e a altura úteis do vão. Em sarrafo horizontal de 100 mm com MDF 18 mm, um vão de profundidade 600 mm passa a ter 500 mm de profundidade útil e perde 18 mm na altura. Frente/traseira define de qual lado a profundidade é descontada.
 
@@ -225,7 +225,7 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Gavetas: espessura da caixa agora é escolhida explicitamente entre 15 mm e 18 mm.
 - Conjuntos antigos com espessura diferente continuam editáveis sem perda de dados.
 
-## 1.311.00-r5 · Presets completos de gavetas + tamponamento
+## 1.311.00-r6 · Presets completos de gavetas + tamponamento
 
 - A biblioteca de gavetas agora salva a configuração completa: corrediça, quantidade, caixa, frentes, fundo, usinagens, furação e tamponamento.
 - Novo tamponamento para dobradiças: esquerdo, direito ou ambos, com espessura/afastamento e recuos frontal/traseiro.
@@ -233,7 +233,7 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Quando o tamponamento existe, a furação automática da corrediça usa o próprio tamponamento como apoio lateral.
 
 
-## 1.311.00-r5 · Tamponamento por ripas internas + rolagem em Ferramentas
+## 1.311.00-r6 · Tamponamento por ripas internas + rolagem em Ferramentas
 - O recuo frontal/traseiro passa a posicionar a ripa interna do tamponamento, em vez de encurtar uma peça de profundidade inteira.
 - Novo comprimento da ripa interna (padrão 60 mm); exemplo: 60 mm com recuo frontal 50 mm começa 50 mm após a frente.
 - Ripa frontal e traseira podem ser ativadas de forma independente.
@@ -241,19 +241,19 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - O painel flutuante Ferramentas agora possui rolagem vertical para acessar todos os menus.
 
 
-## 1.311.00-r5 · geometria do tamponamento confirmada pelo MCAD
+## 1.311.00-r6 · geometria do tamponamento confirmada pelo MCAD
 - A ripa frontal/traseira usa a medida de profundidade (ex. 60 mm) apenas no eixo frente↔trás.
 - O afastamento lateral (ex. 18 mm) desloca o conjunto da gaveta para dentro.
 - A caixa começa após `afastamento lateral + folga da corrediça`; a profundidade de 60 mm da ripa não entra nesse cálculo lateral.
 - Configuração de gavetas continua salvando esses valores no preset.
 
-## 1.311.00-r5
+## 1.311.00-r6
 - Tamponamento de gaveta corrigido para representar o conjunto físico completo: ripas curtas de afastamento + lateral interna inteira antes da corrediça/gaveta.
 - A frente da gaveta passa a usar o vão útil após a lateral interna, ficando embutida em relação a ela.
 - Presets de gaveta restauram corretamente valores decimais em campos `type=number`, inclusive a folga por lado da corrediça (ex.: 12.7 mm).
 - Campos de recuo frontal/traseiro reorganizados para evitar sobreposição de textos em janelas estreitas.
 
-## 1.311.00-r5 · Zoom Windows
+## 1.311.00-r6 · Zoom Windows
 - O zoom por roda do mouse no aplicativo Windows agora usa como pivô a superfície sob o cursor, em vez de depender apenas do target/origem do OrbitControls.
 - O pivô é reancorado gradualmente no móvel durante a aproximação, evitando perda de velocidade quando o projeto foi movido para longe do XYZ.
 - Permite aproximação muito maior antes de limitar o zoom e reduz dinamicamente o near plane para evitar corte visual perto da peça.

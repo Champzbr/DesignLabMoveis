@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r5",
+  "version": "1.311.00-r6",
   "date": "2026-09-26",
-  "message": "1.311.00-r5: Windows com zoom estilo SketchUp por gesto — ponto 3D travado durante a rolagem, mantendo o foco no mesmo lugar da tela; mobile/web comum inalterados."
+  "message": "1.311.00-r6: Windows com órbita estilo SketchUp no botão do meio — pivô 3D sob o cursor durante o arraste; zoom r5 mantido; mobile/web comum inalterados."
 }
