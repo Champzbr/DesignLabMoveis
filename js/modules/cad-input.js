@@ -13,7 +13,77 @@ export function installCadInputNavigation(ctx){
   controls.minDistance=.001;
   controls.maxDistance=250;
 
+  // 1.311.00-r3 · Windows: zoom estilo CAD/SketchUp, ancorado no ponto sob o mouse.
+  // O OrbitControls calcula o dolly principalmente em relação ao `target`. Quando o móvel
+  // foi deslocado para longe do XYZ, esse target podia continuar distante e a roda parecia
+  // ficar progressivamente lenta. No app Windows usamos a superfície real sob o cursor como
+  // pivô do zoom; mobile/web continuam exatamente com a navegação anterior.
+  const windowsDesktopZoom=!!(window.DesignLabDesktop?.isDesktop &&
+    (window.DesignLabDesktop?.platform==='win32' || document.documentElement.classList.contains('designlab-windows')));
+  const winZoomRaycaster=windowsDesktopZoom?new THREE.Raycaster():null;
+  const winZoomNdc=windowsDesktopZoom?new THREE.Vector2():null;
+  const winZoomPlane=windowsDesktopZoom?new THREE.Plane():null;
+  const winZoomNormal=windowsDesktopZoom?new THREE.Vector3():null;
+  const winZoomFallback=windowsDesktopZoom?new THREE.Vector3():null;
+  function windowsZoomObjects(){
+    const list=ctx.runtimeModel?.objects;
+    if(!Array.isArray(list))return [];
+    return list.filter(o=>{
+      if(!o||o.visible===false||o.isMesh!==true)return false;
+      const u=o.userData||{};
+      return !(u.kind==='hardware-visual'||u.kind==='cylinder'||u.isVisualEdge||u.isMachiningVisual||u.isSpacePick||u.kind==='space-cell'||u.kind==='space-root-outline');
+    });
+  }
+  function windowsZoomFocus(clientX,clientY){
+    const rect=renderer.domElement.getBoundingClientRect();
+    if(!rect.width||!rect.height)return controls.target.clone();
+    winZoomNdc.set(((clientX-rect.left)/rect.width)*2-1,-((clientY-rect.top)/rect.height)*2+1);
+    winZoomRaycaster.setFromCamera(winZoomNdc,perspectiveCamera);
+    const hits=winZoomRaycaster.intersectObjects(windowsZoomObjects(),false);
+    if(hits.length)return hits[0].point.clone();
+    // Se o cursor estiver no vazio, mantém o comportamento "zoom para o cursor"
+    // projetando o raio no plano que passa pelo target atual.
+    perspectiveCamera.getWorldDirection(winZoomNormal);
+    winZoomPlane.setFromNormalAndCoplanarPoint(winZoomNormal,controls.target);
+    return winZoomRaycaster.ray.intersectPlane(winZoomPlane,winZoomFallback)?winZoomFallback.clone():controls.target.clone();
+  }
+  function windowsSketchZoom(e){
+    if(!windowsDesktopZoom||getCamera()!==perspectiveCamera||getViewMode2D())return false;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const raw=Math.abs(Number(e.deltaY)||0);
+    const unit=e.deltaMode===1?3:(e.deltaMode===2?12:100);
+    const steps=THREE.MathUtils.clamp(raw/Math.max(1,unit),.18,5);
+    const zoomIn=e.deltaY<0;
+    if(zoomIn){
+      const focus=windowsZoomFocus(e.clientX,e.clientY);
+      const offset=perspectiveCamera.position.clone().sub(focus);
+      const dist=Math.max(offset.length(),1e-7);
+      // 0,78 por passo mantém rapidez de longe e precisão conforme se aproxima.
+      const nextDist=Math.max(.00035,dist*Math.pow(.78,steps));
+      perspectiveCamera.position.copy(focus).add(offset.multiplyScalar(nextDist/dist));
+      // Reancora gradualmente o pivô no próprio móvel. É isso que elimina a
+      // dependência da distância até a origem XYZ depois de mover o projeto.
+      const pivotBlend=1-Math.pow(.50,steps);
+      controls.target.lerp(focus,pivotBlend);
+      const near=THREE.MathUtils.clamp(nextDist*.025,.00008,.001);
+      if(Math.abs(perspectiveCamera.near-near)>1e-7){perspectiveCamera.near=near;perspectiveCamera.updateProjectionMatrix();}
+    }else{
+      const pivot=controls.target;
+      const offset=perspectiveCamera.position.clone().sub(pivot);
+      const dist=Math.max(offset.length(),1e-7);
+      const nextDist=Math.min(250,dist*Math.pow(1.28,steps));
+      perspectiveCamera.position.copy(pivot).add(offset.multiplyScalar(nextDist/dist));
+      if(perspectiveCamera.near!==.001){perspectiveCamera.near=.001;perspectiveCamera.updateProjectionMatrix();}
+    }
+    perspectiveCamera.updateMatrixWorld(true);
+    controls.update();
+    remember3DView();
+    return true;
+  }
+
   renderer.domElement.addEventListener('wheel',e=>{
+    if(windowsSketchZoom(e))return;
     if(getCamera()!==perspectiveCamera||getViewMode2D())return;
     if(e.deltaY<0){
       const d=cadZoomPrepareIn(e.clientX,e.clientY);
