@@ -130,10 +130,15 @@
     transition:max-height .24s ease,opacity .18s ease,transform .24s ease,padding .24s ease;
   }
   #toolDock.open #toolDockBody {
-    max-height:440px; opacity:1; transform:translateY(0); padding:4px 8px 9px;
+    max-height:min(68vh,560px); opacity:1; transform:translateY(0); padding:4px 8px 9px;
+    overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; touch-action:pan-y;
+    scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.38) rgba(255,255,255,.08);
   }
+  #toolDock.open #toolDockBody::-webkit-scrollbar { width:8px; }
+  #toolDock.open #toolDockBody::-webkit-scrollbar-track { background:rgba(255,255,255,.06); border-radius:8px; }
+  #toolDock.open #toolDockBody::-webkit-scrollbar-thumb { background:rgba(255,255,255,.34); border-radius:8px; }
   #toolDockTools {
-    display:grid; grid-template-columns:1fr 1fr; gap:7px;
+    display:grid; grid-template-columns:1fr 1fr; gap:7px; touch-action:pan-y;
   }
   #toolDockTools button { width:100%; min-width:0; padding:9px 8px; min-height:42px; }
   #toolDockTools button.active { background:var(--green); }
