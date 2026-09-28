@@ -96,11 +96,63 @@ function clickBackdropCancel(dialogId,buttonId){
     btn.click();
   });
 }
+function isEditableControl(target){
+  return !!target?.closest?.('input:not([disabled]):not([readonly]),textarea:not([disabled]):not([readonly]),select:not([disabled]),[contenteditable="true"]');
+}
+function installWindowsEditableFocusGuard(){
+  const isWindows=!!(window.DesignLabDesktop?.isDesktop&&window.DesignLabDesktop?.platform==='win32') ||
+    document.documentElement.classList.contains('designlab-windows');
+  if(!isWindows||window.__designLabWindowsEditableFocusGuardInstalled)return;
+  window.__designLabWindowsEditableFocusGuardInstalled=true;
+  const editableSelector='input:not([disabled]):not([readonly]),textarea:not([disabled]):not([readonly]),select:not([disabled]),[contenteditable="true"]';
+  let lastEditable=null;
+  const ensureFocus=(el)=>{
+    if(!el||!el.isConnected)return;
+    const cs=getComputedStyle(el);
+    if(cs.display==='none'||cs.visibility==='hidden'||cs.pointerEvents==='none')return;
+    if(document.activeElement!==el){
+      try{el.focus({preventScroll:true});}catch(_){try{el.focus();}catch(__){}}
+    }
+  };
+  document.addEventListener('pointerdown',e=>{
+    const el=e.target?.closest?.(editableSelector);
+    if(!el)return;
+    lastEditable=el;
+    // Não bloqueia o clique nativo: apenas recupera o foco depois que os
+    // listeners globais de menus/painéis terminarem de executar.
+    queueMicrotask(()=>ensureFocus(el));
+    setTimeout(()=>ensureFocus(el),0);
+  },true);
+  document.addEventListener('click',e=>{
+    const el=e.target?.closest?.(editableSelector);
+    if(el){lastEditable=el;setTimeout(()=>ensureFocus(el),0);}
+  },true);
+  document.addEventListener('focusin',e=>{
+    if(e.target?.matches?.(editableSelector)){
+      lastEditable=e.target;
+      document.documentElement.classList.add('designlab-editing-field');
+    }
+  },true);
+  document.addEventListener('focusout',()=>{
+    setTimeout(()=>{
+      if(!document.activeElement?.matches?.(editableSelector))document.documentElement.classList.remove('designlab-editing-field');
+    },0);
+  },true);
+  window.addEventListener('focus',()=>{
+    // Se o Windows devolveu o foco da janela enquanto um formulário estava
+    // ativo, restaura o campo apenas se ele ainda estiver visível.
+    if(lastEditable&&lastEditable.isConnected)setTimeout(()=>ensureFocus(lastEditable),0);
+  });
+}
 function installOutsideMenuClose(){
+  installWindowsEditableFocusGuard();
   // Menus / painéis leves: captura primeiro, fecha e deixa o toque seguir
   // para o CAD normalmente.
   document.addEventListener('pointerdown',e=>{
     const target=e.target;
+    // Campos editáveis não devem disparar fechamento/re-render de painéis no
+    // mesmo pointerdown. Isso evita o foco intermitente visto no Windows.
+    if(isEditableControl(target))return;
 
     // MAIS FERRAMENTAS
     const more=$('morePanel');

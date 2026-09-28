@@ -339,6 +339,7 @@ $('projectFileInput').addEventListener('change',async e=>{
   e.target.value='';
 });
 document.addEventListener('pointerdown',e=>{
+  if(e.target?.closest?.('input,textarea,select,[contenteditable="true"]'))return;
   if(!e.target.closest('#projectMenuPanel')&&!e.target.closest('#projectMenuBtn'))$('projectMenuPanel').classList.remove('show');
   if(!e.target.closest('#projectCardMenu')&&!e.target.closest('[data-project-action="menu"]'))closeProjectCardMenu();
 });

@@ -706,6 +706,7 @@ function initQuickDock(){
     toast(`Barra rápida salva · ${quickDockConfig.count*2} atalhos em 2 páginas`);
   });
   document.addEventListener('pointerdown',e=>{
+    if(e.target?.closest?.('input,textarea,select,[contenteditable="true"]'))return;
     if(!quickDockSubmenuVisible())return;
     const p=$('quickDockSubmenu');
     if(p?.contains(e.target)||e.target?.closest?.('#quickDockTools .quickDockTool'))return;
@@ -948,6 +949,7 @@ function initToolDock(){
   $('toolDockEditDialog')?.addEventListener('pointerdown',e=>{if(e.target===$('toolDockEditDialog'))$('toolDockEditDialog').style.display='none';});
   // v64: tocar fora do painel recolhe sem bloquear o toque no CAD.
   document.addEventListener('pointerdown',e=>{
+    if(e.target?.closest?.('input,textarea,select,[contenteditable="true"]'))return;
     const dock=$('toolDock');
     if(!dock?.classList.contains('open'))return;
     if(dock.contains(e.target))return;
