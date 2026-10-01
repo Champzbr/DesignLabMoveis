@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r13';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r14';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -437,20 +437,20 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r13 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r14 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r13: convenção única de veio em todo o DesignLab.
-  // VEIO 0° acompanha o comprimento natural da peça (faceW); VEIO 90° acompanha
-  // faceH. Na chapa, grainDirection='length' significa veio ao longo de width
-  // (ex.: 2750 mm numa chapa 2750 × 1850). O plano só gira a peça quando isso é
-  // necessário para alinhar os dois veios; a geometria 3D nunca é alterada.
+  // 1.311.00-r14: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
+  // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
+  // (ex.: painel 1527 × 451 => 0° acompanha 1527).
   if(grainLocked){
     const sheetAlongLength=(cfg.grainDirection||'length')!=='width';
-    const pieceAlongFaceW=grainRot===0;
+    const faceWIsMajor=Number(part.faceW)>=Number(part.faceH);
+    const pieceAlongFaceW=grainRot===0?faceWIsMajor:!faceWIsMajor;
     const rotatePlacement=sheetAlongLength?!pieceAlongFaceW:pieceAlongFaceW;
     return rotatePlacement
       ? [{rotated:true,w:part.faceH,h:part.faceW,grainForced:true}]
@@ -541,7 +541,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r13 · transferência manual entre chapas.
+// 1.311.00-r14 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1990,7 +1990,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`Peças gerais do projeto · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r13 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r14 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
@@ -2052,8 +2052,9 @@ function cutPlanDrawWaste(ctx,g,cfg,sx,sy,scale){
 }
 function cutPlanPieceGrainAxis(p,{placed=true}={}){
   const grainRot=normalizePieceGrainRotation(p?.materialGrainRotation);
-  // Mesma convenção do otimizador: 0° = faceW (comprimento natural), 90° = faceH.
-  const alongFaceW=grainRot===0;
+  // Mesma convenção do otimizador: 0° = maior lado; 90° = menor lado.
+  const faceWIsMajor=Number(p?.faceW)>=Number(p?.faceH);
+  const alongFaceW=grainRot===0?faceWIsMajor:!faceWIsMajor;
   // No desenho da chapa, uma peça girada 90° troca também o eixo visual do veio.
   // Assim a seta representa o veio REAL que o operador verá na peça já posicionada.
   const alongX=placed?(alongFaceW!==!!p?.rotated):alongFaceW;

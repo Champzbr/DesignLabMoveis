@@ -181,9 +181,9 @@ function dlProdFitsSheet(o,mat){
   if(mat.grain||o.userData?.materialGrain){
     const rot=normalizePieceGrainRotation(o.userData?.materialGrainRotation);
     const sheetAlongLength=(mat.grainDirection||'length')!=='width';
-    // Convenção 1.311.00-r13: 0° acompanha faceW; 90° acompanha faceH.
-    // Se a chapa tem veio no comprimento, 0° cabe sem girar e 90° exige giro.
-    const pieceAlongFaceW=rot===0;
+    // Convenção 1.311.00-r14: 0° acompanha o maior lado da peça; 90° o menor.
+    const faceWIsMajor=Number(w)>=Number(h);
+    const pieceAlongFaceW=rot===0?faceWIsMajor:!faceWIsMajor;
     const rotatePlacement=sheetAlongLength?!pieceAlongFaceW:pieceAlongFaceW;
     return rotatePlacement?(h<=sw+.01&&w<=sh+.01):(w<=sw+.01&&h<=sh+.01);
   }
