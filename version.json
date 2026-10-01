@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r8",
+  "version": "1.311.00-r12",
   "date": "2026-10-01",
-  "message": "1.311.00-r8: plano de corte com veio estrito em qualquer chapa (inclusive Compensado Naval), agrupamento por cadastro de material e otimização avançada como padrão."
+  "message": "1.311.00-r12: transferência manual segura de peças entre chapas no plano de corte; segure uma peça, escolha a chapa destino e o DesignLab só aceita se ela couber respeitando veio, margens e corte."
 }
