@@ -61,7 +61,7 @@ export function createDoorsDrawersModule(ctx){
       };
   }
   
-  // 1.311.00-r12 · o menu persistente inferior de seleção foi aposentado.
+  // 1.311.00-r13 · o menu persistente inferior de seleção foi aposentado.
   // A API é mantida para compatibilidade com os módulos existentes, mas a única
   // interface visível para Porta/Gaveta passa a ser o menu rápido central
   // (duplo clique no PC / toque longo no celular). No celular, a seleção múltipla
@@ -1408,7 +1408,7 @@ export function createDoorsDrawersModule(ctx){
           if (Math.max(Math.abs(frontGapLeft), Math.abs(frontGapRight), Math.abs(frontGapTop), Math.abs(frontGapBottom), Math.abs(frontGapBetween)) > 1000)
               throw new Error('Folga das frentes fora do limite');
       }
-      // 1.311.00-r12: quando houver frente de gaveta, ela passa a ocupar o
+      // 1.311.00-r13: quando houver frente de gaveta, ela passa a ocupar o
       // próprio vão (não fica mais do lado de fora). Portanto a profundidade útil
       // da caixa/corrediça também desconta a espessura da frente.
       const frontReserve = frontInset + (createFronts ? frontThickness : 0);
@@ -1420,7 +1420,7 @@ export function createDoorsDrawersModule(ctx){
       if (resolved.length > resolved.available + .001)
           throw new Error(`Corrediça de ${nice(resolved.length)} mm não cabe. Disponível: ${nice(resolved.available)} mm`);
       const openingW = mm(target.size.width), openingH = mm(target.size.height), openingD = mm(target.size.depth);
-      // 1.311.00-r12 · tamponamento em duas etapas, como no conjunto físico:
+      // 1.311.00-r13 · tamponamento em duas etapas, como no conjunto físico:
       // 1) a ripa curta frontal/traseira cria o afastamento lateral (ex. 18 mm);
       // 2) depois dela existe uma LATERAL INTERNA inteira (ex. MDF 18 mm),
       //    com altura e profundidade do vão. Só então começam corrediça e gaveta.
@@ -2224,7 +2224,7 @@ export function createDoorsDrawersModule(ctx){
       const levels = [];
       state.historyMuted = true;
       try {
-          // 1.311.00-r12 · conjunto físico do tamponamento:
+          // 1.311.00-r13 · conjunto físico do tamponamento:
           // [lateral do móvel] -> [ripas curtas de afastamento] -> [lateral interna inteira]
           // -> [corrediça] -> [caixa da gaveta]. A frente também respeita essa lateral,
           // ficando embutida no vão útil restante.

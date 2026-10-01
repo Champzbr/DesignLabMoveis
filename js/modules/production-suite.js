@@ -180,7 +180,12 @@ function dlProdFitsSheet(o,mat){
   if(sw<=0||sh<=0)return false;
   if(mat.grain||o.userData?.materialGrain){
     const rot=normalizePieceGrainRotation(o.userData?.materialGrainRotation);
-    return rot===90?(w<=sh+.01&&h<=sw+.01):(w<=sw+.01&&h<=sh+.01);
+    const sheetAlongLength=(mat.grainDirection||'length')!=='width';
+    // Convenção 1.311.00-r13: 0° acompanha faceW; 90° acompanha faceH.
+    // Se a chapa tem veio no comprimento, 0° cabe sem girar e 90° exige giro.
+    const pieceAlongFaceW=rot===0;
+    const rotatePlacement=sheetAlongLength?!pieceAlongFaceW:pieceAlongFaceW;
+    return rotatePlacement?(h<=sw+.01&&w<=sh+.01):(w<=sw+.01&&h<=sh+.01);
   }
   return (w<=sw+.01&&h<=sh+.01)||(w<=sh+.01&&h<=sw+.01);
 }
