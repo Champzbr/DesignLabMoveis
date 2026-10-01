@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r14';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r15';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -406,44 +406,42 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   const cfg={...(baseCfg||{}),...normalizedSheetPrefs(baseCfg||{})};
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.200.18: a medida digitada continua soberana para MDF/lâmina e para
-  // qualquer grupo que já caiba nela. 1.300.25 amplia a exceção segura do
-  // COMPENSADO para os dois modos guilhotina (Otimizado e Seccionadora): se
-  // alguma peça não couber na chapa informada, usa automaticamente a chapa
-  // cadastrada do material. No modo Seccionadora, o maior lado continua
-  // limitado a 3050 mm pela máquina.
-  let out={
+  // 1.311.00-r15 · a chapa é SEMPRE definida pelo cadastro do material.
+  // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
+  // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
+  // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
+  // troca manual de configuração entre os grupos.
+  const stockW=Number(material?.sheetWidth||0),stockH=Number(material?.sheetHeight||0);
+  const hasRegisteredStock=stockW>=100&&stockH>=100;
+  const out={
     ...cfg,
-    width:cfg.width,
-    height:cfg.height,
-    // O cadastro do material é soberano para o sentido físico da chapa.
-    // O checkbox global continua funcionando como força-veio para materiais antigos.
-    grain:!!cfg.grain||!!material?.grain||parts.some(p=>!!p?.materialGrain),
-    grainDirection:material?.grainDirection==='width'?'width':(material?.grainDirection==='length'?'length':cfg.grainDirection||'length'),
+    width:hasRegisteredStock?stockW:cfg.width,
+    height:hasRegisteredStock?stockH:cfg.height,
+    grain:!!material?.grain||parts.some(p=>!!p?.materialGrain),
+    grainDirection:material?.grainDirection==='width'?'width':'length',
     sheetMaterialId:material?.id||null,
-    sheetMaterialName:material?.name||''
+    sheetMaterialName:material?.name||'',
+    materialSheet:true,
+    autoMaterialSheet:hasRegisteredStock,
+    autoMaterialSheetReason:hasRegisteredStock?'cadastro-material':'fallback-legado'
   };
-  if((out.cutMode==='panel'||out.cutMode==='open')&&material&&productionMaterialIsPlywood(material)&&parts.length){
-    const stockW=Number(material.sheetWidth||0),stockH=Number(material.sheetHeight||0);
-    const currentFits=parts.every(p=>panelSawPartFitsCfg(p,out));
-    const stockValid=stockW>0&&stockH>0;
-    const stockAllowed=out.cutMode!=='panel'||Math.max(stockW,stockH)<=PANEL_SAW_MAX_CUT_MM+.001;
-    if(!currentFits&&stockValid&&stockAllowed){
-      const candidate={...out,width:stockW,height:stockH,autoMaterialSheet:true,autoMaterialSheetReason:'compensado'};
-      if(parts.every(p=>panelSawPartFitsCfg(p,candidate)))out=candidate;
-    }
+  // No modo Seccionadora mantemos somente a limitação física da máquina. Não
+  // trocamos a medida do material para caber: o usuário precisa corrigir o
+  // cadastro/peça caso a chapa cadastrada ultrapasse o limite do equipamento.
+  if(out.cutMode==='panel'&&hasRegisteredStock&&Math.max(stockW,stockH)>PANEL_SAW_MAX_CUT_MM+.001){
+    throw new Error(`${material?.name||'Material'}: a chapa cadastrada ${nice(stockW)} × ${nice(stockH)} mm ultrapassa o limite de ${PANEL_SAW_MAX_CUT_MM} mm da seccionadora.`);
   }
   return out;
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r14 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r15 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r14: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.311.00-r15: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -541,7 +539,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r14 · transferência manual entre chapas.
+// 1.311.00-r15 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1725,13 +1723,13 @@ function updateSheetCutModeUi(){
   if(!help)return;
   if(mode==='panel'){
     help.className='sheetModeHelp panel';
-    help.innerHTML='<strong>Seccionadora de pinça · plano mestre:</strong> primeiro otimiza TODAS as peças do material, forma as faixas e depois procura a combinação global que use o <b>menor número de chapas</b>. O desenho, a impressão, o CSV e o Mingli .ZAW usam <b>exatamente o mesmo posicionamento</b>. Limite da máquina: <b>3050 mm</b> no maior lado. Para Compensado Naval, se a chapa padrão não comportar uma peça, o DesignLab tenta automaticamente a medida cadastrada do material (padrão 3050 × 1610 mm).';
+    help.innerHTML='<strong>Seccionadora de pinça · plano mestre:</strong> primeiro otimiza TODAS as peças de cada material, forma as faixas e depois procura a combinação global que use o <b>menor número de chapas</b>. Cada material usa a <b>medida cadastrada da própria chapa</b>. O desenho, a impressão, o CSV e o Mingli .ZAW usam <b>exatamente o mesmo posicionamento</b>. Limite da máquina: <b>3050 mm</b> no maior lado.';
   }else if(mode==='cnc'){
     help.className='sheetModeHelp cnc';
     help.innerHTML='<strong>CNC / Router:</strong> usa encaixe livre para aproveitar área. Não força sequência guilhotina no plano visual.';
   }else{
     help.className='sheetModeHelp open';
-    help.innerHTML='<strong>Otimizado:</strong> usa cortes guilhotina, considera refilo e espessura de corte e testa várias ordens/orientações do encaixe. O objetivo principal é usar o <b>menor número de chapas</b>; depois concentra a sobra em retalhos maiores e reaproveitáveis. Para Compensado Naval, se a chapa informada não comportar a peça, usa automaticamente a medida cadastrada do material (padrão 3050 × 1610 mm).';
+    help.innerHTML='<strong>Otimizado:</strong> usa cortes guilhotina, considera refilo e espessura de corte e testa várias ordens/orientações do encaixe. Cada material usa sua <b>chapa cadastrada</b>; o objetivo principal é usar o <b>menor número de chapas</b> e depois concentrar a sobra em retalhos maiores e reaproveitáveis.';
   }
 }
 
@@ -1969,7 +1967,7 @@ function renderPartsList(){
     for(const [key,data] of byKey.entries()){
       const box=document.createElement('div');box.className='partsGroup';
       const eff=data.sheets.reduce((n,x)=>n+x.g.stats.efficiency,0)/Math.max(1,data.sheets.length);
-      const head=document.createElement('div');head.className='partsGroupHead';const firstCfg=data.sheets[0]?.g?.cfg||cfg;const autoStock=firstCfg.autoMaterialSheet?' · auto material':'';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(firstCfg.width)}×${nice(firstCfg.height)} · ${nice(eff)}%${autoStock}</span>`;box.appendChild(head);
+      const head=document.createElement('div');head.className='partsGroupHead';const firstCfg=data.sheets[0]?.g?.cfg||cfg;const autoStock=firstCfg.sheetMaterialName?` · ${escapeHtml(firstCfg.sheetMaterialName)}`:'';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(firstCfg.width)}×${nice(firstCfg.height)} · ${nice(eff)}%${autoStock}</span>`;box.appendChild(head);
       for(const p of cutPlanGroupRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
@@ -1990,7 +1988,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`Peças gerais do projeto · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r14 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r15 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
