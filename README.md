@@ -276,7 +276,7 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Otimização avançada vira padrão e testa mais ordens determinísticas para buscar menor número de chapas.
 
 
-## 1.311.00-r13 · plano seguro + melhor aproveitamento
+## 1.311.00-r14 · plano seguro + melhor aproveitamento
 
 - Base retomada da 1.311.00-r8; as tentativas r9/r10 sobre bloqueio/rotação de peça não fazem parte desta versão.
 - Alterações de chapa/veio/configuração do plano agora são transacionais: se a nova configuração fizer qualquer peça deixar de caber, o último plano válido é restaurado automaticamente em vez de zerar/desaparecer as peças.
@@ -285,17 +285,23 @@ Sarrafos superiores agora recortam simultaneamente a profundidade e a altura út
 - Seccionadora ganhou ordens determinísticas adicionais e, em empate de número de chapas, prioriza sobras maiores e menos fragmentadas antes de comparar cortes/giros.
 
 
-## 1.311.00-r13
+## 1.311.00-r14
 - Plano de corte: segurar uma peça abre **Transferir peça** com as chapas compatíveis do mesmo material/espessura.
 - O destino é testado antes da mudança; se não couber com veio, margem e corte atuais, a chapa fica desabilitada e nada muda.
 - A transferência repacota apenas as chapas de origem/destino para manter um plano válido e pode ser revertida por **Voltar ao automático**.
 - A preferência manual da peça é salva junto ao projeto/MCAD e participa das exportações do plano.
 
 
-## 1.311.00-r13 — sentido do veio unificado
+## 1.311.00-r14 — sentido do veio unificado
 
 - Corrigida a inversão entre o otimizador e o verificador de produção.
 - `VEIO 0°` agora acompanha `faceW` (comprimento natural exibido primeiro, ex.: 1527 em uma peça 1527 × 451).
 - `VEIO 90°` acompanha `faceH`.
 - Em chapa com veio no comprimento (ex.: 2750 × 1850), peça 1527 × 451 com veio 0° fica 1527 paralela aos 2750.
 - Plano de corte, validação de encaixe e setas/etiquetas usam a mesma convenção.
+
+
+## 1.311.00-r14
+- Corrigido sentido do veio: 0° acompanha o maior lado da peça e 90° o menor.
+- Porta 540 × 2990 com veio 0° passa a alinhar 2990 ao comprimento da chapa; painel 1527 × 451 alinha 1527.
+- Verificador de produção, otimizador e setas do plano usam a mesma convenção.
