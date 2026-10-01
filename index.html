@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.311.00-r7">
+<meta name="designlab-build" content="1.311.00-r8">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.311.00-r7';
+  const BUILD='1.311.00-r8';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/editor.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/materials.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/labels.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/layout.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/projects.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/settings.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/home.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r7">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r7">
+<link rel="stylesheet" href="css/base.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/editor.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/materials.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/labels.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/layout.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/projects.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/settings.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/home.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r8">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r8">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1079,7 +1079,7 @@
 
       <label class="productionCheck">
         <input id="productionMaterialGrain" type="checkbox">
-        <span><strong>Madeirado / possui sentido do veio</strong><br>Por padrão o veio acompanha o <b>comprimento da chapa</b> (ex.: 2750 mm). A opção acima permite usar a largura quando necessário.</span>
+        <span><strong>Possui sentido do veio</strong><br>Disponível para qualquer material em chapa, inclusive compensado. Por padrão o veio acompanha o <b>comprimento da chapa</b> (ex.: 2750 mm); acima você pode trocar para a largura.</span>
       </label>
 
       <div class="productionActions">
@@ -1654,7 +1654,7 @@
         <label class="oclOnly">Nível de otimização
           <select id="sheetOptimization">
             <option value="medium">Média · mais rápida</option>
-            <option value="advanced">Avançada · testa mais combinações</option>
+            <option value="advanced" selected>Avançada · máximo aproveitamento</option>
           </select>
         </label>
         <label class="oclOnly">Direção preferida
@@ -1683,7 +1683,7 @@
 
     <label class="fixedChoice cutPlanGrainChoice">
       <input id="sheetGrain" type="checkbox">
-      <div><strong>Material madeirado / manter sentido do veio</strong><span>Marcado: respeita o sentido configurado da chapa. Materiais cadastrados usam suas próprias medidas e, por padrão, o veio segue o comprimento.</span></div>
+      <div><strong>Forçar sentido do veio para esta chapa</strong><span>Materiais cadastrados com veio (MDF madeirado, lâmina, compensado etc.) já são respeitados automaticamente. Por padrão o veio acompanha o comprimento da chapa, como 2750 mm.</span></div>
     </label>
 
     <div id="partsGeneralSummary" class="partsSummary"></div>
@@ -2855,6 +2855,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.311.00-r7"></script>
+<script type="module" src="js/app.js?v=1.311.00-r8"></script>
 </body>
 </html>

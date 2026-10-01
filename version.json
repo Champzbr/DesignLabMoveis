@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r7",
-  "date": "2026-09-26",
-  "message": "1.311.00-r7: Windows com órbita estilo SketchUp no botão do meio — pivô 3D sob o cursor durante o arraste; zoom r5 mantido; mobile/web comum inalterados."
+  "version": "1.311.00-r8",
+  "date": "2026-10-01",
+  "message": "1.311.00-r8: plano de corte com veio estrito em qualquer chapa (inclusive Compensado Naval), agrupamento por cadastro de material e otimização avançada como padrão."
 }
