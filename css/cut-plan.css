@@ -339,3 +339,10 @@ body.project-home-active #cadHideSelectedSpaceQuick,body.project-home-active #ca
   .sheetPreviewHeadActions button{font-size:8.5px}
   .sheetPreviewToolbar{padding:5px 7px}
 }
+
+/* 1.311.00-r12 · transferência manual de peças entre chapas */
+.cutPlanTransferDialog{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.55);z-index:26000}
+.cutPlanTransferDialog.show{display:flex}
+.cutPlanTransferBox{width:min(520px,96vw);max-height:min(78vh,720px);overflow:auto;background:#202326;color:#f5f6f7;border:1px solid #474c50;border-radius:18px;padding:14px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.cutPlanTransferHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.cutPlanTransferHead>div{min-width:0}.cutPlanTransferHead strong{display:block;font-size:20px}.cutPlanTransferHead span{display:block;color:#b9c0c5;font-size:13px;margin-top:4px;overflow-wrap:anywhere}
+.cutPlanTransferList{display:grid;gap:9px}.cutPlanTransferTarget{width:100%;min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:#303438;color:#fff;border:1px solid #4b5156;border-radius:13px;padding:10px 12px}.cutPlanTransferTarget span{min-width:0}.cutPlanTransferTarget b,.cutPlanTransferTarget small{display:block}.cutPlanTransferTarget small{color:#b8c0c5;margin-top:3px}.cutPlanTransferTarget em{font-style:normal;font-weight:800;color:#62e085;white-space:nowrap}.cutPlanTransferTarget.disabled{opacity:.52}.cutPlanTransferTarget.disabled em{color:#ff8b85}.cutPlanTransferTarget.auto{margin-top:4px;background:#292d30}.cutPlanTransferEmpty{padding:16px;border:1px dashed #555;border-radius:12px;color:#c3c9cd}.cutPlanTransferHelp{margin-top:12px;font-size:12px;line-height:1.45;color:#aeb6bb}
