@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r8';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r12';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -437,7 +437,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r8 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r12 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
@@ -537,7 +537,65 @@ const {
   panelSawTwoStageScore,
   packPartsIntoSheetsPanelSaw,
   packPartsIntoSheets
+
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
+
+// 1.311.00-r12 · transferência manual entre chapas.
+// O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
+// nesting automático, sempre repacotando as duas chapas envolvidas para manter
+// cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
+function cutPlanSheetHint(p){
+  const n=Number(p?.object?.userData?.cutPlanSheetHint);
+  return Number.isInteger(n)&&n>0?n:null;
+}
+function cutPlanPackSingle(parts,cfg){
+  if(!parts.length)return {placements:[],cuts:[],freeRects:[],panelSequence:null,strips:[]};
+  let out;
+  if(cfg.cutMode==='panel')out=packPartsIntoSheetsPanelSaw(parts,cfg);
+  else if(cfg.cutMode==='cnc')out=packPartsIntoSheetsCnc(parts,cfg);
+  else out=cutPlanPackOpen(parts,cfg);
+  if(out.length!==1)return null;
+  return out[0];
+}
+function cutPlanRawPlacement(p){
+  if(typeof rawPartFromPlacement==='function')return rawPartFromPlacement(p);
+  const q={...p};for(const k of ['x','y','rotated','placedW','placedH','cutOrder'])delete q[k];return q;
+}
+function cutPlanApplyManualTransfers(sheets,cfg){
+  if(!Array.isArray(sheets)||sheets.length<2)return sheets;
+  const original=[...sheets];
+  // Só usa hints para chapas que já existem no plano automático atual.
+  const hinted=[];
+  original.forEach((sh,si)=>sh.placements.forEach(p=>{const h=cutPlanSheetHint(p);if(h)hinted.push({part:p,source:si,target:h-1});}));
+  // Aplicação determinística: chapa alvo, depois código/nome.
+  hinted.sort((a,b)=>a.target-b.target||String(a.part.cutCode||a.part.name||'').localeCompare(String(b.part.cutCode||b.part.name||''),'pt-BR',{numeric:true}));
+  for(const h of hinted){
+    const currentSource=sheets.findIndex(sh=>sh.placements.some(p=>p.object===h.part.object||(p.partId&&h.part.partId&&p.partId===h.part.partId)));
+    const ti=h.target;
+    if(currentSource<0||ti<0||ti>=sheets.length||currentSource===ti)continue;
+    const placed=sheets[currentSource].placements.find(p=>p.object===h.part.object||(p.partId&&h.part.partId&&p.partId===h.part.partId));
+    if(!placed)continue;
+    const moving=cutPlanRawPlacement(placed);
+    const srcRaw=sheets[currentSource].placements.filter(p=>p!==placed).map(cutPlanRawPlacement);
+    const dstRaw=sheets[ti].placements.map(cutPlanRawPlacement).concat([moving]);
+    const newDst=cutPlanPackSingle(dstRaw,cfg);
+    if(!newDst)continue; // hint inválido/antigo: preserva plano automático.
+    const newSrc=cutPlanPackSingle(srcRaw,cfg);
+    if(srcRaw.length&&!newSrc)continue;
+    sheets[ti]=newDst;
+    sheets[currentSource]=newSrc||{placements:[],cuts:[],freeRects:[],panelSequence:null,strips:[]};
+  }
+  return sheets.filter(sh=>sh.placements?.length);
+}
+function cutPlanCanTransferPart(part,targetGroup){
+  if(!part||!targetGroup)return {ok:false,reason:'Destino inválido'};
+  const cfg=targetGroup.cfg||getSheetPrefs();
+  const raw=targetGroup.parts.map(cutPlanRawPlacement).concat([cutPlanRawPlacement(part)]);
+  try{
+    const sh=cutPlanPackSingle(raw,cfg);
+    return sh?{ok:true,sheet:sh}:{ok:false,reason:'A peça não cabe nesta chapa com o veio/folgas atuais.'};
+  }catch(err){return {ok:false,reason:err?.message||'A peça não cabe nesta chapa.'};}
+}
 
 function legacyV41_updateSheetCutModeUi(){
   const mode=$('sheetCutMode')?.value||'cnc';
@@ -1614,6 +1672,8 @@ async function exportSelectedAspireDxf(){
 // ============================================================================
 const CUT_PLAN_PREFS_KEY='designlabCutPlanV42';
 let cutPlanLastGroups=[];
+let cutPlanLastValidCfg=null;
+let cutPlanRestoreGuard=false;
 
 function cutPlanReadExtraPrefs(){
   try{return JSON.parse(localStorage.getItem(CUT_PLAN_PREFS_KEY)||'{}')||{};}catch(_){return {}}
@@ -1633,6 +1693,22 @@ function applyCutPlanExtraPrefs(){
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
+}
+function applyCutPlanCfgToUi(cfg){
+  if(!cfg)return;
+  applySheetPrefsToUi(cfg);
+  if($('sheetOptimization'))$('sheetOptimization').value=cfg.optimization==='medium'?'medium':'advanced';
+  if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(cfg.direction)?cfg.direction:'auto';
+  if($('sheetKeepLength'))$('sheetKeepLength').value=Math.max(0,Number(cfg.keepLength)||0);
+  if($('sheetKeepWidth'))$('sheetKeepWidth').value=Math.max(0,Number(cfg.keepWidth)||0);
+  localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify({
+    optimization:cfg.optimization==='medium'?'medium':'advanced',
+    direction:['none','length','width'].includes(cfg.direction)?cfg.direction:'auto',
+    keepLength:Math.max(0,Number(cfg.keepLength)||0),
+    keepWidth:Math.max(0,Number(cfg.keepWidth)||0)
+  }));
+  setSheetPrefs(cfg);
+  updateSheetCutModeUi();
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
@@ -1768,13 +1844,19 @@ function cutPlanPackAttempt(parts,cfg,orderMode,direction){
   return sheets;
 }
 function cutPlanAttemptScore(sheets,cfg){
-  let fragmentation=0,cutLength=0,cutCount=0,largestReusable=0;
+  let fragmentation=0,cutLength=0,cutCount=0,largestReusable=0,reusableConcentration=0;
   for(const s of sheets){
     fragmentation+=(s.freeRects||[]).length;
     cutLength+=(s.cuts||[]).reduce((n,c)=>n+c.length,0);cutCount+=(s.cuts||[]).length;
-    for(const r of s.freeRects||[])if(r.w>=cfg.keepLength&&r.h>=cfg.keepWidth)largestReusable=Math.max(largestReusable,r.w*r.h);
+    for(const r of s.freeRects||[]){
+      if(r.w>=cfg.keepLength&&r.h>=cfg.keepWidth){
+        const a=r.w*r.h;largestReusable=Math.max(largestReusable,a);reusableConcentration+=a*a;
+      }
+    }
   }
-  return [sheets.length,fragmentation,cutLength,cutCount,-largestReusable];
+  // Primeiro reduz o número de chapas. Em empate, concentra a sobra em retalhos
+  // grandes e reaproveitáveis; só depois compara fragmentação e metragem de corte.
+  return [sheets.length,-largestReusable,-reusableConcentration,fragmentation,cutLength,cutCount];
 }
 function cutPlanPackOpen(parts,cfg){
   const dirs=cfg.direction==='auto'?['none','length','width']:[cfg.direction||'none'];
@@ -1782,7 +1864,7 @@ function cutPlanPackOpen(parts,cfg){
   // levemente perturbadas. Em guilhotina a ordem muda completamente os vazios;
   // testar só 'área' e 'maior lado' podia desperdiçar uma chapa inteira.
   const jitterSeeds=cfg.optimization==='advanced'
-    ? [2,3,5,8,13,17,22,30,37,41,53,67,79,91,106,117,131,149,167,181,199,223,251,277,307,337,367,401]
+    ? [2,3,5,8,13,17,22,30,37,41,53,67,79,91,106,117,131,149,167,181,199,223,251,277,307,337,367,401,433,467,503,541,577,613,653,691,733,773,811,853,887,929,971,1013,1051,1093,1151,1201]
     : [2,3,5,8,13,17,22,30];
   const modes=(cfg.optimization==='advanced'?['area','max','width','height','perimeter']:['area','max'])
     .concat(jitterSeeds.map(n=>`jitter${n}`));
@@ -1818,6 +1900,7 @@ function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
     if(groupCfg.cutMode==='panel')sheets=packPartsIntoSheetsPanelSaw(parts,groupCfg);
     else if(groupCfg.cutMode==='cnc')sheets=packPartsIntoSheetsCnc(parts,groupCfg);
     else sheets=cutPlanPackOpen(parts,groupCfg);
+    sheets=cutPlanApplyManualTransfers(sheets,groupCfg);
     sheets.forEach((s,i)=>{
       const stats=cutPlanSheetStats(s,groupCfg),first=s.placements[0];
       const preview=buildAspireSheetEntities(s.placements,groupCfg,s.cuts||[]);
@@ -1873,7 +1956,7 @@ function renderPartsList(){
   const list=$('partsList'),summary=$('partsSummary');list.innerHTML='';
   dlRenderGeneralPartsSummary();
   try{
-    const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;
+    const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;cutPlanLastValidCfg={...cfg};
     const allParts=groups.flatMap(g=>g.parts),spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
     const totalArea=allParts.reduce((n,p)=>n+cutPlanPartAreaMm2(p),0),sheetArea=groups.reduce((n,g)=>n+Math.max(1,(g.cfg.width-2*g.cfg.margin)*(g.cfg.height-2*g.cfg.margin)),0),totalEff=sheetArea?totalArea/sheetArea*100:0,totalCut=groups.reduce((n,g)=>n+g.stats.cutLength,0);
     const reusable=groups.reduce((n,g)=>n+g.stats.reusable.length,0),sheetSizes=[...new Set(groups.map(g=>`${nice(g.cfg.width)} × ${nice(g.cfg.height)}`))];
@@ -1905,8 +1988,22 @@ function renderPartsList(){
     const sheetModeInfo=cfg.cutMode==='open'?'Chapas: cortes guilhotina, refilo, espessura de corte, otimização e sobras úteis.':cfg.cutMode==='panel'?'Chapas: seccionadora de pinça com plano mestre global; impressão, CSV e ZAW seguem o mesmo plano.':'Chapas: CNC / Router com encaixe livre por área e exportador Aspire.';
     $('partsListInfo').textContent=`Peças gerais do projeto · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
-    cutPlanLastGroups=[];
     const msg=String(err?.message||'Não foi possível calcular as chapas');
+    // 1.311.00-r12 · configuração transacional do plano: uma alteração inválida
+    // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
+    // último nesting válido. O campo volta automaticamente para a configuração
+    // anterior e o usuário continua vendo/abrindo o plano normalmente.
+    if(cutPlanLastGroups.length&&cutPlanLastValidCfg&&!cutPlanRestoreGuard){
+      const failedMsg=msg;
+      cutPlanRestoreGuard=true;
+      try{
+        applyCutPlanCfgToUi(cutPlanLastValidCfg);
+        renderPartsList();
+      }finally{cutPlanRestoreGuard=false;}
+      toast(`Alteração cancelada: ${failedMsg} · O último plano válido foi restaurado.`);
+      return;
+    }
+    cutPlanLastGroups=[];
     if(/não possui peças de chapa|não há peças de chapa|sem peças de chapa/i.test(msg)){
       summary.innerHTML='<div class="cutPlanSummaryGrid"><span><b>0</b><small>peças de chapa</small></span><span><b>0</b><small>chapas</small></span></div><div class="cutPlanSummaryText"><strong>Sem peças de chapa neste projeto.</strong> Madeira maciça e ferro continuam listados abaixo.</div>';
       list.innerHTML='<div class="partsGroup"><div class="partsGroupHead"><span>▦ Chapas / painéis</span><span>nenhuma peça</span></div><div class="partRow"><div><div class="partRowName">Sem peças de MDF, lâmina ou outro material em chapa.</div><div class="partRowMeta">As seções de madeira maciça e ferro / Metalon continuam disponíveis abaixo.</div></div></div></div>';
@@ -2059,15 +2156,69 @@ function cutPlanRenderSide(){
   }else{
     const same=g.parts.filter(x=>x.cutCode===p.cutCode).length;
     const ops=cutPlanMachiningSummary(p);
-    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button>${p.materialGrain?`<button id="sheetPreviewRotateGrain" type="button" class="cutPlanPreviewGrainBtn">↻ Veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} · Rotacionar 90°</button>`:''}</div>`;
+    card.innerHTML=`<h4><span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}</h4><div class="meta">${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${escapeHtml(p.materialCode||p.material||'MDF')}<br>${same>1?`${same} peça(s) iguais nesta chapa · `:''}${p.rotated?'girada 90° · ':''}${p.materialGrain?`veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}° · `:''}${escapeHtml(p.spaceName||'')}</div><div class="sheetPreviewPartOps"><div class="sheetPreviewOp">Posição na chapa: X ${nice(p.x)} · Y ${nice(p.y)} mm</div>${p.edgeBandSummary?`<div class="sheetPreviewOp">Fitas: ${escapeHtml(p.edgeBandSummary)}</div>`:''}${ops.length?ops.map(x=>`<div class="sheetPreviewOp">${escapeHtml(x)}</div>`).join(''):'<div class="sheetPreviewOp">Sem usinagens nesta peça.</div>'}</div><div class="sheetPreviewPartActions"><button id="sheetPreviewIsolate" type="button" class="secondary">${sheetPreviewIsolated?'Voltar à chapa':'Ampliar peça'}</button><button id="sheetPreviewFit" type="button" class="secondary">Ver chapa inteira</button><button id="sheetPreviewTransfer" type="button" class="secondary">⇄ Transferir peça</button>${p.materialGrain?`<button id="sheetPreviewRotateGrain" type="button" class="cutPlanPreviewGrainBtn">↻ Veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} · Rotacionar 90°</button>`:''}</div>`;
   }
   $('sheetPreviewIsolate').onclick=()=>{if(sheetPreviewSelectedPart){sheetPreviewIsolated=!sheetPreviewIsolated;sheetPreviewDraw()}};
   $('sheetPreviewFit').onclick=()=>{sheetPreviewIsolated=false;sheetPreviewDraw()};
+  const transferBtn=$('sheetPreviewTransfer');if(transferBtn&&sheetPreviewSelectedPart)transferBtn.onclick=()=>cutPlanOpenTransferMenu(sheetPreviewSelectedPart);
   const grainBtn=$('sheetPreviewRotateGrain');
   if(grainBtn&&sheetPreviewSelectedPart?.object)grainBtn.onclick=()=>cutPlanToggleGrainObjects([sheetPreviewSelectedPart.object],{keepPreview:true,previewObject:sheetPreviewSelectedPart.object});
   $('sheetPreviewSheetInfo').innerHTML=`<strong>${escapeHtml(g.displayName)}</strong> · chapa ${g.sheetNo}/${g.totalSheets}`;
   $('sheetPreviewFaceInfo').textContent=`${nice(st.efficiency)}% · ${nice(st.cutLength/1000)} m de corte`;
 }
+
+function cutPlanEnsureTransferDialog(){
+  let dlg=document.getElementById('cutPlanTransferDialog');if(dlg)return dlg;
+  dlg=document.createElement('div');dlg.id='cutPlanTransferDialog';dlg.className='cutPlanTransferDialog';dlg.innerHTML=`<div class="cutPlanTransferBox"><div class="cutPlanTransferHead"><div><strong>Transferir peça</strong><span id="cutPlanTransferPart"></span></div><button id="cutPlanTransferClose" type="button" class="secondary">✕</button></div><div id="cutPlanTransferList" class="cutPlanTransferList"></div><div class="cutPlanTransferHelp">A transferência só é confirmada se a peça couber respeitando veio, rotação permitida, margem e corte. Se não couber, nada muda.</div></div>`;
+  document.body.appendChild(dlg);
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.classList.remove('show')});
+  dlg.querySelector('#cutPlanTransferClose').onclick=()=>dlg.classList.remove('show');
+  return dlg;
+}
+function cutPlanOpenTransferMenu(part){
+  const source=sheetPreviewGroups[sheetPreviewIndex];if(!source||!part)return;
+  const dlg=cutPlanEnsureTransferDialog(),list=dlg.querySelector('#cutPlanTransferList');
+  dlg.querySelector('#cutPlanTransferPart').textContent=`${part.cutCode||''} ${part.name||'Peça'} · ${nice(part.faceW)} × ${nice(part.faceH)} mm`;
+  list.innerHTML='';
+  const compatible=sheetPreviewGroups.map((g,i)=>({g,i})).filter(x=>x.g.key===source.key&&x.i!==sheetPreviewIndex);
+  if(!compatible.length)list.innerHTML='<div class="cutPlanTransferEmpty">Não há outra chapa deste mesmo material/espessura.</div>';
+  for(const {g,i} of compatible){
+    const test=cutPlanCanTransferPart(part,g),b=document.createElement('button');b.type='button';b.className='cutPlanTransferTarget'+(test.ok?'':' disabled');b.disabled=!test.ok;
+    b.innerHTML=`<span><b>Chapa ${g.sheetNo}</b><small>${nice(g.stats?.efficiency||0)}% usado · ${g.parts.length} peça(s)</small></span><em>${test.ok?'Cabe ✓':'Não cabe'}</em>`;
+    b.title=test.ok?'Transferir para esta chapa':test.reason;
+    if(test.ok)b.onclick=()=>cutPlanTransferPartToSheet(part,g.sheetNo,dlg);
+    list.appendChild(b);
+  }
+  const auto=document.createElement('button');auto.type='button';auto.className='cutPlanTransferTarget auto';auto.innerHTML='<span><b>Voltar ao automático</b><small>Remove a preferência manual desta peça</small></span><em>↺</em>';
+  auto.onclick=()=>{if(part.object?.userData)delete part.object.userData.cutPlanSheetHint;commitHistory?.();dlg.classList.remove('show');cutPlanRefreshAfterManualTransfer(part.object);};list.appendChild(auto);
+  dlg.classList.add('show');
+}
+function cutPlanRefreshAfterManualTransfer(wantedObject){
+  renderPartsList();
+  sheetPreviewGroups=cutPlanLastGroups||[];
+  let gi=0,found=null;
+  for(let i=0;i<sheetPreviewGroups.length;i++){
+    const p=sheetPreviewGroups[i].parts.find(x=>x.object===wantedObject||(wantedObject?.userData?.partId&&x.partId===wantedObject.userData.partId));
+    if(p){gi=i;found=p;break;}
+  }
+  sheetPreviewIndex=Math.max(0,Math.min(gi,Math.max(0,sheetPreviewGroups.length-1)));sheetPreviewSelectedPart=found;sheetPreviewIsolated=false;refreshSheetPreviewSelect();sheetPreviewDraw();
+}
+function cutPlanTransferPartToSheet(part,targetSheetNo,dlg){
+  const target=sheetPreviewGroups.find(g=>g.key===sheetPreviewGroups[sheetPreviewIndex]?.key&&g.sheetNo===targetSheetNo);
+  const test=cutPlanCanTransferPart(part,target);
+  if(!test.ok){toast(test.reason||'A peça não cabe na chapa escolhida.');return;}
+  if(part.object?.userData)part.object.userData.cutPlanSheetHint=targetSheetNo;
+  commitHistory?.();
+  dlg?.classList.remove('show');
+  const name=part.name||'Peça';
+  cutPlanRefreshAfterManualTransfer(part.object);
+  toast(`${name} transferida para a chapa ${targetSheetNo}.`);
+}
+function cutPlanPartAtPointerEvent(e){
+  const w=sheetPreviewPointerToWorld(e),g=sheetPreviewGroups[sheetPreviewIndex];if(!w||!g)return null;
+  const hits=g.parts.filter(p=>pointInPreviewPart(p,w.x,w.y));return hits.length?hits[hits.length-1]:null;
+}
+
 function sheetPreviewDraw(){
   const g=sheetPreviewGroups[sheetPreviewIndex],size=cutPlanCanvasSize(),canvas=size.canvas,cssW=size.cssW,cssH=size.cssH,dpr=size.dpr,ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,cssW,cssH);
   if(!g){$('sheetPreviewEmpty').style.display='grid';return}$('sheetPreviewEmpty').style.display='none';const cfg=g.cfg;
@@ -2280,10 +2431,15 @@ $('sheetPreviewMachining').addEventListener('change',sheetPreviewDraw);
 $('sheetPreviewEdgeHoles').addEventListener('change',sheetPreviewDraw);
 $('sheetPreviewWaste').addEventListener('change',sheetPreviewDraw);
 $('sheetPreviewDialog').addEventListener('pointerdown',e=>{if(e.target===$('sheetPreviewDialog'))closeSheetPreview()});
-$('sheetPreviewCanvas').addEventListener('pointermove',e=>{const p=sheetPreviewPointerToWorld(e);$('sheetPreviewPosition').textContent=p?`X ${nice(p.x)} · Y ${nice(p.y)} mm`:'X — · Y — mm'});
-$('sheetPreviewCanvas').addEventListener('pointerleave',()=>{$('sheetPreviewPosition').textContent='X — · Y — mm'});
-$('sheetPreviewCanvas').addEventListener('pointerup',e=>{const w=sheetPreviewPointerToWorld(e),g=sheetPreviewGroups[sheetPreviewIndex];if(!w||!g)return;const hits=g.parts.filter(p=>pointInPreviewPart(p,w.x,w.y));sheetPreviewSelectedPart=hits.length?hits[hits.length-1]:null;sheetPreviewIsolated=false;sheetPreviewDraw()});
-$('sheetPreviewCanvas').addEventListener('dblclick',e=>{const w=sheetPreviewPointerToWorld(e),g=sheetPreviewGroups[sheetPreviewIndex];if(!w||!g)return;const hits=g.parts.filter(p=>pointInPreviewPart(p,w.x,w.y));if(hits.length){sheetPreviewSelectedPart=hits[hits.length-1];sheetPreviewIsolated=true;sheetPreviewDraw()}});
+let cutPlanHoldTimer=null,cutPlanHoldStart=null,cutPlanHoldTriggered=false;
+function cutPlanCancelHold(){if(cutPlanHoldTimer){clearTimeout(cutPlanHoldTimer);cutPlanHoldTimer=null;}cutPlanHoldStart=null;}
+$('sheetPreviewCanvas').addEventListener('pointerdown',e=>{if(e.button!==0)return;cutPlanHoldTriggered=false;cutPlanHoldStart={x:e.clientX,y:e.clientY};const hit=cutPlanPartAtPointerEvent(e);if(!hit)return;cutPlanHoldTimer=setTimeout(()=>{cutPlanHoldTimer=null;cutPlanHoldTriggered=true;sheetPreviewSelectedPart=hit;sheetPreviewIsolated=false;sheetPreviewDraw();cutPlanOpenTransferMenu(hit);},560)});
+$('sheetPreviewCanvas').addEventListener('pointermove',e=>{const p=sheetPreviewPointerToWorld(e);$('sheetPreviewPosition').textContent=p?`X ${nice(p.x)} · Y ${nice(p.y)} mm`:'X — · Y — mm';if(cutPlanHoldStart&&Math.hypot(e.clientX-cutPlanHoldStart.x,e.clientY-cutPlanHoldStart.y)>9)cutPlanCancelHold()});
+$('sheetPreviewCanvas').addEventListener('pointerleave',()=>{$('sheetPreviewPosition').textContent='X — · Y — mm';cutPlanCancelHold()});
+$('sheetPreviewCanvas').addEventListener('pointercancel',cutPlanCancelHold);
+$('sheetPreviewCanvas').addEventListener('contextmenu',e=>e.preventDefault());
+$('sheetPreviewCanvas').addEventListener('pointerup',e=>{const held=cutPlanHoldTriggered;cutPlanCancelHold();cutPlanHoldTriggered=false;if(held)return;const hit=cutPlanPartAtPointerEvent(e);sheetPreviewSelectedPart=hit;sheetPreviewIsolated=false;sheetPreviewDraw()});
+$('sheetPreviewCanvas').addEventListener('dblclick',e=>{const hit=cutPlanPartAtPointerEvent(e);if(hit){sheetPreviewSelectedPart=hit;sheetPreviewIsolated=true;sheetPreviewDraw()}});
 
 
   return {

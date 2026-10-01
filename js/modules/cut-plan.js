@@ -532,8 +532,22 @@ export function createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,pa
     };
   }
 
+  function panelSawStableJitter(part,seed,index){
+    const text=`${seed}|${part?.partId||part?.cutCode||part?.name||''}|${Number(part?.faceW||0).toFixed(2)}|${Number(part?.faceH||0).toFixed(2)}|${index}`;
+    let h=2166136261>>>0;
+    for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
+    return .80+(h/4294967295)*.40;
+  }
   function panelSawOrder(parts,mode='area'){
     const a=[...parts];
+    if(/^jitter\d+$/.test(String(mode||''))){
+      const seed=Math.max(1,Number(String(mode).replace('jitter',''))||1);
+      return a.map((p,i)=>({p,i,j:panelSawStableJitter(p,seed,i)})).sort((x,y)=>
+        (y.p.faceW*y.p.faceH*y.j-x.p.faceW*x.p.faceH*x.j)||
+        (Math.max(y.p.faceW,y.p.faceH)-Math.max(x.p.faceW,x.p.faceH))||
+        (x.i-y.i)
+      ).map(x=>x.p);
+    }
     if(mode==='source')return a;
     if(mode==='max')return a.sort((x,y)=>
       (Math.max(y.faceW,y.faceH)-Math.max(x.faceW,x.faceH))||
@@ -1346,9 +1360,14 @@ export function createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,pa
     const runWaste=sheets.reduce((n,s)=>n+(s._globalStripRunWaste||0),0);
     const crossWaste=sheets.reduce((n,s)=>n+(s._globalCrossWaste||0),0);
     const fragments=sheets.reduce((n,s)=>n+(s.freeRects||[]).length,0);
-    // Primeiro reduz chapas. Entre soluções com a mesma quantidade, prefere a
-    // que exige menos cortes aninhados antes de comparar giros e sobras.
-    return [sheets.length,nestedCuts,turns,runWaste,crossWaste,cutCount,cutLength,fragments];
+    let largestFree=0,freeConcentration=0;
+    for(const s of sheets)for(const r of (s.freeRects||[])){
+      const a=Math.max(0,Number(r.w)||0)*Math.max(0,Number(r.h)||0);
+      largestFree=Math.max(largestFree,a);freeConcentration+=a*a;
+    }
+    // Objetivo principal: menor número de chapas. Em empate, concentra a sobra
+    // em áreas grandes/reaproveitáveis antes de penalizar cortes e giros extras.
+    return [sheets.length,-largestFree,-freeConcentration,fragments,nestedCuts,turns,cutCount,cutLength,runWaste,crossWaste];
   }
   function packPartsIntoSheetsPanelSaw(parts,cfg){
     const machineSide=Math.max(Number(cfg?.width||0),Number(cfg?.height||0));
@@ -1358,7 +1377,7 @@ export function createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,pa
     const pref=cfg.panelFirst||'auto';
     const axes=pref==='length'?['H']:pref==='width'?['V']:['H','V'];
     const modes=cfg.optimization==='advanced'
-      ? ['source','area','max','width','height','perimeter']
+      ? ['source','area','max','width','height','perimeter','jitter2','jitter3','jitter5','jitter8','jitter13','jitter21','jitter34','jitter55','jitter89','jitter144','jitter233','jitter377']
       : ['source','area','max','width','height'];
     let best=null,lastError=null;
     for(const axis of axes)for(const mode of modes)for(const bias of ['compact','unrotated','mixed']){
