@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r12",
+  "version": "1.311.00-r13",
   "date": "2026-10-01",
-  "message": "1.311.00-r12: transferência manual segura de peças entre chapas no plano de corte; segure uma peça, escolha a chapa destino e o DesignLab só aceita se ela couber respeitando veio, margens e corte."
+  "message": "1.311.00-r13: convenção de veio corrigida e unificada — 0° acompanha o comprimento natural da peça (faceW) e 90° acompanha faceH; plano, verificador e setas agora usam a mesma regra."
 }
