@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.311.00-r14">
+<meta name="designlab-build" content="1.311.00-r15">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.311.00-r14';
+  const BUILD='1.311.00-r15';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/editor.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/materials.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/labels.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/layout.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/projects.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/settings.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/home.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r14">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r14">
+<link rel="stylesheet" href="css/base.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/editor.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/materials.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/labels.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/layout.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/projects.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/settings.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/home.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r15">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1626,21 +1626,19 @@
     </div>
 
     <div class="cutPlanSettings">
-      <div class="cutPlanSectionTitle">Chapa usada no plano</div>
+      <div class="cutPlanSectionTitle">Materiais e chapas</div>
+      <div class="sheetMaterialAutoInfo">
+        <strong>Chapa automática pelo cadastro do material</strong>
+        <span>O plano separa cada material e usa a medida e o sentido do veio salvos no cadastro. Ex.: MDF 2750 × 1850 mm e Compensado Naval 3050 × 1610 mm podem aparecer juntos no mesmo plano, cada um em sua própria chapa.</span>
+      </div>
+      <input id="sheetWidth" type="hidden" value="2750">
+      <input id="sheetHeight" type="hidden" value="1850">
+      <input id="sheetGrain" type="checkbox" hidden>
+      <select id="sheetGrainDirection" hidden><option value="length" selected>length</option><option value="width">width</option></select>
       <div class="spaceFields two">
-        <label>Comprimento da chapa (mm)<input id="sheetWidth" type="number" value="2750" min="100" step="1"></label>
-        <label>Largura da chapa (mm)<input id="sheetHeight" type="number" value="1850" min="100" step="1"></label>
         <label>Refilo em volta (mm)<input id="sheetMargin" type="number" value="10" min="0" step="0.1"></label>
         <label>Espessura do corte / fresa (mm)<input id="sheetGap" type="number" value="3" min="0" step="0.1"></label>
-        <label>Sentido do veio da chapa padrão
-          <select id="sheetGrainDirection">
-            <option value="length">No comprimento da chapa</option>
-            <option value="width">Na largura da chapa</option>
-          </select>
-        </label>
       </div>
-
-      <p class="dialogHelp" style="margin:6px 0 2px">As medidas digitadas aqui são usadas diretamente no cálculo, nas sobras, na prévia, na impressão e no Mingli ZAW. O material não substitui mais o tamanho da chapa informado aqui.</p>
 
       <div class="cutPlanSectionTitle" style="margin-top:10px">Otimização</div>
       <div class="spaceFields two">
@@ -1680,11 +1678,6 @@
         <strong>Otimizado:</strong> usa cortes guilhotina, considera refilo e espessura de corte e tenta preservar sobras maiores em vez de espalhar retalhos pequenos.
       </div>
     </div>
-
-    <label class="fixedChoice cutPlanGrainChoice">
-      <input id="sheetGrain" type="checkbox">
-      <div><strong>Forçar sentido do veio para esta chapa</strong><span>Materiais cadastrados com veio (MDF madeirado, lâmina, compensado etc.) já são respeitados automaticamente. Por padrão o veio acompanha o comprimento da chapa, como 2750 mm.</span></div>
-    </label>
 
     <div id="partsGeneralSummary" class="partsSummary"></div>
 
@@ -2855,6 +2848,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.311.00-r14"></script>
+<script type="module" src="js/app.js?v=1.311.00-r15"></script>
 </body>
 </html>
