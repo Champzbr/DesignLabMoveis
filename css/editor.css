@@ -508,14 +508,14 @@
   .spaceMultiSelectBar .shapeCopyBarActions button{font-size:11px;min-height:38px}
 }
 
-/* 1.311.00-r13 · tamponamento de gaveta */
+/* 1.311.00-r14 · tamponamento de gaveta */
 .drawerTamponStripCard{margin-top:8px;padding:8px;border:1px solid #344047;border-radius:10px;background:#11191d;}
 .drawerTamponStripCard .drawerTamponChoice{margin:0 0 8px 0;}
 .drawerTamponInset{display:block;font-size:10px;color:var(--muted);}
 .drawerTamponInset input{display:block;width:100%;margin-top:4px;}
 .drawerTamponInset span{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:var(--muted);}
 
-/* 1.311.00-r13 · Windows: campos de configuração mantêm interação/foco estáveis. */
+/* 1.311.00-r14 · Windows: campos de configuração mantêm interação/foco estáveis. */
 html.designlab-windows input:not([disabled]),
 html.designlab-windows textarea:not([disabled]),
 html.designlab-windows select:not([disabled]){pointer-events:auto;}

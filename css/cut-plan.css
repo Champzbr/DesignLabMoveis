@@ -340,7 +340,7 @@ body.project-home-active #cadHideSelectedSpaceQuick,body.project-home-active #ca
   .sheetPreviewToolbar{padding:5px 7px}
 }
 
-/* 1.311.00-r13 · transferência manual de peças entre chapas */
+/* 1.311.00-r14 · transferência manual de peças entre chapas */
 .cutPlanTransferDialog{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.55);z-index:26000}
 .cutPlanTransferDialog.show{display:flex}
 .cutPlanTransferBox{width:min(520px,96vw);max-height:min(78vh,720px);overflow:auto;background:#202326;color:#f5f6f7;border:1px solid #474c50;border-radius:18px;padding:14px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
