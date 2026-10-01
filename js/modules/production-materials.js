@@ -39,10 +39,9 @@ export function createProductionMaterialsModule(ctx){
   // 1.300.17 · Compensados. O naval usa como padrão de estoque a chapa
   // 3050 × 1610 mm; o usuário pode editar a medida e salvar uma variação no projeto.
   const FACTORY_PLYWOODS=[
-    // Compensado Naval: por padrão não trava o sentido do veio no plano de corte.
-    // Se o usuário quiser preservar um sentido específico, basta marcar
-    // “Material madeirado / manter sentido do veio” no plano.
-    {key:'naval',name:'Compensado Naval',code:'NAV',color:'#c9a46f',coreColor:'#b88f5f',sheetWidth:3050,sheetHeight:1610,grain:false}
+    // Compensado Naval prensado com lâmina: trabalha com sentido do veio igual aos
+    // demais materiais em chapa. Por padrão o veio acompanha o comprimento da chapa.
+    {key:'naval',name:'Compensado Naval',code:'NAV',color:'#c9a46f',coreColor:'#b88f5f',sheetWidth:3050,sheetHeight:1610,grain:true}
   ];
   // 1.200.99 · perfis lineares separados das chapas.
   const FACTORY_METAL_PROFILES=[

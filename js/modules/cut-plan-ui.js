@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r7';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r8';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -416,6 +416,9 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
     ...cfg,
     width:cfg.width,
     height:cfg.height,
+    // O cadastro do material é soberano para o sentido físico da chapa.
+    // O checkbox global continua funcionando como força-veio para materiais antigos.
+    grain:!!cfg.grain||!!material?.grain||parts.some(p=>!!p?.materialGrain),
     grainDirection:material?.grainDirection==='width'?'width':(material?.grainDirection==='length'?'length':cfg.grainDirection||'length'),
     sheetMaterialId:material?.id||null,
     sheetMaterialName:material?.name||''
@@ -434,10 +437,11 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // Compensado Naval pode girar livremente por padrão. Se o operador marcar
-  // explicitamente “manter sentido do veio”, o bloqueio volta a valer. Isso
-  // também corrige projetos antigos que salvaram materialGrain=true no objeto.
-  const grainLocked=!!cfg.grain||(!productionMaterialIsPlywood(material)&&!!part.materialGrain);
+  // 1.311.00-r8 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
+  // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
+  // alinhar o veio da peça ao veio da chapa.
+  const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
   // 1.200.18: na peça, VEIO 0° acompanha o eixo vertical da face (faceH) e
   // VEIO 90° acompanha o eixo horizontal (faceW). A chapa madeirada usa por
@@ -1268,12 +1272,22 @@ function buildAspireLayerDepthsCsv(groups){
   return c;
 }
 
+function cutPlanMaterialBucket(p){
+  const mat=normalizedLayer(p?.material||'MDF')||'MDF';
+  const materialId=String(p?.materialId||'').trim();
+  const code=String(p?.materialCode||'').trim();
+  // Não misturar na mesma chapa dois cadastros que tenham o mesmo nome, mas
+  // medidas/sentido de veio diferentes. O id é interno; o rótulo continua limpo.
+  const identity=materialId||code||mat;
+  const label=`${mat}_${layerNum(p?.thickness)}mm`;
+  return {identity:`${identity}|${layerNum(p?.thickness)}mm`,label};
+}
 function groupPartArrayForAspire(parts,cfg=getSheetPrefs(),emptyMessage='Não existem peças para exportar'){
   cfg=normalizedSheetPrefs(cfg);
   if(!parts.length)throw new Error(emptyMessage);
-  const map=new Map();for(const p of parts){const mat=normalizedLayer(p.material||'MDF')||'MDF',key=`${mat}_${layerNum(p.thickness)}mm`;if(!map.has(key))map.set(key,[]);map.get(key).push(p);}
+  const map=new Map();for(const p of parts){const b=cutPlanMaterialBucket(p);if(!map.has(b.identity))map.set(b.identity,{label:b.label,parts:[]});map.get(b.identity).parts.push(p);}
   const out=[];let fileIndex=0;
-  for(const [key,gparts] of map.entries()){
+  for(const bucket of map.values()){const key=bucket.label,gparts=bucket.parts;
     const groupCfg=sheetPrefsForPartGroup(cfg,gparts);
     const sheets=packPartsIntoSheets(gparts,groupCfg);
     sheets.forEach((sheet,i)=>{
@@ -1514,7 +1528,7 @@ function legacyV41_renderPartsList(){
       const box=document.createElement('div');box.className='partsGroup';
       const head=document.createElement('div');head.className='partsGroupHead';const a=document.createElement('span');a.textContent=key.replace(/_/g,' ');const b=document.createElement('span');b.textContent=`${data.sheets.length} chapa(s) · ${nice(keyPct)}%`;head.append(a,b);box.appendChild(head);
       for(const p of groupedPartRows(data.parts)){
-        const row=document.createElement('div');row.className='partRow';const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.textContent=p.name;const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${p.material}${p.materialCode?' · '+p.materialCode:''}${p.materialGrain?' · veio':''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;row.append(left,qty);box.appendChild(row);
+        const row=document.createElement('div');row.className='partRow';const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.textContent=p.name;const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm · ${p.material}${p.materialCode?' · '+p.materialCode:''}${p.materialGrain?` · VEIO ${normalizePieceGrainRotation(p.materialGrainRotation)}° · 90° bloqueado`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;row.append(left,qty);box.appendChild(row);
       }
       const chips=document.createElement('div');chips.style.padding='7px 10px 9px';
       data.sheets.forEach((x,i)=>{const c=document.createElement('span');c.className='sheetChip';c.textContent=`Chapa ${i+1} · ${nice(x.metrics.pct)}%${cfg.cutMode!=='cnc'?` · ${x.metrics.cuts.length} cortes`:''}`;chips.appendChild(c);});
@@ -1615,7 +1629,7 @@ function cutPlanSaveExtraPrefs(){
 }
 function applyCutPlanExtraPrefs(){
   const p=cutPlanReadExtraPrefs();
-  if($('sheetOptimization'))$('sheetOptimization').value=p.optimization==='advanced'?'advanced':'medium';
+  if($('sheetOptimization'))$('sheetOptimization').value=p.optimization==='medium'?'medium':'advanced';
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
@@ -1768,7 +1782,7 @@ function cutPlanPackOpen(parts,cfg){
   // levemente perturbadas. Em guilhotina a ordem muda completamente os vazios;
   // testar só 'área' e 'maior lado' podia desperdiçar uma chapa inteira.
   const jitterSeeds=cfg.optimization==='advanced'
-    ? [2,3,5,8,13,17,22,30,37,41,53,67,79,91,106,117]
+    ? [2,3,5,8,13,17,22,30,37,41,53,67,79,91,106,117,131,149,167,181,199,223,251,277,307,337,367,401]
     : [2,3,5,8,13,17,22,30];
   const modes=(cfg.optimization==='advanced'?['area','max','width','height','perimeter']:['area','max'])
     .concat(jitterSeeds.map(n=>`jitter${n}`));
@@ -1797,9 +1811,9 @@ function cutPlanSheetStats(sheet,cfg){
 function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
   const raw=allProjectProductionPartsByKind('sheet');if(!raw.length)throw new Error('O projeto ainda não possui peças de chapa para o plano de corte.');
   const byMaterial=new Map();
-  for(const p of raw){const mat=normalizedLayer(p.material||'MDF')||'MDF',key=`${mat}_${layerNum(p.thickness)}mm`;if(!byMaterial.has(key))byMaterial.set(key,[]);byMaterial.get(key).push(p);}
+  for(const p of raw){const b=cutPlanMaterialBucket(p);if(!byMaterial.has(b.identity))byMaterial.set(b.identity,{label:b.label,parts:[]});byMaterial.get(b.identity).parts.push(p);}
   const groups=[];
-  for(const [key,baseParts] of byMaterial.entries()){
+  for(const bucket of byMaterial.values()){const key=bucket.label,baseParts=bucket.parts;
     const parts=cutPlanAssignCodes(baseParts),groupCfg=sheetPrefsForPartGroup(cfg,baseParts);let sheets;
     if(groupCfg.cutMode==='panel')sheets=packPartsIntoSheetsPanelSaw(parts,groupCfg);
     else if(groupCfg.cutMode==='cnc')sheets=packPartsIntoSheetsCnc(parts,groupCfg);
@@ -1875,7 +1889,7 @@ function renderPartsList(){
       for(const p of cutPlanGroupRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
-        const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?` · veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}°`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${actualMachiningCount(p)?' · USINAGENS: '+actualMachiningCount(p):''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
+        const meta=document.createElement('div');meta.className='partRowMeta';const origins=[...p.spaceNames];meta.textContent=`${nice(p.faceW)} × ${nice(p.faceH)} × ${nice(p.thickness)} mm${p.materialGrain?` · veio ${cutPlanPieceGrainAxis(p,{placed:false}).localSymbol} ${normalizePieceGrainRotation(p.materialGrainRotation)}° · 90° bloqueado`:''}${p.edgeBandSummary?' · FITA: '+p.edgeBandSummary:''}${actualMachiningCount(p)?' · USINAGENS: '+actualMachiningCount(p):''}${origins.length?' · '+origins.join(', '):''}`;left.append(nm,meta);
         const qty=document.createElement('div');qty.className='partQty';qty.textContent=`×${p.qty}`;
         const right=document.createElement('div');right.className='cutPlanRowActions';
         if(p.materialGrain){
