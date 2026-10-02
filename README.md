@@ -1,3 +1,66 @@
+# DesignLabMoveis 1.311.00-r15
+
+Build atual do DesignLabMoveis. Esta revisão consolida o plano de corte por material, o sentido do veio, a transferência manual de peças, a proteção transacional do plano e a otimização, sem alterar a arquitetura funcional de CAD, usinagem ou fabricação.
+
+O arquivo `LATE_BINDING_AUDIT_1.311.00-r2.csv` mantém o nome original porque registra a auditoria executada na r2. A auditoria continua válida como referência histórica/técnica para o wiring modular da série 1.311.00.
+
+## r15
+
+### Chapa por material
+- O plano de corte usa `sheetWidth`, `sheetHeight`, `grain` e `grainDirection` do material cadastrado, em vez de uma chapa global única.
+- Projetos mistos permanecem no mesmo plano, mas cada material usa seu próprio estoque. Exemplo: MDF 2750 × 1850 mm e Compensado Naval 3050 × 1610 mm.
+- Materiais/cadastros diferentes não são misturados na mesma chapa.
+- Refilo, espessura de corte e estratégia de otimização continuam sendo parâmetros gerais do plano.
+
+### Sentido do veio
+- O veio é interpretado de forma consistente entre cadastro, validação e plano de corte.
+- `VEIO 0°` acompanha o maior lado da peça; `VEIO 90°` acompanha o menor lado.
+- Em material com veio no comprimento, o lado correspondente da peça permanece paralelo ao comprimento cadastrado da chapa.
+- Peças com veio não entram em rotação livre apenas para melhorar aproveitamento.
+
+### Transferência de peça
+- Segurar uma peça no plano abre a transferência para chapas compatíveis do mesmo material/espessura.
+- O destino é validado antes da alteração, considerando dimensões, veio, margens, largura de corte e ocupação.
+- Se a peça não couber, a transferência é recusada e o plano permanece inalterado.
+- A preferência manual pode ser removida para retornar a peça ao posicionamento automático.
+
+### Plano de corte transacional
+- Mudanças de configuração que produzam um plano inválido não substituem o último plano válido.
+- Se alguma peça deixar de caber, a alteração é cancelada e o estado anterior é preservado.
+- A proteção evita planos vazios, peças desaparecidas ou estados parcialmente aplicados após uma tentativa inválida.
+
+### Otimização
+- A estratégia avançada testa ordens determinísticas adicionais para reduzir a quantidade de chapas.
+- Em empates, prioriza sobras maiores e mais concentradas, reduzindo fragmentação sempre que possível.
+- As restrições de material, dimensões e veio continuam tendo prioridade sobre ganho de aproveitamento.
+
+## Validação
+
+Antes de publicar esta build:
+- executar `node --check` em todos os arquivos `.js`;
+- confirmar que todos os imports locais alcançáveis a partir de `js/app.js` resolvem para arquivos existentes;
+- confirmar que todos esses módulos locais estão presentes no `APP_SHELL` do `sw.js`;
+- confirmar que o `APP_SHELL` não contém o mesmo caminho com versões `?v=` diferentes e não aponta para arquivos inexistentes;
+- confirmar que os identificadores da build atual usam `1.311.00-r15`;
+- manter versões antigas apenas quando forem histórico/comentário ou constantes funcionais intencionais.
+
+### Smoke test manual obrigatório — Chrome e Firefox
+
+Executar o mesmo roteiro nos dois navegadores antes do deploy:
+1. abrir a aplicação com cache limpo e confirmar inicialização sem erro fatal no console;
+2. entrar/criar um projeto e abrir o editor 3D;
+3. selecionar e editar uma peça sem perda de foco dos campos;
+4. abrir um projeto com pelo menos MDF e Compensado Naval e conferir os tamanhos de chapa cadastrados de cada material;
+5. gerar o plano de corte e validar veio, posicionamento e quantidade de chapas;
+6. testar uma transferência de peça válida e uma inválida entre chapas compatíveis;
+7. testar uma alteração inválida do plano e confirmar restauração do último estado válido;
+8. abrir CAD/visualização técnica e recursos de usinagem apenas como smoke test de regressão;
+9. recarregar a aplicação e confirmar funcionamento do Service Worker/offline shell.
+
+O smoke test manual exige execução real em Chrome e Firefox; validações automáticas não o substituem.
+
+## Histórico
+
 # DesignLabMoveis 1.311.00 — Fase 10: runtimeModel + moduleRegistry
 
 Esta fase prioriza **estabilidade do wiring**, não redução artificial de linhas. O `js/app.js` continua sendo o bootstrap mínimo e `js/editor-runtime.js` permanece como orquestrador explícito. A quantidade de linhas do runtime pode crescer um pouco nesta fase porque dependências antes escondidas em optional chaining passaram a ficar nomeadas e auditáveis.
