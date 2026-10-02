@@ -2,6 +2,7 @@
 // Estado mutável do editor NÃO pertence aqui; ele vive em runtimeModel.
 export function createModuleRegistry(){
   const modules=new Map();
+  const warnedNotReady=new Set();
 
   function register(name,api){
     if(!name||typeof name!=='string')throw new TypeError('moduleRegistry.register: nome inválido');
@@ -30,7 +31,15 @@ export function createModuleRegistry(){
   // Diferente do antigo ?.(), a dependência fica centralizada e pesquisável.
   function callIfReady(name,method,...args){
     const api=modules.get(name),fn=api?.[method];
-    return typeof fn==='function'?fn(...args):undefined;
+    if(typeof fn!=='function'){
+      const key=`${name}.${method}`;
+      if(!warnedNotReady.has(key)){
+        warnedNotReady.add(key);
+        console.warn(`[moduleRegistry] módulo/método ainda não disponível: ${key}`);
+      }
+      return undefined;
+    }
+    return fn(...args);
   }
   function callOr(fallback,name,method,...args){
     const value=callIfReady(name,method,...args);
