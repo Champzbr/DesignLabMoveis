@@ -66,9 +66,13 @@ function applySavedPieceThickness(root){
 }
 
 const PIECE_CREATE_PREFS_KEY='designlab-piece-create-prefs-v120067';
-function pieceCreatePrefsStorageKey(type=pieceCreateType){
+// Configuração única por conta + material: salvar em qualquer tipo de peça passa
+// a valer para todos os tipos do menu Criar peças. Mantemos a chave antiga por
+// tipo apenas como fallback de migração para quem já tinha preferências salvas.
+function pieceCreatePrefsStorageKey(type=pieceCreateType,{legacy=false}={}){
   const root=selectedCellInfo()?.root||activeSpaceRoot();
-  return `${PIECE_CREATE_PREFS_KEY}:${pieceThicknessOwnerKey()}:${pieceThicknessMaterialKey(root)}:${type||'left'}`;
+  const base=`${PIECE_CREATE_PREFS_KEY}:${pieceThicknessOwnerKey()}:${pieceThicknessMaterialKey(root)}`;
+  return legacy?`${base}:${type||'left'}`:base;
 }
 function capturePieceCreatePrefs(type=pieceCreateType){
   const val=id=>String($(id)?.value??'');
@@ -88,16 +92,25 @@ function savePieceCreateConfig(){
     const t=parseDecimalInput(cfg.thickness);
     if(!Number.isFinite(t)||t<1){toast('Confira a espessura antes de salvar');return false;}
     cfg.thickness=String(t);
-    localStorage.setItem(pieceCreatePrefsStorageKey(pieceCreateType),JSON.stringify(cfg));
+    localStorage.setItem(pieceCreatePrefsStorageKey(),JSON.stringify(cfg));
     savePieceThicknessPreference({silent:true});
     if(pieceCreateType==='doors')saveDoorCreateConfig({silent:true});
-    toast(`Configuração de ${pieceTypeName(pieceCreateType)} salva`);
+    toast('Configuração salva para todas as peças');
     return true;
   }catch(err){console.error('Salvar configuração de peça:',err);toast('Não foi possível salvar esta configuração');return false;}
 }
 function applyPieceCreateConfig(type=pieceCreateType){
   let cfg=null;
-  try{cfg=JSON.parse(localStorage.getItem(pieceCreatePrefsStorageKey(type))||'null');}catch{}
+  try{
+    cfg=JSON.parse(localStorage.getItem(pieceCreatePrefsStorageKey())||'null');
+    // Migração silenciosa: se ainda não existe a preferência global, aproveita
+    // a configuração antiga do tipo atual e passa a usá-la como configuração
+    // comum para todos os tipos desse material.
+    if(!cfg){
+      cfg=JSON.parse(localStorage.getItem(pieceCreatePrefsStorageKey(type,{legacy:true}))||'null');
+      if(cfg&&typeof cfg==='object')localStorage.setItem(pieceCreatePrefsStorageKey(),JSON.stringify(cfg));
+    }
+  }catch{}
   if(!cfg||typeof cfg!=='object')return false;
   const set=(id,v)=>{if($(id)&&v!==undefined&&v!==null)$(id).value=String(v);};
   set('pieceThickness',cfg.thickness);set('pieceFrontInset',cfg.frontInset);set('pieceBackInset',cfg.backInset);

@@ -971,6 +971,7 @@ export function createProductionMaterialsModule(ctx){
     let m=selectedId?productionMaterialById(selectedId):null;
     const factorySource=m?.factory?m:null;
     const editingFactory=!!factorySource;
+    const factorySourceId=factorySource?.id||null;
     if(editingFactory)m=null;
     const categoryDefault=productionKind==='wood'?'Madeira maciça · Personalizada':productionKind==='metal'?'Ferro · Perfil metálico personalizado':'Personalizados';
     const data=normalizeProductionMaterial({
@@ -996,6 +997,22 @@ export function createProductionMaterialsModule(ctx){
   
     if(m)Object.assign(m,data);
     else{m=data;projectProduction.materials.push(m);}
+
+    // Ao editar um material padrão de fábrica, o cadastro original continua
+    // imutável, mas a variação personalizada passa a substituir esse material
+    // dentro do projeto atual. Isso evita o caso em que o usuário altera, por
+    // exemplo, Branco TX para 2750 × 600 mm e as peças continuam vinculadas ao
+    // Branco TX de fábrica (2750 × 1850 mm) no plano de corte.
+    if(editingFactory&&factorySourceId){
+      for(const o of runtimeModel.objects){
+        if(canonicalFactoryMaterialId(o.userData?.materialId)!==factorySourceId)continue;
+        o.userData.materialId=m.id;
+      }
+      for(const root of runtimeModel.spaceRoots){
+        if(canonicalFactoryMaterialId(root.defaultMaterialId)!==factorySourceId)continue;
+        root.defaultMaterialId=m.id;
+      }
+    }
   
     for(const o of runtimeModel.objects){
       if(o.userData?.materialId!==m.id)continue;
@@ -1014,7 +1031,7 @@ export function createProductionMaterialsModule(ctx){
     productionRefreshSelectedPiece();
     commitHistory();
     const kindText=productionMaterialKindLabel(m);
-    toast(editingFactory?`Material padrão copiado · ${kindText}`:(selectedId?`Material atualizado · ${kindText}`:`Material salvo · ${kindText}`));
+    toast(editingFactory?`Variação salva e aplicada ao projeto · ${kindText}`:(selectedId?`Material atualizado · ${kindText}`:`Material salvo · ${kindText}`));
   }
   function productionDeleteMaterial(){
     const id=$('productionMaterialSelect').value,m=productionMaterialById(id);if(!m)return;

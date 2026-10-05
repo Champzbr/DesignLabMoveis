@@ -413,23 +413,27 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   // troca manual de configuração entre os grupos.
   const stockW=Number(material?.sheetWidth||0),stockH=Number(material?.sheetHeight||0);
   const hasRegisteredStock=stockW>=100&&stockH>=100;
+  const overrideW=Number(cfg.materialOverrideWidth||0),overrideH=Number(cfg.materialOverrideHeight||0);
+  const useMaterialOverride=!!cfg.materialOverrideEnabled&&!!material?.id&&String(cfg.materialOverrideId||'')===String(material.id)&&overrideW>=100&&overrideH>=100;
   const out={
     ...cfg,
-    width:hasRegisteredStock?stockW:cfg.width,
-    height:hasRegisteredStock?stockH:cfg.height,
+    width:useMaterialOverride?overrideW:(hasRegisteredStock?stockW:cfg.width),
+    height:useMaterialOverride?overrideH:(hasRegisteredStock?stockH:cfg.height),
     grain:!!material?.grain||parts.some(p=>!!p?.materialGrain),
     grainDirection:material?.grainDirection==='width'?'width':'length',
     sheetMaterialId:material?.id||null,
     sheetMaterialName:material?.name||'',
     materialSheet:true,
-    autoMaterialSheet:hasRegisteredStock,
-    autoMaterialSheetReason:hasRegisteredStock?'cadastro-material':'fallback-legado'
+    materialSheetOverride:useMaterialOverride,
+    autoMaterialSheet:hasRegisteredStock&&!useMaterialOverride,
+    autoMaterialSheetReason:useMaterialOverride?'manual-material':(hasRegisteredStock?'cadastro-material':'fallback-legado')
   };
   // No modo Seccionadora mantemos somente a limitação física da máquina. Não
   // trocamos a medida do material para caber: o usuário precisa corrigir o
   // cadastro/peça caso a chapa cadastrada ultrapasse o limite do equipamento.
-  if(out.cutMode==='panel'&&hasRegisteredStock&&Math.max(stockW,stockH)>PANEL_SAW_MAX_CUT_MM+.001){
-    throw new Error(`${material?.name||'Material'}: a chapa cadastrada ${nice(stockW)} × ${nice(stockH)} mm ultrapassa o limite de ${PANEL_SAW_MAX_CUT_MM} mm da seccionadora.`);
+  if(out.cutMode==='panel'&&Math.max(Number(out.width)||0,Number(out.height)||0)>PANEL_SAW_MAX_CUT_MM+.001){
+    const origem=useMaterialOverride?'medida manual':'chapa cadastrada';
+    throw new Error(`${material?.name||'Material'}: a ${origem} ${nice(out.width)} × ${nice(out.height)} mm ultrapassa o limite de ${PANEL_SAW_MAX_CUT_MM} mm da seccionadora.`);
   }
   return out;
 }
@@ -1677,12 +1681,36 @@ let cutPlanRestoreGuard=false;
 function cutPlanReadExtraPrefs(){
   try{return JSON.parse(localStorage.getItem(CUT_PLAN_PREFS_KEY)||'{}')||{};}catch(_){return {}}
 }
+function cutPlanAvailableSheetMaterials(){
+  const ids=new Set(allProjectProductionPartsByKind('sheet').map(p=>String(p?.materialId||'')).filter(Boolean));
+  return [...ids].map(id=>productionMaterialById(id)).filter(m=>m&&Number(m.sheetWidth)>=100&&Number(m.sheetHeight)>=100);
+}
+function refreshCutPlanMaterialOverrideUi({syncSize=false}={}){
+  const enabled=$('sheetMaterialOverrideEnabled'),fields=$('sheetMaterialOverrideFields'),sel=$('sheetMaterialOverrideMaterial');
+  if(!enabled||!fields||!sel)return;
+  const old=String(sel.value||'');
+  const mats=cutPlanAvailableSheetMaterials();
+  sel.innerHTML='';
+  for(const m of mats){const o=document.createElement('option');o.value=m.id;o.textContent=`${m.name}${m.code?` · ${m.code}`:''} · cadastro ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)} mm`;sel.appendChild(o);}
+  const wanted=old&&mats.some(m=>m.id===old)?old:(mats[0]?.id||'');
+  sel.value=wanted;
+  fields.style.display=enabled.checked?'block':'none';
+  const m=productionMaterialById(sel.value);
+  if(syncSize&&m){
+    if($('sheetMaterialOverrideWidth'))$('sheetMaterialOverrideWidth').value=nice(m.sheetWidth||2750);
+    if($('sheetMaterialOverrideHeight'))$('sheetMaterialOverrideHeight').value=nice(m.sheetHeight||1850);
+  }
+}
 function cutPlanSaveExtraPrefs(){
   const p={
     optimization:$('sheetOptimization')?.value||'medium',
     direction:$('sheetDirection')?.value||'auto',
     keepLength:Math.max(0,Number($('sheetKeepLength')?.value)||0),
-    keepWidth:Math.max(0,Number($('sheetKeepWidth')?.value)||0)
+    keepWidth:Math.max(0,Number($('sheetKeepWidth')?.value)||0),
+    materialOverrideEnabled:!!$('sheetMaterialOverrideEnabled')?.checked,
+    materialOverrideId:String($('sheetMaterialOverrideMaterial')?.value||''),
+    materialOverrideWidth:Math.max(0,Number($('sheetMaterialOverrideWidth')?.value)||0),
+    materialOverrideHeight:Math.max(0,Number($('sheetMaterialOverrideHeight')?.value)||0)
   };
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify(p));return p;
 }
@@ -1692,6 +1720,12 @@ function applyCutPlanExtraPrefs(){
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
+  if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!p.materialOverrideEnabled;
+  refreshCutPlanMaterialOverrideUi();
+  if($('sheetMaterialOverrideMaterial')&&p.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===p.materialOverrideId))$('sheetMaterialOverrideMaterial').value=p.materialOverrideId;
+  if($('sheetMaterialOverrideWidth'))$('sheetMaterialOverrideWidth').value=Number(p.materialOverrideWidth)>=100?Number(p.materialOverrideWidth):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetWidth||2750);
+  if($('sheetMaterialOverrideHeight'))$('sheetMaterialOverrideHeight').value=Number(p.materialOverrideHeight)>=100?Number(p.materialOverrideHeight):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetHeight||1850);
+  refreshCutPlanMaterialOverrideUi();
 }
 function applyCutPlanCfgToUi(cfg){
   if(!cfg)return;
@@ -1700,11 +1734,21 @@ function applyCutPlanCfgToUi(cfg){
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(cfg.direction)?cfg.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Math.max(0,Number(cfg.keepLength)||0);
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Math.max(0,Number(cfg.keepWidth)||0);
+  if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!cfg.materialOverrideEnabled;
+  refreshCutPlanMaterialOverrideUi();
+  if($('sheetMaterialOverrideMaterial')&&cfg.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===cfg.materialOverrideId))$('sheetMaterialOverrideMaterial').value=cfg.materialOverrideId;
+  if($('sheetMaterialOverrideWidth')&&Number(cfg.materialOverrideWidth)>=100)$('sheetMaterialOverrideWidth').value=Number(cfg.materialOverrideWidth);
+  if($('sheetMaterialOverrideHeight')&&Number(cfg.materialOverrideHeight)>=100)$('sheetMaterialOverrideHeight').value=Number(cfg.materialOverrideHeight);
+  refreshCutPlanMaterialOverrideUi();
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify({
     optimization:cfg.optimization==='medium'?'medium':'advanced',
     direction:['none','length','width'].includes(cfg.direction)?cfg.direction:'auto',
     keepLength:Math.max(0,Number(cfg.keepLength)||0),
-    keepWidth:Math.max(0,Number(cfg.keepWidth)||0)
+    keepWidth:Math.max(0,Number(cfg.keepWidth)||0),
+    materialOverrideEnabled:!!cfg.materialOverrideEnabled,
+    materialOverrideId:String(cfg.materialOverrideId||''),
+    materialOverrideWidth:Math.max(0,Number(cfg.materialOverrideWidth)||0),
+    materialOverrideHeight:Math.max(0,Number(cfg.materialOverrideHeight)||0)
   }));
   setSheetPrefs(cfg);
   updateSheetCutModeUi();
@@ -1967,7 +2011,7 @@ function renderPartsList(){
     for(const [key,data] of byKey.entries()){
       const box=document.createElement('div');box.className='partsGroup';
       const eff=data.sheets.reduce((n,x)=>n+x.g.stats.efficiency,0)/Math.max(1,data.sheets.length);
-      const head=document.createElement('div');head.className='partsGroupHead';const firstCfg=data.sheets[0]?.g?.cfg||cfg;const autoStock=firstCfg.sheetMaterialName?` · ${escapeHtml(firstCfg.sheetMaterialName)}`:'';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(firstCfg.width)}×${nice(firstCfg.height)} · ${nice(eff)}%${autoStock}</span>`;box.appendChild(head);
+      const head=document.createElement('div');head.className='partsGroupHead';const firstCfg=data.sheets[0]?.g?.cfg||cfg;const autoStock=firstCfg.sheetMaterialName?` · ${escapeHtml(firstCfg.sheetMaterialName)}${firstCfg.materialSheetOverride?' · tamanho manual':''}`:'';head.innerHTML=`<span>${escapeHtml(data.name)}</span><span>${data.sheets.length} chapa(s) · ${nice(firstCfg.width)}×${nice(firstCfg.height)} · ${nice(eff)}%${autoStock}</span>`;box.appendChild(head);
       for(const p of cutPlanGroupRows(data.parts)){
         const row=document.createElement('div');row.className='partRow';
         const left=document.createElement('div');const nm=document.createElement('div');nm.className='partRowName';nm.innerHTML=`<span class="cutPlanCode">${escapeHtml(p.cutCode||'?')}</span>${escapeHtml(p.name||'Peça')}`;
@@ -2412,6 +2456,9 @@ $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPa
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
 if($('sheetPanelFirst'))$('sheetPanelFirst').addEventListener('change',renderPartsList);
+if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi();renderPartsList();});
+if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi({syncSize:true});renderPartsList();});
+['sheetMaterialOverrideWidth','sheetMaterialOverrideHeight'].forEach(id=>{if($(id))$(id).addEventListener('input',renderPartsList);});
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
 if($('exportPanelSawSequenceBtn'))$('exportPanelSawSequenceBtn').onclick=exportPanelSawSequenceCsv;

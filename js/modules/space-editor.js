@@ -672,7 +672,7 @@ function cutSpacePrefsStorageKey(){
   return `${CUT_SPACE_PREFS_KEY}:${owner}`;
 }
 function defaultCutSpacePrefs(){
-  return {amount:18,side:'left',fixed:false,count:2};
+  return {amount:18,fixed:false,count:2};
 }
 function loadCutSpacePrefs(){
   const fallback=defaultCutSpacePrefs();
@@ -680,11 +680,9 @@ function loadCutSpacePrefs(){
     const raw=JSON.parse(localStorage.getItem(cutSpacePrefsStorageKey())||'null');
     if(!raw)return fallback;
     const amount=Number(raw.amount);
-    const sides=['left','right','top','bottom','front','back'];
     const count=Math.round(Number(raw.count));
     return {
       amount:Number.isFinite(amount)&&amount>=0?amount:fallback.amount,
-      side:sides.includes(raw.side)?raw.side:fallback.side,
       fixed:!!raw.fixed,
       count:Number.isFinite(count)&&count>=1&&count<=50?count:fallback.count
     };
@@ -694,7 +692,9 @@ function loadCutSpacePrefs(){
 }
 function applyCutSpacePrefs(){
   const p=loadCutSpacePrefs();
-  cutSide=p.side;
+  // A medida salva é global para todos os sentidos. O lado atualmente
+  // escolhido permanece intacto; esquerda/direita/cima/baixo/frente/trás
+  // passam a usar a mesma medida, quantidade e modo fixo salvos.
   $('cutAmount').value=nice(p.amount);
   if($('cutCount'))$('cutCount').value=String(p.count||2);
   $('cutFixed').checked=!!p.fixed;
@@ -702,7 +702,7 @@ function applyCutSpacePrefs(){
     b=>b.classList.toggle('active',b.dataset.cutSide===cutSide)
   );
   $('cutSavedInfo').innerHTML=
-    `Configuração carregada: <strong>${nice(p.amount)} mm · ${Number(p.amount)===0?`${p.count||2} vão(s) iguais · `:''}${cutSideName(p.side)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
+    `Configuração carregada para todos os sentidos: <strong>${nice(p.amount)} mm · ${Number(p.amount)===0?`${p.count||2} vão(s) iguais · `:''}${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
   updateCutPreview();
 }
 function cutSpaceCountValue({strict=false}={}){
@@ -725,12 +725,12 @@ function saveCutSpacePrefs(){
     toast('Quantidade de vãos: use um número inteiro entre 1 e 50');
     return;
   }
-  const p={amount,side:cutSide,fixed:!!$('cutFixed').checked,count};
+  const p={amount,fixed:!!$('cutFixed').checked,count};
   try{
     localStorage.setItem(cutSpacePrefsStorageKey(),JSON.stringify(p));
     $('cutSavedInfo').innerHTML=
-      `Salvo para esta conta: <strong>${nice(amount)} mm · ${amount===0?`${count} vão(s) iguais · `:''}${cutSideName(cutSide)} · ${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
-    toast('Configuração do corte salva');
+      `Salvo para todos os sentidos: <strong>${nice(amount)} mm · ${amount===0?`${count} vão(s) iguais · `:''}${p.fixed?'faixa fixa':'faixa solta'}</strong>.`;
+    toast('Configuração do corte salva para todos os sentidos');
   }catch{
     toast('Não foi possível salvar a configuração');
   }
