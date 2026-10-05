@@ -901,7 +901,7 @@
     <button id="addShapeBtn" class="secondary">◜ Forma</button>
     <button id="copyShapeBtn" class="secondary">⧉ Copiar Forma</button>
     <button id="manageMachiningBtn" class="secondary">Usinagens</button>
-    <button id="materialsToolBtn" class="secondary">🎨 Materiais / fitas</button>
+    <button id="materialsToolBtn" class="secondary">🎨 Materiais</button>
     <button id="labelsToolBtn" class="secondary">🏷 Etiquetas das peças</button>
     <button id="layoutToolBtn" class="secondary">📐 Gerar layout técnico</button>
     <button id="rotX" class="secondary">Girar X 90°</button>
@@ -1036,7 +1036,7 @@
 
 <div id="productionDialog">
   <div class="card">
-    <h3>🎨 Materiais / fitas de borda</h3>
+    <h3>🎨 Materiais</h3>
     <p class="dialogHelp">O app separa três tipos de produção: chapas, madeira maciça em prancha e ferro/perfis em barra. A espessura continua vindo da própria peça. As medidas de chapa/prancha podem ser editadas por qualquer usuário; ao salvar um padrão alterado, o app cria uma variação no projeto sem mudar a biblioteca original.</p>
 
     <div class="productionSection">
@@ -1629,7 +1629,23 @@
       <div class="cutPlanSectionTitle">Materiais e chapas</div>
       <div class="sheetMaterialAutoInfo">
         <strong>Chapa automática pelo cadastro do material</strong>
-        <span>O plano separa cada material e usa a medida e o sentido do veio salvos no cadastro. Ex.: MDF 2750 × 1850 mm e Compensado Naval 3050 × 1610 mm podem aparecer juntos no mesmo plano, cada um em sua própria chapa.</span>
+        <span>Por padrão, cada material usa a própria chapa cadastrada. Se precisar cortar um material em uma medida temporária (ex.: Branco TX em tiras/chapa de 2750 × 600 mm), ative a opção abaixo e escolha qual material será substituído somente neste plano.</span>
+      </div>
+      <label class="sheetMaterialOverrideToggle" style="display:flex;align-items:center;gap:10px;margin-top:10px">
+        <input id="sheetMaterialOverrideEnabled" type="checkbox">
+        <span><strong>Usar tamanho manual para um material neste plano</strong><br><small>Desativado = usa exatamente o tamanho salvo no cadastro do material.</small></span>
+      </label>
+      <div id="sheetMaterialOverrideFields" style="display:none;margin-top:10px">
+        <div class="spaceFields two">
+          <label>Material
+            <select id="sheetMaterialOverrideMaterial"></select>
+          </label>
+          <label>Comprimento da chapa (mm)<input id="sheetMaterialOverrideWidth" type="number" value="2750" min="100" step="1"></label>
+        </div>
+        <div class="spaceFields two">
+          <label>Largura da chapa (mm)<input id="sheetMaterialOverrideHeight" type="number" value="1850" min="100" step="1"></label>
+          <div class="sheetMaterialAutoInfo" style="margin:0"><span>Esta medida vale <strong>somente</strong> para o material selecionado enquanto a opção estiver ativada. Os demais materiais continuam usando seus próprios cadastros.</span></div>
+        </div>
       </div>
       <input id="sheetWidth" type="hidden" value="2750">
       <input id="sheetHeight" type="hidden" value="1850">
@@ -2747,7 +2763,7 @@
     <div class="dlSuiteQuickGrid">
       <button id="productionSuiteRecheck" type="button">↻ Verificar novamente</button>
       <button id="productionSuiteHistory" class="secondary" type="button">🕘 Histórico</button>
-      <button id="productionSuiteMaterials" class="secondary" type="button">🎨 Materiais / fitas</button>
+      <button id="productionSuiteMaterials" class="secondary" type="button">🎨 Materiais</button>
       <button id="productionSuiteWoodPlan" class="secondary" type="button">🪵 Plano madeira</button>
       <button id="productionSuiteMetalPlan" class="secondary" type="button">▰ Plano ferro</button>
       <button id="productionSuiteLayout" class="secondary" type="button">📐 Layout técnico</button>
