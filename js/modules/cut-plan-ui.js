@@ -413,9 +413,8 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   // troca manual de configuração entre os grupos.
   const stockW=Number(material?.sheetWidth||0),stockH=Number(material?.sheetHeight||0);
   const hasRegisteredStock=stockW>=100&&stockH>=100;
-  const overrideW=Number(cfg.materialOverrideWidth||0),overrideH=Number(cfg.materialOverrideHeight||0),overrideT=Number(cfg.materialOverrideThickness||0);
-  const groupThickness=Number(parts[0]?.thickness||0);
-  const useMaterialOverride=!!cfg.materialOverrideEnabled&&!!material?.id&&String(cfg.materialOverrideId||'')===String(material.id)&&overrideT>0&&Math.abs(groupThickness-overrideT)<.01&&overrideW>=100&&overrideH>=100;
+  const overrideW=Number(cfg.materialOverrideWidth||0),overrideH=Number(cfg.materialOverrideHeight||0);
+  const useMaterialOverride=!!cfg.materialOverrideEnabled&&!!material?.id&&String(cfg.materialOverrideId||'')===String(material.id)&&overrideW>=100&&overrideH>=100;
   const out={
     ...cfg,
     width:useMaterialOverride?overrideW:(hasRegisteredStock?stockW:cfg.width),
@@ -1678,46 +1677,24 @@ const CUT_PLAN_PREFS_KEY='designlabCutPlanV42';
 let cutPlanLastGroups=[];
 let cutPlanLastValidCfg=null;
 let cutPlanRestoreGuard=false;
+let cutPlanMaterialOverrideConfirmed=null;
 
 function cutPlanReadExtraPrefs(){
   try{return JSON.parse(localStorage.getItem(CUT_PLAN_PREFS_KEY)||'{}')||{};}catch(_){return {}}
 }
 function cutPlanAvailableSheetMaterials(){
-  const raw=allProjectProductionPartsByKind('sheet');
-  const byId=new Map();
-  for(const p of raw){
-    const id=String(p?.materialId||'').trim();if(!id)continue;
-    if(!byId.has(id))byId.set(id,new Set());
-    const t=Number(p?.thickness||0);if(t>0)byId.get(id).add(roundMmNumber(t,3));
-  }
-  return [...byId.entries()].map(([id,thicknesses])=>{
-    const material=productionMaterialById(id);
-    return material&&Number(material.sheetWidth)>=100&&Number(material.sheetHeight)>=100
-      ? {material,thicknesses:[...thicknesses].sort((a,b)=>a-b)}:null;
-  }).filter(Boolean);
+  const ids=new Set(allProjectProductionPartsByKind('sheet').map(p=>String(p?.materialId||'')).filter(Boolean));
+  return [...ids].map(id=>productionMaterialById(id)).filter(m=>m&&Number(m.sheetWidth)>=100&&Number(m.sheetHeight)>=100);
 }
-function refreshCutPlanMaterialOverrideThickness({preferred=null}={}){
-  const matSel=$('sheetMaterialOverrideMaterial'),thSel=$('sheetMaterialOverrideThickness');
-  if(!matSel||!thSel)return;
-  const rows=cutPlanAvailableSheetMaterials(),row=rows.find(r=>String(r.material.id)===String(matSel.value));
-  const old=preferred??thSel.value;
-  thSel.innerHTML='';
-  for(const t of (row?.thicknesses||[])){
-    const o=document.createElement('option');o.value=String(t);o.textContent=`${nice(t)} mm`;thSel.appendChild(o);
-  }
-  if([...thSel.options].some(o=>String(o.value)===String(old)))thSel.value=String(old);
-  else if(thSel.options.length)thSel.selectedIndex=0;
-}
-function refreshCutPlanMaterialOverrideUi({syncSize=false,preferredThickness=null}={}){
+function refreshCutPlanMaterialOverrideUi({syncSize=false}={}){
   const enabled=$('sheetMaterialOverrideEnabled'),fields=$('sheetMaterialOverrideFields'),sel=$('sheetMaterialOverrideMaterial');
   if(!enabled||!fields||!sel)return;
   const old=String(sel.value||'');
-  const rows=cutPlanAvailableSheetMaterials();
+  const mats=cutPlanAvailableSheetMaterials();
   sel.innerHTML='';
-  for(const row of rows){const m=row.material,o=document.createElement('option');o.value=m.id;o.textContent=`${m.name}${m.code?` · ${m.code}`:''} · cadastro ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)} mm`;sel.appendChild(o);}
-  const wanted=old&&rows.some(r=>String(r.material.id)===old)?old:(rows[0]?.material?.id||'');
+  for(const m of mats){const o=document.createElement('option');o.value=m.id;o.textContent=`${m.name}${m.code?` · ${m.code}`:''} · cadastro ${nice(m.sheetWidth)} × ${nice(m.sheetHeight)} mm`;sel.appendChild(o);}
+  const wanted=old&&mats.some(m=>m.id===old)?old:(mats[0]?.id||'');
   sel.value=wanted;
-  refreshCutPlanMaterialOverrideThickness({preferred:preferredThickness});
   fields.style.display=enabled.checked?'block':'none';
   const m=productionMaterialById(sel.value);
   if(syncSize&&m){
@@ -1725,49 +1702,60 @@ function refreshCutPlanMaterialOverrideUi({syncSize=false,preferredThickness=nul
     if($('sheetMaterialOverrideHeight'))$('sheetMaterialOverrideHeight').value=nice(m.sheetHeight||1850);
   }
 }
-function cutPlanSaveExtraPrefs({commitMaterialOverride=false}={}){
-  const prev=cutPlanReadExtraPrefs();
+function cutPlanSaveExtraPrefs(){
+  const saved=cutPlanMaterialOverrideConfirmed||cutPlanReadExtraPrefs();
   const p={
     optimization:$('sheetOptimization')?.value||'medium',
     direction:$('sheetDirection')?.value||'auto',
     keepLength:Math.max(0,Number($('sheetKeepLength')?.value)||0),
     keepWidth:Math.max(0,Number($('sheetKeepWidth')?.value)||0),
-    materialOverrideEnabled:commitMaterialOverride?!!$('sheetMaterialOverrideEnabled')?.checked:!!prev.materialOverrideEnabled,
-    materialOverrideId:commitMaterialOverride?String($('sheetMaterialOverrideMaterial')?.value||''):String(prev.materialOverrideId||''),
-    materialOverrideThickness:commitMaterialOverride?Math.max(0,Number($('sheetMaterialOverrideThickness')?.value)||0):Math.max(0,Number(prev.materialOverrideThickness)||0),
-    materialOverrideWidth:commitMaterialOverride?Math.max(0,Number($('sheetMaterialOverrideWidth')?.value)||0):Math.max(0,Number(prev.materialOverrideWidth)||0),
-    materialOverrideHeight:commitMaterialOverride?Math.max(0,Number($('sheetMaterialOverrideHeight')?.value)||0):Math.max(0,Number(prev.materialOverrideHeight)||0)
+    // O tamanho manual só entra no cálculo depois de Confirmar medida.
+    // Os campos visíveis funcionam como rascunho até esse momento.
+    materialOverrideEnabled:!!saved.materialOverrideEnabled,
+    materialOverrideId:String(saved.materialOverrideId||''),
+    materialOverrideWidth:Math.max(0,Number(saved.materialOverrideWidth)||0),
+    materialOverrideHeight:Math.max(0,Number(saved.materialOverrideHeight)||0)
   };
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify(p));return p;
 }
 function applyCutPlanExtraPrefs(){
   const p=cutPlanReadExtraPrefs();
+  cutPlanMaterialOverrideConfirmed={
+    materialOverrideEnabled:!!p.materialOverrideEnabled,
+    materialOverrideId:String(p.materialOverrideId||''),
+    materialOverrideWidth:Math.max(0,Number(p.materialOverrideWidth)||0),
+    materialOverrideHeight:Math.max(0,Number(p.materialOverrideHeight)||0)
+  };
   if($('sheetOptimization'))$('sheetOptimization').value=p.optimization==='medium'?'medium':'advanced';
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
   if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!p.materialOverrideEnabled;
-  refreshCutPlanMaterialOverrideUi({preferredThickness:p.materialOverrideThickness});
+  refreshCutPlanMaterialOverrideUi();
   if($('sheetMaterialOverrideMaterial')&&p.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===p.materialOverrideId))$('sheetMaterialOverrideMaterial').value=p.materialOverrideId;
-  refreshCutPlanMaterialOverrideThickness({preferred:p.materialOverrideThickness});
   if($('sheetMaterialOverrideWidth'))$('sheetMaterialOverrideWidth').value=Number(p.materialOverrideWidth)>=100?Number(p.materialOverrideWidth):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetWidth||2750);
   if($('sheetMaterialOverrideHeight'))$('sheetMaterialOverrideHeight').value=Number(p.materialOverrideHeight)>=100?Number(p.materialOverrideHeight):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetHeight||1850);
-  refreshCutPlanMaterialOverrideUi({preferredThickness:p.materialOverrideThickness});
+  refreshCutPlanMaterialOverrideUi();
 }
 function applyCutPlanCfgToUi(cfg){
   if(!cfg)return;
+  cutPlanMaterialOverrideConfirmed={
+    materialOverrideEnabled:!!cfg.materialOverrideEnabled,
+    materialOverrideId:String(cfg.materialOverrideId||''),
+    materialOverrideWidth:Math.max(0,Number(cfg.materialOverrideWidth)||0),
+    materialOverrideHeight:Math.max(0,Number(cfg.materialOverrideHeight)||0)
+  };
   applySheetPrefsToUi(cfg);
   if($('sheetOptimization'))$('sheetOptimization').value=cfg.optimization==='medium'?'medium':'advanced';
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(cfg.direction)?cfg.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Math.max(0,Number(cfg.keepLength)||0);
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Math.max(0,Number(cfg.keepWidth)||0);
   if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!cfg.materialOverrideEnabled;
-  refreshCutPlanMaterialOverrideUi({preferredThickness:cfg.materialOverrideThickness});
+  refreshCutPlanMaterialOverrideUi();
   if($('sheetMaterialOverrideMaterial')&&cfg.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===cfg.materialOverrideId))$('sheetMaterialOverrideMaterial').value=cfg.materialOverrideId;
-  refreshCutPlanMaterialOverrideThickness({preferred:cfg.materialOverrideThickness});
   if($('sheetMaterialOverrideWidth')&&Number(cfg.materialOverrideWidth)>=100)$('sheetMaterialOverrideWidth').value=Number(cfg.materialOverrideWidth);
   if($('sheetMaterialOverrideHeight')&&Number(cfg.materialOverrideHeight)>=100)$('sheetMaterialOverrideHeight').value=Number(cfg.materialOverrideHeight);
-  refreshCutPlanMaterialOverrideUi({preferredThickness:cfg.materialOverrideThickness});
+  refreshCutPlanMaterialOverrideUi();
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify({
     optimization:cfg.optimization==='medium'?'medium':'advanced',
     direction:['none','length','width'].includes(cfg.direction)?cfg.direction:'auto',
@@ -1775,7 +1763,6 @@ function applyCutPlanCfgToUi(cfg){
     keepWidth:Math.max(0,Number(cfg.keepWidth)||0),
     materialOverrideEnabled:!!cfg.materialOverrideEnabled,
     materialOverrideId:String(cfg.materialOverrideId||''),
-    materialOverrideThickness:Math.max(0,Number(cfg.materialOverrideThickness)||0),
     materialOverrideWidth:Math.max(0,Number(cfg.materialOverrideWidth)||0),
     materialOverrideHeight:Math.max(0,Number(cfg.materialOverrideHeight)||0)
   }));
@@ -1784,6 +1771,10 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
+  // 1.311.00-r15 · o override manual é uma preferência extra do plano, não faz
+  // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
+  // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
+  // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
   return {
     ...base,
     optimization:x.optimization,
@@ -1792,26 +1783,9 @@ function cutPlanCfgFromUi(){
     keepWidth:x.keepWidth,
     materialOverrideEnabled:x.materialOverrideEnabled,
     materialOverrideId:x.materialOverrideId,
-    materialOverrideThickness:x.materialOverrideThickness,
     materialOverrideWidth:x.materialOverrideWidth,
     materialOverrideHeight:x.materialOverrideHeight
   };
-}
-function confirmCutPlanMaterialOverride(){
-  const enabled=!!$('sheetMaterialOverrideEnabled')?.checked;
-  if(enabled){
-    const materialId=String($('sheetMaterialOverrideMaterial')?.value||''),thickness=Number($('sheetMaterialOverrideThickness')?.value||0),w=Number($('sheetMaterialOverrideWidth')?.value||0),h=Number($('sheetMaterialOverrideHeight')?.value||0);
-    const material=productionMaterialById(materialId);
-    if(!material){toast('Selecione o material da chapa.');return;}
-    if(!(thickness>0)){toast('Selecione a espessura da chapa.');return;}
-    if(!(w>=100&&h>=100)){toast('Informe comprimento e largura válidos antes de confirmar.');return;}
-    cutPlanSaveExtraPrefs({commitMaterialOverride:true});
-    toast(`Medida confirmada: ${material.name} · ${nice(thickness)} mm · ${nice(w)} × ${nice(h)} mm`);
-  }else{
-    cutPlanSaveExtraPrefs({commitMaterialOverride:true});
-    toast('Tamanho manual desativado. O plano voltou a usar o cadastro do material.');
-  }
-  renderPartsList();
 }
 function cutPlanModeLabel(cfg){
   return cfg.cutMode==='panel'?'Seccionadora · cortes retos':cfg.cutMode==='cnc'?'CNC / Router · encaixe livre':'Otimizado · cortes guilhotina';
@@ -2512,10 +2486,34 @@ $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPa
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
 if($('sheetPanelFirst'))$('sheetPanelFirst').addEventListener('change',renderPartsList);
-if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi();});
-if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideThickness();refreshCutPlanMaterialOverrideUi({syncSize:true});});
-if($('sheetMaterialOverrideThickness'))$('sheetMaterialOverrideThickness').addEventListener('change',()=>{});
-if($('sheetMaterialOverrideConfirm'))$('sheetMaterialOverrideConfirm').addEventListener('click',confirmCutPlanMaterialOverride);
+if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{
+  refreshCutPlanMaterialOverrideUi();
+  if(!$('sheetMaterialOverrideEnabled').checked){
+    const prev=cutPlanMaterialOverrideConfirmed||cutPlanReadExtraPrefs();
+    cutPlanMaterialOverrideConfirmed={
+      materialOverrideEnabled:false,
+      materialOverrideId:String(prev.materialOverrideId||''),
+      materialOverrideWidth:Math.max(0,Number(prev.materialOverrideWidth)||0),
+      materialOverrideHeight:Math.max(0,Number(prev.materialOverrideHeight)||0)
+    };
+    cutPlanSaveExtraPrefs();
+    renderPartsList();
+  }
+});
+if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi({syncSize:true});});
+// Comprimento/largura são rascunho: digitar não recalcula o plano.
+if($('sheetMaterialOverrideConfirm'))$('sheetMaterialOverrideConfirm').addEventListener('click',()=>{
+  if(!$('sheetMaterialOverrideEnabled')?.checked){toast('Ative o tamanho manual antes de confirmar.');return;}
+  const id=String($('sheetMaterialOverrideMaterial')?.value||'');
+  const w=Math.max(0,Number($('sheetMaterialOverrideWidth')?.value)||0);
+  const h=Math.max(0,Number($('sheetMaterialOverrideHeight')?.value)||0);
+  if(!id){toast('Selecione o material.');return;}
+  if(w<100||h<100){toast('Informe comprimento e largura válidos da chapa.');return;}
+  cutPlanMaterialOverrideConfirmed={materialOverrideEnabled:true,materialOverrideId:id,materialOverrideWidth:w,materialOverrideHeight:h};
+  cutPlanSaveExtraPrefs();
+  toast(`Medida confirmada: ${nice(w)} × ${nice(h)} mm.`);
+  renderPartsList();
+});
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
 if($('exportPanelSawSequenceBtn'))$('exportPanelSawSequenceBtn').onclick=exportPanelSawSequenceCsv;
