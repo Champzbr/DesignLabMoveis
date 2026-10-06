@@ -1720,7 +1720,10 @@ function applyCutPlanExtraPrefs(){
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
-  if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!p.materialOverrideEnabled;
+  // O tamanho manual é temporário para o plano atual e só pode entrar em vigor
+  // após uma ativação explícita do usuário. Não reativamos automaticamente um
+  // override salvo de uma abertura anterior do diálogo.
+  if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=false;
   refreshCutPlanMaterialOverrideUi();
   if($('sheetMaterialOverrideMaterial')&&p.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===p.materialOverrideId))$('sheetMaterialOverrideMaterial').value=p.materialOverrideId;
   if($('sheetMaterialOverrideWidth'))$('sheetMaterialOverrideWidth').value=Number(p.materialOverrideWidth)>=100?Number(p.materialOverrideWidth):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetWidth||2750);
@@ -2470,7 +2473,13 @@ $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPa
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
 if($('sheetPanelFirst'))$('sheetPanelFirst').addEventListener('change',renderPartsList);
-if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi();renderPartsList();});
+if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{
+  // Ao ativar, começamos sempre pelo tamanho cadastrado do material escolhido.
+  // Assim uma medida manual antiga (ex.: 2750×600) nunca é aplicada antes de
+  // o usuário escolher conscientemente usar o override nesta abertura.
+  refreshCutPlanMaterialOverrideUi({syncSize:!!$('sheetMaterialOverrideEnabled').checked});
+  renderPartsList();
+});
 if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi({syncSize:true});renderPartsList();});
 ['sheetMaterialOverrideWidth','sheetMaterialOverrideHeight'].forEach(id=>{if($(id))$(id).addEventListener('input',renderPartsList);});
 
