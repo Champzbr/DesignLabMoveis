@@ -1640,14 +1640,18 @@
           <label>Material
             <select id="sheetMaterialOverrideMaterial"></select>
           </label>
-          <label>Comprimento da chapa (mm)<input id="sheetMaterialOverrideWidth" type="number" value="2750" min="100" step="1"></label>
+          <label>Espessura da chapa
+            <select id="sheetMaterialOverrideThickness"></select>
+          </label>
         </div>
         <div class="spaceFields two">
+          <label>Comprimento da chapa (mm)<input id="sheetMaterialOverrideWidth" type="number" value="2750" min="100" step="1"></label>
           <label>Largura da chapa (mm)<input id="sheetMaterialOverrideHeight" type="number" value="1850" min="100" step="1"></label>
-          <div class="sheetMaterialAutoInfo" style="margin:0"><span>Esta medida vale <strong>somente</strong> para o material selecionado enquanto a opção estiver ativada. Os demais materiais continuam usando seus próprios cadastros.</span></div>
         </div>
-        <button id="sheetMaterialOverrideConfirm" type="button" style="width:100%;margin-top:10px">✓ Confirmar tamanho da chapa</button>
-        <small id="sheetMaterialOverridePendingHint" style="display:block;margin-top:6px;opacity:.78">A medida só será aplicada ao plano depois de confirmar.</small>
+        <div class="spaceFields two">
+          <button id="sheetMaterialOverrideConfirm" type="button">✓ Confirmar medida</button>
+          <div class="sheetMaterialAutoInfo" style="margin:0"><span>A medida só entra no cálculo depois de tocar em <strong>Confirmar medida</strong>. Ela vale apenas para o material e a espessura escolhidos. Ex.: Branco TX 18 mm pode usar 2750 × 600 mm sem alterar Branco TX 6 mm ou 15 mm.</span></div>
+        </div>
       </div>
       <input id="sheetWidth" type="hidden" value="2750">
       <input id="sheetHeight" type="hidden" value="1850">
