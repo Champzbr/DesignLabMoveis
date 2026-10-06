@@ -1755,7 +1755,21 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  return {...base,optimization:x.optimization,direction:x.direction,keepLength:x.keepLength,keepWidth:x.keepWidth};
+  // 1.311.00-r15 · o override manual é uma preferência extra do plano, não faz
+  // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
+  // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
+  // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
+  return {
+    ...base,
+    optimization:x.optimization,
+    direction:x.direction,
+    keepLength:x.keepLength,
+    keepWidth:x.keepWidth,
+    materialOverrideEnabled:x.materialOverrideEnabled,
+    materialOverrideId:x.materialOverrideId,
+    materialOverrideWidth:x.materialOverrideWidth,
+    materialOverrideHeight:x.materialOverrideHeight
+  };
 }
 function cutPlanModeLabel(cfg){
   return cfg.cutMode==='panel'?'Seccionadora · cortes retos':cfg.cutMode==='cnc'?'CNC / Router · encaixe livre':'Otimizado · cortes guilhotina';
