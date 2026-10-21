@@ -343,26 +343,34 @@ document.addEventListener('pointerdown',e=>{
   if(!e.target.closest('#projectMenuPanel')&&!e.target.closest('#projectMenuBtn'))$('projectMenuPanel').classList.remove('show');
   if(!e.target.closest('#projectCardMenu')&&!e.target.closest('[data-project-action="menu"]'))closeProjectCardMenu();
 });
-// Atalhos de exclusão no editor desktop: reutilizam as rotinas dos botões.
+// Atalhos CAD no navegador desktop; sempre chamam as mesmas ações dos botões.
 window.addEventListener('keydown',e=>{
-  if(e.defaultPrevented || e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey)return;
-  if(e.key!=='Delete' && e.key!=='Backspace')return;
-  if(window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(pointer: fine)').matches)return;
+  if(e.defaultPrevented || e.repeat || e.isComposing || e.altKey)return;
   const target=e.target;
-  if(target?.closest?.('input,textarea,select,[contenteditable], [role="textbox"]'))return;
-  if(document.activeElement?.closest?.('input,textarea,select,[contenteditable], [role="textbox"]'))return;
+  const editable='input,textarea,select,[contenteditable],[role="textbox"]';
+  if(target?.closest?.(editable) || document.activeElement?.closest?.(editable))return;
   if(document.body.classList.contains('visualization-only') || document.body.classList.contains('presentation-active') || state.visualMode)return;
-  // Nunca apagar objetos por trás de modais, telas de projetos ou autenticação.
+  if(window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(pointer: fine)').matches)return;
+  const blockingIds=['authDialog','appSettingsDialog','deleteSpaceCellDialog','newSpaceDialog','editSpaceDialog','spaceMoreDialog','productionDialog','libraryDialog','machiningDialog','shapeDialog','projectVersionsDialog'];
   if(document.querySelector('.projectModal.show, [role="dialog"][open], [aria-modal="true"].show'))return;
-  const blockingIds=['authDialog','appSettingsDialog','deleteSpaceCellDialog','pieceInspectorDialog','newSpaceDialog','editSpaceDialog','spaceMoreDialog','productionDialog','libraryDialog','machiningDialog','shapeDialog','projectVersionsDialog'];
   if(blockingIds.some(id=>{const el=$(id);return el && getComputedStyle(el).display!=='none' && getComputedStyle(el).visibility!=='hidden' && el.getClientRects().length>0;}))return;
-  if(state.selected){e.preventDefault();deleteSelectedFromInspector();return;}
-  if(ctx.selectedSpaceCell?.rootId){
-    e.preventDefault();
-    // Delete em um vão selecionado segue a mesma confirmação de 'Apagar espaço selecionado'.
-    openDeleteSelectedSpaceCellDialog();return;
+  const key=e.key.toLowerCase(),mod=e.ctrlKey||e.metaKey;
+  if(mod){
+    if(key==='d' && !e.shiftKey){if(!state.selected)return;e.preventDefault();requestDuplicateSelected();return;}
+    if(key==='z'){e.preventDefault();(e.shiftKey?redo:undo)();return;}
+    if(key==='y' && !e.shiftKey){e.preventDefault();redo();return;}
+    return;
   }
-  if(ctx.activeSpaceRootId){e.preventDefault();deleteSelectedSpaceRoot();}
+  if(e.shiftKey)return;
+  if(key==='delete'||key==='backspace'){
+    if(state.selected){e.preventDefault();deleteSelectedFromInspector();return;}
+    if(ctx.selectedSpaceCell?.rootId){e.preventDefault();openDeleteSelectedSpaceCellDialog();return;}
+    if(ctx.activeSpaceRootId){e.preventDefault();deleteSelectedSpaceRoot();}
+    return;
+  }
+  const tool={v:'select',m:'move-free',t:'tape'}[key];
+  if(tool){e.preventDefault();ctx.setTool(tool);return;}
+  if(key==='escape' && state.toolMode!=='select'){e.preventDefault();ctx.setTool('select');}
 });
 window.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('appSettingsDialog')?.classList.contains('show')){

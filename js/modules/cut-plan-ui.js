@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r17';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r18';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -406,7 +406,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   const cfg={...(baseCfg||{}),...normalizedSheetPrefs(baseCfg||{})};
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.311.00-r17 · a chapa é SEMPRE definida pelo cadastro do material.
+  // 1.311.00-r18 · a chapa é SEMPRE definida pelo cadastro do material.
   // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
   // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
   // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
@@ -439,13 +439,13 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r17 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r18 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r17: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.311.00-r18: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -543,7 +543,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r17 · transferência manual entre chapas.
+// 1.311.00-r18 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1797,7 +1797,7 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  // 1.311.00-r17 · o override manual é uma preferência extra do plano, não faz
+  // 1.311.00-r18 · o override manual é uma preferência extra do plano, não faz
   // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
   // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
   // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
@@ -2088,7 +2088,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`Peças gerais do projeto · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r17 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r18 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
