@@ -1,1 +1,1 @@
-{"version":"1.312.00-r2","date":"2026-10-21","message":"Etiquetas com nome central, medidas por lado, fitas discretas e avanço configurável."}
+{"version":"1.312.00-r3","date":"2026-10-21","message":"Correção da inicialização das configurações de etiquetas (refreshConfig)."}
