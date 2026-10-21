@@ -1,1 +1,5 @@
-{"version":"1.312.00-r5","date":"2026-10-21","message":"Importação inicial de chapas retangulares SketchUp DAE."}
+{
+  "version": "1.312.00-r7",
+  "date": "2026-10-21",
+  "message": "Remoção da seção Modelos da tela inicial, preservando navegação e funcionalidades."
+}
