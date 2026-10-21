@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r19';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r20';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -404,9 +404,14 @@ function panelSawPartFitsCfg(part,cfg){
 }
 function sheetPrefsForPartGroup(baseCfg,parts=[]){
   const cfg={...(baseCfg||{}),...normalizedSheetPrefs(baseCfg||{})};
+  if(externalCutMode&&parts.length&&parts.every(p=>p?.materialCode==='CSV')){
+    const out={...cfg,width:externalCutSheetSize.width,height:externalCutSheetSize.height,materialSheet:false,autoMaterialSheet:false};
+    if(out.cutMode==='panel'&&Math.max(out.width,out.height)>PANEL_SAW_MAX_CUT_MM+.001)throw new Error(`Chapa externa ${nice(out.width)} × ${nice(out.height)} mm ultrapassa o limite de ${PANEL_SAW_MAX_CUT_MM} mm da seccionadora.`);
+    return out;
+  }
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.311.00-r19 · a chapa é SEMPRE definida pelo cadastro do material.
+  // 1.311.00-r20 · a chapa é SEMPRE definida pelo cadastro do material.
   // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
   // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
   // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
@@ -439,13 +444,13 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r19 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r20 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r19: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.311.00-r20: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -543,7 +548,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r19 · transferência manual entre chapas.
+// 1.311.00-r20 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1797,7 +1802,7 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  // 1.311.00-r19 · o override manual é uma preferência extra do plano, não faz
+  // 1.311.00-r20 · o override manual é uma preferência extra do plano, não faz
   // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
   // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
   // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
@@ -1992,6 +1997,7 @@ function cutPlanSheetStats(sheet,cfg){
 // Importação isolada: não altera objetos, histórico ou materiais do projeto.
 let externalCutRows=[];
 let externalCutMode=false;
+let externalCutSheetSize={width:3050,height:1600};
 function externalCutParseCsv(text){
   const rows=[];let row=[],field='',quoted=false;
   text=String(text||'').replace(/^\uFEFF/,'');
@@ -2028,7 +2034,7 @@ function externalCutParts(){
 function externalCutRefresh(){
   const el=$('externalCutStatus');if(!el)return;
   const count=externalCutRows.reduce((n,r)=>n+r.qty,0);
-  el.textContent=externalCutRows.length?`${externalCutRows.length} linhas · ${count} peças. Apenas comprimento, largura e quantidade. Chapa conforme os campos do plano de corte.`:'Nenhuma lista carregada. O projeto 3D permanece intacto.';
+  el.textContent=externalCutRows.length?`${externalCutRows.length} linhas · ${count} peças. Apenas comprimento, largura e quantidade. Chapa configurada nesta janela.`:'Nenhuma lista carregada. O projeto 3D permanece intacto.';
   const tbody=$('externalCutPreview');if(tbody)tbody.textContent='';
   externalCutRows.slice(0,150).forEach((r,i)=>{const tr=document.createElement('tr');[i+1,r.faceW,r.faceH,r.qty].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});tbody.appendChild(tr)});
   $('externalCutGenerate').disabled=!count;
@@ -2132,7 +2138,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`${externalCutMode?'Lista externa importada':'Peças gerais do projeto'} · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r19 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r20 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
@@ -2550,6 +2556,7 @@ async function exportPanelSawMingliZaw(){
 
 $('externalCutOpen').onclick=()=>{$('externalCutDialog').style.display='flex';externalCutRefresh();};
 $('externalCutClose').onclick=()=>{$('externalCutDialog').style.display='none';};
+$('externalCutCancel').onclick=$('externalCutClose').onclick;
 $('externalCutFile').addEventListener('change',async e=>{
   const file=e.target.files?.[0];if(!file)return;
   try{externalCutRows=externalCutParseCsv(await file.text());externalCutRefresh();}
@@ -2557,6 +2564,9 @@ $('externalCutFile').addEventListener('change',async e=>{
   e.target.value='';
 });
 $('externalCutGenerate').onclick=()=>{
+  const width=Number($('externalCutSheetWidth').value),height=Number($('externalCutSheetHeight').value);
+  if(!Number.isFinite(width)||!Number.isFinite(height)||width<100||height<100){toast('Informe medidas válidas para a chapa externa.');return;}
+  externalCutSheetSize={width,height};
   externalCutMode=true;cutPlanLastGroups=[];cutPlanLastValidCfg=null;
   $('externalCutDialog').style.display='none';
   applySheetPrefsToUi();applyCutPlanExtraPrefs();updateSheetCutModeUi();
