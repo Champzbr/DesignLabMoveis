@@ -305,7 +305,7 @@ function designLabFurnitureRecordFromImportedFile(text,fileName='modelo.dxf'){
 }
 async function importLibraryFile(file){
   const parsed=await designLabFurnitureRecordFromFile(file);
-  const name=String(file.name||'Modelo').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.(?:dxf|stl)$/i,'')||'Modelo';
+  const name=String(file.name||'Modelo').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.(?:dxf|stl|dae)$/i,'')||'Modelo';
   if(ctx.libraryState.libraryScope==='global'){
     if(!adminAllowed())throw new Error('Somente o administrador pode importar modelos globais');
     const folder=globalLibraryFolderById(ctx.libraryState.activeLibraryFolderId);if(!folder)throw new Error('Abra uma pasta global para importar');
@@ -316,7 +316,8 @@ async function importLibraryFile(file){
     return;
   }
   importLibraryTemplate(parsed.record,name,ctx.libraryState.activeLibraryFolderId);
-  if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.18 para preservar curvas, usinagens e configurações');
+  if(parsed.sketchup)toast(`SketchUp: ${parsed.recognized} peças importadas${parsed.skipped?' · '+parsed.skipped+' malhas ignoradas':''}. Confira as dimensões antes do corte.`);
+  else if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.18 para preservar curvas, usinagens e configurações');
   else if(parsed.stl)toast('STL DesignLab importado preservando curvas, peças e configurações');
   else if(!parsed.legacyJson)toast('DXF DesignLab importado com peças, curvas e configurações preservadas');
 }
@@ -400,8 +401,58 @@ function buildFurnitureModelStl(root){
   const out=new Uint8Array(buffer.byteLength+trailer.byteLength);out.set(new Uint8Array(buffer),0);out.set(trailer,buffer.byteLength);
   return {bytes:out,pieces:meshes.length,triangles:triangleCount};
 }
+// SketchUp: DAE/Collada. Importação conservadora: cada malha deve ser uma chapa
+// retangular alinhada aos eixos. Nunca converter malhas arbitrárias em cortes.
+async function designLabRecordFromSketchupDae(file){
+  const xml=await file.text();
+  if(!xml.includes('<COLLADA')&&!xml.includes(':COLLADA'))throw new Error('Arquivo DAE/Collada inválido');
+  const {ColladaLoader}=await import('three/addons/loaders/ColladaLoader.js');
+  const parsed=new ColladaLoader().parse(xml,'');
+  const model=parsed.scene;
+  model.updateMatrixWorld(true);
+  const meshes=[];
+  model.traverse(o=>{if(o.isMesh&&o.geometry?.attributes?.position)meshes.push(o);});
+  if(!meshes.length)throw new Error('O DAE não contém peças 3D');
+  // ColladaLoader já converte o eixo vertical e as unidades declaradas no DAE.
+  const parts=[];const skipped=[];
+  for(const [i,o] of meshes.entries()){
+    const geometry=o.geometry;
+    const position=geometry.attributes.position;
+    const box=new THREE.Box3().setFromObject(o);
+    const size=box.getSize(new THREE.Vector3());
+    const dims=[size.x,size.y,size.z];
+    if(dims.some(n=>!Number.isFinite(n)||n<=0.0005)){skipped.push(i+1);continue;}
+    // Uma chapa deve possuir faces nos 6 planos do seu bounding box.
+    // Verificação estrita evita que uma malha inclinada vire peça de corte falsa.
+    const inv=o.matrixWorld.clone();
+    const vertices=new Set();
+    for(let j=0;j<position.count;j++){
+      const v=new THREE.Vector3().fromBufferAttribute(position,j).applyMatrix4(o.matrixWorld);
+      const normalized=[(v.x-box.min.x)/size.x,(v.y-box.min.y)/size.y,(v.z-box.min.z)/size.z];
+      if(normalized.some(t=>Math.min(Math.abs(t),Math.abs(t-1))>0.008)){vertices.add('nonbox');break;}
+      vertices.add(normalized.map(t=>Math.round(t)).join(''));
+    }
+    if(vertices.has('nonbox')||vertices.size<8){skipped.push(i+1);continue;}
+    let parent=o;while(parent.parent&&(!parent.name||/^mesh|^geometry/i.test(parent.name)))parent=parent.parent;
+    const name=String(parent.name||o.name||`Peça ${i+1}`).trim().slice(0,100);
+    parts.push({name,box,size});
+  }
+  if(!parts.length)throw new Error('Nenhuma chapa retangular reconhecida. Separe as peças em componentes no SketchUp, alinhadas aos eixos, e exporte novamente em DAE.');
+  const all=new THREE.Box3();parts.forEach(p=>all.union(p.box));
+  const origin=all.min;
+  const width=all.max.x-origin.x,depth=all.max.z-origin.z,height=all.max.y-origin.y;
+  const objects=parts.map((p,i)=>({kind:'box',name:p.name,width:p.size.x,depth:p.size.z,height:p.size.y,
+    x:p.box.min.x-origin.x+p.size.x/2,yBase:p.box.min.y-origin.y,z:p.box.min.z-origin.z+p.size.z/2,
+    materialType:'genérico',edgeBands:{},machining:[],forms:[]}));
+  // Valores mínimos só para criação de espaço, sem aumentar medidas das peças.
+  const w=Math.max(width,0.01),d=Math.max(depth,0.01),h=Math.max(height,0.01);
+  const space={id:'sketchup-space',name:file.name.replace(/\.dae$/i,''),x:w/2,yBase:0,z:d/2,width:w,depth:d,height:h,cells:[],fixedBands:{x:[],y:[],z:[]}};
+  return {record:{type:'mini-cad-furniture',version:66,unit:'meter',name:space.name,objects,spaces:[space],production:{}},sketchup:true,skipped:skipped.length,recognized:parts.length};
+}
 async function designLabFurnitureRecordFromFile(file){
   const lower=String(file?.name||'').toLowerCase();
+  if(lower.endsWith('.dae'))return designLabRecordFromSketchupDae(file);
+  if(lower.endsWith('.skp'))throw new Error('Para importar do SketchUp, exporte como COLLADA (.dae). O formato .skp direto ainda não é suportado.');
   if(lower.endsWith('.stl')){
     const buffer=await file.arrayBuffer();
     const record=designLabRecordFromStlBuffer(buffer);

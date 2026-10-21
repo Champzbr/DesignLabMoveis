@@ -243,7 +243,9 @@ $('furnitureImportFile').addEventListener('change',async e=>{
   try{
     const parsed=await designLabFurnitureRecordFromFile(file);
     importFurnitureData(parsed.record);
-    if(parsed.stl){
+    if(parsed.sketchup){
+      toast(`SketchUp: ${parsed.recognized} peças importadas${parsed.skipped?' · '+parsed.skipped+' malhas ignoradas':''}. Confira medidas e espessuras antes de produzir.`);
+    }else if(parsed.stl){
       toast('STL DesignLab importado preservando a geometria curva e as configurações do móvel.');
     }else if(parsed.fallback){
       toast(parsed.record?.dxfFallbackMode==='2d'
