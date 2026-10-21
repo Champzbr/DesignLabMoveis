@@ -2075,7 +2075,7 @@ function productionLabelsDialog(){
   let stored={};try{stored=JSON.parse(localStorage.getItem(cfgKey)||'{}')||{}}catch{}
   const config={...defaults,...stored};
   const configIds={width:'plWidth',height:'plHeight',gap:'plGap',padding:'plPadding'};
-  const feedSelect=dlg.querySelector('#plFeedMode');feedSelect.value=config.feedMode==='manual'?'manual':'driver';feedSelect.onchange=refreshConfig;
+  const feedSelect=dlg.querySelector('#plFeedMode');feedSelect.value=config.feedMode==='manual'?'manual':'driver';
   const limits={width:[25,150],height:[20,120],gap:[0,15],padding:[0,8]};
   const refreshConfig=()=>{
     for(const [key,id] of Object.entries(configIds)){
@@ -2089,6 +2089,7 @@ function productionLabelsDialog(){
   for(const [key,id] of Object.entries(configIds)){
     const input=dlg.querySelector('#'+id);input.value=config[key];input.onchange=refreshConfig;
   }
+  feedSelect.onchange=refreshConfig;
   dlg.querySelector('#plReset').onclick=()=>{for(const [key,id] of Object.entries(configIds))dlg.querySelector('#'+id).value=defaults[key];feedSelect.value=defaults.feedMode;refreshConfig()};
   const switchTab=showConfig=>{
     dlg.querySelector('#productionLabelsListPane').hidden=showConfig;
