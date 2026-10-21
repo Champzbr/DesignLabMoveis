@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.312.00-r1';
+import { createCutPlanEngine } from './cut-plan.js?v=1.312.00-r2';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -411,7 +411,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   }
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.312.00-r1 · a chapa é SEMPRE definida pelo cadastro do material.
+  // 1.312.00-r2 · a chapa é SEMPRE definida pelo cadastro do material.
   // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
   // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
   // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
@@ -444,13 +444,13 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.312.00-r1 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.312.00-r2 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.312.00-r1: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.312.00-r2: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -548,7 +548,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.312.00-r1 · transferência manual entre chapas.
+// 1.312.00-r2 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1802,7 +1802,7 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  // 1.312.00-r1 · o override manual é uma preferência extra do plano, não faz
+  // 1.312.00-r2 · o override manual é uma preferência extra do plano, não faz
   // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
   // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
   // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
@@ -2066,28 +2066,30 @@ function productionLabelsDialog(){
   if(!groups.length){toast('Gere primeiro o plano de corte para preparar as etiquetas.');return;}
   const {rows,approximate}=productionLabelRows(groups);
   let dlg=document.getElementById('productionLabelsDialog');
-  if(!dlg){dlg=document.createElement('div');dlg.id='productionLabelsDialog';dlg.className='productionLabelsOverlay';dlg.innerHTML=`<section class="productionLabelsPanel" role="dialog" aria-modal="true" aria-labelledby="productionLabelsTitle"><header><div><small>PRODUÇÃO · IMPRESSÃO EM LOTE</small><h3 id="productionLabelsTitle">Etiquetas de produção</h3><p>Uma etiqueta para cada peça física · 60 × 40 mm</p></div><button type="button" id="productionLabelsClose" class="secondary" aria-label="Fechar">✕</button></header><div class="productionLabelsContent"><div class="productionLabelsTabs"><button type="button" id="productionLabelsTabList" class="secondary">Lista de etiquetas</button><button type="button" id="productionLabelsTabConfig" class="secondary">Configuração de impressão</button></div><div id="productionLabelsListPane"><div class="productionLabelsFields"><label>Obra<input id="productionLabelsWork" type="text" maxlength="90" placeholder="Ex.: COZINHA JOÃO"></label><label>Item / pedido<input id="productionLabelsItem" type="text" maxlength="60" placeholder="Ex.: 15.1"></label></div><p class="productionLabelsWarning" id="productionLabelsWarning"></p><div class="productionLabelsSummary" id="productionLabelsSummary"></div><div class="productionLabelsList" id="productionLabelsList"></div></div><div id="productionLabelsConfigPane" hidden><div class="productionLabelsFields"><label>Largura (mm)<input id="plWidth" type="number" min="25" max="150" step="0.5" value="60"></label><label>Altura (mm)<input id="plHeight" type="number" min="20" max="120" step="0.5" value="40"></label><label>Espaço entre etiquetas (mm)<input id="plGap" type="number" min="0" max="15" step="0.5" value="2"></label><label>Margem interna (mm)<input id="plPadding" type="number" min="0" max="8" step="0.5" value="2"></label></div><p class="productionLabelsWarning">A mídia de impressão deve ser configurada no driver da impressora. O espaçamento de 2 mm é entre etiquetas físicas; confira se o driver já reconhece esse intervalo para não duplicá-lo.</p><div id="plConfigPreview" class="productionLabelsSummary"></div><button type="button" id="plReset" class="secondary">Restaurar padrão 60 × 40 + 2 mm</button></div></div><footer><button type="button" id="productionLabelsExport" class="secondary">Salvar lista JSON</button><button type="button" id="productionLabelsDownload" class="secondary">Baixar etiquetas HTML</button><button type="button" id="productionLabelsPrint">Imprimir etiquetas</button></footer></section>`;document.body.appendChild(dlg);dlg.querySelector('#productionLabelsClose').onclick=()=>dlg.classList.remove('show');dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.classList.remove('show')});}
+  if(!dlg){dlg=document.createElement('div');dlg.id='productionLabelsDialog';dlg.className='productionLabelsOverlay';dlg.innerHTML=`<section class="productionLabelsPanel" role="dialog" aria-modal="true" aria-labelledby="productionLabelsTitle"><header><div><small>PRODUÇÃO · IMPRESSÃO EM LOTE</small><h3 id="productionLabelsTitle">Etiquetas de produção</h3><p>Uma etiqueta para cada peça física · 60 × 40 mm</p></div><button type="button" id="productionLabelsClose" class="secondary" aria-label="Fechar">✕</button></header><div class="productionLabelsContent"><div class="productionLabelsTabs"><button type="button" id="productionLabelsTabList" class="secondary">Lista de etiquetas</button><button type="button" id="productionLabelsTabConfig" class="secondary">Configuração de impressão</button></div><div id="productionLabelsListPane"><div class="productionLabelsFields"><label>Obra<input id="productionLabelsWork" type="text" maxlength="90" placeholder="Ex.: COZINHA JOÃO"></label><label>Item / pedido<input id="productionLabelsItem" type="text" maxlength="60" placeholder="Ex.: 15.1"></label></div><p class="productionLabelsWarning" id="productionLabelsWarning"></p><div class="productionLabelsSummary" id="productionLabelsSummary"></div><div class="productionLabelsList" id="productionLabelsList"></div></div><div id="productionLabelsConfigPane" hidden><div class="productionLabelsFields"><label>Largura (mm)<input id="plWidth" type="number" min="25" max="150" step="0.5" value="60"></label><label>Altura (mm)<input id="plHeight" type="number" min="20" max="120" step="0.5" value="40"></label><label>Espaço entre etiquetas (mm)<input id="plGap" type="number" min="0" max="15" step="0.5" value="2"></label><label>Avanço da bobina<select id="plFeedMode"><option value="driver">Automático pelo driver (recomendado)</option><option value="manual">Somar intervalo à página (teste)</option></select></label><label>Margem interna (mm)<input id="plPadding" type="number" min="0" max="8" step="0.5" value="2"></label></div><p class="productionLabelsWarning">A mídia de impressão deve ser configurada no driver da impressora. O espaçamento de 2 mm é entre etiquetas físicas; confira se o driver já reconhece esse intervalo para não duplicá-lo.</p><div id="plConfigPreview" class="productionLabelsSummary"></div><button type="button" id="plReset" class="secondary">Restaurar padrão 60 × 40 + 2 mm</button></div></div><footer><button type="button" id="productionLabelsExport" class="secondary">Salvar lista JSON</button><button type="button" id="productionLabelsDownload" class="secondary">Baixar etiquetas HTML</button><button type="button" id="productionLabelsPrint">Imprimir etiquetas</button></footer></section>`;document.body.appendChild(dlg);dlg.querySelector('#productionLabelsClose').onclick=()=>dlg.classList.remove('show');dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.classList.remove('show')});}
   dlg.classList.add('show');
   const work=dlg.querySelector('#productionLabelsWork'),item=dlg.querySelector('#productionLabelsItem');
   if(!work.value)work.value=currentProjectRecord()?.name||'';
   const cfgKey='designlab-production-labels-config-v1';
-  const defaults={width:60,height:40,gap:2,padding:2};
+  const defaults={width:60,height:40,gap:2,padding:2,feedMode:'driver'};
   let stored={};try{stored=JSON.parse(localStorage.getItem(cfgKey)||'{}')||{}}catch{}
   const config={...defaults,...stored};
   const configIds={width:'plWidth',height:'plHeight',gap:'plGap',padding:'plPadding'};
+  const feedSelect=dlg.querySelector('#plFeedMode');feedSelect.value=config.feedMode==='manual'?'manual':'driver';feedSelect.onchange=refreshConfig;
   const limits={width:[25,150],height:[20,120],gap:[0,15],padding:[0,8]};
   const refreshConfig=()=>{
     for(const [key,id] of Object.entries(configIds)){
       const input=dlg.querySelector('#'+id);const n=Number(input.value),[min,max]=limits[key];
       config[key]=Number.isFinite(n)?Math.min(max,Math.max(min,n)):defaults[key];
     }
-    dlg.querySelector('#plConfigPreview').textContent=`Etiqueta ${config.width} × ${config.height} mm · intervalo ${config.gap} mm · margem interna ${config.padding} mm · passo total ${config.height+config.gap} mm`;
+    config.feedMode=feedSelect.value==='manual'?'manual':'driver';
+    dlg.querySelector('#plConfigPreview').textContent=`Etiqueta ${config.width} × ${config.height} mm · intervalo ${config.gap} mm · margem interna ${config.padding} mm · página ${config.height+(config.feedMode==='manual'?config.gap:0)} mm · avanço ${config.feedMode==='driver'?'pelo driver':'manual'}`;
     try{localStorage.setItem(cfgKey,JSON.stringify(config))}catch{}
   };
   for(const [key,id] of Object.entries(configIds)){
     const input=dlg.querySelector('#'+id);input.value=config[key];input.onchange=refreshConfig;
   }
-  dlg.querySelector('#plReset').onclick=()=>{for(const [key,id] of Object.entries(configIds))dlg.querySelector('#'+id).value=defaults[key];refreshConfig()};
+  dlg.querySelector('#plReset').onclick=()=>{for(const [key,id] of Object.entries(configIds))dlg.querySelector('#'+id).value=defaults[key];feedSelect.value=defaults.feedMode;refreshConfig()};
   const switchTab=showConfig=>{
     dlg.querySelector('#productionLabelsListPane').hidden=showConfig;
     dlg.querySelector('#productionLabelsConfigPane').hidden=!showConfig;
@@ -2105,13 +2107,14 @@ function productionLabelsDialog(){
     const payload=data();
     const edges=r=>{
       const b=r.edgeBands||{};
-      const text=k=>b[k]?(b[k].code||b[k].name||'FITA'):'';
-      const label=(k,cls)=>`<span class="edge ${cls} ${b[k]?'active':''}">${esc(text(k))}</span>`;
-      return `<div class="edgeDrawing">${label('vMax','top')}${label('uMin','left')}<div class="edgeCenter"><strong>${nice(r.length)} × ${nice(r.width)}</strong><small>${r.thickness?nice(r.thickness)+' mm':''}</small></div>${label('uMax','right')}${label('vMin','bottom')}</div>`;
+      const label=(k,cls)=>`<span class="edge ${cls} ${b[k]?'active':''}">${b[k]?esc(b[k].code||b[k].name||'FITA'):''}</span>`;
+      return `<div class="edgeDrawing">${label('vMax','top')}${label('uMin','left')}<div class="edgeCenter"><div class="pieceName">${esc(r.name||'Peça')}</div><div class="thickness">${r.thickness?nice(r.thickness)+' mm':''}</div><div class="measureHorizontal">${nice(r.length)}</div><div class="measureVertical">${nice(r.width)}</div></div>${label('uMax','right')}${label('vMin','bottom')}</div>`;
     };
     const pages=payload.labels.map(r=>`<article class="label"><div class="head"><b>OBRA: ${esc(payload.work||'—')}</b><span>${String(r.sequence).padStart(3,'0')}/${r.total}</span></div><div class="item">ITEM: ${esc(payload.item||'—')}</div>${edges(r)}<div class="foot"><span>${esc(r.code)} · ${esc(r.name)}</span><b>CHAPA ${r.sheet}</b></div></article>`).join('');
     const c=payload.printConfig;
-    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiquetas · ${esc(payload.work)}</title><style>@page{size:${c.width}mm ${c.height+c.gap}mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:white;color:#111;font-family:Arial,sans-serif}.label{width:${c.width}mm;height:${c.height+c.gap}mm;padding:${c.padding}mm ${c.padding}mm ${c.padding+c.gap}mm;break-after:page;page-break-after:always;display:flex;flex-direction:column;overflow:hidden}.label:last-child{break-after:auto}.head{display:flex;justify-content:space-between;gap:1mm;border-bottom:.25mm solid #111;padding-bottom:.6mm;font-size:2.5mm}.head b{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.head span{white-space:nowrap}.item{font-size:2.8mm;font-weight:bold;margin-top:1mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.edgeDrawing{display:grid;grid-template-columns:1fr 6fr 1fr;grid-template-rows:3.5mm 1fr 3.5mm;min-height:0;flex:1;margin:1mm 0;gap:.4mm}.edge{font-size:1.7mm;overflow:hidden;text-align:center;white-space:nowrap;color:#777}.edge.active{background:#111;color:#fff;font-weight:bold}.edge.top{grid-column:2;grid-row:1}.edge.bottom{grid-column:2;grid-row:3}.edge.left{grid-column:1;grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg)}.edge.right{grid-column:3;grid-row:2;writing-mode:vertical-rl}.edgeCenter{grid-column:2;grid-row:2;border:.2mm solid #444;display:flex;flex-direction:column;justify-content:center;align-items:center}.edgeCenter strong{font-size:4mm}.edgeCenter small{font-size:2mm}.foot{display:flex;justify-content:space-between;gap:1mm;border-top:.25mm solid #111;padding-top:.6mm;font-size:2.2mm}.foot span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.foot b{white-space:nowrap}@media screen{body{background:#ddd}.label{background:white;margin:8mm auto;box-shadow:0 2px 10px #999}}@media print{body{background:white}}</style></head><body>${pages}</body></html>`;
+    const manual=c.feedMode==='manual';
+    const pageHeight=c.height+(manual?c.gap:0);
+    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Etiquetas · ${esc(payload.work)}</title><style>@page{size:${c.width}mm ${pageHeight}mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:white;color:#111;font-family:Arial,sans-serif}.labelPage{width:${c.width}mm;height:${pageHeight}mm;break-after:page;page-break-after:always;overflow:hidden}.labelPage:last-child{break-after:auto}.label{width:${c.width}mm;height:${c.height}mm;padding:${c.padding}mm;display:flex;flex-direction:column;overflow:hidden;background:white}.head{display:flex;justify-content:space-between;gap:1mm;border-bottom:.2mm solid #111;padding-bottom:.5mm;font-size:2.4mm;flex-shrink:0}.head b{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.head span{white-space:nowrap}.item{font-size:2.6mm;font-weight:bold;margin-top:.7mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:0}.edgeDrawing{display:grid;grid-template-columns:3mm minmax(0,1fr) 3mm;grid-template-rows:2.4mm minmax(0,1fr) 2.4mm;min-height:0;flex:1;margin:.8mm 0;gap:.4mm}.edge{font-size:1.45mm;overflow:hidden;text-align:center;white-space:nowrap;color:transparent}.edge.active{background:#111;color:#fff;font-weight:bold}.edge.top{grid-column:2;grid-row:1}.edge.bottom{grid-column:2;grid-row:3}.edge.left{grid-column:1;grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg)}.edge.right{grid-column:3;grid-row:2;writing-mode:vertical-rl}.edgeCenter{grid-column:2;grid-row:2;border:.2mm solid #444;position:relative;min-width:0;min-height:0}.pieceName{position:absolute;top:15%;left:9%;right:9%;font-size:2.7mm;font-weight:bold;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.thickness{position:absolute;top:47%;left:0;right:0;text-align:center;font-size:2mm}.measureHorizontal{position:absolute;bottom:.5mm;left:12%;right:12%;font-size:3.5mm;text-align:center;font-weight:bold}.measureVertical{position:absolute;right:.6mm;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-size:3.1mm;font-weight:bold}.foot{display:flex;justify-content:space-between;gap:1mm;border-top:.2mm solid #111;padding-top:.5mm;font-size:2mm;flex-shrink:0}.foot span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.foot b{white-space:nowrap}@media screen{body{background:#ddd}.labelPage{background:#f2f2f2;margin:8mm auto;box-shadow:0 2px 10px #999}.labelPage:not(:last-child){margin-bottom:10mm}.label{outline:1px solid #aaa}.labelPage::after{content:'Intervalo da bobina: ${c.gap} mm · ${manual?'incluído na página':'controlado pelo driver'}';display:block;text-align:center;font-size:10px;color:#666}}@media print{body{background:white}.labelPage::after{display:none}} </style></head><body>${pages.replaceAll('<article class="label">','<section class="labelPage"><article class="label">').replaceAll('</article>','</article></section>')}</body></html>`;
   };
   dlg.querySelector('#productionLabelsDownload').onclick=()=>{
     const blob=new Blob([buildHtml()],{type:'text/html;charset=utf-8'});
@@ -2226,7 +2229,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`${externalCutMode?'Lista externa importada':'Peças gerais do projeto'} · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.312.00-r1 · configuração transacional do plano: uma alteração inválida
+    // 1.312.00-r2 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
