@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.311.00-r19">
+<meta name="designlab-build" content="1.311.00-r20">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.311.00-r19';
+  const BUILD='1.311.00-r20';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/editor.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/materials.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/labels.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/layout.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/projects.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/settings.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/home.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r19">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r19">
+<link rel="stylesheet" href="css/base.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/editor.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/materials.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/labels.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/layout.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/projects.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/settings.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/home.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r20">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r20">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1615,17 +1615,13 @@
   </div>
 </div>
 
-<div id="externalCutDialog" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.76);align-items:center;justify-content:center;padding:16px;overflow:auto">
-  <div class="card" style="width:min(720px,100%);max-height:90vh;overflow:auto;padding:20px">
-    <h3>📥 Lista externa · SketchUp CSV</h3>
-    <p class="dialogHelp">Área independente. Não cria peças no 3D e não altera o projeto atual. Importa comprimento, largura e quantidade (mm).</p>
-    <label>Escolher lista CSV (separador ;)<input id="externalCutFile" type="file" accept=".csv,text/csv,text/plain"></label>
-    <p id="externalCutStatus" class="dialogHelp"></p>
-    <div style="max-height:260px;overflow:auto"><table style="width:100%;text-align:left"><thead><tr><th>#</th><th>Comprimento mm</th><th>Largura mm</th><th>Qtd.</th></tr></thead><tbody id="externalCutPreview"></tbody></table></div>
-    <p class="dialogHelp">Ao gerar, use as configurações de chapa e estratégia no plano de corte. A exportação Mingli .ZAW permanece a mesma e exige conferência no software da máquina.</p>
-    <div class="dialogActions"><button id="externalCutGenerate" disabled>Gerar plano de corte</button><button id="externalCutClose" class="secondary">Fechar</button></div>
-  </div>
-</div>
+<div id="externalCutDialog" class="externalCutOverlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="externalCutHeading">
+ <section class="externalCutPanel"><header class="externalCutHeader"><div><small>IMPORTAÇÃO INDEPENDENTE</small><h3 id="externalCutHeading">📐 Lista externa · SketchUp</h3><p>Importe peças sem alterar o projeto 3D ou os materiais cadastrados.</p></div><button id="externalCutClose" type="button" class="externalCutX" aria-label="Fechar">✕</button></header>
+ <div class="externalCutBody"><label class="externalCutDrop" for="externalCutFile"><strong>📥 Selecionar lista CSV</strong><span>Comprimento, largura e quantidade · em milímetros</span><input id="externalCutFile" type="file" accept=".csv,text/csv,text/plain"></label>
+ <div class="externalCutSection"><h4>Chapa desta lista</h4><p>Medida independente, sem exigir material do projeto. O refilo, a serra e a otimização continuam na tela de plano de corte.</p><div class="externalCutFields"><label>Comprimento da chapa (mm)<input id="externalCutSheetWidth" type="number" min="100" step="1" value="3050"></label><label>Largura da chapa (mm)<input id="externalCutSheetHeight" type="number" min="100" step="1" value="1600"></label></div></div>
+ <div class="externalCutSection"><div class="externalCutPreviewTitle"><h4>Prévia das peças</h4><span id="externalCutStatus">Nenhuma lista carregada.</span></div><div class="externalCutTableScroll"><table><thead><tr><th>#</th><th>Comprimento</th><th>Largura</th><th>Qtd.</th></tr></thead><tbody id="externalCutPreview"></tbody></table></div></div>
+ <p class="externalCutInfo">ⓘ O arquivo Mingli .ZAW continua usando o exportador atual. Confira o plano no software da seccionadora antes de enviar à máquina.</p></div>
+ <footer class="externalCutFooter"><button id="externalCutCancel" type="button" class="secondary">Cancelar</button><button id="externalCutGenerate" type="button" disabled>Gerar plano de corte →</button></footer></section></div>
 <div id="partsListDialog">
   <div class="card cutPlanCard">
     <div class="cutPlanTitleRow">
@@ -2878,6 +2874,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.311.00-r19"></script>
+<script type="module" src="js/app.js?v=1.311.00-r20"></script>
 </body>
 </html>

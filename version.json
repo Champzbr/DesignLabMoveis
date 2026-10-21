@@ -1,5 +1,1 @@
-{
-  "version": "1.311.00-r19",
-  "date": "2026-10-21",
-  "message": "1.311.00-r19: importação isolada de lista SketchUp CSV para plano de corte."
-}
+{"version":"1.311.00-r20","date":"2026-10-21","message":"Importação externa: UI renovada e chapa independente do cadastro do projeto."}
