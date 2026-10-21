@@ -343,6 +343,27 @@ document.addEventListener('pointerdown',e=>{
   if(!e.target.closest('#projectMenuPanel')&&!e.target.closest('#projectMenuBtn'))$('projectMenuPanel').classList.remove('show');
   if(!e.target.closest('#projectCardMenu')&&!e.target.closest('[data-project-action="menu"]'))closeProjectCardMenu();
 });
+// Atalhos de exclusão no editor desktop: reutilizam as rotinas dos botões.
+window.addEventListener('keydown',e=>{
+  if(e.defaultPrevented || e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey)return;
+  if(e.key!=='Delete' && e.key!=='Backspace')return;
+  if(window.matchMedia?.('(pointer: coarse)').matches && !window.matchMedia?.('(pointer: fine)').matches)return;
+  const target=e.target;
+  if(target?.closest?.('input,textarea,select,[contenteditable], [role="textbox"]'))return;
+  if(document.activeElement?.closest?.('input,textarea,select,[contenteditable], [role="textbox"]'))return;
+  if(document.body.classList.contains('visualization-only') || document.body.classList.contains('presentation-active') || state.visualMode)return;
+  // Nunca apagar objetos por trás de modais, telas de projetos ou autenticação.
+  if(document.querySelector('.projectModal.show, [role="dialog"][open], [aria-modal="true"].show'))return;
+  const blockingIds=['authDialog','appSettingsDialog','deleteSpaceCellDialog','pieceInspectorDialog','newSpaceDialog','editSpaceDialog','spaceMoreDialog','productionDialog','libraryDialog','machiningDialog','shapeDialog','projectVersionsDialog'];
+  if(blockingIds.some(id=>{const el=$(id);return el && getComputedStyle(el).display!=='none' && getComputedStyle(el).visibility!=='hidden' && el.getClientRects().length>0;}))return;
+  if(state.selected){e.preventDefault();deleteSelectedFromInspector();return;}
+  if(ctx.selectedSpaceCell?.rootId){
+    e.preventDefault();
+    // Delete em um vão selecionado segue a mesma confirmação de 'Apagar espaço selecionado'.
+    openDeleteSelectedSpaceCellDialog();return;
+  }
+  if(ctx.activeSpaceRootId){e.preventDefault();deleteSelectedSpaceRoot();}
+});
 window.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&$('appSettingsDialog')?.classList.contains('show')){
     closeAppSettings();

@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r15';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r17';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -406,7 +406,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   const cfg={...(baseCfg||{}),...normalizedSheetPrefs(baseCfg||{})};
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.311.00-r15 · a chapa é SEMPRE definida pelo cadastro do material.
+  // 1.311.00-r17 · a chapa é SEMPRE definida pelo cadastro do material.
   // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
   // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
   // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
@@ -439,13 +439,13 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r15 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r17 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r15: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.311.00-r17: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -543,7 +543,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r15 · transferência manual entre chapas.
+// 1.311.00-r17 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1677,7 +1677,7 @@ const CUT_PLAN_PREFS_KEY='designlabCutPlanV42';
 let cutPlanLastGroups=[];
 let cutPlanLastValidCfg=null;
 let cutPlanRestoreGuard=false;
-let cutPlanMaterialOverrideConfirmed=null;
+let cutPlanConfirmedMaterialOverride={enabled:false,id:'',width:0,height:0};
 
 function cutPlanReadExtraPrefs(){
   try{return JSON.parse(localStorage.getItem(CUT_PLAN_PREFS_KEY)||'{}')||{};}catch(_){return {}}
@@ -1703,59 +1703,85 @@ function refreshCutPlanMaterialOverrideUi({syncSize=false}={}){
   }
 }
 function cutPlanSaveExtraPrefs(){
-  const saved=cutPlanMaterialOverrideConfirmed||cutPlanReadExtraPrefs();
+  const confirmed=cutPlanConfirmedMaterialOverride||{enabled:false,id:'',width:0,height:0};
   const p={
     optimization:$('sheetOptimization')?.value||'medium',
     direction:$('sheetDirection')?.value||'auto',
     keepLength:Math.max(0,Number($('sheetKeepLength')?.value)||0),
     keepWidth:Math.max(0,Number($('sheetKeepWidth')?.value)||0),
-    // O tamanho manual só entra no cálculo depois de Confirmar medida.
-    // Os campos visíveis funcionam como rascunho até esse momento.
-    materialOverrideEnabled:!!saved.materialOverrideEnabled,
-    materialOverrideId:String(saved.materialOverrideId||''),
-    materialOverrideWidth:Math.max(0,Number(saved.materialOverrideWidth)||0),
-    materialOverrideHeight:Math.max(0,Number(saved.materialOverrideHeight)||0)
+    materialOverrideEnabled:!!confirmed.enabled,
+    materialOverrideId:String(confirmed.id||''),
+    materialOverrideWidth:Math.max(0,Number(confirmed.width)||0),
+    materialOverrideHeight:Math.max(0,Number(confirmed.height)||0)
   };
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify(p));return p;
 }
+function cutPlanUpdateMaterialOverrideStatus(){
+  const el=$('sheetMaterialOverrideStatus');if(!el)return;
+  const c=cutPlanConfirmedMaterialOverride||{};
+  if(c.enabled&&c.id&&Number(c.width)>=100&&Number(c.height)>=100){
+    const m=productionMaterialById(c.id);
+    el.textContent=`Ativo no cálculo: ${m?.name||'material'} · ${nice(c.width)} × ${nice(c.height)} mm.`;
+  }else el.textContent='A medida só entra no cálculo depois de confirmar.';
+}
+function confirmCutPlanMaterialOverride(){
+  const enabled=!!$('sheetMaterialOverrideEnabled')?.checked;
+  if(!enabled){
+    cutPlanConfirmedMaterialOverride={enabled:false,id:'',width:0,height:0};
+    cutPlanSaveExtraPrefs();cutPlanUpdateMaterialOverrideStatus();renderPartsList();
+    toast('Tamanho manual desativado. O plano voltou ao cadastro dos materiais.');
+    return;
+  }
+  const id=String($('sheetMaterialOverrideMaterial')?.value||'');
+  const width=Math.max(0,Number($('sheetMaterialOverrideWidth')?.value)||0);
+  const height=Math.max(0,Number($('sheetMaterialOverrideHeight')?.value)||0);
+  if(!id){toast('Selecione o material antes de confirmar.');return;}
+  if(width<100||height<100){toast('Informe comprimento e largura válidos antes de confirmar.');return;}
+  cutPlanConfirmedMaterialOverride={enabled:true,id,width,height};
+  cutPlanSaveExtraPrefs();cutPlanUpdateMaterialOverrideStatus();renderPartsList();
+  const m=productionMaterialById(id);
+  toast(`Medida confirmada para ${m?.name||'material'}: ${nice(width)} × ${nice(height)} mm.`);
+}
 function applyCutPlanExtraPrefs(){
   const p=cutPlanReadExtraPrefs();
-  cutPlanMaterialOverrideConfirmed={
-    materialOverrideEnabled:!!p.materialOverrideEnabled,
-    materialOverrideId:String(p.materialOverrideId||''),
-    materialOverrideWidth:Math.max(0,Number(p.materialOverrideWidth)||0),
-    materialOverrideHeight:Math.max(0,Number(p.materialOverrideHeight)||0)
-  };
   if($('sheetOptimization'))$('sheetOptimization').value=p.optimization==='medium'?'medium':'advanced';
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(p.direction)?p.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Number.isFinite(Number(p.keepLength))?Number(p.keepLength):100;
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Number.isFinite(Number(p.keepWidth))?Number(p.keepWidth):100;
+  cutPlanConfirmedMaterialOverride={
+    enabled:!!p.materialOverrideEnabled,
+    id:String(p.materialOverrideId||''),
+    width:Math.max(0,Number(p.materialOverrideWidth)||0),
+    height:Math.max(0,Number(p.materialOverrideHeight)||0)
+  };
   if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!p.materialOverrideEnabled;
   refreshCutPlanMaterialOverrideUi();
   if($('sheetMaterialOverrideMaterial')&&p.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===p.materialOverrideId))$('sheetMaterialOverrideMaterial').value=p.materialOverrideId;
   if($('sheetMaterialOverrideWidth'))$('sheetMaterialOverrideWidth').value=Number(p.materialOverrideWidth)>=100?Number(p.materialOverrideWidth):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetWidth||2750);
   if($('sheetMaterialOverrideHeight'))$('sheetMaterialOverrideHeight').value=Number(p.materialOverrideHeight)>=100?Number(p.materialOverrideHeight):nice(productionMaterialById($('sheetMaterialOverrideMaterial')?.value)?.sheetHeight||1850);
   refreshCutPlanMaterialOverrideUi();
+  cutPlanUpdateMaterialOverrideStatus();
 }
 function applyCutPlanCfgToUi(cfg){
   if(!cfg)return;
-  cutPlanMaterialOverrideConfirmed={
-    materialOverrideEnabled:!!cfg.materialOverrideEnabled,
-    materialOverrideId:String(cfg.materialOverrideId||''),
-    materialOverrideWidth:Math.max(0,Number(cfg.materialOverrideWidth)||0),
-    materialOverrideHeight:Math.max(0,Number(cfg.materialOverrideHeight)||0)
-  };
   applySheetPrefsToUi(cfg);
   if($('sheetOptimization'))$('sheetOptimization').value=cfg.optimization==='medium'?'medium':'advanced';
   if($('sheetDirection'))$('sheetDirection').value=['none','length','width'].includes(cfg.direction)?cfg.direction:'auto';
   if($('sheetKeepLength'))$('sheetKeepLength').value=Math.max(0,Number(cfg.keepLength)||0);
   if($('sheetKeepWidth'))$('sheetKeepWidth').value=Math.max(0,Number(cfg.keepWidth)||0);
+  cutPlanConfirmedMaterialOverride={
+    enabled:!!cfg.materialOverrideEnabled,
+    id:String(cfg.materialOverrideId||''),
+    width:Math.max(0,Number(cfg.materialOverrideWidth)||0),
+    height:Math.max(0,Number(cfg.materialOverrideHeight)||0)
+  };
   if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').checked=!!cfg.materialOverrideEnabled;
   refreshCutPlanMaterialOverrideUi();
   if($('sheetMaterialOverrideMaterial')&&cfg.materialOverrideId&&[...$('sheetMaterialOverrideMaterial').options].some(o=>o.value===cfg.materialOverrideId))$('sheetMaterialOverrideMaterial').value=cfg.materialOverrideId;
   if($('sheetMaterialOverrideWidth')&&Number(cfg.materialOverrideWidth)>=100)$('sheetMaterialOverrideWidth').value=Number(cfg.materialOverrideWidth);
   if($('sheetMaterialOverrideHeight')&&Number(cfg.materialOverrideHeight)>=100)$('sheetMaterialOverrideHeight').value=Number(cfg.materialOverrideHeight);
   refreshCutPlanMaterialOverrideUi();
+  cutPlanUpdateMaterialOverrideStatus();
   localStorage.setItem(CUT_PLAN_PREFS_KEY,JSON.stringify({
     optimization:cfg.optimization==='medium'?'medium':'advanced',
     direction:['none','length','width'].includes(cfg.direction)?cfg.direction:'auto',
@@ -1771,7 +1797,7 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  // 1.311.00-r15 · o override manual é uma preferência extra do plano, não faz
+  // 1.311.00-r17 · o override manual é uma preferência extra do plano, não faz
   // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
   // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
   // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
@@ -2062,7 +2088,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`Peças gerais do projeto · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r15 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r17 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
@@ -2486,34 +2512,10 @@ $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPa
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
 if($('sheetPanelFirst'))$('sheetPanelFirst').addEventListener('change',renderPartsList);
-if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{
-  refreshCutPlanMaterialOverrideUi();
-  if(!$('sheetMaterialOverrideEnabled').checked){
-    const prev=cutPlanMaterialOverrideConfirmed||cutPlanReadExtraPrefs();
-    cutPlanMaterialOverrideConfirmed={
-      materialOverrideEnabled:false,
-      materialOverrideId:String(prev.materialOverrideId||''),
-      materialOverrideWidth:Math.max(0,Number(prev.materialOverrideWidth)||0),
-      materialOverrideHeight:Math.max(0,Number(prev.materialOverrideHeight)||0)
-    };
-    cutPlanSaveExtraPrefs();
-    renderPartsList();
-  }
-});
-if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi({syncSize:true});});
-// Comprimento/largura são rascunho: digitar não recalcula o plano.
-if($('sheetMaterialOverrideConfirm'))$('sheetMaterialOverrideConfirm').addEventListener('click',()=>{
-  if(!$('sheetMaterialOverrideEnabled')?.checked){toast('Ative o tamanho manual antes de confirmar.');return;}
-  const id=String($('sheetMaterialOverrideMaterial')?.value||'');
-  const w=Math.max(0,Number($('sheetMaterialOverrideWidth')?.value)||0);
-  const h=Math.max(0,Number($('sheetMaterialOverrideHeight')?.value)||0);
-  if(!id){toast('Selecione o material.');return;}
-  if(w<100||h<100){toast('Informe comprimento e largura válidos da chapa.');return;}
-  cutPlanMaterialOverrideConfirmed={materialOverrideEnabled:true,materialOverrideId:id,materialOverrideWidth:w,materialOverrideHeight:h};
-  cutPlanSaveExtraPrefs();
-  toast(`Medida confirmada: ${nice(w)} × ${nice(h)} mm.`);
-  renderPartsList();
-});
+if($('sheetMaterialOverrideEnabled'))$('sheetMaterialOverrideEnabled').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi();cutPlanUpdateMaterialOverrideStatus();});
+if($('sheetMaterialOverrideMaterial'))$('sheetMaterialOverrideMaterial').addEventListener('change',()=>{refreshCutPlanMaterialOverrideUi({syncSize:true});cutPlanUpdateMaterialOverrideStatus();});
+['sheetMaterialOverrideWidth','sheetMaterialOverrideHeight'].forEach(id=>{if($(id))$(id).addEventListener('input',cutPlanUpdateMaterialOverrideStatus);});
+if($('sheetMaterialOverrideConfirm'))$('sheetMaterialOverrideConfirm').addEventListener('click',confirmCutPlanMaterialOverride);
 
 $('previewAspireFromPartsBtn').onclick=openSheetPreview;
 if($('exportPanelSawSequenceBtn'))$('exportPanelSawSequenceBtn').onclick=exportPanelSawSequenceCsv;
