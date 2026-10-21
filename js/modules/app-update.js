@@ -7,13 +7,13 @@ export function createAppUpdateModule(ctx){
 function designLabRuntimeVersion(){
   const build=String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();
   const m=build.match(/^(\d+\.\d+\.\d+)/);
-  if(m?.[1])return m[1];
+  if(build)return build;
   const title=String(document.title||'');
   const tm=title.match(/(\d+\.\d+\.\d+)/);
-  return tm?.[1]||'1.311.00';
+  return tm?.[1]||'1.312.00';
 }
 const DESIGNLAB_APP_VERSION=designLabRuntimeVersion();
-const DESIGNLAB_JS_BUILD='1.311.00-r18';
+const DESIGNLAB_JS_BUILD='1.312.00-r7';
 function designLabRuntimeBuild(){return String(document.querySelector('meta[name="designlab-build"]')?.content||'').trim();}
 
 // 1.200.18 · modo de visualização realmente somente leitura.

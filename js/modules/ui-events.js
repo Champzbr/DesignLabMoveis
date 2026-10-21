@@ -432,10 +432,6 @@ $('homeNavModeling').onclick=openHomeModeling;
 $('homeNavMaterials').onclick=openHomeMaterials;
 $('homeNavAccount').onclick=()=>scrollProjectHomeTo('projectWelcomeCard');
 
-$('homeModelsSection').addEventListener('click',e=>{
-  if(!e.target.closest?.('.homeModelCard'))return;
-  toast('A biblioteca de modelos será a próxima etapa do layout');
-});
 
 $('authBannedLogout').onclick=logoutOnlineIdentity;
 $('homeAdminPanel').onclick=openAdminPanel;
