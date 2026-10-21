@@ -1,5 +1,5 @@
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
-import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r22';
+import { createCutPlanEngine } from './cut-plan.js?v=1.311.00-r23';
 
 export function createCutPlanUiModule(ctx){
   const { $, nice, mm, escapeHtml, roundMmNumber, toast, safeFileName, downloadText, flatPartInfo, dxfPair, dxfLine, dxfClosedRect, dxfClosedPolyline, dxfCircle, normalizedLayer, machiningLayer, mapPlacedUV, projectOperation, entryAxisName, entryAxisSign, holeSeriesInstances, resolvedMachiningCoords, actualMachiningCount, operationDepthMm, machiningRawCoord, axisLabel, productionMaterialById, productionObjectKind, normalizePieceGrainRotation, furnitureObjects, selectedFurnitureRoot, projects, getProjects, commitHistory, clampSize, layerNum, dlLinearPieceLengthMm, dlPackMetalBars, dlWoodPlanGroups, dlMetalPlanGroups, dlRenderGeneralPartsSummary, dlRenderInlineLinearPlans, repairAllDrawerBottomGrooves, repairAllDrawerDrillingForAspire, repairDrawerBottomGroovesForRoot, repairDrawerDrillingForRoot }=ctx;
@@ -411,7 +411,7 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
   }
   const linked=parts.find(p=>p?.materialId)?.materialId||null;
   const material=linked?productionMaterialById(linked):null;
-  // 1.311.00-r22 · a chapa é SEMPRE definida pelo cadastro do material.
+  // 1.311.00-r23 · a chapa é SEMPRE definida pelo cadastro do material.
   // As dimensões globais do plano deixaram de ser uma fonte de verdade: cada
   // grupo de material/espessura usa seu próprio estoque. Assim um mesmo projeto
   // pode misturar MDF 2750×1850 e Compensado Naval 3050×1610 sem qualquer
@@ -444,13 +444,13 @@ function sheetPrefsForPartGroup(baseCfg,parts=[]){
 }
 function partOrientations(part,cfg){
   const material=productionMaterialById(part?.materialId);
-  // 1.311.00-r22 · qualquer material em chapa pode ter veio, inclusive Compensado
+  // 1.311.00-r23 · qualquer material em chapa pode ter veio, inclusive Compensado
   // Naval. Se a peça estiver marcada com veio, ela NUNCA recebe rotação livre de
   // 90° para melhorar encaixe: existe uma única orientação válida, calculada para
   // alinhar o veio da peça ao veio da chapa.
   const grainLocked=!!cfg.grain||!!part.materialGrain;
   const grainRot=normalizePieceGrainRotation(part.materialGrainRotation);
-  // 1.311.00-r22: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
+  // 1.311.00-r23: o veio 0° acompanha o MAIOR lado da peça e o veio 90°
   // acompanha o menor lado. Isso preserva o sentido intuitivo para peças altas
   // (ex.: porta 540 × 2990 => 0° acompanha 2990) e largas
   // (ex.: painel 1527 × 451 => 0° acompanha 1527).
@@ -548,7 +548,7 @@ const {
 
 }=createCutPlanEngine({partOrientations,cutPlanPartAreaMm2,nice,panelSawMaxCutMm:PANEL_SAW_MAX_CUT_MM});
 
-// 1.311.00-r22 · transferência manual entre chapas.
+// 1.311.00-r23 · transferência manual entre chapas.
 // O hint vive na própria peça durante a sessão/projeto e é aplicado depois do
 // nesting automático, sempre repacotando as duas chapas envolvidas para manter
 // cortes/veio/folga válidos. Se não couber em UMA única chapa de destino, não move.
@@ -1802,7 +1802,7 @@ function applyCutPlanCfgToUi(cfg){
 }
 function cutPlanCfgFromUi(){
   const base=sheetPrefsFromUi(),x=cutPlanSaveExtraPrefs();
-  // 1.311.00-r22 · o override manual é uma preferência extra do plano, não faz
+  // 1.311.00-r23 · o override manual é uma preferência extra do plano, não faz
   // parte de normalizedSheetPrefs(). Por isso ele precisa seguir explicitamente
   // no cfg usado pelo agrupamento; sem estes campos o cálculo caía de volta na
   // chapa cadastrada (ex.: 2750 × 1850) mesmo com 2750 × 600 ativado na UI.
@@ -2066,7 +2066,7 @@ function productionLabelsDialog(){
   if(!groups.length){toast('Gere primeiro o plano de corte para preparar as etiquetas.');return;}
   const {rows,approximate}=productionLabelRows(groups);
   let dlg=document.getElementById('productionLabelsDialog');
-  if(!dlg){dlg=document.createElement('div');dlg.id='productionLabelsDialog';dlg.className='productionLabelsOverlay';dlg.innerHTML=`<section class="productionLabelsPanel" role="dialog" aria-modal="true" aria-labelledby="productionLabelsTitle"><header><div><small>PRODUÇÃO · IMPRESSÃO EM LOTE</small><h3 id="productionLabelsTitle">Etiquetas de produção</h3><p>Uma etiqueta para cada peça física · 60 × 40 mm</p></div><button type="button" id="productionLabelsClose" class="secondary" aria-label="Fechar">✕</button></header><div class="productionLabelsContent"><div class="productionLabelsFields"><label>Obra<input id="productionLabelsWork" type="text" maxlength="90" placeholder="Ex.: COZINHA JOÃO"></label><label>Item / pedido<input id="productionLabelsItem" type="text" maxlength="60" placeholder="Ex.: 15.1"></label></div><p class="productionLabelsWarning" id="productionLabelsWarning"></p><div class="productionLabelsSummary" id="productionLabelsSummary"></div><div class="productionLabelsList" id="productionLabelsList"></div></div><footer><button type="button" id="productionLabelsExport" class="secondary">Salvar lista JSON</button><button type="button" id="productionLabelsPrint">Imprimir etiquetas</button></footer></section>`;document.body.appendChild(dlg);dlg.querySelector('#productionLabelsClose').onclick=()=>dlg.classList.remove('show');dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.classList.remove('show')});}
+  if(!dlg){dlg=document.createElement('div');dlg.id='productionLabelsDialog';dlg.className='productionLabelsOverlay';dlg.innerHTML=`<section class="productionLabelsPanel" role="dialog" aria-modal="true" aria-labelledby="productionLabelsTitle"><header><div><small>PRODUÇÃO · IMPRESSÃO EM LOTE</small><h3 id="productionLabelsTitle">Etiquetas de produção</h3><p>Uma etiqueta para cada peça física · 60 × 40 mm</p></div><button type="button" id="productionLabelsClose" class="secondary" aria-label="Fechar">✕</button></header><div class="productionLabelsContent"><div class="productionLabelsFields"><label>Obra<input id="productionLabelsWork" type="text" maxlength="90" placeholder="Ex.: COZINHA JOÃO"></label><label>Item / pedido<input id="productionLabelsItem" type="text" maxlength="60" placeholder="Ex.: 15.1"></label></div><p class="productionLabelsWarning" id="productionLabelsWarning"></p><div class="productionLabelsSummary" id="productionLabelsSummary"></div><div class="productionLabelsList" id="productionLabelsList"></div></div><footer><button type="button" id="productionLabelsExport" class="secondary">Salvar lista JSON</button><button type="button" id="productionLabelsDownload" class="secondary">Baixar etiquetas HTML</button><button type="button" id="productionLabelsPrint">Imprimir etiquetas</button></footer></section>`;document.body.appendChild(dlg);dlg.querySelector('#productionLabelsClose').onclick=()=>dlg.classList.remove('show');dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.classList.remove('show')});}
   dlg.classList.add('show');
   const work=dlg.querySelector('#productionLabelsWork'),item=dlg.querySelector('#productionLabelsItem');
   if(!work.value)work.value=currentProjectRecord()?.name||'';
@@ -2076,11 +2076,23 @@ function productionLabelsDialog(){
   dlg.querySelector('#productionLabelsList').innerHTML=rows.map((r,i)=>`<div class="productionLabelsRow"><b>${String(i+1).padStart(3,'0')}</b><span>Chapa ${r.sheet} · ${esc(r.code)} · ${esc(r.name)}</span><strong>${nice(r.length)} × ${nice(r.width)}${r.thickness?' × '+nice(r.thickness):''} mm</strong></div>`).join('');
   const data=()=>({schema:'designlab-labels-v1',work:work.value.trim(),item:item.value.trim(),sequenceVerified:false,approximate,labels:rows.map((r,i)=>({...r,sequence:i+1,total:rows.length}))});
   dlg.querySelector('#productionLabelsExport').onclick=()=>{const blob=new Blob([JSON.stringify(data(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${safeFileName(work.value||'pedido')}-etiquetas.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-  dlg.querySelector('#productionLabelsPrint').onclick=()=>{
-    const payload=data();const win=window.open('','_blank');if(!win){toast('Permita pop-ups para abrir a impressão de etiquetas.');return;}
+  const buildHtml=()=>{
+    const payload=data();
     const pages=payload.labels.map(r=>`<article class="label"><div class="head"><b>OBRA: ${esc(payload.work||'—')}</b><span>${String(r.sequence).padStart(3,'0')}/${r.total}</span></div><div class="item">ITEM: ${esc(payload.item||'—')}</div><div class="measure">${nice(r.length)} × ${nice(r.width)}${r.thickness?' × '+nice(r.thickness):''}<small> mm</small></div><div class="foot"><span>${esc(r.code)} · ${esc(r.name)}</span><b>CHAPA ${r.sheet}</b></div></article>`).join('');
-    win.document.open();win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiquetas · ${esc(payload.work)}</title><style>@page{size:60mm 40mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:white;color:#111;font-family:Arial,sans-serif}.label{width:60mm;height:40mm;padding:2.5mm;break-after:page;page-break-after:always;display:flex;flex-direction:column;overflow:hidden}.label:last-child{break-after:auto}.head{display:flex;justify-content:space-between;gap:1mm;border-bottom:.3mm solid #111;padding-bottom:1mm;font-size:2.7mm}.head b{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.head span{white-space:nowrap}.item{font-size:3.3mm;font-weight:bold;margin-top:2mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.measure{font-size:6mm;font-weight:900;white-space:nowrap;margin:auto 0;letter-spacing:-.25mm}.measure small{font-size:2.5mm}.foot{display:flex;justify-content:space-between;gap:1mm;border-top:.3mm solid #111;padding-top:1mm;font-size:2.6mm}.foot span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.foot b{white-space:nowrap}@media screen{body{background:#ddd}.label{background:white;margin:8mm auto;box-shadow:0 2px 10px #999}}@media print{body{background:white}}</style></head><body>${pages}</body></html>`);win.document.close();win.focus();
-    // O operador inicia a impressão no navegador após conferir a prévia.
+    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiquetas · ${esc(payload.work)}</title><style>@page{size:60mm 40mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:white;color:#111;font-family:Arial,sans-serif}.label{width:60mm;height:40mm;padding:2.5mm;break-after:page;page-break-after:always;display:flex;flex-direction:column;overflow:hidden}.label:last-child{break-after:auto}.head{display:flex;justify-content:space-between;gap:1mm;border-bottom:.3mm solid #111;padding-bottom:1mm;font-size:2.7mm}.head b{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.head span{white-space:nowrap}.item{font-size:3.3mm;font-weight:bold;margin-top:2mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.measure{font-size:6mm;font-weight:900;white-space:nowrap;margin:auto 0;letter-spacing:-.25mm}.measure small{font-size:2.5mm}.foot{display:flex;justify-content:space-between;gap:1mm;border-top:.3mm solid #111;padding-top:1mm;font-size:2.6mm}.foot span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.foot b{white-space:nowrap}@media screen{body{background:#ddd}.label{background:white;margin:8mm auto;box-shadow:0 2px 10px #999}}@media print{body{background:white}}</style></head><body>${pages}</body></html>`;
+  };
+  dlg.querySelector('#productionLabelsDownload').onclick=()=>{
+    const blob=new Blob([buildHtml()],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    a.download=`${safeFileName(work.value||'pedido')}-etiquetas.html`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  dlg.querySelector('#productionLabelsPrint').onclick=()=>{
+    const win=window.open('','_blank');
+    if(!win){toast('Permita pop-ups para abrir a impressão de etiquetas.');return;}
+    win.document.open();win.document.write(buildHtml());win.document.close();win.focus();
   };
 }
 function cutPlanBuildGroups(cfg=cutPlanCfgFromUi()){
@@ -2182,7 +2194,7 @@ function renderPartsList(){
     $('partsListInfo').textContent=`${externalCutMode?'Lista externa importada':'Peças gerais do projeto'} · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
-    // 1.311.00-r22 · configuração transacional do plano: uma alteração inválida
+    // 1.311.00-r23 · configuração transacional do plano: uma alteração inválida
     // (ex.: girar a chapa/veio e fazer uma peça deixar de caber) nunca apaga o
     // último nesting válido. O campo volta automaticamente para a configuração
     // anterior e o usuário continua vendo/abrindo o plano normalmente.
