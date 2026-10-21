@@ -1,5 +1,5 @@
 {
-  "version": "1.311.00-r15",
-  "date": "2026-10-01",
-  "message": "1.311.00-r15: plano de corte usa automaticamente a chapa e o sentido do veio cadastrados em cada material; projetos mistos mantêm MDF, Compensado Naval e demais materiais em seus próprios tamanhos de estoque."
+  "version": "1.311.00-r17",
+  "date": "2026-10-21",
+  "message": "1.311.00-r17: atalhos de duplicar, desfazer, refazer e ferramentas no desktop; cache PWA atualizado."
 }

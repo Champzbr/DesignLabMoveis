@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.311.00-r15">
+<meta name="designlab-build" content="1.311.00-r17">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.311.00-r15';
+  const BUILD='1.311.00-r17';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/editor.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/materials.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/labels.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/layout.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/projects.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/settings.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/home.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r15">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r15">
+<link rel="stylesheet" href="css/base.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/editor.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/materials.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/labels.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/layout.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/projects.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/settings.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/home.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/mobile.css?v=1.311.00-r17">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.311.00-r17">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -1646,9 +1646,8 @@
           <label>Largura da chapa (mm)<input id="sheetMaterialOverrideHeight" type="number" value="1850" min="100" step="1"></label>
           <div class="sheetMaterialAutoInfo" style="margin:0"><span>Esta medida vale <strong>somente</strong> para o material selecionado enquanto a opção estiver ativada. Os demais materiais continuam usando seus próprios cadastros.</span></div>
         </div>
-        <div style="display:flex;justify-content:flex-start;margin-top:10px">
-          <button id="sheetMaterialOverrideConfirm" type="button" class="primary" style="width:auto;min-width:170px;min-height:44px;height:44px;padding:0 16px;flex:none;align-self:auto">✓ Confirmar medida</button>
-        </div>
+        <button id="sheetMaterialOverrideConfirm" type="button" class="secondary wide" style="margin-top:10px">✓ Confirmar medida para este material</button>
+        <div id="sheetMaterialOverrideStatus" class="dialogHelp" style="margin-top:8px">A medida só entra no cálculo depois de confirmar.</div>
       </div>
       <input id="sheetWidth" type="hidden" value="2750">
       <input id="sheetHeight" type="hidden" value="1850">
@@ -2867,6 +2866,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.311.00-r15"></script>
+<script type="module" src="js/app.js?v=1.311.00-r17"></script>
 </body>
 </html>
