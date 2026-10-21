@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.312.00-r4">
+<meta name="designlab-build" content="1.312.00-r5">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.312.00-r4';
+  const BUILD='1.312.00-r5';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -104,17 +104,17 @@
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <title>DesignLabMoveis 1.311.00 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/editor.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/materials.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/labels.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/layout.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/projects.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/settings.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/home.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r4">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r4">
+<link rel="stylesheet" href="css/base.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/editor.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/materials.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/labels.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/layout.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/projects.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/settings.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/home.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r5">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r5">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -913,7 +913,7 @@
     <button id="loadBtn" class="secondary">Projetos / Abrir</button>
     <button id="exportBtn" class="secondary">Exportar .mcad</button>
     <button id="importBtn" class="secondary">Abrir arquivo .mcad</button>
-    <button id="importFurnitureBtn" class="secondary">Importar móvel</button>
+    <button id="importFurnitureBtn" class="secondary">Importar móvel / SketchUp DAE</button>
     <button id="resetCam" class="secondary">Vista 3D</button>
     <button id="visualModeMoreBtn" class="secondary">👁 Visual limpo</button>
     <button id="xray3DBtn" class="secondary">◇ Raio-X 3D: desligado</button>
@@ -2524,12 +2524,12 @@
     <div id="libraryList"></div>
     <div class="dialogActions">
       <button id="saveFurnitureLibraryBtn" class="secondary" style="display:none">Salvar móvel nesta pasta</button>
-      <button id="importLibraryBtn" class="secondary" style="display:none">Importar STL nesta pasta</button>
+      <button id="importLibraryBtn" class="secondary" style="display:none">Importar DAE / STL / DXF nesta pasta</button>
       <button id="closeLibrary" class="secondary">Fechar</button>
     </div>
   </div>
 </div>
-<input id="libraryImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
+<input id="libraryImportFile" type="file" accept=".dae,model/vnd.collada+xml,.stl,model/stl,application/sla,.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
 <div id="doorSystemDialog" role="dialog" aria-modal="true" aria-label="Biblioteca e Sistema de Portas">
   <div class="doorSystemCard">
@@ -2618,7 +2618,7 @@
   </div>
 </div>
 <input id="importFile" type="file" accept="application/json,.json" hidden>
-<input id="furnitureImportFile" type="file" accept=".stl,model/stl,application/sla,.dxf,image/vnd.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
+<input id="furnitureImportFile" type="file" accept=".dae,model/vnd.collada+xml,.stl,model/stl,application/sla,.dxf,image/vnd.dxf,application/dxf,application/x-dxf,application/json,.json,.mini-cad.json" hidden>
 
 
 <div id="technicalLayoutDialog" aria-label="Gerar layout técnico">
@@ -2874,6 +2874,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.312.00-r4"></script>
+<script type="module" src="js/app.js?v=1.312.00-r5"></script>
 </body>
 </html>
