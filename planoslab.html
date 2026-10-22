@@ -6,28 +6,42 @@
 const $=id=>document.getElementById(id);let raw='',order=null;const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 $('labelsFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const content=await f.text();const doc=new DOMParser().parseFromString(content,'text/html');const labels=[...doc.querySelectorAll('.labelPage')];if(!labels.length){alert('Arquivo sem etiquetas reconhecidas. Selecione um HTML de etiquetas exportado pelo DesignLab.');return;}const rows=labels.map((el,i)=>({id:i+1,name:el.querySelector('.pieceName')?.textContent?.trim()||'Peça '+(i+1),width:el.querySelector('.measureHorizontal')?.textContent?.trim()||'—',height:el.querySelector('.measureVertical')?.textContent?.trim()||'—',thick:el.querySelector('.thickness')?.textContent?.trim()||'—',sheet:el.querySelector('.foot b')?.textContent?.trim()||'—',edges:[...el.querySelectorAll('.edge.active')].map(x=>x.textContent.trim()).filter(Boolean).join(', ')||'—'}));raw=content;order={name:doc.title.replace(/^Etiquetas\s*[·-]\s*/,'')||f.name,rows};$('total').textContent='1';$('parts').textContent=rows.length;$('jobs').innerHTML='<button class="job selected" type="button">'+esc(order.name)+'<br><small>'+rows.length+' peças</small></button>';$('orderTitle').textContent=order.name;$('orderInfo').textContent=rows.length+' peças · arquivo local';$('listPane').innerHTML='<div style="overflow:auto"><table><thead><tr><th>#</th><th>Peça</th><th>Comprimento</th><th>Largura</th><th>Esp.</th><th>Chapa</th><th>Fitas</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+x.id+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.width)+'</td><td>'+esc(x.height)+'</td><td>'+esc(x.thick)+'</td><td>'+esc(x.sheet)+'</td><td>'+esc(x.edges)+'</td></tr>').join('')+'</tbody></table></div>';$('preview').srcdoc=raw;$('print').disabled=false;$('clear').disabled=false;$('showList').click();});
 const API='https://designlabmoveis-api.geppetomarcenaria.workers.dev';
-async function cloudRequest(path){const user=window.netlifyIdentity?.currentUser?.();if(!user)throw Error('Entre na sua conta.');const token=await user.jwt();const res=await fetch(API+path,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await res.json();if(!res.ok)throw Error(data.message||'Erro na API');return data;}
+async function cloudRequest(path){const user=window.netlifyIdentity?.currentUser?.();const token=(user?await user.jwt().catch(()=>null):null)||sessionStorage.getItem('designlab_operator_token_r17');if(!token||sessionStorage.getItem('designlab_manual_login_r17')!=='yes')throw Error('Entre na sua conta.');const res=await fetch(API+path,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await res.json();if(!res.ok)throw Error(data.message||'Erro na API');return data;}
 async function loadCloudOrders(){const status=$('cloudStatus');status.textContent='Consultando ordens…';try{const data=await cloudRequest('/production/orders');$('total').textContent=data.orders.length;status.textContent=data.orders.length+' ordem(ns) na nuvem desta conta';$('jobs').innerHTML=data.orders.length?data.orders.map(o=>'<button class="job" data-id="'+esc(o.id)+'">'+esc(o.name)+'<br><small>'+esc(o.machine)+' · '+o.part_count+' peças · '+esc(o.status)+'</small></button>').join(''):'<p class="muted">Nenhuma ordem publicada nesta conta.</p>';for(const b of $('jobs').querySelectorAll('[data-id]'))b.onclick=()=>openCloudOrder(b.dataset.id);}catch(e){status.textContent='Nuvem indisponível: '+e.message;}}
 async function openCloudOrder(id){try{const result=await cloudRequest('/production/orders/'+encodeURIComponent(id));const pkg=result.package;const labels=pkg.labels?.labels||[];order={name:result.order.name,rows:labels};raw=pkg.html||'';$('parts').textContent=labels.length;$('orderTitle').textContent=result.order.name;$('orderInfo').textContent='Ordem '+id.slice(0,8)+' · '+result.order.machine+' · revisão '+result.order.revision;$('listPane').innerHTML='<div style="overflow:auto"><table><thead><tr><th>#</th><th>Peça</th><th>Comprimento</th><th>Largura</th><th>Esp.</th><th>Chapa</th><th>Fitas</th></tr></thead><tbody>'+labels.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.length)+'</td><td>'+esc(r.width)+'</td><td>'+esc(r.thickness)+'</td><td>'+esc(r.sheet)+'</td><td>'+esc(Object.values(r.edgeBands||{}).filter(Boolean).map(v=>v.code||v.name||'FITA').join(', '))+'</td></tr>').join('')+'</tbody></table></div>';$('preview').srcdoc=raw;$('print').disabled=!raw;$('clear').disabled=false;$('showList').click();}catch(e){alert('Não foi possível abrir a ordem: '+e.message);}}
 $('refreshCloud').onclick=loadCloudOrders;
-$('productionLogout').onclick=async()=>{sessionStorage.removeItem('designlab_manual_login_r15');document.getElementById('productionAccess').style.display='grid';document.getElementById('productionAccessStatus').textContent='Saindo…';try{await window.netlifyIdentity?.logout?.();}finally{location.replace('./index.html')}};
+$('productionLogout').onclick=async()=>{sessionStorage.removeItem('designlab_manual_login_r17');sessionStorage.removeItem('designlab_operator_token_r17');document.getElementById('productionAccess').style.display='grid';document.getElementById('productionAccessStatus').textContent='Saindo…';try{await window.netlifyIdentity?.logout?.();}finally{location.replace('./index.html')}};
 $('showList').onclick=()=>{$('listPane').hidden=false;$('labelsPane').hidden=true};$('showLabels').onclick=()=>{$('listPane').hidden=true;$('labelsPane').hidden=false};$('clear').onclick=()=>{raw='';order=null;$('labelsFile').value='';$('total').textContent='0';$('parts').textContent='0';$('jobs').innerHTML='<p class="muted">Nenhuma ordem carregada.</p>';$('orderTitle').textContent='Selecione uma ordem';$('orderInfo').textContent='Lista de peças e etiquetas';$('listPane').innerHTML='<p class="muted">Carregue um HTML de etiquetas para visualizar as peças.</p>';$('preview').srcdoc='';$('print').disabled=true;$('clear').disabled=true};$('print').onclick=()=>{if(!raw)return;const blob=new Blob([raw],{type:'text/html'});const url=URL.createObjectURL(blob);const w=window.open(url,'_blank');if(!w)alert('Permita abrir a nova aba para imprimir as etiquetas.');setTimeout(()=>URL.revokeObjectURL(url),60000)};
 </script><script>
 (async function(){
  const status=document.getElementById('productionAccessStatus');
- const start=Date.now();while(!window.netlifyIdentity&&Date.now()-start<10000)await new Promise(r=>setTimeout(r,100));
- if(!window.netlifyIdentity){status.textContent='Não foi possível carregar o login. Volte e entre novamente.';return;}
- const identity=window.netlifyIdentity;
- const check=async()=>{
-   const user=identity.currentUser?.();if(!user||sessionStorage.getItem('designlab_manual_login_r15')!=='yes')return false;
-   try{const token=await user.jwt();if(!token)return false;
-     const res=await fetch('/.netlify/identity/user',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
-     if(!res.ok)return false;
-     const data=await res.json();if(!(data?.id&&data.id===user.id))return false;const allowed=await cloudRequest('/me');const role=allowed.user?.role==='admin'?'admin':allowed.user?.access_role;return allowed.user?.access_status==='approved'&&['admin','geral','cnc','seccionadora','ambas'].includes(role);
-   }catch{return false;}
- };
- try{identity.init?.();}catch{}
- for(let i=0;i<20;i++){if(await check()){document.getElementById('productionAccess').remove();loadCloudOrders();return;}await new Promise(r=>setTimeout(r,250));}
- status.textContent='Sessão não confirmada. Entre pelo DesignLab para acessar o PlanosLab.';
+ const manual='designlab_manual_login_r17';
+ const bridge='designlab_operator_token_r17';
+ if(sessionStorage.getItem(manual)!=='yes'){
+   status.textContent='Faça login no DesignLab para acessar o PlanosLab.';return;
+ }
+ // Same-tab handoff from an explicit login. The Cloudflare API verifies token validity and permissions.
+ let token=sessionStorage.getItem(bridge);
+ if(!token){
+   for(let i=0;i<30&&!token;i++){
+     const user=window.netlifyIdentity?.currentUser?.();
+     if(user)token=await user.jwt().catch(()=>null);
+     if(!token)await new Promise(r=>setTimeout(r,200));
+   }
+ }
+ if(!token){status.textContent='Sessão expirada. Volte ao login e entre novamente.';return;}
+ sessionStorage.setItem(bridge,token);
+ try{
+   const res=await fetch('https://designlabmoveis-api.geppetomarcenaria.workers.dev/me',{
+     headers:{Authorization:'Bearer '+token},cache:'no-store'
+   });
+   const data=await res.json();
+   const user=data.user;
+   const role=user?.role==='admin'?'admin':user?.access_role;
+   if(!res.ok||user?.access_status!=='approved'||!['admin','geral','cnc','seccionadora','ambas'].includes(role)){
+     status.textContent='Esta conta não tem autorização para o PlanosLab.';return;
+   }
+   document.getElementById('productionAccess').remove();loadCloudOrders();
+ }catch(error){status.textContent='Não foi possível verificar sua autorização. Confira a conexão e tente novamente.';}
 })();
 </script></body></html>

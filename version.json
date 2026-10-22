@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r16",
+  "version": "1.312.00-r17",
   "date": "2026-10-22",
-  "message": "Editor de operador reutiliza login manual validado, sem autenticação duplicada."
+  "message": "Corrige passagem de sessão ao PlanosLab e Supervisor sem login duplicado; API mantém autorização."
 }
