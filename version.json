@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r15",
+  "version": "1.312.00-r16",
   "date": "2026-10-22",
-  "message": "Login somente por ação do usuário e correção da restauração automática de sessão."
+  "message": "Editor de operador reutiliza login manual validado, sem autenticação duplicada."
 }
