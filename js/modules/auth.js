@@ -259,7 +259,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r13');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r14');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -551,18 +551,17 @@ export function createAuthModule(ctx){
   
     client.on('init',user=>{
       authInitialized=true;
-      if(user && sessionStorage.getItem('designlab_manual_login_r13')==='yes')unlockOnlineApp(user,{message:'Sessão ativa nesta aba.'});
+      if(user && sessionStorage.getItem('designlab_manual_login_r14')==='yes')unlockOnlineApp(user,{message:'Sessão ativa nesta aba.'});
       else if(user){try{client.logout();}catch{}lockOnlineApp('Clique em Entrar e informe suas credenciais.');}
       else lockOnlineApp('Clique em Entrar para acessar sua conta.');
-      else if(!authLocalMode&&!authOfflineMode)lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
     });
     client.on('login',user=>{
-      sessionStorage.setItem('designlab_manual_login_r13','yes');
+      sessionStorage.setItem('designlab_manual_login_r14','yes');
       unlockOnlineApp(user,{message:'Login realizado.'});
       try{client.close();}catch{}
     });
     client.on('logout',()=>{
-      sessionStorage.removeItem('designlab_manual_login_r13');
+      sessionStorage.removeItem('designlab_manual_login_r14');
       stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
       clearOfflinePremiumLicense();
       currentIdentityUser=null;
@@ -755,7 +754,7 @@ export function createAuthModule(ctx){
       const user=await auth.login(email,password,remember);
       currentIdentityUser=user;
       authInitialized=true;
-      sessionStorage.setItem('designlab_manual_login_r13','yes');
+      sessionStorage.setItem('designlab_manual_login_r14','yes');
       unlockOnlineApp(user,{message:'Login realizado.'});
     }catch(err){
       console.error('Login:',err);
@@ -867,7 +866,7 @@ export function createAuthModule(ctx){
   async function logoutOnlineIdentity(){
     if(logoutInProgress)return;
     logoutInProgress=true;
-    sessionStorage.removeItem('designlab_manual_login_r13');
+    sessionStorage.removeItem('designlab_manual_login_r14');
     const client=identityClient;
     const offlineOnly=authOfflineMode&&!currentIdentityUser;
     try{
