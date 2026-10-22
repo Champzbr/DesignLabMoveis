@@ -16,7 +16,7 @@ export default {
     const origin = request.headers.get("Origin") || "";
     const cors = {
       "Access-Control-Allow-Origin": origin === siteUrl ? origin : siteUrl,
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Vary": "Origin"
     };
@@ -30,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r22", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r23", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
@@ -83,7 +83,11 @@ export default {
         const zawFiles=Array.isArray(body?.zawFiles)?body.zawFiles:[];
         if(zawFiles.length>100||zawFiles.some(f=>typeof f.name!=='string'||!/^mingli-zaw\/[A-Za-z0-9_.\/-]+\/Result\.zaw$/i.test(f.name)||typeof f.data!=='string'||f.data.length>250000))
           return json({ok:false,message:'Arquivos ZAW inválidos ou grandes demais.'},400);
-        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles});
+        // SVGs são gerados pelo otimizador; preserve-os no pacote do R2 para consulta por chapa.
+        const sheetPlans=Array.isArray(body?.sheetPlans)?body.sheetPlans:[];
+        if(sheetPlans.length>100||sheetPlans.some(p=>!Number.isInteger(Number(p.sheet))||Number(p.sheet)<1||typeof p.svg!=='string'||p.svg.length>400000||!/^\s*<svg\b/i.test(p.svg)))
+          return json({ok:false,message:'Os desenhos dos planos de corte são inválidos ou excedem o limite.'},400);
+        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles,sheetPlans});
         if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
         const id=crypto.randomUUID().replaceAll('-','');
         const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
