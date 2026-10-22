@@ -69,6 +69,8 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
           <div><strong>Premium até</strong>${escapeHtml(adminDate(u.premium_until))}</div>
           <div><strong>Compras pagas</strong>${Number(u.purchases_count||0)} · ${escapeHtml(adminMoney(u.paid_cents||0))}</div>
         </div>
+        <div class="adminMeta"><div><strong>Acesso</strong>${escapeHtml(u.role==='admin'?'Administrador':(u.access_role||'geral'))} · ${escapeHtml(u.role==='admin'?'approved':(u.access_status||'pending'))}</div></div>
+        ${u.role==='admin'?'':`<div class="adminActions" style="align-items:center;flex-wrap:wrap"><select data-access-role aria-label="Perfil de acesso"><option value="geral" ${u.access_role==='geral'?'selected':''}>Acesso geral</option><option value="cnc" ${u.access_role==='cnc'?'selected':''}>CNC</option><option value="seccionadora" ${u.access_role==='seccionadora'?'selected':''}>Seccionadora</option><option value="ambas" ${u.access_role==='ambas'?'selected':''}>CNC + Seccionadora</option><option value="supervisor" ${u.access_role==='supervisor'?'selected':''}>Supervisor (leitura)</option></select><button data-admin-action="approveAccess">Aprovar perfil</button><button class="secondary" data-admin-action="pendingAccess">Suspender acesso</button><button class="danger" data-admin-action="rejectAccess">Rejeitar</button></div>`}
         ${u.banned_reason?`<div class="adminMeta"><div><strong>Motivo do bloqueio</strong>${escapeHtml(u.banned_reason)}</div></div>`:''}
         <div class="adminActions">
           <button class="secondary" data-admin-action="premium7">+7 dias</button>
@@ -201,6 +203,14 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
       adminSetStatus('Premium removido.','good');
     }catch(err){adminSetStatus(err.message||'Falha ao retirar Premium.','error');}
   }
+  async function adminChangeAccess(userId,accessRole,accessStatus){
+    if(!confirm(accessStatus==='approved'?'Aprovar este usuário com o perfil selecionado?':'Alterar o status de acesso deste usuário?'))return;
+    adminSetStatus('Atualizando acesso…');
+    try{
+      await cloudApiFetch(`/admin/users/${encodeURIComponent(userId)}/access`,{method:'POST',body:{access_role:accessRole,access_status:accessStatus}});
+      await loadAdminUsers();adminSetStatus('Acesso atualizado.','good');
+    }catch(e){adminSetStatus(e.message||'Falha ao atualizar acesso.','error');}
+  }
   async function adminBanUser(userId,banned){
     const reason=banned?(prompt('Motivo do bloqueio (opcional):','')||''):'';
     if(banned&&!confirm('Banir esta conta? O usuário perderá o acesso online ao DesignLabMoveis.'))return;
@@ -244,6 +254,7 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
     adminPremium,
     adminRevokePremium,
     adminBanUser,
+    adminChangeAccess,
     adminPaymentAction
   };
 }

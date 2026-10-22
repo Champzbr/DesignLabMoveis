@@ -258,7 +258,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r10');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r11');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -363,7 +363,7 @@ export function createAuthModule(ctx){
   }
   
   function premiumWorkspaceAllowed(data){
-    return data?.user?.role==='admin' || !!data?.subscription?.premium_active;
+    return data?.user?.access_status==='approved' && (data?.user?.role==='admin' || ['cnc','seccionadora','ambas','supervisor'].includes(data?.user?.access_role) || !!data?.subscription?.premium_active);
   }
   
   function premiumUntilText(subscription){
@@ -434,6 +434,7 @@ export function createAuthModule(ctx){
       showPremiumAccessRequired(ctx.cloudAccountState?.subscription||null,{verificationError:true});
       return false;
     }
+    if(data?.user?.access_status!=='approved'){setAuthStatus('Aguardando aprovação do administrador.','error');$('authGate')?.classList.remove('hidden');return false;}
     if(!premiumWorkspaceAllowed(data)){showPremiumAccessRequired(data?.subscription||null);return false;}
     hidePremiumAccessPanel();
     closePremiumPurchase();
