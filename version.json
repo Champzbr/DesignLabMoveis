@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r19",
+  "version": "1.312.00-r20",
   "date": "2026-10-22",
-  "message": "Distingue Trocar ambiente de Sair da conta no PlanosLab, Editor e Supervisor."
+  "message": "Correção de saída e troca de ambientes; envio de ZAW e identificação de pedido/cliente para produção."
 }
