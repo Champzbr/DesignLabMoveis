@@ -2139,8 +2139,13 @@ function productionLabelsDialog(){
         if(!zawFiles.length)throw new Error('O gerador não retornou arquivos ZAW.');
         if(zawFiles.length!==groups.length)throw new Error('Há chapas sem ZAW; envio interrompido para proteger a produção.');
       }
+      // Snapshot do plano por chapa: mesma geometria utilizada na visualização/impressão do DesignLab.
+      // Não reconstruir posições usando somente dimensões e etiquetas.
+      const planGroups=prepareSheetPreviewGroups();
+      const sheetPlans=planGroups.map((g,i)=>({sheet:i+1,sheetNo:g.sheetNo||i+1,group:g.key||'',width:Number(g.cfg?.width)||0,height:Number(g.cfg?.height)||0,svg:cutPlanPrintSvg(g)}));
+      if((target==='seccionadora'||target==='ambas')&&sheetPlans.length!==zawFiles.length)throw new Error('A quantidade de desenhos não corresponde à quantidade de arquivos ZAW. Revise o plano antes de enviar.');
       const orderName=`${payload.orderNumber} · ${payload.customer} · ${payload.work||'Projeto'}`;
-      const result=await api('/production/orders',{method:'POST',body:{name:orderName,machine:target,orderNumber:payload.orderNumber,customer:payload.customer,work:payload.work,labels:payload,html:buildHtml(),zawFiles},timeoutMs:30000});
+      const result=await api('/production/orders',{method:'POST',body:{name:orderName,machine:target,orderNumber:payload.orderNumber,customer:payload.customer,work:payload.work,labels:payload,html:buildHtml(),zawFiles,sheetPlans},timeoutMs:30000});
       toast('Ordem '+payload.orderNumber+' enviada: '+result.id.slice(0,8).toUpperCase()+' · '+(zawFiles.length?zawFiles.length+' ZAW incluído(s).':'lista de peças disponível.'));
     }catch(error){toast('Não foi possível enviar: '+(error?.message||'erro de conexão'));}
     finally{btn.disabled=false;}
