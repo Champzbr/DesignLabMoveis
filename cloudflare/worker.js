@@ -30,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r12", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r21", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
@@ -53,7 +53,7 @@ export default {
     if (!approved && url.pathname!=='/me') return json({ok:false,error:'approval_required',message:'Conta aguardando aprovação do administrador.'},403);
     const operatorRole=['cnc','seccionadora','ambas'].includes(accessRole);
     const supervisorRole=accessRole==='supervisor';
-    if (operatorRole && request.method!=='GET')return json({ok:false,error:'operator_read_only',message:'Operadores somente consultam as ordens.'},403);
+    if (operatorRole && request.method!=='GET' && !(request.method==='PATCH' && /^\/production\/orders\/[A-Za-z0-9_-]{1,100}\/sheets\/[0-9]{1,5}$/.test(url.pathname)))return json({ok:false,error:'operator_read_only',message:'Operadores somente consultam as ordens.'},403);
     if (operatorRole && !url.pathname.startsWith('/production/') && url.pathname!=='/me')
       return json({ok:false,error:'restricted_operator',message:'Esta conta só pode acessar o PlanosLab.'},403);
     if (supervisorRole && !['GET','HEAD'].includes(request.method))
@@ -62,7 +62,7 @@ export default {
       return json({ok:false,error:'restricted_supervisor',message:'Supervisor só pode consultar projetos.'},403);
 
     // r10 · Ordens publicadas na produção. D1 guarda o índice; R2, o pacote imutável.
-    if (url.pathname === "/production/orders" || /^\/production\/orders\/[A-Za-z0-9_-]{1,100}$/.test(url.pathname)) {
+    if (url.pathname === "/production/orders" || /^\/production\/orders\/[A-Za-z0-9_-]{1,100}(?:\/sheets\/[0-9]{1,5})?$/.test(url.pathname)) {
       await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_orders (
         id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL,
         machine TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
@@ -70,6 +70,7 @@ export default {
         part_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
       )`).run();
       const orderId=url.pathname.split('/')[3]||null;
+      const sheetId=url.pathname.split('/')[5]||null;
       const operator=operatorRole;
       if (!orderId && request.method==='POST') {
         if(accessRole!=='admin'&&accessRole!=='geral')return json({ok:false,error:'forbidden',message:'Sem permissão para publicar ordens.'},403);
@@ -79,7 +80,10 @@ export default {
         const labels=body?.labels;
         if (!name||!['seccionadora','cnc','ambas'].includes(machine)||!labels||labels.schema!=='designlab-labels-v1'||!Array.isArray(labels.labels)||!labels.labels.length||labels.labels.length>2000)
           return json({ok:false,message:'Ordem inválida: confira nome, máquina e lista de peças.'},400);
-        const payload=JSON.stringify({name,machine,labels,html:String(body.html||'')});
+        const zawFiles=Array.isArray(body?.zawFiles)?body.zawFiles:[];
+        if(zawFiles.length>100||zawFiles.some(f=>typeof f.name!=='string'||!/^mingli-zaw\/[A-Za-z0-9_.\/-]+\/Result\.zaw$/i.test(f.name)||typeof f.data!=='string'||f.data.length>250000))
+          return json({ok:false,message:'Arquivos ZAW inválidos ou grandes demais.'},400);
+        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles});
         if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
         const id=crypto.randomUUID().replaceAll('-','');
         const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
@@ -97,6 +101,31 @@ export default {
           : await env.DB.prepare(`SELECT id,name,machine,status,revision,part_count,created_at FROM production_orders WHERE owner_id=? ORDER BY created_at DESC LIMIT 200`).bind(ctx.dbUser.identity_user_id).all();
         return json({ok:true,orders:rows.results||[]});
       }
+      if (orderId && sheetId && request.method==='PATCH') {
+        // r21: progresso por chapa armazenado no D1, sem alterar o pacote R2.
+        const sheetNo=Number(sheetId);
+        const payload=await readJson(request);
+        if (!Number.isSafeInteger(sheetNo)||sheetNo<1||!['cut','pending'].includes(payload?.status)) return json({ok:false,message:'Chapa ou situação inválida.'},400);
+        const meta=operatorRole
+          ? await env.DB.prepare(`SELECT po.* FROM production_orders po JOIN users owner ON owner.identity_user_id=po.owner_id WHERE po.id=?1 AND owner.role='admin' AND (?2='ambas' OR po.machine=?2 OR po.machine='ambas')`).bind(orderId,accessRole).first()
+          : await env.DB.prepare(`SELECT * FROM production_orders WHERE id=? AND owner_id=?`).bind(orderId,ctx.dbUser.identity_user_id).first();
+        if(!meta)return json({ok:false,message:'Ordem não encontrada ou não autorizada.'},404);
+        const pkgObject=await env.PROJECTS.get(meta.r2_key);
+        if(!pkgObject)return json({ok:false,message:'Pacote indisponível.'},404);
+        const pkg=JSON.parse(await pkgObject.text());
+        const sheetNumbers=new Set((pkg.labels?.labels||[]).map(l=>Number(l.group||l.sheet)));
+        if(!sheetNumbers.has(sheetNo))return json({ok:false,message:'Chapa não pertence a esta ordem.'},404);
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_sheet_status (
+          order_id TEXT NOT NULL, sheet_no INTEGER NOT NULL, status TEXT NOT NULL,
+          updated_by TEXT NOT NULL, updated_at TEXT NOT NULL,
+          PRIMARY KEY(order_id,sheet_no)
+        )`).run();
+        const now=new Date().toISOString();
+        await env.DB.prepare(`INSERT INTO production_sheet_status(order_id,sheet_no,status,updated_by,updated_at)
+          VALUES(?,?,?,?,?) ON CONFLICT(order_id,sheet_no) DO UPDATE SET status=excluded.status,updated_by=excluded.updated_by,updated_at=excluded.updated_at`)
+          .bind(orderId,sheetNo,payload.status,ctx.dbUser.identity_user_id,now).run();
+        return json({ok:true,sheet:sheetNo,status:payload.status,updated_at:now});
+      }
       if(orderId && request.method==='GET'){
         const meta=operatorRole
           ? await env.DB.prepare(`SELECT po.* FROM production_orders po JOIN users owner ON owner.identity_user_id=po.owner_id WHERE po.id=?1 AND owner.role='admin' AND (?2='ambas' OR po.machine=?2 OR po.machine='ambas')`).bind(orderId,accessRole).first()
@@ -104,7 +133,9 @@ export default {
         if(!meta)return json({ok:false,message:'Ordem não encontrada nesta conta.'},404);
         const object=await env.PROJECTS.get(meta.r2_key);
         if(!object)return json({ok:false,message:'Pacote de produção indisponível.'},404);
-        return json({ok:true,order:{id:meta.id,name:meta.name,machine:meta.machine,status:meta.status,revision:meta.revision,created_at:meta.created_at},package:JSON.parse(await object.text())});
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_sheet_status (order_id TEXT NOT NULL, sheet_no INTEGER NOT NULL, status TEXT NOT NULL, updated_by TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(order_id,sheet_no))`).run();
+        const statusRows=await env.DB.prepare(`SELECT sheet_no,status,updated_at FROM production_sheet_status WHERE order_id=?`).bind(orderId).all();
+        return json({ok:true,order:{id:meta.id,name:meta.name,machine:meta.machine,status:meta.status,revision:meta.revision,created_at:meta.created_at},sheetStatus:statusRows.results||[],package:JSON.parse(await object.text())});
       }
       return json({ok:false,message:'Operação não permitida.'},405);
     }
