@@ -181,7 +181,7 @@ function dlProdFitsSheet(o,mat){
   if(mat.grain||o.userData?.materialGrain){
     const rot=normalizePieceGrainRotation(o.userData?.materialGrainRotation);
     const sheetAlongLength=(mat.grainDirection||'length')!=='width';
-    // Convenção 1.312.00-r8: 0° acompanha o maior lado da peça; 90° o menor.
+    // Convenção 1.312.00-r10: 0° acompanha o maior lado da peça; 90° o menor.
     const faceWIsMajor=Number(w)>=Number(h);
     const pieceAlongFaceW=rot===0?faceWIsMajor:!faceWIsMajor;
     const rotatePlacement=sheetAlongLength?!pieceAlongFaceW:pieceAlongFaceW;
