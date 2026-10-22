@@ -30,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r23", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r24", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
@@ -87,7 +87,10 @@ export default {
         const sheetPlans=Array.isArray(body?.sheetPlans)?body.sheetPlans:[];
         if(sheetPlans.length>100||sheetPlans.some(p=>!Number.isInteger(Number(p.sheet))||Number(p.sheet)<1||typeof p.svg!=='string'||p.svg.length>400000||!/^\s*<svg\b/i.test(p.svg)))
           return json({ok:false,message:'Os desenhos dos planos de corte são inválidos ou excedem o limite.'},400);
-        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles,sheetPlans});
+        const cncFiles=Array.isArray(body?.cncFiles)?body.cncFiles:[];
+        if(cncFiles.length>100||cncFiles.some(g=>!Number.isInteger(Number(g.sheet))||Number(g.sheet)<1||!Array.isArray(g.files)||g.files.length>80||g.files.some(f=>typeof f.name!=='string'||!/^[-A-Za-z0-9_./]+\.dxf$/i.test(f.name)||typeof f.data!=='string'||f.data.length>400000)))
+          return json({ok:false,message:'Arquivos DXF para Aspire inválidos ou acima do limite.'},400);
+        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles,sheetPlans,cncFiles});
         if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
         const id=crypto.randomUUID().replaceAll('-','');
         const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
