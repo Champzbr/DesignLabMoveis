@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.312.00-r8">
+<meta name="designlab-build" content="1.312.00-r9">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.312.00-r8';
+  const BUILD='1.312.00-r9';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r8';
+    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r9';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.312.00-r8 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/editor.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/materials.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/labels.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/layout.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/projects.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/settings.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/home.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r8">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r8">
+<title>DesignLabMoveis 1.312.00-r9 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/editor.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/materials.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/labels.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/layout.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/projects.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/settings.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/home.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r9">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r9">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -165,12 +165,16 @@
 <body>
 
 
+<div id="environmentChoice" class="environmentChoice" hidden aria-label="Escolha o ambiente"><div class="environmentCard"><div class="environmentEyebrow">DESIGNLAB · AMBIENTES</div><h1>Onde deseja trabalhar?</h1><p>Escolha seu ambiente após entrar na conta.</p><div class="environmentOptions"><button type="button" id="environmentDesignLab"><strong>▱ DesignLab</strong><span>Projetos, modelagem, materiais e planos de corte</span></button><button type="button" id="environmentPlanosLab"><strong>▤ PlanosLab</strong><span>Consulta de produção, peças e etiquetas</span></button></div><small>Você pode trocar de ambiente depois, sem fazer outro login.</small></div></div>
+<style>.environmentChoice[hidden]{display:none!important}.environmentChoice{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:#101c29f5;padding:22px;font-family:Arial,sans-serif}.environmentCard{width:min(760px,100%);padding:36px;border-radius:22px;background:#f7fafb;color:#183341;box-shadow:0 20px 60px #0007}.environmentEyebrow{font-size:12px;letter-spacing:2px;color:#15787a;font-weight:800}.environmentCard h1{font-size:29px;margin:12px 0}.environmentCard p,.environmentCard small{color:#607784}.environmentOptions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:25px 0}.environmentOptions button{cursor:pointer;text-align:left;border:1px solid #c9dce0;border-radius:15px;background:white;padding:25px;min-height:145px;color:#173b48}.environmentOptions button:hover,.environmentOptions button:focus-visible{border-color:#138f91;outline:2px solid #138f9155}.environmentOptions strong{display:block;font-size:23px;margin-bottom:14px}.environmentOptions span{display:block;line-height:1.5;color:#56717c}@media(max-width:620px){.environmentOptions{grid-template-columns:1fr}.environmentCard{padding:22px}}</style>
+<script>window.designLabChooseEnvironment=function(){const gate=document.getElementById('authGate'),choice=document.getElementById('environmentChoice');if(gate?.classList.contains('hidden'))choice.hidden=false};document.addEventListener('DOMContentLoaded',()=>{document.getElementById('environmentDesignLab').onclick=()=>{document.getElementById('environmentChoice').hidden=true};document.getElementById('environmentPlanosLab').onclick=()=>{location.href='./planoslab.html'};document.getElementById('homeEnvironmentSwitch')?.addEventListener('click',()=>window.designLabChooseEnvironment());});</script>
+
 <div id="authGate" aria-label="Acesso ao DesignLabMoveis">
   <div class="authCard">
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r8</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r9</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -292,7 +296,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r8</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r9</span>
         </div>
       </div>
 
@@ -328,7 +332,7 @@
     </section>
 
     <section class="homeQuickActions" aria-label="Ações rápidas">
-      <a class="homeQuickAction secondary" href="./planoslab.html" title="Abrir ambiente de produção"><span class="homeQuickIcon">▤</span><span class="homeQuickText"><strong>PlanosLab · Produção</strong><span>Planos, peças e etiquetas nos computadores das máquinas</span></span><span class="homeQuickChevron">›</span></a>
+      <a class="homeQuickAction secondary" href="#" id="homeEnvironmentSwitch" title="Trocar ambiente"><span class="homeQuickIcon">▤</span><span class="homeQuickText"><strong>Trocar ambiente</strong><span>Planos, peças e etiquetas nos computadores das máquinas</span></span><span class="homeQuickChevron">›</span></a>
       <button id="homeNewProject" class="homeQuickAction" type="button">
         <span class="homeQuickIcon">＋</span>
         <span class="homeQuickText"><strong>Novo projeto</strong><span>Criar do zero</span></span>
@@ -549,7 +553,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r8</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r9</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -575,7 +579,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.312.00-r8</strong>
+        <strong id="updateCurrentVersion">1.312.00-r9</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -618,7 +622,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r8 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r9 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1581,7 +1585,7 @@
         <h3>Peças gerais · Planos de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Todas as peças do projeto reunidas: chapas, madeira maciça e ferro / Metalon.</p>
       </div>
-      <span class="cutPlanBadge">1.312.00-r8</span>
+      <span class="cutPlanBadge">1.312.00-r9</span>
     </div>
 
     <div class="dialogActions"><button id="productionLabelsOpen" type="button" class="secondary">🏷️ Etiquetas de produção · imprimir em lote</button><button id="externalCutOpen" type="button" class="secondary">📥 Importar lista SketchUp CSV · área separada</button></div>
@@ -2826,6 +2830,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.312.00-r8"></script>
+<script type="module" src="js/app.js?v=1.312.00-r9"></script>
 </body>
 </html>
