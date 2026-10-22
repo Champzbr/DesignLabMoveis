@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.312.00-r10">
+<meta name="designlab-build" content="1.312.00-r11">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.312.00-r10';
+  const BUILD='1.312.00-r11';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r10';
+    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r11';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.312.00-r10 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/editor.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/materials.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/labels.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/layout.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/projects.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/settings.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/home.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r10">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r10">
+<title>DesignLabMoveis 1.312.00-r11 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/editor.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/materials.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/labels.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/layout.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/projects.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/settings.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/home.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r11">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r11">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -166,15 +166,42 @@
 
 
 <div id="environmentChoice" class="environmentChoice" hidden aria-label="Escolha o ambiente"><div class="environmentCard"><div class="environmentEyebrow">DESIGNLAB · AMBIENTES</div><h1>Onde deseja trabalhar?</h1><p>Escolha seu ambiente após entrar na conta.</p><div class="environmentOptions"><button type="button" id="environmentDesignLab"><strong>▱ DesignLab</strong><span>Projetos, modelagem, materiais e planos de corte</span></button><button type="button" id="environmentPlanosLab"><strong>▤ PlanosLab</strong><span>Consulta de produção, peças e etiquetas</span></button></div><small>Você pode trocar de ambiente depois, sem fazer outro login.</small></div></div>
-<style>.environmentChoice[hidden]{display:none!important}.environmentChoice{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:#101c29f5;padding:22px;font-family:Arial,sans-serif}.environmentCard{width:min(760px,100%);padding:36px;border-radius:22px;background:#f7fafb;color:#183341;box-shadow:0 20px 60px #0007}.environmentEyebrow{font-size:12px;letter-spacing:2px;color:#15787a;font-weight:800}.environmentCard h1{font-size:29px;margin:12px 0}.environmentCard p,.environmentCard small{color:#607784}.environmentOptions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:25px 0}.environmentOptions button{cursor:pointer;text-align:left;border:1px solid #c9dce0;border-radius:15px;background:white;padding:25px;min-height:145px;color:#173b48}.environmentOptions button:hover,.environmentOptions button:focus-visible{border-color:#138f91;outline:2px solid #138f9155}.environmentOptions strong{display:block;font-size:23px;margin-bottom:14px}.environmentOptions span{display:block;line-height:1.5;color:#56717c}@media(max-width:620px){.environmentOptions{grid-template-columns:1fr}.environmentCard{padding:22px}}</style>
-<script>window.designLabChooseEnvironment=function(){const gate=document.getElementById('authGate'),choice=document.getElementById('environmentChoice');if(gate?.classList.contains('hidden'))choice.hidden=false};document.addEventListener('DOMContentLoaded',()=>{document.getElementById('environmentDesignLab').onclick=()=>{document.getElementById('environmentChoice').hidden=true};document.getElementById('environmentPlanosLab').onclick=()=>{location.href='./planoslab.html'};document.getElementById('homeEnvironmentSwitch')?.addEventListener('click',()=>window.designLabChooseEnvironment());});</script>
+<style>.environmentChoice[hidden]{display:none!important}.environmentChoice{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:#edf3f5;padding:22px;font-family:Arial,sans-serif}.environmentCard{width:min(760px,100%);padding:36px;border-radius:22px;background:#f7fafb;color:#183341;box-shadow:0 20px 60px #0007}.environmentEyebrow{font-size:12px;letter-spacing:2px;color:#15787a;font-weight:800}.environmentCard h1{font-size:29px;margin:12px 0}.environmentCard p,.environmentCard small{color:#607784}.environmentOptions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:25px 0}.environmentOptions button{cursor:pointer;text-align:left;border:1px solid #c9dce0;border-radius:15px;background:white;padding:25px;min-height:145px;color:#173b48}.environmentOptions button:hover,.environmentOptions button:focus-visible{border-color:#138f91;outline:2px solid #138f9155}.environmentOptions strong{display:block;font-size:23px;margin-bottom:14px}.environmentOptions span{display:block;line-height:1.5;color:#56717c}@media(max-width:620px){.environmentOptions{grid-template-columns:1fr}.environmentCard{padding:22px}}</style>
+<script>
+window.designLabChooseEnvironment=async function(){
+ const gate=document.getElementById('authGate'),choice=document.getElementById('environmentChoice');
+ if(!gate?.classList.contains('hidden'))return;
+ choice.hidden=false;
+ const opts=document.querySelector('.environmentOptions');opts.style.visibility='hidden';
+ const note=document.querySelector('.environmentCard small');note.textContent='Verificando sua autorização…';
+ try{
+  const client=window.netlifyIdentity;const user=client?.currentUser?.();if(!user)throw Error('Sessão não encontrada.');
+  const token=await user.jwt();const res=await fetch('https://designlabmoveis-api.geppetomarcenaria.workers.dev/me',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  const data=await res.json();if(!res.ok)throw Error(data.message||'Acesso negado');
+  const role=data.user?.role==='admin'?'admin':data.user?.access_role;
+  if(data.user?.access_status!=='approved')throw Error('Conta aguardando aprovação do administrador.');
+  const design=document.getElementById('environmentDesignLab'),production=document.getElementById('environmentPlanosLab');
+  const operator=['cnc','seccionadora','ambas'].includes(role);const supervisor=role==='supervisor';
+  design.hidden=operator||supervisor;production.hidden=supervisor;
+  opts.style.visibility='visible';
+  if(operator){choice.hidden=true;location.replace('./planoslab.html');return;}
+  if(supervisor){choice.hidden=true;location.replace('./supervisor.html');return;}
+  note.textContent='Você pode trocar de ambiente sem fazer outro login.';
+ }catch(err){note.textContent=err.message||'Falha na autorização';opts.style.visibility='hidden';}
+};
+document.addEventListener('DOMContentLoaded',()=>{
+ document.getElementById('environmentDesignLab').onclick=()=>{document.getElementById('environmentChoice').hidden=true};
+ document.getElementById('environmentPlanosLab').onclick=()=>{location.href='./planoslab.html'};
+ document.getElementById('homeEnvironmentSwitch')?.addEventListener('click',()=>window.designLabChooseEnvironment());
+});
+</script>
 
 <div id="authGate" aria-label="Acesso ao DesignLabMoveis">
   <div class="authCard">
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r10</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r11</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -296,7 +323,7 @@
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r10</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r11</span>
         </div>
       </div>
 
@@ -553,7 +580,7 @@
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r10</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r11</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -579,7 +606,7 @@
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.312.00-r10</strong>
+        <strong id="updateCurrentVersion">1.312.00-r11</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -622,7 +649,7 @@
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r10 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r11 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1585,7 +1612,7 @@
         <h3>Peças gerais · Planos de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Todas as peças do projeto reunidas: chapas, madeira maciça e ferro / Metalon.</p>
       </div>
-      <span class="cutPlanBadge">1.312.00-r10</span>
+      <span class="cutPlanBadge">1.312.00-r11</span>
     </div>
 
     <div class="dialogActions"><button id="productionLabelsOpen" type="button" class="secondary">🏷️ Etiquetas de produção · imprimir em lote</button><button id="externalCutOpen" type="button" class="secondary">📥 Importar lista SketchUp CSV · área separada</button></div>
@@ -2830,6 +2857,6 @@
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.312.00-r10"></script>
+<script type="module" src="js/app.js?v=1.312.00-r11"></script>
 </body>
 </html>
