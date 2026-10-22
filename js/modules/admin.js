@@ -112,6 +112,7 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
     $('adminTrialSettingsInfo').textContent=days>0
       ? `Novas contas recebem ${days} dia(s) de Premium grátis. O período começa na data de criação da conta no Netlify.`
       : 'Teste grátis desativado. Novas contas começam diretamente no plano Free.';
+    if($('adminPremiumSalesEnabled'))$('adminPremiumSalesEnabled').checked=s.premium_sales_enabled===true;
     if($('adminPremiumPrice'))$('adminPremiumPrice').value=(Math.max(100,Number(s.premium_price_cents??2999)||2999)/100).toFixed(2);
     if($('adminPremiumDays'))$('adminPremiumDays').value=Math.max(1,Number(s.premium_days??30)||30);
     if($('adminPaymentProvider'))$('adminPaymentProvider').value=String(s.payment_provider||'manual_pix');
@@ -136,6 +137,7 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
     const premiumDays=Math.max(1,Math.min(3650,Math.trunc(Number($('adminPremiumDays')?.value)||30)));
     const body={
       free_trial_days:trialDays,premium_price_cents:priceCents,premium_days:premiumDays,
+      premium_sales_enabled:Boolean($('adminPremiumSalesEnabled')?.checked),
       payment_provider:String($('adminPaymentProvider')?.value||'manual_pix'),
       pix_key:String($('adminPixKey')?.value||'').trim(),
       pix_receiver_name:String($('adminPixReceiverName')?.value||'').trim(),
@@ -209,7 +211,7 @@ export function createAdminModule({$,escapeHtml,toast,cloudApiFetch,getCloudAcco
     try{
       await cloudApiFetch(`/admin/users/${encodeURIComponent(userId)}/access`,{method:'POST',body:{access_role:accessRole,access_status:accessStatus}});
       await loadAdminUsers();adminSetStatus('Acesso atualizado.','good');
-    }catch(e){adminSetStatus(e.message||'Falha ao atualizar acesso.','error');}
+    }catch(e){adminSetStatus((e?.data?.error==='internal_error'?'Verifique se a migração D1 da r11 foi executada. ':'' )+(e.message||'Falha ao atualizar acesso. Confirme que o Worker publicado está na r12 e o D1 está atualizado.'),'error');}
   }
   async function adminBanUser(userId,banned){
     const reason=banned?(prompt('Motivo do bloqueio (opcional):','')||''):'';

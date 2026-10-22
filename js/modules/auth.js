@@ -239,6 +239,7 @@ export function createAuthModule(ctx){
     const body=document.querySelector('#authGate .authBody');
     if(body){const status=$('authStatus');status?body.insertBefore(panel,status):body.appendChild(panel);}
     $('authPremiumBuy')?.addEventListener('click',()=>openPremiumPurchase());
+    if($('authPremiumBuy'))$('authPremiumBuy').hidden=true;
     $('authPremiumRetry')?.addEventListener('click',()=>verifyPremiumWorkspaceAccess({message:'Acesso Premium confirmado.'}));
     $('authPremiumLogout')?.addEventListener('click',()=>logoutOnlineIdentity());
     return panel;
@@ -258,7 +259,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r11');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r12');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -380,6 +381,7 @@ export function createAuthModule(ctx){
     for(const id of ['authLoginForm','authSignupForm','authForgotForm'])$(id)?.classList.remove('show');
     $('authBannedPanel')?.classList.remove('show');
     const panel=ensurePremiumAccessPanel();panel?.classList.add('show');
+    cloudApiFetch('/payments/config').then(data=>{const buy=$('authPremiumBuy');if(buy)buy.hidden=!Boolean(data?.payment?.premium_sales_enabled);}).catch(()=>{const buy=$('authPremiumBuy');if(buy)buy.hidden=true;});
     const title=$('authPremiumTitle'),msg=$('authPremiumMessage');
     if(verificationError){
       if(title)title.textContent='Não foi possível verificar o Premium';
@@ -856,18 +858,32 @@ export function createAuthModule(ctx){
     }
   }
   
+  let logoutInProgress=false;
   async function logoutOnlineIdentity(){
-    if(authLocalMode){authLocalMode=false;lockOnlineApp('Modo local encerrado.');return;}
-    try{await projectAutosaveNow();}catch{}
-    const wasOfflineOnly=authOfflineMode&&!currentIdentityUser;
-    clearOfflinePremiumLicense();
-    if(wasOfflineOnly){authOfflineMode=false;lockOnlineApp('Acesso offline encerrado. Entre novamente para continuar.');return;}
-    if(!identityClient){currentIdentityUser=null;authOfflineMode=false;lockOnlineApp('Você saiu da conta.');return;}
-    try{await identityClient.logout();}
-    catch(err){currentIdentityUser=null;authOfflineMode=false;lockOnlineApp('Sessão local encerrada. Conecte à internet para concluir a saída no servidor.');console.error(err);}
+    if(logoutInProgress)return;
+    logoutInProgress=true;
+    const client=identityClient;
+    const offlineOnly=authOfflineMode&&!currentIdentityUser;
+    try{
+      // Saída visual imediata: não depende de autosave, rede ou evento do widget.
+      stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
+      clearOfflinePremiumLicense();
+      currentIdentityUser=null;authLocalMode=false;authOfflineMode=false;
+      ctx.setCloudAccountState({loading:false,ok:false,error:null,user:null,subscription:null,lastSync:null,banned:false});
+      updateCloudAccountChrome();
+      lockOnlineApp('Você saiu da conta.');
+      if(!offlineOnly&&client){
+        try{
+          await Promise.race([
+            Promise.resolve(client.logout()),
+            new Promise((_,reject)=>setTimeout(()=>reject(new Error('tempo limite no logout')),5000))
+          ]);
+        }catch(err){console.warn('Sessão encerrada na interface; falha ao confirmar saída no provedor:',err);}
+      }
+    }finally{logoutInProgress=false;}
   }
   
-  
+
   window.miniCadAuth={
     getUser(){return currentIdentityUser||offlineLicensedUser;},
     isAuthenticated(){return (!!currentIdentityUser&&!authLocalMode)||!!authOfflineMode;},
