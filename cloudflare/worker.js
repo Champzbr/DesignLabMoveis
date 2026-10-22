@@ -30,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r11", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r12", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
@@ -140,11 +140,13 @@ export default {
         provider:cfg.payment_provider,
         premium_price_cents:cfg.premium_price_cents,
         premium_days:cfg.premium_days,
+        premium_sales_enabled:(await getSettingText(env,"premium_sales_enabled","0"))==="1",
         pix_configured:!!(cfg.pix_key&&cfg.pix_receiver_name&&cfg.pix_receiver_city)
       }});
     }
 
     if (url.pathname === "/payments/pix" && request.method === "POST") {
+      if((await getSettingText(env,"premium_sales_enabled","0"))!=="1")return json({ok:false,error:"sales_disabled",message:"A compra de Premium está desativada pelo administrador."},403);
       if(ctx.dbUser.role==="admin")return json({ok:false,error:"admin_does_not_need_payment",message:"A conta administrativa não precisa comprar Premium."},400);
       const cfg=await getPaymentSettings(env);
       if(cfg.payment_provider!=="manual_pix")return json({ok:false,error:"payment_provider_not_supported",message:"O provedor de pagamento configurado ainda não está disponível nesta versão."},409);
@@ -534,7 +536,7 @@ export default {
       if (url.pathname === "/admin/settings" && request.method === "GET") {
         const freeTrialDays=await getSettingInt(env,"free_trial_days",15,0,365);
         const payment=await getPaymentSettings(env);
-        return json({ok:true,settings:{free_trial_days:freeTrialDays,...payment}});
+        return json({ok:true,settings:{free_trial_days:freeTrialDays,...payment,premium_sales_enabled:(await getSettingText(env,"premium_sales_enabled","0"))==="1"}});
       }
 
       if (url.pathname === "/admin/settings" && request.method === "POST") {
@@ -546,7 +548,9 @@ export default {
         const pixKey=String(body.pix_key||"").trim().slice(0,180);
         const pixReceiverName=String(body.pix_receiver_name||"").trim().slice(0,60);
         const pixReceiverCity=String(body.pix_receiver_city||"").trim().slice(0,40);
+        const premiumSalesEnabled=body.premium_sales_enabled===true;
         const rows=[
+          ["premium_sales_enabled",premiumSalesEnabled?"1":"0"],
           ["free_trial_days",String(freeTrialDays)],["premium_price_cents",String(premiumPriceCents)],
           ["premium_days",String(premiumDays)],["payment_provider",paymentProvider],
           ["pix_key",pixKey],["pix_receiver_name",pixReceiverName],["pix_receiver_city",pixReceiverCity]
@@ -557,11 +561,11 @@ export default {
         `).bind(key,value,now)));
         await audit(env,ctx.dbUser.identity_user_id,"update_app_payment_settings",null,{
           free_trial_days:freeTrialDays,premium_price_cents:premiumPriceCents,premium_days:premiumDays,
-          payment_provider:paymentProvider,pix_configured:!!(pixKey&&pixReceiverName&&pixReceiverCity)
+          premium_sales_enabled:premiumSalesEnabled,payment_provider:paymentProvider,pix_configured:!!(pixKey&&pixReceiverName&&pixReceiverCity)
         });
         return json({ok:true,settings:{
           free_trial_days:freeTrialDays,premium_price_cents:premiumPriceCents,premium_days:premiumDays,
-          payment_provider:paymentProvider,pix_key:pixKey,pix_receiver_name:pixReceiverName,pix_receiver_city:pixReceiverCity
+          premium_sales_enabled:premiumSalesEnabled,payment_provider:paymentProvider,pix_key:pixKey,pix_receiver_name:pixReceiverName,pix_receiver_city:pixReceiverCity
         }});
       }
 
