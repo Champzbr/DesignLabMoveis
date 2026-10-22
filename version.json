@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r8",
+  "version": "1.312.00-r10",
   "date": "2026-10-22",
-  "message": "Remoção da navegação flutuante e primeira interface PlanosLab para consulta local de etiquetas e peças."
+  "message": "Ordens de produção na nuvem (mesma conta) e envio a partir das etiquetas."
 }
