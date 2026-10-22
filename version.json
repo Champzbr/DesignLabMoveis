@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r18",
+  "version": "1.312.00-r19",
   "date": "2026-10-22",
-  "message": "Corrige transferência de sessão entre login e ambientes com chaves estáveis e token atualizado."
+  "message": "Distingue Trocar ambiente de Sair da conta no PlanosLab, Editor e Supervisor."
 }
