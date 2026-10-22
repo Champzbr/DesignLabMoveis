@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r20",
+  "version": "1.312.00-r21",
   "date": "2026-10-22",
-  "message": "Correção de saída e troca de ambientes; envio de ZAW e identificação de pedido/cliente para produção."
+  "message": "PlanosLab: chapas por pedido, ZIP com ZAW e etiquetas por chapa, progresso de corte no D1."
 }
