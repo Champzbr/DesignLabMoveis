@@ -48,11 +48,11 @@ export function createAuthModule(ctx){
   // ============================================================================
   // 1.100.20 · AUTENTICAÇÃO ONLINE — NETLIFY IDENTITY
   // ============================================================================
-  const OPERATOR_TOKEN_KEY='designlab_operator_token_r16';
+  const OPERATOR_TOKEN_KEY='designlab_operator_token_active';
   async function captureOperatorAccessToken(user){
     try{
       const jwt=await user?.jwt?.();
-      if(jwt&&sessionStorage.getItem('designlab_manual_login_r16')==='yes')sessionStorage.setItem(OPERATOR_TOKEN_KEY,jwt);
+      if(jwt&&sessionStorage.getItem('designlab_manual_login_active')==='yes')sessionStorage.setItem(OPERATOR_TOKEN_KEY,jwt);
     }catch(err){console.warn('Não foi possível transferir o token para o Editor:',err);}
   }
   function clearOperatorAccessToken(){sessionStorage.removeItem(OPERATOR_TOKEN_KEY);}
@@ -267,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r16');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r18');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -562,23 +562,23 @@ export function createAuthModule(ctx){
       // Acesso manual: uma sessão antiga não desbloqueia o aplicativo na abertura.
       // Exceção apenas para a ação explícita de Trocar ambiente na mesma sessão.
       const switching=new URLSearchParams(location.search).has('trocar-ambiente');
-      if(user && switching && sessionStorage.getItem('designlab_manual_login_r16')==='yes'){
+      if(user && sessionStorage.getItem('designlab_manual_login_active')==='yes' && (switching || currentIdentityUser)){
         unlockOnlineApp(user,{message:'Escolha seu ambiente.'});
       }else{
-        sessionStorage.removeItem('designlab_manual_login_r16');
+        sessionStorage.removeItem('designlab_manual_login_active');
         clearOperatorAccessToken();
         if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
         lockOnlineApp('Clique em Entrar para acessar sua conta.');
       }
     });
     client.on('login',user=>{
-      sessionStorage.setItem('designlab_manual_login_r16','yes');
+      sessionStorage.setItem('designlab_manual_login_active','yes');
       void captureOperatorAccessToken(user);
       unlockOnlineApp(user,{message:'Login realizado.'});
       try{client.close();}catch{}
     });
     client.on('logout',()=>{
-      sessionStorage.removeItem('designlab_manual_login_r16');
+      sessionStorage.removeItem('designlab_manual_login_active');
       clearOperatorAccessToken();
       stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
       clearOfflinePremiumLicense();
@@ -769,7 +769,7 @@ export function createAuthModule(ctx){
       const user=await auth.login(email,password,remember);
       currentIdentityUser=user;
       authInitialized=true;
-      sessionStorage.setItem('designlab_manual_login_r16','yes');
+      sessionStorage.setItem('designlab_manual_login_active','yes');
       await captureOperatorAccessToken(user);
       unlockOnlineApp(user,{message:'Login realizado.'});
     }catch(err){
@@ -882,7 +882,7 @@ export function createAuthModule(ctx){
   async function logoutOnlineIdentity(){
     if(logoutInProgress)return;
     logoutInProgress=true;
-    sessionStorage.removeItem('designlab_manual_login_r16');
+    sessionStorage.removeItem('designlab_manual_login_active');
     clearOperatorAccessToken();
     const client=identityClient;
     const offlineOnly=authOfflineMode&&!currentIdentityUser;
