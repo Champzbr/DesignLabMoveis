@@ -1,7 +1,18 @@
 export default {
   async fetch(request, env) {
+    const siteUrl = String(env?.NETLIFY_SITE_URL || "").trim().replace(/\/+$/, "");
+    if (!siteUrl) {
+      return new Response(JSON.stringify({
+        ok:false,
+        error:"config_missing",
+        message:"NETLIFY_SITE_URL não configurado"
+      }), {
+        status:500,
+        headers:{ "Content-Type":"application/json" }
+      });
+    }
+
     const url = new URL(request.url);
-    const siteUrl = String(env.NETLIFY_SITE_URL || "").replace(/\/+$/, "");
     const origin = request.headers.get("Origin") || "";
     const cors = {
       "Access-Control-Allow-Origin": origin === siteUrl ? origin : siteUrl,
@@ -19,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.300.10-door-models", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r11", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
@@ -31,6 +42,71 @@ export default {
 
     if (ctx.dbUser.banned) {
       return json({ ok:false, error:"banned", message:"Esta conta está bloqueada.", reason:ctx.dbUser.banned_reason||null },403);
+    }
+
+    // r11: acesso autorizado no D1 (falha fechada sem migracao).
+    const accessRole=ctx.dbUser.role==='admin'?'admin':ctx.dbUser.access_role;
+    const approved=ctx.dbUser.role==='admin'||ctx.dbUser.access_status==='approved';
+    if (url.pathname === '/access' && request.method === 'GET') {
+      return json({ok:true,role:accessRole||'pending',status:ctx.dbUser.role==='admin'?'approved':(ctx.dbUser.access_status||'pending')});
+    }
+    if (!approved && url.pathname!=='/me') return json({ok:false,error:'approval_required',message:'Conta aguardando aprovação do administrador.'},403);
+    const operatorRole=['cnc','seccionadora','ambas'].includes(accessRole);
+    const supervisorRole=accessRole==='supervisor';
+    if (operatorRole && request.method!=='GET')return json({ok:false,error:'operator_read_only',message:'Operadores somente consultam as ordens.'},403);
+    if (operatorRole && !url.pathname.startsWith('/production/') && url.pathname!=='/me')
+      return json({ok:false,error:'restricted_operator',message:'Esta conta só pode acessar o PlanosLab.'},403);
+    if (supervisorRole && !['GET','HEAD'].includes(request.method))
+      return json({ok:false,error:'read_only',message:'Supervisor tem acesso somente para visualização.'},403);
+    if (supervisorRole && !['/me','/projects','/supervisor/projects'].includes(url.pathname) && !/^\/projects\/[A-Za-z0-9_-]+$/.test(url.pathname))
+      return json({ok:false,error:'restricted_supervisor',message:'Supervisor só pode consultar projetos.'},403);
+
+    // r10 · Ordens publicadas na produção. D1 guarda o índice; R2, o pacote imutável.
+    if (url.pathname === "/production/orders" || /^\/production\/orders\/[A-Za-z0-9_-]{1,100}$/.test(url.pathname)) {
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_orders (
+        id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL,
+        machine TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending',
+        revision INTEGER NOT NULL DEFAULT 1, r2_key TEXT NOT NULL,
+        part_count INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+      )`).run();
+      const orderId=url.pathname.split('/')[3]||null;
+      const operator=operatorRole;
+      if (!orderId && request.method==='POST') {
+        if(accessRole!=='admin'&&accessRole!=='geral')return json({ok:false,error:'forbidden',message:'Sem permissão para publicar ordens.'},403);
+        const body=await readJson(request);
+        const name=String(body?.name||'').trim().slice(0,120);
+        const machine=String(body?.machine||'');
+        const labels=body?.labels;
+        if (!name||!['seccionadora','cnc','ambas'].includes(machine)||!labels||labels.schema!=='designlab-labels-v1'||!Array.isArray(labels.labels)||!labels.labels.length||labels.labels.length>2000)
+          return json({ok:false,message:'Ordem inválida: confira nome, máquina e lista de peças.'},400);
+        const payload=JSON.stringify({name,machine,labels,html:String(body.html||'')});
+        if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
+        const id=crypto.randomUUID().replaceAll('-','');
+        const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
+        await env.PROJECTS.put(key,payload,{httpMetadata:{contentType:'application/json'}});
+        const now=new Date().toISOString();
+        try{await env.DB.prepare(`INSERT INTO production_orders(id,owner_id,name,machine,status,revision,r2_key,part_count,created_at) VALUES(?,?,?,?,?,?,?,?,?)`).bind(id,ctx.dbUser.identity_user_id,name,machine,'pending',1,key,labels.labels.length,now).run();}
+        catch(e){await env.PROJECTS.delete(key);throw e;}
+        return json({ok:true,id,created_at:now},201);
+      }
+      if (!orderId && request.method==='GET') {
+        // r10: somente o proprietário ou admin. Compartilhamento por equipe exige
+        // associação de operadores à empresa; não expor ordens de outros usuários.
+        const rows=operatorRole
+          ? await env.DB.prepare(`SELECT po.id,po.name,po.machine,po.status,po.revision,po.part_count,po.created_at FROM production_orders po JOIN users owner ON owner.identity_user_id=po.owner_id WHERE owner.role='admin' AND (?1='ambas' OR po.machine=?1 OR po.machine='ambas') ORDER BY po.created_at DESC LIMIT 200`).bind(accessRole).all()
+          : await env.DB.prepare(`SELECT id,name,machine,status,revision,part_count,created_at FROM production_orders WHERE owner_id=? ORDER BY created_at DESC LIMIT 200`).bind(ctx.dbUser.identity_user_id).all();
+        return json({ok:true,orders:rows.results||[]});
+      }
+      if(orderId && request.method==='GET'){
+        const meta=operatorRole
+          ? await env.DB.prepare(`SELECT po.* FROM production_orders po JOIN users owner ON owner.identity_user_id=po.owner_id WHERE po.id=?1 AND owner.role='admin' AND (?2='ambas' OR po.machine=?2 OR po.machine='ambas')`).bind(orderId,accessRole).first()
+          : await env.DB.prepare(`SELECT * FROM production_orders WHERE id=? AND owner_id=?`).bind(orderId,ctx.dbUser.identity_user_id).first();
+        if(!meta)return json({ok:false,message:'Ordem não encontrada nesta conta.'},404);
+        const object=await env.PROJECTS.get(meta.r2_key);
+        if(!object)return json({ok:false,message:'Pacote de produção indisponível.'},404);
+        return json({ok:true,order:{id:meta.id,name:meta.name,machine:meta.machine,status:meta.status,revision:meta.revision,created_at:meta.created_at},package:JSON.parse(await object.text())});
+      }
+      return json({ok:false,message:'Operação não permitida.'},405);
     }
 
     if (url.pathname === "/me" && request.method === "GET") {
@@ -132,7 +208,7 @@ export default {
 
     // 1.100.90: autenticação não equivale a licença. Exceto administradores,
     // todas as APIs de trabalho exigem Premium ainda dentro da validade.
-    if (ctx.dbUser.role !== "admin" && !isPremiumActive(ctx.dbUser)) {
+    if (!operatorRole && !supervisorRole && ctx.dbUser.role !== "admin" && !isPremiumActive(ctx.dbUser)) {
       return json({
         ok:false,
         error:"premium_required",
@@ -188,15 +264,20 @@ export default {
     // -----------------------------------------------------------------------
     // PROJETOS POR USUÁRIO — índice no D1, arquivo completo no R2
     // -----------------------------------------------------------------------
+    if (url.pathname === '/supervisor/projects' && request.method === 'GET') {
+      if(!supervisorRole && accessRole!=='admin')return json({ok:false,error:'forbidden'},403);
+      const rows=await env.DB.prepare(`SELECT p.id,p.name,p.size_bytes,p.cloud_revision,p.updated_at FROM projects p JOIN users u ON u.identity_user_id=p.user_id WHERE u.role='admin' AND p.deleted_at IS NULL ORDER BY p.updated_at DESC LIMIT 200`).all();
+      return json({ok:true,projects:rows.results||[]});
+    }
     if (url.pathname === "/projects" && request.method === "GET") {
       const includeDeleted=url.searchParams.get("include_deleted")==="1";
       const result=await env.DB.prepare(`
         SELECT id,name,size_bytes,cloud_revision,created_at,updated_at,deleted_at
         FROM projects
-        WHERE user_id=?1 AND (?2=1 OR deleted_at IS NULL)
+        WHERE (user_id=?1 OR (?3=1 AND user_id IN (SELECT identity_user_id FROM users WHERE role='admin'))) AND (?2=1 OR deleted_at IS NULL)
         ORDER BY datetime(updated_at) DESC
         LIMIT 500
-      `).bind(ctx.dbUser.identity_user_id,includeDeleted?1:0).all();
+      `).bind(ctx.dbUser.identity_user_id,includeDeleted?1:0,supervisorRole?1:0).all();
       return json({ok:true,projects:result.results||[]});
     }
 
@@ -207,9 +288,9 @@ export default {
       const meta=await env.DB.prepare(`
         SELECT id,user_id,name,r2_key,size_bytes,cloud_revision,created_at,updated_at,deleted_at
         FROM projects
-        WHERE id=?1 AND user_id=?2
+        WHERE id=?1 AND (user_id=?2 OR (?3=1 AND user_id IN (SELECT identity_user_id FROM users WHERE role='admin')))
         LIMIT 1
-      `).bind(projectId,ctx.dbUser.identity_user_id).first();
+      `).bind(projectId,ctx.dbUser.identity_user_id,supervisorRole?1:0).first();
 
       if(!meta||meta.deleted_at){
         return json({ok:false,error:"not_found",message:"Projeto não encontrado nesta conta."},404);
@@ -220,7 +301,7 @@ export default {
 
       try{
         const record=JSON.parse(await object.text());
-        record.ownerUserId=ctx.dbUser.identity_user_id;
+        record.ownerUserId=meta.user_id;
         return json({
           ok:true,
           project:{id:meta.id,name:meta.name,cloud_revision:Number(meta.cloud_revision||1),updated_at:meta.updated_at},
@@ -515,7 +596,7 @@ export default {
         const offset=clampInt(url.searchParams.get("offset"),0,1000000,0);
         const like=`%${search}%`;
         const result=await env.DB.prepare(`
-          SELECT u.identity_user_id,u.email,u.name,u.role,u.plan,u.premium_until,
+          SELECT u.identity_user_id,u.email,u.name,u.role,u.access_role,u.access_status,u.plan,u.premium_until,
             u.banned,u.banned_at,u.banned_reason,u.created_at,u.updated_at,u.last_login_at,
             (SELECT COUNT(*) FROM payments p WHERE p.user_id=u.identity_user_id AND p.status='paid') AS purchases_count,
             (SELECT COALESCE(SUM(p.amount_cents),0) FROM payments p WHERE p.user_id=u.identity_user_id AND p.status='paid') AS paid_cents,
@@ -540,6 +621,21 @@ export default {
           })),
           limit,offset
         });
+      }
+
+      // r11: perfis e aprovacao somente pelo administrador existente.
+      let accessMatch=url.pathname.match(/^\/admin\/users\/([^/]+)\/access$/);
+      if(accessMatch && request.method==='POST'){
+        const targetId=decodeURIComponent(accessMatch[1]),body=await readJson(request);
+        const desiredRole=String(body?.access_role||'');const status=String(body?.access_status||'');
+        if(!['geral','cnc','seccionadora','ambas','supervisor'].includes(desiredRole)||!['approved','pending','rejected'].includes(status))return json({ok:false,error:'invalid_access'},400);
+        const target=await getUser(env,targetId);
+        if(!target)return json({ok:false,error:'not_found'},404);
+        if(target.role==='admin')return json({ok:false,error:'admin_protected',message:'O papel administrador não pode ser alterado aqui.'},403);
+        const now=new Date().toISOString();
+        await env.DB.prepare('UPDATE users SET access_role=?1,access_status=?2,updated_at=?3 WHERE identity_user_id=?4').bind(desiredRole,status,now,targetId).run();
+        await audit(env,ctx.dbUser.identity_user_id,'set_access',targetId,{access_role:desiredRole,access_status:status});
+        return json({ok:true,access_role:desiredRole,access_status:status});
       }
 
       let m=url.pathname.match(/^\/admin\/users\/([^/]+)\/ban$/);
@@ -1053,7 +1149,7 @@ async function issueOfflinePremiumLicense(env,row){
 
 function clampInt(v,min,max,fallback){const n=Math.trunc(Number(v));return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;}
 async function readJson(request){try{return await request.json();}catch{return {};}}
-function publicUser(row){return {id:row.identity_user_id,email:row.email,name:row.name,role:row.role,banned:!!Number(row.banned)};}
+function publicUser(row){return {id:row.identity_user_id,email:row.email,name:row.name,role:row.role,access_role:row.role==='admin'?'admin':row.access_role,access_status:row.role==='admin'?'approved':row.access_status,banned:!!Number(row.banned)};}
 function isPremiumActive(row){if(row?.plan!=="premium"||!row?.premium_until)return false;const t=Date.parse(row.premium_until);return Number.isFinite(t)&&t>Date.now();}
 function subscriptionView(row,trial=null){
   const active=isPremiumActive(row);
@@ -1166,7 +1262,7 @@ async function grantFreeTrialIfNew(env,userId,identityCreatedAt,nowIso){
 }
 
 async function getUser(env,id){
-  return await env.DB.prepare(`SELECT identity_user_id,email,name,role,plan,premium_until,banned,banned_at,banned_reason,created_at,updated_at,last_login_at FROM users WHERE identity_user_id=?1 LIMIT 1`).bind(id).first();
+  return await env.DB.prepare(`SELECT identity_user_id,email,name,role,access_role,access_status,plan,premium_until,banned,banned_at,banned_reason,created_at,updated_at,last_login_at FROM users WHERE identity_user_id=?1 LIMIT 1`).bind(id).first();
 }
 async function audit(env,adminId,action,targetId,details){
   const now=new Date().toISOString();
