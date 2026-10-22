@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r17",
+  "version": "1.312.00-r18",
   "date": "2026-10-22",
-  "message": "Corrige passagem de sessão ao PlanosLab e Supervisor sem login duplicado; API mantém autorização."
+  "message": "Corrige transferência de sessão entre login e ambientes com chaves estáveis e token atualizado."
 }
