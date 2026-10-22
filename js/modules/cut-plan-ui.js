@@ -2135,8 +2135,9 @@ function productionLabelsDialog(){
         if(cfg.cutMode!=='panel')throw new Error('Para enviar à seccionadora selecione a estratégia Seccionadora e gere o plano novamente.');
         const groups=prepareSheetPreviewGroups().filter(g=>g.planMode==='panel'||g.cutMode==='panel');
         if(!groups.length)throw new Error('Não há chapas válidas para gerar ZAW.');
-        zawFiles=buildMingliZawFiles(groups,cfg).filter(f=>/\.zaw$/i.test(f.name)).map(f=>({name:f.name,data:f.data}));
+        zawFiles=buildMingliZawFiles(groups,cfg).filter(f=>/\.zaw$/i.test(f.name)).map((f,i)=>({name:f.name,data:f.data,sheet:i+1,sheetNo:groups[i]?.sheetNo||i+1,group:groups[i]?.key||''}));
         if(!zawFiles.length)throw new Error('O gerador não retornou arquivos ZAW.');
+        if(zawFiles.length!==groups.length)throw new Error('Há chapas sem ZAW; envio interrompido para proteger a produção.');
       }
       const orderName=`${payload.orderNumber} · ${payload.customer} · ${payload.work||'Projeto'}`;
       const result=await api('/production/orders',{method:'POST',body:{name:orderName,machine:target,orderNumber:payload.orderNumber,customer:payload.customer,work:payload.work,labels:payload,html:buildHtml(),zawFiles},timeoutMs:30000});

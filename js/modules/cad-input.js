@@ -13,7 +13,7 @@ export function installCadInputNavigation(ctx){
   controls.minDistance=.001;
   controls.maxDistance=250;
 
-  // 1.312.00-r12 · Windows: zoom estilo SketchUp com ponto 3D travado pelo cursor.
+  // 1.312.00-r21 · Windows: zoom estilo SketchUp com ponto 3D travado pelo cursor.
   // O primeiro passo da roda escolhe o ponto sob o cursor. Enquanto a sequência de
   // rolagem continua, esse mesmo ponto fica ancorado no mundo e na mesma posição da
   // tela: a câmera e o target são transladados juntos, sem "perseguir" o mouse.
@@ -57,7 +57,7 @@ export function installCadInputNavigation(ctx){
     winZoomAnchorClientY=NaN;
   }
   function windowsZoomGestureAnchor(e){
-    // 1.312.00-r12 · A âncora não expira por tempo. Em mouse com roda física,
+    // 1.312.00-r21 · A âncora não expira por tempo. Em mouse com roda física,
     // dois "dentes" podem ficar separados por mais de 300 ms e o r4 acabava
     // escolhendo outro ponto 3D sob o mesmo pixel. Resultado: parecia que o zoom
     // continuava seguindo o ponteiro. Agora o ponto 3D só muda quando o usuário
@@ -128,7 +128,7 @@ export function installCadInputNavigation(ctx){
     controls.addEventListener('start',windowsZoomResetAnchor);
     renderer.domElement.addEventListener('mouseleave',windowsZoomResetAnchor,{passive:true});
 
-    // 1.312.00-r12 · Windows: órbita estilo SketchUp no botão do meio.
+    // 1.312.00-r21 · Windows: órbita estilo SketchUp no botão do meio.
     // O pivô é o ponto 3D sob o cursor no instante em que a rodinha é pressionada.
     // Durante o arraste, posição E orientação da câmera são rotacionadas ao redor
     // desse pivô. Assim o ponto escolhido permanece visualmente estável na tela,
