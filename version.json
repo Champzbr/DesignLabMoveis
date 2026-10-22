@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r13",
+  "version": "1.312.00-r14",
   "date": "2026-10-22",
-  "message": "Logout imediato, gestão de compras Premium e diagnóstico de aprovações."
+  "message": "Correção de erro de sintaxe no módulo de autenticação da r13 e sincronização de versões."
 }
