@@ -1,5 +1,1 @@
-{
-  "version": "1.312.00-r22",
-  "date": "2026-10-22",
-  "message": "Corrige resposta inválida do Service Worker quando version.json fica indisponível; diagnóstico de rede pendente."
-}
+{"version":"1.312.00-r23","date":"2026-10-22","message":"PlanosLab: pedidos em cartões centrais e plano visual real por chapa."}
