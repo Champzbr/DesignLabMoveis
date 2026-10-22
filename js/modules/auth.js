@@ -267,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r19');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r20');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -566,10 +566,16 @@ export function createAuthModule(ctx){
       if(user && sessionStorage.getItem('designlab_manual_login_active')==='yes' && (switching || currentIdentityUser)){
         unlockOnlineApp(user,{message:'Escolha seu ambiente.'});
       }else{
-        sessionStorage.removeItem('designlab_manual_login_active');
-        clearOperatorAccessToken();
-        if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
-        lockOnlineApp('Clique em Entrar para acessar sua conta.');
+        if(switching && sessionStorage.getItem('designlab_manual_login_active')==='yes'){
+          // A seleção anterior é uma ação explícita, não logout. Aguarda restauração do widget.
+          lockOnlineApp('Restaurando a sessão para trocar de ambiente…');
+          if(!user){setTimeout(()=>{const restored=client.currentUser?.();if(restored)unlockOnlineApp(restored,{message:'Escolha seu ambiente.'});else lockOnlineApp('Sessão expirada. Clique em Entrar.');},800);}
+        }else{
+          sessionStorage.removeItem('designlab_manual_login_active');
+          clearOperatorAccessToken();
+          if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
+          lockOnlineApp('Clique em Entrar para acessar sua conta.');
+        }
       }
     });
     client.on('login',user=>{
