@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="designlab-build" content="1.312.00-r27">
+<meta name="designlab-build" content="1.312.00-r28">
 <script id="designLabBuildCacheBootstrap">
 (function(){
   'use strict';
-  const BUILD='1.312.00-r27';
+  const BUILD='1.312.00-r28';
   try{
     const key='__designLabLastHtmlBuild';
     const previous=localStorage.getItem(key)||'';
@@ -70,7 +70,7 @@
   function kind(st=window.history.state||{}){return String(st?.[KEY]||'');}
   function make(route,extra={}){
     const st=Object.assign({},window.history.state||{},extra);
-    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r27';
+    st[KEY]=route;st.__designLabRouteVersion='1.312.00-r28';
     return st;
   }
   function replace(route,extra={}){try{window.history.replaceState(make(route,extra),'',location.href);return true;}catch(_){return false;}}
@@ -103,18 +103,18 @@
 })();
 </script>
 <script defer src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<title>DesignLabMoveis 1.312.00-r27 - Premium offline seguro</title>
-<link rel="stylesheet" href="css/base.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/editor.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/materials.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/labels.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/layout.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/projects.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/settings.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/home.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r27">
-<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r27">
+<title>DesignLabMoveis 1.312.00-r28 - Premium offline seguro</title>
+<link rel="stylesheet" href="css/base.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/editor.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/materials.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/labels.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/cut-plan.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/layout.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/projects.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/settings.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/home.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/mobile.css?v=1.312.00-r28">
+<link rel="stylesheet" href="css/home-theme-120066.css?v=1.312.00-r28">
 
 <!-- 1.200.42: CSS e JavaScript separados sem alterar a lógica do motor CAD. -->
 
@@ -178,8 +178,9 @@ window.designLabChooseEnvironment=async function(){
  const editor=document.getElementById('environmentOperatorEditor');
  design.hidden=true;production.hidden=true;editor.hidden=true;
  try{
-  const client=window.netlifyIdentity;const user=client?.currentUser?.();if(!user)throw Error('Sessão não encontrada.');
-  const token=await user.jwt();
+  const client=window.netlifyIdentity;const user=client?.currentUser?.();
+  const token=(user?await user.jwt().catch(()=>null):null)||sessionStorage.getItem('designlab_operator_token_active');
+  if(!token||sessionStorage.getItem('designlab_manual_login_active')!=='yes')throw Error('Sessão não encontrada.');
   const controller=new AbortController(),tm=setTimeout(()=>controller.abort(),12000);
   let res;try{res=await fetch('https://designlabmoveis-api.geppetomarcenaria.workers.dev/me',{headers:{Authorization:'Bearer '+token},cache:'no-store',signal:controller.signal});}finally{clearTimeout(tm);}
   const data=await res.json();if(!res.ok)throw Error(data.message||'Acesso negado');
@@ -208,8 +209,8 @@ window.designLabChooseEnvironment=async function(){
 
 document.addEventListener('DOMContentLoaded',()=>{
  document.getElementById('environmentDesignLab').onclick=()=>{document.getElementById('environmentChoice').hidden=true};
- document.getElementById('environmentPlanosLab').onclick=async()=>{const u=window.netlifyIdentity?.currentUser?.();if(!u||sessionStorage.getItem('designlab_manual_login_active')!=='yes')return;try{const token=await u.jwt();if(!token)throw Error('Token ausente');sessionStorage.setItem('designlab_operator_token_active',token);location.assign('./planoslab.html')}catch(e){alert('Não foi possível preparar a sessão. Faça login novamente.')}};
- document.getElementById('environmentOperatorEditor').onclick=async()=>{const u=window.netlifyIdentity?.currentUser?.();if(!u||sessionStorage.getItem('designlab_manual_login_active')!=='yes')return;try{const token=await u.jwt();if(!token)throw Error('Token ausente');sessionStorage.setItem('designlab_operator_token_active',token);location.assign('./editor-operador.html')}catch(e){alert('Não foi possível preparar a sessão. Faça login novamente.')}};
+ document.getElementById('environmentPlanosLab').onclick=async()=>{const u=window.netlifyIdentity?.currentUser?.();if(sessionStorage.getItem('designlab_manual_login_active')!=='yes')return;try{const token=(u?await u.jwt().catch(()=>null):null)||sessionStorage.getItem('designlab_operator_token_active');if(!token)throw Error('Token ausente');sessionStorage.setItem('designlab_operator_token_active',token);location.assign('./planoslab.html')}catch(e){alert('Não foi possível preparar a sessão. Faça login novamente.')}};
+ document.getElementById('environmentOperatorEditor').onclick=async()=>{const u=window.netlifyIdentity?.currentUser?.();if(sessionStorage.getItem('designlab_manual_login_active')!=='yes')return;try{const token=(u?await u.jwt().catch(()=>null):null)||sessionStorage.getItem('designlab_operator_token_active');if(!token)throw Error('Token ausente');sessionStorage.setItem('designlab_operator_token_active',token);location.assign('./editor-operador.html')}catch(e){alert('Não foi possível preparar a sessão. Faça login novamente.')}};
  document.getElementById('environmentRetry').onclick=()=>{document.getElementById('environmentRetry').hidden=true;window.designLabChooseEnvironment()};
  document.getElementById('homeEnvironmentSwitch')?.addEventListener('click',e=>{e.preventDefault();window.designLabChooseEnvironment()});
 });
@@ -220,7 +221,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="authHero">
       <div class="authBrand">
         <div class="authBrandLogo">DL</div>
-        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r27</span></div>
+        <div><strong>DesignLabMoveis</strong><span>Base Online · 1.312.00-r28</span></div>
       </div>
       <h1>Entre na sua conta.</h1>
       <p>Os formulários agora ficam dentro do próprio DesignLabMoveis e abrem na hora. O Netlify continua cuidando da autenticação e da segurança da senha.</p>
@@ -342,7 +343,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="projectBrandLogo">DL</div>
         <div>
           <strong>DesignLab<span class="brandMoveis">Moveis</span></strong>
-          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r27</span>
+          <span class="homeVersionPill"><i class="homeVersionDot"></i> Projetos de marcenaria · 1.312.00-r28</span>
         </div>
       </div>
 
@@ -599,7 +600,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
       <div class="updateSettingRow">
         <div>
-          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r27</span></strong>
+          <strong>DesignLabMoveis <span id="settingsAppVersion">1.312.00-r28</span></strong>
           <span id="appCacheStatus">Verificando cache…</span>
         </div>
         <div class="updateSettingActions"><button id="settingsCheckUpdate" class="secondary" type="button">Verificar agora</button><button id="settingsForceRefresh" class="secondary" type="button">Recarregar versão do servidor</button></div>
@@ -625,7 +626,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="updateVersionBox">
       <div>
         <span>Versão instalada</span>
-        <strong id="updateCurrentVersion">1.312.00-r27</strong>
+        <strong id="updateCurrentVersion">1.312.00-r28</strong>
       </div>
       <div class="updateArrow">→</div>
       <div>
@@ -668,7 +669,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <input id="projectFileInput" type="file" accept=".mcad,.json,application/json" hidden>
 
 <div id="canvas-container"></div>
-<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r27 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
+<div id="topbar"><div class="title">DesignLabMoveis 1.312.00-r28 · <span id="editorProjectName">Sem projeto</span><span id="editorDirtyDot">●</span></div><div id="hintText" class="hint">Projeto paramétrico · peças, usinagens, ferragens e Aspire</div></div>
 <div id="miniAxes" aria-hidden="true">
   <svg viewBox="0 0 66 66">
     <circle cx="33" cy="36" r="3" fill="#ddd"/>
@@ -1632,7 +1633,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <h3>Peças gerais · Planos de corte</h3>
         <p id="partsListInfo" class="dialogHelp">Todas as peças do projeto reunidas: chapas, madeira maciça e ferro / Metalon.</p>
       </div>
-      <span class="cutPlanBadge">1.312.00-r27</span>
+      <span class="cutPlanBadge">1.312.00-r28</span>
     </div>
 
     <div class="dialogActions"><button id="productionLabelsOpen" type="button" class="secondary">🏷️ Etiquetas de produção · imprimir em lote</button><button id="externalCutOpen" type="button" class="secondary">📥 Importar lista SketchUp CSV · área separada</button></div>
@@ -2877,6 +2878,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 }
 </script>
-<script type="module" src="js/app.js?v=1.312.00-r27"></script>
+<script type="module" src="js/app.js?v=1.312.00-r28"></script>
 </body>
 </html>

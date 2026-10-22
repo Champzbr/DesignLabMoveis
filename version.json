@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r27",
+  "version": "1.312.00-r28",
   "date": "2026-10-22",
-  "message": "Unifica selecao ADM em DesignLab e PlanosLab e corrige retorno de sessao ao DesignLab."
+  "message": "Corrige retorno autenticado do PlanosLab para o DesignLab com validação server-side do token."
 }
