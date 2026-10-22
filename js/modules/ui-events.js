@@ -426,11 +426,11 @@ $('updateLaterBtn').onclick=closeUpdateDialog;
 $('updateNowBtn').onclick=applyDesignLabUpdate;
 $('updateDialog').addEventListener('pointerdown',e=>{if(e.target===$('updateDialog'))closeUpdateDialog();});
 
-$('homeNavStart').onclick=()=>scrollProjectHomeTo('projectHome');
-$('homeNavProjects').onclick=()=>scrollProjectHomeTo('homeRecentSection');
-$('homeNavModeling').onclick=openHomeModeling;
-$('homeNavMaterials').onclick=openHomeMaterials;
-$('homeNavAccount').onclick=()=>scrollProjectHomeTo('projectWelcomeCard');
+
+
+
+
+
 
 
 $('authBannedLogout').onclick=logoutOnlineIdentity;
