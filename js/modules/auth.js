@@ -267,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r18');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r19');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -561,7 +561,8 @@ export function createAuthModule(ctx){
       authInitialized=true;
       // Acesso manual: uma sessão antiga não desbloqueia o aplicativo na abertura.
       // Exceção apenas para a ação explícita de Trocar ambiente na mesma sessão.
-      const switching=new URLSearchParams(location.search).has('trocar-ambiente');
+      const switching=new URLSearchParams(location.search).has('trocar-ambiente') || sessionStorage.getItem('designlab_environment_switch_pending')==='yes';
+      sessionStorage.removeItem('designlab_environment_switch_pending');
       if(user && sessionStorage.getItem('designlab_manual_login_active')==='yes' && (switching || currentIdentityUser)){
         unlockOnlineApp(user,{message:'Escolha seu ambiente.'});
       }else{
