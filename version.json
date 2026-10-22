@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r21",
+  "version": "1.312.00-r22",
   "date": "2026-10-22",
-  "message": "PlanosLab: chapas por pedido, ZIP com ZAW e etiquetas por chapa, progresso de corte no D1."
+  "message": "Corrige resposta inválida do Service Worker quando version.json fica indisponível; diagnóstico de rede pendente."
 }
