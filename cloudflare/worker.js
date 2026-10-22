@@ -30,7 +30,7 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r21", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r22", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
