@@ -407,11 +407,7 @@ $('authRetryBtn').onclick=async()=>{
   const cached=await loadOfflinePremiumLicense();
   if(cached.valid&&!navigator.onLine){await activateOfflinePremiumAccess(cached,{message:'Premium offline autorizado.'});return;}
   if(auth.identityClient){
-    const user=auth.identityClient.currentUser?.();
-    if(user){
-      unlockOnlineApp(user,{message:'Sessão encontrada.'});
-      setTimeout(()=>syncCloudAccount({silent:false}),100);
-    }else lockOnlineApp('Nenhuma sessão ativa. Entre ou crie uma conta.');
+    lockOnlineApp('Serviço pronto. Clique em Entrar e informe e-mail e senha.');
   }else{
     await initOnlineIdentity();
   }
