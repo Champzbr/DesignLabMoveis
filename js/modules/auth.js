@@ -267,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r27');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r28');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -559,25 +559,46 @@ export function createAuthModule(ctx){
   
     client.on('init',user=>{
       authInitialized=true;
-      // Entradas normais continuam manuais. Somente a troca explícita reusa uma sessão.
-      const switching=new URLSearchParams(location.search).has('trocar-ambiente') || sessionStorage.getItem('designlab_environment_switch_pending')==='yes';
-      const previouslyAuthenticated=sessionStorage.getItem('designlab_manual_login_active')==='yes';
-      if(switching && previouslyAuthenticated){
-        const finish=(restored)=>{
-          if(!restored)return false;
+      // Login inicial manual; a transferência explicitamente iniciada é a única exceção.
+      const switching=new URLSearchParams(location.search).get('trocar-ambiente')==='1'
+        && sessionStorage.getItem('designlab_environment_switch_pending')==='yes'
+        && sessionStorage.getItem('designlab_manual_login_active')==='yes';
+      if(switching){
+        if(currentIdentityUser)return;
+        lockOnlineApp('Validando a sessão da troca de ambiente…');
+        // O login sem 'lembrar' pode não ser restaurado pelo widget em outra página.
+        // Recuperar apenas após validar o JWT existente no SERVIDOR Netlify Identity.
+        void (async()=>{
+          const token=sessionStorage.getItem(OPERATOR_TOKEN_KEY);
+          if(!token)throw new Error('Token da sessão não encontrado.');
+          const controller=new AbortController();
+          const timer=setTimeout(()=>controller.abort(),12000);
+          try{
+            const response=await fetch('/.netlify/identity/user',{
+              headers:{Authorization:'Bearer '+token,Accept:'application/json'},
+              cache:'no-store',signal:controller.signal
+            });
+            if(!response.ok)throw new Error('Sessão inválida ou expirada ('+response.status+').');
+            const verified=await response.json();
+            if(!verified?.id||!verified?.email)throw new Error('Dados da sessão incompletos.');
+            // Reaproveitar o usuário nativo, se estiver disponível. Caso contrário,
+            // usar os dados verificados e o mesmo JWT até o vencimento da sessão.
+            const nativeUser=user||client.currentUser?.();
+            const restored=nativeUser?.id===verified.id?nativeUser:{
+              ...verified,token:{access_token:token},
+              jwt:async()=>token
+            };
+            sessionStorage.removeItem('designlab_environment_switch_pending');
+            unlockOnlineApp(restored,{message:'Ambiente selecionado.'});
+          }finally{clearTimeout(timer);}
+        })().catch(err=>{
           sessionStorage.removeItem('designlab_environment_switch_pending');
-          unlockOnlineApp(restored,{message:'Ambiente selecionado.'});
-          return true;
-        };
-        if(finish(user||client.currentUser?.()))return;
-        // O widget pode restaurar a sessão depois do evento init. Não tratar esse atraso como logout.
-        lockOnlineApp('Restaurando sua sessão…');
-        let checks=0;
-        const restore=setInterval(()=>{
-          const restored=client.currentUser?.();
-          if(finish(restored)){clearInterval(restore);return;}
-          if(++checks>=40){clearInterval(restore);sessionStorage.removeItem('designlab_environment_switch_pending');lockOnlineApp('Sessão expirada. Clique em Entrar.');}
-        },250);
+          sessionStorage.removeItem('designlab_environment_target');
+          sessionStorage.removeItem('designlab_manual_login_active');
+          clearOperatorAccessToken();
+          lockOnlineApp('A sessão da troca de ambiente expirou. Clique em Entrar.');
+          console.warn('Retorno ao DesignLab:',err);
+        });
       }else{
         sessionStorage.removeItem('designlab_environment_switch_pending');
         sessionStorage.removeItem('designlab_environment_target');
