@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r25",
+  "version": "1.312.00-r26",
   "date": "2026-10-22",
-  "message": "Seletor de ambiente sem Editor local para operadores, centralização e margem de segurança do desenho da chapa."
+  "message": "ADM pode excluir pedidos da produção com confirmação e limpeza de D1/R2."
 }
