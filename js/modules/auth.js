@@ -267,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r22');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r27');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -559,23 +559,32 @@ export function createAuthModule(ctx){
   
     client.on('init',user=>{
       authInitialized=true;
-      // Acesso manual: uma sessão antiga não desbloqueia o aplicativo na abertura.
-      // Exceção apenas para a ação explícita de Trocar ambiente na mesma sessão.
+      // Entradas normais continuam manuais. Somente a troca explícita reusa uma sessão.
       const switching=new URLSearchParams(location.search).has('trocar-ambiente') || sessionStorage.getItem('designlab_environment_switch_pending')==='yes';
-      sessionStorage.removeItem('designlab_environment_switch_pending');
-      if(user && sessionStorage.getItem('designlab_manual_login_active')==='yes' && (switching || currentIdentityUser)){
-        unlockOnlineApp(user,{message:'Escolha seu ambiente.'});
+      const previouslyAuthenticated=sessionStorage.getItem('designlab_manual_login_active')==='yes';
+      if(switching && previouslyAuthenticated){
+        const finish=(restored)=>{
+          if(!restored)return false;
+          sessionStorage.removeItem('designlab_environment_switch_pending');
+          unlockOnlineApp(restored,{message:'Ambiente selecionado.'});
+          return true;
+        };
+        if(finish(user||client.currentUser?.()))return;
+        // O widget pode restaurar a sessão depois do evento init. Não tratar esse atraso como logout.
+        lockOnlineApp('Restaurando sua sessão…');
+        let checks=0;
+        const restore=setInterval(()=>{
+          const restored=client.currentUser?.();
+          if(finish(restored)){clearInterval(restore);return;}
+          if(++checks>=40){clearInterval(restore);sessionStorage.removeItem('designlab_environment_switch_pending');lockOnlineApp('Sessão expirada. Clique em Entrar.');}
+        },250);
       }else{
-        if(switching && sessionStorage.getItem('designlab_manual_login_active')==='yes'){
-          // A seleção anterior é uma ação explícita, não logout. Aguarda restauração do widget.
-          lockOnlineApp('Restaurando a sessão para trocar de ambiente…');
-          if(!user){setTimeout(()=>{const restored=client.currentUser?.();if(restored)unlockOnlineApp(restored,{message:'Escolha seu ambiente.'});else lockOnlineApp('Sessão expirada. Clique em Entrar.');},800);}
-        }else{
-          sessionStorage.removeItem('designlab_manual_login_active');
-          clearOperatorAccessToken();
-          if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
-          lockOnlineApp('Clique em Entrar para acessar sua conta.');
-        }
+        sessionStorage.removeItem('designlab_environment_switch_pending');
+        sessionStorage.removeItem('designlab_environment_target');
+        sessionStorage.removeItem('designlab_manual_login_active');
+        clearOperatorAccessToken();
+        if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
+        lockOnlineApp('Clique em Entrar para acessar sua conta.');
       }
     });
     client.on('login',user=>{
