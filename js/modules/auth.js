@@ -209,6 +209,7 @@ export function createAuthModule(ctx){
     $('authBannedPanel')?.classList.remove('show');
     $('authMainActions')?.classList.remove('hidden');
     $('authGate')?.classList.add('hidden');
+    queueMicrotask(()=>window.designLabChooseEnvironment?.());
     setAuthStatus(message,'good');
     scheduleOfflineLicenseExpiry(result.payload);
     queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
@@ -257,7 +258,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r8');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r9');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -425,7 +426,7 @@ export function createAuthModule(ctx){
       const cached=await loadOfflinePremiumLicense({expectedUserId:user?.id});
       if(cached.valid){
         offlineLicensePayload=cached.payload;offlineLicensedUser=offlineLicenseUserFromPayload(cached.payload);
-        hidePremiumAccessPanel();$('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');
+        hidePremiumAccessPanel();$('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');queueMicrotask(()=>window.designLabChooseEnvironment?.());
         setAuthStatus('Sem internet · Premium offline autorizado.','good');
         scheduleOfflineLicenseExpiry(cached.payload);
         return true;
@@ -438,6 +439,7 @@ export function createAuthModule(ctx){
     closePremiumPurchase();
     $('authMainActions')?.classList.remove('hidden');
     $('authGate')?.classList.add('hidden');
+    queueMicrotask(()=>window.designLabChooseEnvironment?.());
     setAuthStatus(message,'good');
     queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
     schedulePremiumAccessWatch(data);
@@ -485,6 +487,7 @@ export function createAuthModule(ctx){
   }
   
   function lockOnlineApp(message='Entre para acessar o DesignLabMoveis.'){
+    const choice=document.getElementById('environmentChoice');if(choice)choice.hidden=true;
     if(authOfflineMode&&offlineLicensePayload){setAuthStatus('Premium offline autorizado. A validação online será retomada quando possível.','good');return;}
     stopPremiumAccessWatch();premiumAccessCheckSerial++;
     authLocalMode=false;
@@ -509,7 +512,7 @@ export function createAuthModule(ctx){
       if(cached.valid){
         offlineLicensePayload=cached.payload;offlineLicensedUser=offlineLicenseUserFromPayload(cached.payload);
         hidePremiumAccessPanel();$('authBannedPanel')?.classList.remove('show');
-        $('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');
+        $('authMainActions')?.classList.remove('hidden');$('authGate')?.classList.add('hidden');queueMicrotask(()=>window.designLabChooseEnvironment?.());
         setAuthStatus(cached.needsRecheck?'Premium local válido · atualizando a licença…':message,'good');
         scheduleOfflineLicenseExpiry(cached.payload);
         queueMicrotask(()=>applyProjectAccountScope({checkRecovery:true}));
