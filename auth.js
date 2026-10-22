@@ -48,6 +48,14 @@ export function createAuthModule(ctx){
   // ============================================================================
   // 1.100.20 · AUTENTICAÇÃO ONLINE — NETLIFY IDENTITY
   // ============================================================================
+  const OPERATOR_TOKEN_KEY='designlab_operator_token_active';
+  async function captureOperatorAccessToken(user){
+    try{
+      const jwt=await user?.jwt?.();
+      if(jwt&&sessionStorage.getItem('designlab_manual_login_active')==='yes')sessionStorage.setItem(OPERATOR_TOKEN_KEY,jwt);
+    }catch(err){console.warn('Não foi possível transferir o token para o Editor:',err);}
+  }
+  function clearOperatorAccessToken(){sessionStorage.removeItem(OPERATOR_TOKEN_KEY);}
   let identityClient=null;
   
   let currentIdentityUser=null;
@@ -259,7 +267,7 @@ export function createAuthModule(ctx){
     const holder=$('premiumPixQr');if(!holder)return;
     holder.innerHTML='<div class="premiumQrLoading">Gerando QR Code…</div>';
     try{
-      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r13');
+      premiumQrModulePromise ||= import('../qr-local.js?v=1.312.00-r27');
       const mod=await premiumQrModulePromise;
       if(holder&&String($('premiumPixCode')?.value||'')===String(code||'')){
         holder.innerHTML=mod.qrSvg(code,{size:260,margin:4,errorLevel:'M'});
@@ -551,18 +559,43 @@ export function createAuthModule(ctx){
   
     client.on('init',user=>{
       authInitialized=true;
-      if(user && sessionStorage.getItem('designlab_manual_login_r13')==='yes')unlockOnlineApp(user,{message:'Sessão ativa nesta aba.'});
-      else if(user){try{client.logout();}catch{}lockOnlineApp('Clique em Entrar e informe suas credenciais.');}
-      else lockOnlineApp('Clique em Entrar para acessar sua conta.');
-      else if(!authLocalMode&&!authOfflineMode)lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
+      // Entradas normais continuam manuais. Somente a troca explícita reusa uma sessão.
+      const switching=new URLSearchParams(location.search).has('trocar-ambiente') || sessionStorage.getItem('designlab_environment_switch_pending')==='yes';
+      const previouslyAuthenticated=sessionStorage.getItem('designlab_manual_login_active')==='yes';
+      if(switching && previouslyAuthenticated){
+        const finish=(restored)=>{
+          if(!restored)return false;
+          sessionStorage.removeItem('designlab_environment_switch_pending');
+          unlockOnlineApp(restored,{message:'Ambiente selecionado.'});
+          return true;
+        };
+        if(finish(user||client.currentUser?.()))return;
+        // O widget pode restaurar a sessão depois do evento init. Não tratar esse atraso como logout.
+        lockOnlineApp('Restaurando sua sessão…');
+        let checks=0;
+        const restore=setInterval(()=>{
+          const restored=client.currentUser?.();
+          if(finish(restored)){clearInterval(restore);return;}
+          if(++checks>=40){clearInterval(restore);sessionStorage.removeItem('designlab_environment_switch_pending');lockOnlineApp('Sessão expirada. Clique em Entrar.');}
+        },250);
+      }else{
+        sessionStorage.removeItem('designlab_environment_switch_pending');
+        sessionStorage.removeItem('designlab_environment_target');
+        sessionStorage.removeItem('designlab_manual_login_active');
+        clearOperatorAccessToken();
+        if(user){try{client.logout();}catch(err){console.warn('Logout de sessão anterior:',err);}}
+        lockOnlineApp('Clique em Entrar para acessar sua conta.');
+      }
     });
     client.on('login',user=>{
-      sessionStorage.setItem('designlab_manual_login_r13','yes');
+      sessionStorage.setItem('designlab_manual_login_active','yes');
+      void captureOperatorAccessToken(user);
       unlockOnlineApp(user,{message:'Login realizado.'});
       try{client.close();}catch{}
     });
     client.on('logout',()=>{
-      sessionStorage.removeItem('designlab_manual_login_r13');
+      sessionStorage.removeItem('designlab_manual_login_active');
+      clearOperatorAccessToken();
       stopPremiumAccessWatch();premiumAccessCheckSerial++;hidePremiumAccessPanel();
       clearOfflinePremiumLicense();
       currentIdentityUser=null;
@@ -639,17 +672,14 @@ export function createAuthModule(ctx){
   
     try{
       const existing=client.currentUser?.();
-      if(existing){
-        authInitialized=true;
-        unlockOnlineApp(existing,{message:'Sessão restaurada.'});
-      }else{
-        try{client.init?.();}catch{}
-        setTimeout(()=>{
-          if(!authInitialized&&!currentIdentityUser&&!authLocalMode&&!authOfflineMode){
-            lockOnlineApp('Conta não conectada. Entre ou crie uma conta.');
-          }
-        },1200);
-      }
+      // Nunca desbloquear automaticamente ao carregar: a decisão fica no evento
+      // de inicialização e exige login manual, exceto troca de ambiente explícita.
+      try{client.init?.();}catch{}
+      setTimeout(()=>{
+        if(!authInitialized&&!currentIdentityUser&&!authLocalMode&&!authOfflineMode){
+          lockOnlineApp('Clique em Entrar para acessar sua conta.');
+        }
+      },1200);
     }catch(err){
       console.error(err);
       setAuthStatus('Não foi possível iniciar o serviço de login.','error');
@@ -755,7 +785,8 @@ export function createAuthModule(ctx){
       const user=await auth.login(email,password,remember);
       currentIdentityUser=user;
       authInitialized=true;
-      sessionStorage.setItem('designlab_manual_login_r13','yes');
+      sessionStorage.setItem('designlab_manual_login_active','yes');
+      await captureOperatorAccessToken(user);
       unlockOnlineApp(user,{message:'Login realizado.'});
     }catch(err){
       console.error('Login:',err);
@@ -867,7 +898,8 @@ export function createAuthModule(ctx){
   async function logoutOnlineIdentity(){
     if(logoutInProgress)return;
     logoutInProgress=true;
-    sessionStorage.removeItem('designlab_manual_login_r13');
+    sessionStorage.removeItem('designlab_manual_login_active');
+    clearOperatorAccessToken();
     const client=identityClient;
     const offlineOnly=authOfflineMode&&!currentIdentityUser;
     try{
