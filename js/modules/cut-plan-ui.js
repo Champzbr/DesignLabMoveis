@@ -13,6 +13,34 @@ export function createCutPlanUiModule(ctx){
   // r14: cutPlanUi nasce antes do módulo projects. A referência `projects` recebida
   // na criação pode ser null para sempre; resolvemos o módulo atual apenas no uso.
   const currentProjects=()=>getProjects?.()||projects||null;
+  // r39: captura um snapshot IMUTÁVEL da montagem real na hora de publicar.
+  // As coordenadas e os tamanhos são em metros, na mesma convenção do editor.
+  function publicAssemblySnapshot(){
+    const objects=[];
+    let totalPositions=0;
+    for(const mesh of runtimeModel.objects){
+      if(!mesh?.isMesh||mesh.userData?.spaceCutting||mesh.userData?.hiddenByUser)continue;
+      const u=mesh.userData||{};
+      const dims=[mesh.scale.x,mesh.scale.y,mesh.scale.z].map(Number);
+      const pos=[mesh.position.x,mesh.position.y,mesh.position.z].map(Number);
+      const rot=[mesh.rotation.x,mesh.rotation.y,mesh.rotation.z].map(Number);
+      if([...dims,...pos,...rot].some(x=>!Number.isFinite(x))||dims.some(x=>x<=0||x>30))continue;
+      const item={id:String(u.partId||u.bridgeMetadata?.componentId||objects.length).slice(0,80),name:String(u.name||'Peça').slice(0,100),
+        size:dims.map(x=>+x.toFixed(6)),position:pos.map(x=>+x.toFixed(6)),rotation:rot.map(x=>+x.toFixed(7)),
+        color:(typeof u.baseColor==='number'?'#'+u.baseColor.toString(16).padStart(6,'0'):'#91cbb6')};
+      const geometry=u.importedMesh?.positions;
+      if(Array.isArray(geometry)&&geometry.length>=9&&geometry.length%9===0){
+        // A malha é local e normalizada: preserva curvas e recortes importados.
+        if(totalPositions+geometry.length<=150000){item.mesh=geometry.map(v=>+Number(v).toFixed(5));totalPositions+=geometry.length;}
+        else {item.geometryOmitted=true;}
+      }
+      objects.push(item);
+      if(objects.length>=500)break;
+    }
+    if(!objects.length)throw Error('Nenhum componente 3D disponível para publicar. Abra o móvel no editor e tente novamente.');
+    return {schema:'designlab-public-assembly-v1',unit:'m',objects};
+  }
+
   const currentProjectRecord=()=>currentProjects()?.state?.currentProjectRecord||null;
   // r17 · Aspire: somente layers efetivamente usadas são exportadas.
   // Corte externo/interno/encaixes e corte de seccionadora carregam E=espessura e P=profundidade.
@@ -2316,8 +2344,9 @@ function productionLabelsDialog(){
       const planGroups=prepareSheetPreviewGroups();
       const sheetPlans=planGroups.map((g,i)=>({sheet:i+1,sheetNo:g.sheetNo||i+1,group:g.key||'',width:Number(g.cfg?.width)||0,height:Number(g.cfg?.height)||0,svg:cutPlanPrintSvg(g)}));
       if((target==='seccionadora'||target==='ambas')&&sheetPlans.length!==zawFiles.length)throw new Error('A quantidade de desenhos não corresponde à quantidade de arquivos ZAW. Revise o plano antes de enviar.');
+      const assembly=publicAssemblySnapshot();
       const orderName=`${payload.orderNumber} · ${payload.customer} · ${payload.work||'Projeto'}`;
-      const result=await api('/production/orders',{method:'POST',body:{name:orderName,machine:target,orderNumber:payload.orderNumber,customer:payload.customer,work:payload.work,labels:payload,html:buildHtml(),publicToken:qrToken,zawFiles,sheetPlans,cncFiles},timeoutMs:30000});
+      const result=await api('/production/orders',{method:'POST',body:{name:orderName,machine:target,orderNumber:payload.orderNumber,customer:payload.customer,work:payload.work,labels:payload,html:buildHtml(),publicToken:qrToken,zawFiles,sheetPlans,cncFiles,assembly},timeoutMs:30000});
       toast('Ordem '+payload.orderNumber+' enviada: '+result.id.slice(0,8).toUpperCase()+' · '+(zawFiles.length?zawFiles.length+' ZAW incluído(s).':'lista de peças disponível.'));
       if(result.publicUrl){await navigator.clipboard?.writeText(result.publicUrl).catch(()=>{});toast('Link público do pedido pronto (copiado quando permitido). QR nas etiquetas.');}
     }catch(error){toast('Não foi possível enviar: '+(error?.message||'erro de conexão'));}
