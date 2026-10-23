@@ -1,3 +1,4 @@
+import {sketchupTopContours,sketchupContoursDxf,sketchupContoursSvg} from './imported-mesh.js';
 // DesignLabMoveis 1.311.00 · Plano de corte, prévia Aspire e exportações de produção.
 import { createCutPlanEngine } from './cut-plan.js?v=1.312.00-r2';
 
@@ -2061,6 +2062,38 @@ function productionLabelRows(groups){
   }
   return {rows,approximate};
 }
+async function sendImportedSketchupCnc(){
+  const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length);
+  if(!meshes.length){toast('Não há componentes SketchUp importados neste projeto.');return;}
+  const api=window.designLabCloud?.apiFetch;
+  if(!api){toast('Faça login e conecte o DesignLab à nuvem para enviar à CNC.');return;}
+  const orderNumber=prompt('Número do pedido para CNC:');if(orderNumber===null)return;
+  if(!orderNumber.trim()){toast('Informe um número de pedido.');return;}
+  const customer=prompt('Nome do cliente:');if(customer===null)return;
+  if(!customer.trim()){toast('Informe o nome do cliente.');return;}
+  const prepared=[];
+  try{
+    for(let i=0;i<meshes.length;i++){
+      const mesh=meshes[i],contours=sketchupTopContours(mesh),name=String(mesh.userData.name||'Componente SketchUp');
+      const dxf=sketchupContoursDxf(contours);
+      prepared.push({name,contours,sheet:i+1,dxf,svg:sketchupContoursSvg(contours,name)});
+    }
+  }catch(e){toast('Envio CNC bloqueado: '+e.message);return;}
+  if(!confirm(`Enviar ${prepared.length} componente(s) SketchUp para CNC?\nSomente vetores de contorno DXF em milímetros; ainda será necessário definir os toolpaths no Aspire.`))return;
+  const work=currentProjectRecord()?.name||'Projeto SketchUp';
+  const labels=prepared.map((p,i)=>({sheet:p.sheet,group:p.sheet,code:'SK'+(i+1),name:p.name,length:Math.round(p.contours.width*100)/100,width:Math.round(p.contours.depth*100)/100,thickness:Math.round(p.contours.thickness*100)/100,edgeBands:{},sequence:i+1,total:prepared.length}));
+  const payload={schema:'designlab-labels-v1',work,item:'',orderNumber:orderNumber.trim(),customer:customer.trim(),sequenceVerified:false,approximate:false,printConfig:{width:60,height:40,gap:2,padding:2,feedMode:'driver'},labels};
+  const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const html=`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><style>@page{size:60mm 40mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial}.labelPage{width:60mm;height:39.8mm;padding:2mm;box-sizing:border-box;break-after:page}.labelPage:last-child{break-after:auto}h3{font-size:12px}p{font-size:10px}</style>${labels.map(l=>`<section class="labelPage"><h3>${esc(l.name)}</h3><p>Pedido ${esc(payload.orderNumber)} · Cliente ${esc(payload.customer)}</p><p>${l.length} × ${l.width} × ${l.thickness} mm · CNC ${l.sheet}/${l.total}</p><p>Contorno DXF: conferir no Aspire</p></section>`).join('')}</html>`;
+  const cncFiles=prepared.map(p=>({sheet:p.sheet,name:`SKETCHUP_${String(p.sheet).padStart(2,'0')}.dxf`,files:[{name:`SKETCHUP_${String(p.sheet).padStart(2,'0')}.dxf`,data:p.dxf}]}));
+  const sheetPlans=prepared.map(p=>({sheet:p.sheet,sheetNo:p.sheet,group:'SketchUp',width:p.contours.width,height:p.contours.depth,svg:p.svg}));
+  const btn=document.getElementById('sendSketchupCncBtn');if(btn)btn.disabled=true;
+  try{
+    const result=await api('/production/orders',{method:'POST',body:{name:`${payload.orderNumber} · ${payload.customer} · ${work}`,machine:'cnc',orderNumber:payload.orderNumber,customer:payload.customer,work,labels:payload,html,cncFiles,sheetPlans,zawFiles:[]},timeoutMs:30000});
+    toast(`CNC: pedido ${payload.orderNumber} enviado (${prepared.length} contorno(s) DXF). Ordem ${String(result?.id||'').slice(0,8)}.`);
+  }catch(e){toast('Falha no envio CNC: '+(e?.message||'Erro de conexão'));}
+  finally{if(btn)btn.disabled=false;}
+}
 function productionLabelsDialog(){
   const groups=cutPlanLastGroups;
   if(!groups.length){toast('Gere primeiro o plano de corte para preparar as etiquetas.');return;}
@@ -2721,6 +2754,7 @@ $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsLi
 ['sheetWidth','sheetHeight','sheetMargin','sheetGap','sheetKeepLength','sheetKeepWidth'].forEach(id=>$(id).addEventListener('input',renderPartsList));
 $('sheetGrain').addEventListener('change',renderPartsList);
 $('sheetGrainDirection').addEventListener('change',renderPartsList);
+if($('sendSketchupCncBtn'))$('sendSketchupCncBtn').onclick=sendImportedSketchupCnc;
 $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPartsList();});
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
