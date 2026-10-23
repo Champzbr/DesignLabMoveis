@@ -2294,11 +2294,36 @@ function renderImportedCncParts(){
     actions.append(btn);row.append(actions);list.append(row);
   }
 }
+function updateCncOnlyPartsPresentation(){
+  const root=$('partsListDialog');
+  if(!root)return false;
+  const specials=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length).length;
+  const normal=['sheet','wood','metal'].reduce((sum,kind)=>sum+allProjectProductionPartsByKind(kind).length,0);
+  const onlyCnc=specials>0&&normal===0;
+  root.classList.toggle('cutPlanCncOnly',onlyCnc);
+  const heading=root.querySelector('.cutPlanTitleRow h3');
+  if(heading)heading.textContent=onlyCnc?'Peças especiais · Produção CNC':'Peças gerais · Planos de corte';
+  const info=$('partsListInfo');
+  if(info&&onlyCnc)info.textContent=`${specials} componente(s) importado(s) do SketchUp. Baixe o contorno DXF ou envie o pedido ao PlanosLab CNC.`;
+  const general=$('partsGeneralSummary');
+  if(general&&onlyCnc){
+    general.replaceChildren();
+    const grid=document.createElement('div');grid.className='cutPlanSummaryGrid';
+    const count=document.createElement('span'),number=document.createElement('b'),label=document.createElement('small');
+    number.textContent=String(specials);label.textContent=specials===1?'peça especial CNC':'peças especiais CNC';
+    count.append(number,label);grid.append(count);
+    const text=document.createElement('div');text.className='cutPlanSummaryText';
+    text.textContent='Geometria original preservada. O DXF deve ser conferido no Aspire antes da usinagem.';
+    general.append(grid,text);
+  }
+  return onlyCnc;
+}
 function renderPartsList(){
   const cfg=cutPlanCfgFromUi();setSheetPrefs(cfg);updateSheetCutModeUi();
   const list=$('partsList'),summary=$('partsSummary');list.innerHTML='';
   dlRenderGeneralPartsSummary();
   renderImportedCncParts();
+  const onlyCnc=updateCncOnlyPartsPresentation();
   try{
     const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;cutPlanLastValidCfg={...cfg};
     const allParts=groups.flatMap(g=>g.parts),spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
@@ -2330,7 +2355,7 @@ function renderPartsList(){
       for(const x of data.sheets){const c=document.createElement('button');c.type='button';c.className='sheetChip';c.innerHTML=`<strong>Chapa ${x.g.sheetNo}</strong> · ${nice(x.g.stats.efficiency)}% · ${nice(x.g.stats.cutLength/1000)} m corte`;c.onclick=()=>openSheetPreviewAt(x.gi);chips.appendChild(c);}box.appendChild(chips);list.appendChild(box);
     }
     const sheetModeInfo=cfg.cutMode==='open'?'Chapas: cortes guilhotina, refilo, espessura de corte, otimização e sobras úteis.':cfg.cutMode==='panel'?'Chapas: seccionadora de pinça com plano mestre global; impressão, CSV e ZAW seguem o mesmo plano.':'Chapas: CNC / Router com encaixe livre por área e exportador Aspire.';
-    $('partsListInfo').textContent=`${externalCutMode?'Lista externa importada':'Peças gerais do projeto'} · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
+    if(!onlyCnc)$('partsListInfo').textContent=`${externalCutMode?'Lista externa importada':'Peças gerais do projeto'} · ${sheetModeInfo} Madeira maciça e ferro / Metalon aparecem nas seções abaixo.`;
   }catch(err){
     const msg=String(err?.message||'Não foi possível calcular as chapas');
     // 1.312.00-r2 · configuração transacional do plano: uma alteração inválida
@@ -2355,7 +2380,7 @@ function renderPartsList(){
     }else{
       summary.textContent=msg;
     }
-    $('partsListInfo').textContent='Peças gerais do projeto: chapas, madeira maciça e ferro / Metalon reunidos na mesma tela.';
+    if(!onlyCnc)$('partsListInfo').textContent='Peças gerais do projeto: chapas, madeira maciça e ferro / Metalon reunidos na mesma tela.';
   }
   dlRenderInlineLinearPlans();
 }
