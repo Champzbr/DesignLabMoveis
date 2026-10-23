@@ -2272,10 +2272,33 @@ function cutPlanToggleGrainObjects(sourceObjects,{keepPreview=false,previewObjec
   const rot=normalizePieceGrainRotation(targets[0].userData?.materialGrainRotation);
   toast(targets.length>1?`Veio alterado em ${targets.length} peças · ${rot}°`:`Veio da peça alterado para ${rot}°`);
 }
+function renderImportedCncParts(){
+  const section=$('partsSketchupCncSection'),list=$('partsSketchupCncList');
+  if(!section||!list)return;
+  const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length);
+  section.hidden=!meshes.length;
+  list.replaceChildren();
+  for(const [index,mesh] of meshes.entries()){
+    const user=mesh.userData||{};
+    const row=document.createElement('div');row.className='partRow';
+    const details=document.createElement('div');
+    const name=document.createElement('div');name.className='partRowName';name.textContent=`CNC ${index+1} · ${user.name||'Componente SketchUp'}`;
+    const meta=document.createElement('div');meta.className='partRowMeta';
+    const sizes=[user.width,user.depth,user.height].map(n=>Math.round(Number(n)*100000)/100);
+    meta.textContent=`${sizes.join(' × ')} mm · peça especial · geometria original preservada`;
+    details.append(name,meta);row.append(details);
+    const actions=document.createElement('div');actions.className='cutPlanRowActions';
+    const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='Baixar contorno DXF';
+    btn.onclick=()=>{try{const c=sketchupTopContours(mesh);downloadText(`SKETCHUP_${index+1}_${safeFileName(user.name||'peca')}.dxf`,sketchupContoursDxf(c),'application/dxf');}
+      catch(err){toast('Não foi possível gerar o DXF: '+(err?.message||err));}};
+    actions.append(btn);row.append(actions);list.append(row);
+  }
+}
 function renderPartsList(){
   const cfg=cutPlanCfgFromUi();setSheetPrefs(cfg);updateSheetCutModeUi();
   const list=$('partsList'),summary=$('partsSummary');list.innerHTML='';
   dlRenderGeneralPartsSummary();
+  renderImportedCncParts();
   try{
     const groups=cutPlanBuildGroups(cfg);cutPlanLastGroups=groups;cutPlanLastValidCfg={...cfg};
     const allParts=groups.flatMap(g=>g.parts),spaces=[...new Set(allParts.map(p=>p.spaceName).filter(Boolean))];
@@ -2326,7 +2349,8 @@ function renderPartsList(){
     }
     cutPlanLastGroups=[];
     if(/não possui peças de chapa|não há peças de chapa|sem peças de chapa/i.test(msg)){
-      summary.innerHTML='<div class="cutPlanSummaryGrid"><span><b>0</b><small>peças de chapa</small></span><span><b>0</b><small>chapas</small></span></div><div class="cutPlanSummaryText"><strong>Sem peças de chapa neste projeto.</strong> Madeira maciça e ferro continuam listados abaixo.</div>';
+      const specialCount=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length).length;
+      summary.innerHTML=`<div class="cutPlanSummaryGrid"><span><b>0</b><small>peças retangulares</small></span><span><b>${specialCount}</b><small>peças especiais CNC</small></span><span><b>0</b><small>chapas otimizadas</small></span></div><div class="cutPlanSummaryText"><strong>${specialCount?'Componentes CNC reconhecidos na seção acima.':'Sem peças de chapa neste projeto.'}</strong> Peças curvas não são enviadas ao corte retangular da seccionadora.</div>`;
       list.innerHTML='<div class="partsGroup"><div class="partsGroupHead"><span>▦ Chapas / painéis</span><span>nenhuma peça</span></div><div class="partRow"><div><div class="partRowName">Sem peças de MDF, lâmina ou outro material em chapa.</div><div class="partRowMeta">As seções de madeira maciça e ferro / Metalon continuam disponíveis abaixo.</div></div></div></div>';
     }else{
       summary.textContent=msg;
@@ -2755,6 +2779,7 @@ $('partsListDialog').addEventListener('pointerdown',e=>{if(e.target===$('partsLi
 $('sheetGrain').addEventListener('change',renderPartsList);
 $('sheetGrainDirection').addEventListener('change',renderPartsList);
 if($('sendSketchupCncBtn'))$('sendSketchupCncBtn').onclick=sendImportedSketchupCnc;
+if($('sendSketchupCncFromPlan'))$('sendSketchupCncFromPlan').onclick=sendImportedSketchupCnc;
 $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPartsList();});
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
