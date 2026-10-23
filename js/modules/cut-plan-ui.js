@@ -1374,6 +1374,36 @@ function groupAspireParts(root,cfg=getSheetPrefs()){
   const parts=furnitureObjects(root).filter(o=>o.userData?.kind!=='space-cell'&&o.userData?.kind!=='cylinder'&&!o.userData?.excludeFromCutList&&o.userData?.kind!=='hardware-visual'&&productionObjectKind(o)==='sheet').map((o,i)=>{const p=flatPartInfo(o,i+1,{production:true});if(p){p.spaceName=root.name||'Espaço';p.spaceRootId=root.id;}return p;}).filter(Boolean);
   return groupPartArrayForAspire(parts,cfg,'Este móvel não possui peças de chapa para exportar');
 }
+// r37: mesmo pipeline da seccionadora para prismas importados do SketchUp.
+// Geometrias não retangulares continuam exclusivamente no fluxo CNC/DXF.
+function bridgePartsForStandardCutList(){
+  const out=[];
+  for(const mesh of runtimeModel.objects){
+    const blank=verifiedSketchupSawBlank(mesh);
+    if(!blank)continue;
+    const u=mesh.userData||{};
+    const rawMaterial=String(u.bridgeMetadata?.material?.name||u.materialType||'MDF');
+    const isWhite=/branco\s*tx/i.test(rawMaterial);
+    const matId=isWhite?'mat-factory-mdf-branco-tx':(u.materialId||null);
+    const catalog=matId?productionMaterialById(matId):null;
+    const bands={};
+    for(const [side,b] of Object.entries(u.edgeBands||{})){
+      if(!['uMin','uMax','vMin','vMax'].includes(side)||!b?.name)continue;
+      const match=/branco\s*tx/i.test(b.name);
+      bands[side]=match?{id:'band-factory-mdf-branco-tx',name:'Fita Branco TX',code:'F-BRTX',thickness:Number(b.thickness)||.45,width:blank.thickness,category:'Fitas · MDF'}:
+        {name:b.name,code:b.code||b.name,thickness:Number(b.thickness)||.45,width:blank.thickness,category:'OpenCutList'};
+    }
+    out.push({name:blank.name,material:catalog?.name||rawMaterial,materialId:catalog?.id||null,materialCode:catalog?.code||'',
+      materialRecord:catalog||{},materialGrain:!!catalog?.grain,materialGrainRotation:0,productionKind:'sheet',
+      partId:'BRIDGE_'+String(u.bridgeMetadata?.componentId||u.partId||out.length+1),edgeBands:bands,
+      edgeBandSignature:Object.entries(bands).map(([k,v])=>k+':'+v.code).join('|'),
+      edgeBandSummary:Object.values(bands).map(v=>v.code).join(', '),thickness:blank.thickness,faceW:blank.faceW,faceH:blank.faceH,
+      finishedFaceW:blank.faceW,finishedFaceH:blank.faceH,doorProductionOversizeMm:0,
+      thicknessAxis:blank.thicknessAxis,uAxis:blank.uAxis,vAxis:blank.vAxis,dims:blank.dims,
+      object:mesh,machining:[],customOutline:null,customCutouts:[],customSlots:null,spaceName:'SketchUp',spaceRootId:''});
+  }
+  return out;
+}
 function allProjectFurnitureParts({production=false}={}){
   const parts=[],seen=new Set();let index=0;
   for(const root of runtimeModel.spaceRoots){
@@ -1382,6 +1412,7 @@ function allProjectFurnitureParts({production=false}={}){
       seen.add(o);const p=flatPartInfo(o,++index,{production});if(!p)continue;p.spaceName=root.name||`Espaço ${runtimeModel.spaceRoots.indexOf(root)+1}`;p.spaceRootId=root.id;parts.push(p);
     }
   }
+  if(production)parts.push(...bridgePartsForStandardCutList());
   return parts;
 }
 function allProjectProductionPartsByKind(kind){
@@ -2356,7 +2387,7 @@ function cutPlanToggleGrainObjects(sourceObjects,{keepPreview=false,previewObjec
 function renderImportedCncParts(){
   const section=$('partsSketchupCncSection'),list=$('partsSketchupCncList');
   if(!section||!list)return;
-  const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length);
+  const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length&&!verifiedSketchupSawBlank(o));
   section.hidden=!meshes.length;
   list.replaceChildren();
   for(const [index,mesh] of meshes.entries()){
@@ -2390,7 +2421,7 @@ function renderImportedCncParts(){
 function updateCncOnlyPartsPresentation(){
   const root=$('partsListDialog');
   if(!root)return false;
-  const specials=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length).length;
+  const specials=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length&&!verifiedSketchupSawBlank(o)).length;
   const normal=['sheet','wood','metal'].reduce((sum,kind)=>sum+allProjectProductionPartsByKind(kind).length,0);
   const onlyCnc=specials>0&&normal===0;
   root.classList.toggle('cutPlanCncOnly',onlyCnc);
@@ -2467,7 +2498,7 @@ function renderPartsList(){
     }
     cutPlanLastGroups=[];
     if(/não possui peças de chapa|não há peças de chapa|sem peças de chapa/i.test(msg)){
-      const specialCount=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length).length;
+      const specialCount=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length&&!verifiedSketchupSawBlank(o)).length;
       summary.innerHTML=`<div class="cutPlanSummaryGrid"><span><b>0</b><small>peças retangulares</small></span><span><b>${specialCount}</b><small>peças especiais CNC</small></span><span><b>0</b><small>chapas otimizadas</small></span></div><div class="cutPlanSummaryText"><strong>${specialCount?'Componentes CNC reconhecidos na seção acima.':'Sem peças de chapa neste projeto.'}</strong> Peças curvas não são enviadas ao corte retangular da seccionadora.</div>`;
       list.innerHTML='<div class="partsGroup"><div class="partsGroupHead"><span>▦ Chapas / painéis</span><span>nenhuma peça</span></div><div class="partRow"><div><div class="partRowName">Sem peças de MDF, lâmina ou outro material em chapa.</div><div class="partRowMeta">As seções de madeira maciça e ferro / Metalon continuam disponíveis abaixo.</div></div></div></div>';
     }else{

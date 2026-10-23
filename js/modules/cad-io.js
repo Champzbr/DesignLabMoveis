@@ -456,7 +456,7 @@ async function designLabRecordFromSketchupDae(file){
   const origin=all.min,width=all.max.x-origin.x,depth=all.max.z-origin.z,height=all.max.y-origin.y;
   const objects=parts.map(p=>({kind:'imported-mesh',name:p.name,width:p.size.x,depth:p.size.z,height:p.size.y,
     x:p.b.min.x-origin.x+p.size.x/2,yBase:p.b.min.y-origin.y,z:p.b.min.z-origin.z+p.size.z/2,
-    materialType:'SketchUp DAE (visual)',excludeFromCutList:true,edgeBands:{},machining:[],forms:[],
+    materialType:'SketchUp DAE (visual)',excludeFromCutList:true,edgeBands:Object.fromEntries(Object.entries(p.bandHints).map(([side,band])=>[side,{name:band.name,code:band.name,thickness:band.thickness||.45,width:Math.round(Math.min(...p.size)*1000),category:'OpenCutList'}])),machining:[],forms:[],
     importedMesh:{source:'SketchUp DAE',positions:p.positions}}));
   const w=Math.max(width,.01),d=Math.max(depth,.01),h=Math.max(height,.01);
   const space={id:'sketchup-space',name:file.name.replace(/\.dae$/i,''),x:w/2,yBase:0,z:d/2,width:w,depth:d,height:h,cells:[],fixedBands:{x:[],y:[],z:[]}};
@@ -502,32 +502,34 @@ async function designLabRecordFromBridge(file){
     if(size.some(x=>!Number.isFinite(x)||x<0.00005))continue;
     const center=high.map((v,k)=>(v+low[k])/2);
     const positions=points.flatMap(pt=>pt.map((v,k)=>Number(((v-center[k])/size[k]).toFixed(6))));
-    // Face-painted band candidates. SketchUp face axes: X,Y,Z; Three.js X,Z,Y.
-    // Candidates are diagnostic ONLY until local orientation and OCL materials are verified.
+    // Bridge r37: usar os eixos CANÔNICOS do CAD, e não a ordem do tamanho.
+    // Z espessura: X/Y; Y espessura: X/Z; X espessura: Z/Y.
     const thinAxis=size.indexOf(Math.min(...size));
-    const longAxes=[0,1,2].filter(a=>a!==thinAxis);
+    const axes=thinAxis===2?[0,1]:thinAxis===1?[0,2]:[2,1];
+    const sketchAxis=[0,2,1]; // posição em THREE -> eixo no SketchUp
     const edgeBandCandidates={};
     for(const face of paintedFaces){
-      const rect=[face.bounds[0],face.bounds[2],face.bounds[1]]; // X,Z,Y in metres? bounds are mm, remap below
-      const sketchBounds=face.bounds;
-      const b=[[sketchBounds[0][0]/1000,sketchBounds[0][1]/1000],
-               [sketchBounds[2][0]/1000,sketchBounds[2][1]/1000],
-               [sketchBounds[1][0]/1000,sketchBounds[1][1]/1000]];
-      for(let k=0;k<2;k++){
-        const axis=longAxes[k];const span=b[axis][1]-b[axis][0];
-        if(span>Math.max(.0004,size[axis]*.002))continue;
-        const side=Math.abs(b[axis][0]-low[axis])<=Math.max(.0005,size[axis]*.003)?'Min':
-                   Math.abs(b[axis][0]-(low[axis]+size[axis]))<=Math.max(.0005,size[axis]*.003)?'Max':null;
-        if(!side)continue;
-        const other=longAxes[1-k];
+      const mat=[face.front,face.back].find(m=>Number(m?.attributes?.ladb_opencutlist?.type)===4);
+      if(!mat?.name)continue;
+      const b=[face.bounds[0],face.bounds[2],face.bounds[1]].map(pair=>pair.map(v=>v/1000));
+      for(const [k,axis] of axes.entries()){
+        const other=axes[1-k];
+        const sideSpan=b[axis][1]-b[axis][0];
+        if(sideSpan>Math.max(.0004,size[axis]*.002))continue;
         if(b[thinAxis][1]-b[thinAxis][0]<size[thinAxis]*.65 || b[other][1]-b[other][0]<size[other]*.65)continue;
-        const material=face.front||face.back;
-        if(!material?.name)continue;
+        const value=b[axis][0];
+        const tol=Math.max(.0005,size[axis]*.003);
+        const side=Math.abs(value-low[axis])<=tol?'Min':Math.abs(value-high[axis])<=tol?'Max':null;
+        if(!side)continue;
         const key=(k?'v':'u')+side;
-        (edgeBandCandidates[key]??=[]).push(String(material.name));
+        (edgeBandCandidates[key]??=[]).push({name:String(mat.name),thickness:Number.parseFloat(mat.attributes.ladb_opencutlist.thickness)||0});
       }
     }
-    const bandHints=Object.fromEntries(Object.entries(edgeBandCandidates).map(([key,names])=>[key,[...new Set(names)]]));
+    const bandHints={};
+    for(const [key,values] of Object.entries(edgeBandCandidates)){
+      const unique=[...new Set(values.map(v=>v.name))];
+      if(unique.length===1)bandHints[key]=values[0];
+    }
     parts.push({name:String(component.name||component.definition||`Peça ${index+1}`).slice(0,120),low,size,positions,
       id:String(component.id||index),material:component.material||null,faceMaterials,bandHints,
       attributes:component.attributes||{}});
@@ -539,9 +541,9 @@ async function designLabRecordFromBridge(file){
   const objects=parts.map(p=>({kind:'imported-mesh',name:p.name,width:Number((p.size[0]).toFixed(6)),height:Number((p.size[1]).toFixed(6)),depth:Number((p.size[2]).toFixed(6)),
     x:p.low[0]-low[0]+p.size[0]/2,yBase:p.low[1]-low[1],z:p.low[2]-low[2]+p.size[2]/2,
     materialType:p.material?.name||'SketchUp / OpenCutList · conferir',excludeFromCutList:true,
-    edgeBands:{},machining:[],forms:[],
-    importedMesh:{source:'DesignLab Bridge / SketchUp',positions:p.positions,bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandCandidates:p.bandHints,edgeBandStatus:'conferir'}},
-    bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandCandidates:p.bandHints,edgeBandStatus:'conferir',
+    edgeBands:Object.fromEntries(Object.entries(p.bandHints).map(([side,band])=>[side,{name:band.name,code:band.name,thickness:band.thickness||.45,width:Math.round(Math.min(...p.size)*1000),category:'OpenCutList'}])),machining:[],forms:[],
+    importedMesh:{source:'DesignLab Bridge / SketchUp',positions:p.positions,bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandCandidates:p.bandHints,edgeBandStatus:Object.keys(p.bandHints).length?'faces-identificadas':'sem-fita-detectada'}},
+    bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandCandidates:p.bandHints,edgeBandStatus:Object.keys(p.bandHints).length?'faces-identificadas':'sem-fita-detectada',
       note:'Materiais de faces exportados para conferência; orientação de fitas não validada.'}}));
   const name=String(data.projectName||file.name.replace(/\.dlbridge\.json$/i,'')).slice(0,160);
   const space={id:'bridge-space',name,x:dims[0]/2,yBase:0,z:dims[2]/2,width:dims[0],depth:dims[2],height:dims[1],cells:[],fixedBands:{x:[],y:[],z:[]}};
