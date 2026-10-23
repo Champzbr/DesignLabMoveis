@@ -63,16 +63,63 @@ export function sketchupTopContours(mesh){
   }
   return {loops,width:w,depth:d,thickness:t};
 }
+// DXF R12/AC1009: POLYLINE + VERTEX + SEQEND, compatível com leitores CAD
+// tradicionais e com o padrão de referência dos arquivos Aspire da fábrica.
+// Não criar uma chapa retangular fictícia: somente os contornos reais da peça.
 export function sketchupContoursDxf(contours){
-  const fmt=n=>String(Number(n.toFixed(3)));
-  const pair=(code,value)=>`${code}\r\n${value}\r\n`;
-  let s=pair(0,'SECTION')+pair(2,'HEADER')+pair(9,'$INSUNITS')+pair(70,4)+pair(0,'ENDSEC')+pair(0,'SECTION')+pair(2,'ENTITIES');
-  for(let i=0;i<contours.loops.length;i++){
-    const pts=contours.loops[i];
-    s+=pair(0,'LWPOLYLINE')+pair(8,i===0?'PERFIL_CNC':'CONTORNO_CNC_'+(i+1))+pair(90,pts.length)+pair(70,1);
-    for(const [x,y] of pts)s+=pair(10,fmt(x))+pair(20,fmt(y));
+  if(!contours||!Array.isArray(contours.loops)||!contours.loops.length)throw new Error('Nenhum contorno CNC disponível.');
+  const fmt=n=>Number(n.toFixed(3)).toFixed(3);
+  const pair=(code,value)=>`${code}\n${value}\n`;
+  const normalized=[];
+  const signedArea=pts=>pts.reduce((s,p,i)=>{const q=pts[(i+1)%pts.length];return s+p[0]*q[1]-q[0]*p[1]},0)/2;
+  for(const loop of contours.loops){
+    if(!Array.isArray(loop)||loop.length<3)throw new Error('Contorno CNC incompleto.');
+    const points=[];
+    for(const xy of loop){
+      const x=Number(xy?.[0]),y=Number(xy?.[1]);
+      if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>1e7||Math.abs(y)>1e7)throw new Error('Coordenada CNC inválida.');
+      // 3 casas decimais, igual ao padrão do arquivo de referência (milímetros).
+      const p=[Number(x.toFixed(3)),Number(y.toFixed(3))];
+      if(!points.length||Math.hypot(p[0]-points[points.length-1][0],p[1]-points[points.length-1][1])>0.0005)points.push(p);
+    }
+    if(points.length>1&&Math.hypot(points[0][0]-points[points.length-1][0],points[0][1]-points[points.length-1][1])<=0.0005)points.pop();
+    if(points.length<3||Math.abs(signedArea(points))<0.000001)throw new Error('Contorno CNC degenerado.');
+    normalized.push({points,area:Math.abs(signedArea(points))});
   }
-  return s+pair(0,'ENDSEC')+pair(0,'EOF');
+  // Classificar furos como internos por contenção; não depende da ordem das faces do DAE.
+  const contains=(pt,poly)=>{
+    let inside=false;
+    for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+      const a=poly[i],b=poly[j];
+      if((a[1]>pt[1])!==(b[1]>pt[1])&&pt[0]<(b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+    }
+    return inside;
+  };
+  normalized.sort((a,b)=>b.area-a.area);
+  for(const loop of normalized){
+    const depth=normalized.filter(other=>other!==loop&&other.area>loop.area&&contains(loop.points[0],other.points)).length;
+    loop.internal=depth%2===1;
+  }
+  const thickness=Number(contours.thickness);
+  if(!Number.isFinite(thickness)||thickness<=0)throw new Error('Espessura CNC inválida.');
+  const suffix=`E${Math.round(thickness)}_P${Math.round(thickness)}`;
+  const ext=`CORTE_EXTERNO_${suffix}`,int=`RECORTE_INTERNO_${suffix}`;
+  let out=pair(0,'SECTION')+pair(2,'HEADER')+pair(9,'$ACADVER')+pair(1,'AC1009')+
+    pair(9,'$MEASUREMENT')+pair(70,1)+pair(9,'$INSUNITS')+pair(70,4)+pair(0,'ENDSEC')+
+    pair(0,'SECTION')+pair(2,'TABLES')+pair(0,'TABLE')+pair(2,'LAYER')+pair(70,2);
+  for(const [name,color] of [[ext,7],[int,3]]){
+    out+=pair(0,'LAYER')+pair(2,name)+pair(70,0)+pair(62,color)+pair(6,'CONTINUOUS');
+  }
+  out+=pair(0,'ENDTAB')+pair(0,'ENDSEC')+pair(0,'SECTION')+pair(2,'ENTITIES');
+  for(const loop of normalized){
+    const layer=loop.internal?int:ext;
+    out+=pair(0,'POLYLINE')+pair(8,layer)+pair(66,1)+pair(70,1)+pair(10,0)+pair(20,0)+pair(30,0);
+    for(const [x,y] of loop.points){
+      out+=pair(0,'VERTEX')+pair(8,layer)+pair(10,fmt(x))+pair(20,fmt(y))+pair(30,0);
+    }
+    out+=pair(0,'SEQEND')+pair(8,layer);
+  }
+  return out+pair(0,'ENDSEC')+pair(0,'EOF');
 }
 export function sketchupContoursSvg(c,name='SketchUp'){
   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
