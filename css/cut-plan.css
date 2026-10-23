@@ -358,3 +358,19 @@ body.project-home-active #cadHideSelectedSpaceQuick,body.project-home-active #ca
 
 /* r22: janela isolada de etiquetas de produção */
 .productionLabelsOverlay{display:none;position:fixed;inset:0;z-index:100050;background:rgba(9,14,24,.78);align-items:center;justify-content:center;padding:16px}.productionLabelsOverlay.show{display:flex}.productionLabelsPanel{width:min(740px,100%);max-height:92vh;display:flex;flex-direction:column;background:#182331;color:#f2f5f9;border:1px solid #3c5063;border-radius:18px;box-shadow:0 20px 65px #0009;overflow:hidden}.productionLabelsPanel header,.productionLabelsPanel footer{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}.productionLabelsPanel header{border-bottom:1px solid #35495c}.productionLabelsPanel header h3{margin:3px 0;font-size:23px}.productionLabelsPanel header small{color:#80d3d0;font-weight:800;letter-spacing:.09em}.productionLabelsPanel header p{margin:0;color:#a9b7c7;font-size:13px}.productionLabelsContent{padding:18px 22px;overflow:auto}.productionLabelsFields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.productionLabelsFields label{display:flex;flex-direction:column;gap:7px;font-weight:700;font-size:13px}.productionLabelsFields input{width:100%;background:#0f1925;color:white;border:1px solid #486078;border-radius:9px;padding:12px}.productionLabelsWarning{color:#f3c980;background:#4a3822;border-radius:9px;padding:12px;line-height:1.5;font-size:13px}.productionLabelsSummary{font-weight:800;margin:14px 0}.productionLabelsList{border:1px solid #3b4e61;border-radius:10px;max-height:300px;overflow:auto}.productionLabelsRow{display:grid;grid-template-columns:45px 1fr auto;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #314356;font-size:13px}.productionLabelsRow:last-child{border:0}.productionLabelsRow>b{color:#80d3d0}.productionLabelsRow strong{white-space:nowrap}.productionLabelsPanel footer{border-top:1px solid #35495c}.productionLabelsPanel footer button{padding:11px 16px;border-radius:9px;cursor:pointer}.productionLabelsPanel #productionLabelsPrint{background:#49c6ac;color:#102329;font-weight:800;border:0}@media(max-width:560px){.productionLabelsFields{grid-template-columns:1fr}.productionLabelsRow{grid-template-columns:32px 1fr}.productionLabelsRow strong{grid-column:2}.productionLabelsPanel footer{flex-wrap:wrap}}
+
+/* r33 · Se o projeto contém somente componentes SketchUp, mostrar o fluxo CNC,
+   não uma otimização retangular vazia. Os controles continuam no DOM para os outros modos. */
+#partsListDialog.cutPlanCncOnly .cutPlanSettings,
+#partsListDialog.cutPlanCncOnly #partsSheetSection,
+#partsListDialog.cutPlanCncOnly #partsWoodSection,
+#partsListDialog.cutPlanCncOnly #partsMetalSection,
+#partsListDialog.cutPlanCncOnly #productionLabelsOpen,
+#partsListDialog.cutPlanCncOnly #externalCutOpen,
+#partsListDialog.cutPlanCncOnly #previewAspireFromPartsBtn,
+#partsListDialog.cutPlanCncOnly #printCutPlanFromPartsBtn,
+#partsListDialog.cutPlanCncOnly #exportPanelSawSequenceBtn,
+#partsListDialog.cutPlanCncOnly #exportPanelSawZawBtn,
+#partsListDialog.cutPlanCncOnly #exportAspireFromPartsBtn {display:none!important;}
+#partsListDialog.cutPlanCncOnly #partsSketchupCncSection {display:block!important;}
+#partsListDialog.cutPlanCncOnly .cutPlanActions {justify-content:flex-end;}
