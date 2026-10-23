@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r38",
+  "version": "1.312.00-r39",
   "date": "2026-10-23",
-  "message": "QR público por pedido nas etiquetas, com visualização sem login e revogação via API."
+  "message": "Snapshot da montagem 3D por pedido para visualização pública via QR."
 }
