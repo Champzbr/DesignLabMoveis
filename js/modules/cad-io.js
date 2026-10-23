@@ -1,3 +1,4 @@
+import {applyImportedMeshGeometry} from './imported-mesh.js';
 // DesignLabMoveis 1.311.00 · Importação/exportação DXF/STL e serialização de móveis.
 export function createCadIoModule(ctx){
   const { $, THREE, COLORS, MM_TO_M, scene, getSpaceRoot, getBounds, captureSpaces, normalizePieceGrainRotation, productionClone, captureProductionState, mm, adminAllowed, globalLibraryFolderById, cloudApiFetch, loadGlobalLibraryItems, loadGlobalLibraryFolders, renderLibrary, toast, importLibraryTemplate, exportLeafName, downloadExportFallback, isExportPickerCancel, pickExportTarget, mergeProjectProductionState, uid, createSpaceFromState, createCylinder, createCurvedRib, createCurvedCover, curvedPostSamplesMm, curvedPostPlacementFromSampleMm, createCurvedPost, createBox, copyLibraryPartMeta, repairOrphanSpaceGaps, renderSpaces, applyAllDoorVisibility, renderMachiningVisuals, selectSpaceCellByIds, frontViewToSpace, commitHistory } = ctx;
@@ -36,7 +37,7 @@ function captureFurniture(root){
     kind:o.userData.kind,name:o.userData.name,materialType:o.userData.materialType,baseColor:o.userData.baseColor,
     materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialGrainRotation:normalizePieceGrainRotation(o.userData.materialGrainRotation),materialCoreColor:o.userData.materialCoreColor||null,
     edgeBands:productionClone(o.userData.edgeBands||{}),partId:o.userData.partId||null,labelMeta:productionClone(o.userData.labelMeta||{schemaVersion:1,enabled:true}),
-    spaceRootId:root.id,
+    spaceRootId:root.id,importedMesh:o.userData.importedMesh?productionClone(o.userData.importedMesh):null,
     machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,doorSystem:o.userData.doorSystem?JSON.parse(JSON.stringify(o.userData.doorSystem)):null,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,manualGeometryDelta:productionClone(o.userData.manualGeometryDelta||null),pieceSavedConfig:productionClone(o.userData.pieceSavedConfig||null),cutPlanSheetHint:Number(o.userData.cutPlanSheetHint)||null,rotationX:Number(o.rotation.x)||0,rotationY:Number(o.rotation.y)||0,rotationZ:Number(o.rotation.z)||0,
     width:o.userData.width,depth:o.userData.depth,height:o.userData.height,
     x:Number.isFinite(o.userData.curvedTargetX)?o.userData.curvedTargetX:o.position.x,yBase:o.position.y-o.userData.height/2,z:Number.isFinite(o.userData.curvedTargetZ)?o.userData.curvedTargetZ:o.position.z
@@ -316,7 +317,7 @@ async function importLibraryFile(file){
     return;
   }
   importLibraryTemplate(parsed.record,name,ctx.libraryState.activeLibraryFolderId);
-  if(parsed.sketchup)toast(`SketchUp: ${parsed.recognized} peças importadas${parsed.skipped?' · '+parsed.skipped+' malhas ignoradas':''}. Confira as dimensões antes do corte.`);
+  if(parsed.sketchup)toast(`SketchUp: ${parsed.recognized} componente(s) importado(s) em 3D${parsed.skipped?' · '+parsed.skipped+' malha(s) ignorada(s)':''}. Geometrias livres não entram no corte automático.`);
   else if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.18 para preservar curvas, usinagens e configurações');
   else if(parsed.stl)toast('STL DesignLab importado preservando curvas, peças e configurações');
   else if(!parsed.legacyJson)toast('DXF DesignLab importado com peças, curvas e configurações preservadas');
@@ -401,53 +402,65 @@ function buildFurnitureModelStl(root){
   const out=new Uint8Array(buffer.byteLength+trailer.byteLength);out.set(new Uint8Array(buffer),0);out.set(trailer,buffer.byteLength);
   return {bytes:out,pieces:meshes.length,triangles:triangleCount};
 }
-// SketchUp: DAE/Collada. Importação conservadora: cada malha deve ser uma chapa
-// retangular alinhada aos eixos. Nunca converter malhas arbitrárias em cortes.
+// SketchUp DAE: importa faces trianguladas sem pressupor que todas as peças
+// sejam caixas. Componentes irregulares permanecem em modo visual 3D e são
+// explicitamente excluídos da produção automática.
 async function designLabRecordFromSketchupDae(file){
   const xml=await file.text();
-  if(!xml.includes('<COLLADA')&&!xml.includes(':COLLADA'))throw new Error('Arquivo DAE/Collada inválido');
+  if(!/<(?:[\w.-]+:)?COLLADA(?:\s|>)/i.test(xml))throw new Error('Arquivo DAE/Collada inválido');
   const {ColladaLoader}=await import('three/addons/loaders/ColladaLoader.js');
   const parsed=new ColladaLoader().parse(xml,'');
-  const model=parsed.scene;
-  model.updateMatrixWorld(true);
-  const meshes=[];
-  model.traverse(o=>{if(o.isMesh&&o.geometry?.attributes?.position)meshes.push(o);});
+  const model=parsed.scene;model.updateMatrixWorld(true);
+  const meshes=[];model.traverse(o=>{if(o.isMesh&&o.geometry?.attributes?.position)meshes.push(o);});
   if(!meshes.length)throw new Error('O DAE não contém peças 3D');
-  // ColladaLoader já converte o eixo vertical e as unidades declaradas no DAE.
-  const parts=[];const skipped=[];
-  for(const [i,o] of meshes.entries()){
-    const geometry=o.geometry;
-    const position=geometry.attributes.position;
-    const box=new THREE.Box3().setFromObject(o);
-    const size=box.getSize(new THREE.Vector3());
-    const dims=[size.x,size.y,size.z];
-    if(dims.some(n=>!Number.isFinite(n)||n<=0.0005)){skipped.push(i+1);continue;}
-    // Uma chapa deve possuir faces nos 6 planos do seu bounding box.
-    // Verificação estrita evita que uma malha inclinada vire peça de corte falsa.
-    const inv=o.matrixWorld.clone();
-    const vertices=new Set();
-    for(let j=0;j<position.count;j++){
-      const v=new THREE.Vector3().fromBufferAttribute(position,j).applyMatrix4(o.matrixWorld);
-      const normalized=[(v.x-box.min.x)/size.x,(v.y-box.min.y)/size.y,(v.z-box.min.z)/size.z];
-      if(normalized.some(t=>Math.min(Math.abs(t),Math.abs(t-1))>0.008)){vertices.add('nonbox');break;}
-      vertices.add(normalized.map(t=>Math.round(t)).join(''));
+  const groups=new Map();
+  for(const [i,mesh] of meshes.entries()){
+    // Um componente pode conter várias malhas/materiais: agrupar sob o mesmo pai.
+    let owner=mesh;
+    while(owner.parent&&owner.parent!==model){
+      if(owner.name&&!/^(?:mesh|geometry|instance_\d+|sketchup)$/i.test(owner.name))break;
+      owner=owner.parent;
     }
-    if(vertices.has('nonbox')||vertices.size<8){skipped.push(i+1);continue;}
-    let parent=o;while(parent.parent&&(!parent.name||/^mesh|^geometry/i.test(parent.name)))parent=parent.parent;
-    const name=String(parent.name||o.name||`Peça ${i+1}`).trim().slice(0,100);
-    parts.push({name,box,size});
+    const key=owner!==model?owner:mesh;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(mesh);
   }
-  if(!parts.length)throw new Error('Nenhuma chapa retangular reconhecida. Separe as peças em componentes no SketchUp, alinhadas aos eixos, e exporte novamente em DAE.');
-  const all=new THREE.Box3();parts.forEach(p=>all.union(p.box));
-  const origin=all.min;
-  const width=all.max.x-origin.x,depth=all.max.z-origin.z,height=all.max.y-origin.y;
-  const objects=parts.map((p,i)=>({kind:'box',name:p.name,width:p.size.x,depth:p.size.z,height:p.size.y,
-    x:p.box.min.x-origin.x+p.size.x/2,yBase:p.box.min.y-origin.y,z:p.box.min.z-origin.z+p.size.z/2,
-    materialType:'genérico',edgeBands:{},machining:[],forms:[]}));
-  // Valores mínimos só para criação de espaço, sem aumentar medidas das peças.
-  const w=Math.max(width,0.01),d=Math.max(depth,0.01),h=Math.max(height,0.01);
+  const parts=[];let skipped=0;
+  for(const [owner,group] of groups){
+    const points=[];const b=new THREE.Box3().makeEmpty();
+    for(const mesh of group){
+      const pos=mesh.geometry.getAttribute('position'),idx=mesh.geometry.index;
+      const count=idx?idx.count:pos.count;
+      if(count>300000||count%3!==0){skipped++;continue;}
+      for(let k=0;k<count;k++){
+        const vi=idx?idx.getX(k):k;
+        const v=new THREE.Vector3().fromBufferAttribute(pos,vi).applyMatrix4(mesh.matrixWorld);
+        if(![v.x,v.y,v.z].every(Number.isFinite))continue;
+        points.push(v);b.expandByPoint(v);
+      }
+    }
+    if(points.length<3||b.isEmpty()){skipped++;continue;}
+    const size=b.getSize(new THREE.Vector3());
+    if([size.x,size.y,size.z].some(v=>!Number.isFinite(v)||v<0.0001)){skipped++;continue;}
+    if(points.length>300000)throw new Error('Componente muito complexo; simplifique sua malha no SketchUp antes de importar');
+    const center=b.getCenter(new THREE.Vector3());
+    const positions=[];
+    for(const v of points){
+      positions.push(Number(((v.x-center.x)/size.x).toFixed(6)),Number(((v.y-center.y)/size.y).toFixed(6)),Number(((v.z-center.z)/size.z).toFixed(6)));
+    }
+    const name=String(owner.name||group[0].name||`Componente ${parts.length+1}`).trim().slice(0,100);
+    parts.push({name,b,size,positions});
+  }
+  if(!parts.length)throw new Error('O DAE não contém geometria sólida triangulada reconhecível');
+  const all=new THREE.Box3();for(const p of parts)all.union(p.b);
+  const origin=all.min,width=all.max.x-origin.x,depth=all.max.z-origin.z,height=all.max.y-origin.y;
+  const objects=parts.map(p=>({kind:'imported-mesh',name:p.name,width:p.size.x,depth:p.size.z,height:p.size.y,
+    x:p.b.min.x-origin.x+p.size.x/2,yBase:p.b.min.y-origin.y,z:p.b.min.z-origin.z+p.size.z/2,
+    materialType:'SketchUp DAE (visual)',excludeFromCutList:true,edgeBands:{},machining:[],forms:[],
+    importedMesh:{source:'SketchUp DAE',positions:p.positions}}));
+  const w=Math.max(width,.01),d=Math.max(depth,.01),h=Math.max(height,.01);
   const space={id:'sketchup-space',name:file.name.replace(/\.dae$/i,''),x:w/2,yBase:0,z:d/2,width:w,depth:d,height:h,cells:[],fixedBands:{x:[],y:[],z:[]}};
-  return {record:{type:'mini-cad-furniture',version:66,unit:'meter',name:space.name,objects,spaces:[space],production:{}},sketchup:true,skipped:skipped.length,recognized:parts.length};
+  return {record:{type:'mini-cad-furniture',version:66,unit:'meter',name:space.name,objects,spaces:[space],production:{}},sketchup:true,skipped,recognized:parts.length};
 }
 async function designLabFurnitureRecordFromFile(file){
   const lower=String(file?.name||'').toLowerCase();
@@ -655,7 +668,7 @@ function importFurnitureData(data){
       const doorCfg=p.doorConfig?JSON.parse(JSON.stringify(p.doorConfig)):null;
       createdPart=createBox({width:ww,depth:dd,height:hh,x:xx,yBase:yy,z:zz,name:p.name||'Peça',kind:p.kind||'box',materialType:p.materialType||'genérico',baseColor:p.baseColor??COLORS.default,materialId:p.materialId||null,materialCode:p.materialCode||'',materialGrain:!!p.materialGrain,materialGrainRotation:normalizePieceGrainRotation(p.materialGrainRotation),materialCoreColor:p.materialCoreColor||null,edgeBands:p.edgeBands||{},partId:p.partId||null,labelMeta:p.labelMeta||null,spaceRootId:newRootId,machining:p.machining||[],forms:p.forms||[],rotationY:p.rotationY||0,curvedRole:p.curvedRole||null,curvedConfig:p.curvedConfig||null,drawerSetId:p.drawerSetId||null,drawerRole:p.drawerRole||null,drawerIndex:p.drawerIndex??null,drawerConfig:dc,doorConfig:doorCfg,doorSystem:p.doorSystem||null,excludeFromCutList:!!p.excludeFromCutList,spaceCutting:!!p.spaceCutting,spaceCutParentBounds:p.spaceCutParentBounds||null,cutPlanSheetHint:p.cutPlanSheetHint||null},false);
     }
-    if(createdPart)copyLibraryPartMeta(createdPart,p);
+    if(createdPart){copyLibraryPartMeta(createdPart,p);if(p.importedMesh)applyImportedMeshGeometry(THREE,createdPart,p.importedMesh);}
   }
   repairOrphanSpaceGaps(root);
   renderSpaces(); applyAllDoorVisibility(); renderMachiningVisuals();

@@ -1,3 +1,4 @@
+import {applyImportedMeshGeometry} from './imported-mesh.js';
 // DesignLabMoveis 1.311.00 · Estado, serialização e histórico Desfazer/Refazer.
 export function createEditorHistoryModule(ctx){
   const { state, THREE, canonicalFactoryMaterialId, normalizePieceGrainRotation, productionClone, captureProductionState, STORAGE_KEY, markCurrentProjectDirty, scene, resetTapeMeasure, clearMachiningVisuals, getProductionMaterials, defaultProjectProduction, disposeObject, disposeSpaceMeshes, clearSpaceSelection, selectObject, setProjectProductionState, createCylinder, createCurvedRib, createCurvedCover, createCurvedPost, createBox, createConstructionGuide, createSpaceFromState, repairVerticalDivisionThickness, repairOrphanSpaceGaps, removeDrawerSet, drawerEnsureBottomGroovesForSet, renderSpaces, applyAllDoorVisibility, applyManualVisibilityToObject, renderMachiningVisuals, applyCadDetailVisibility, syncManualPieceVisibilityButtons, toast }=ctx;
@@ -8,7 +9,7 @@ function captureObjects(){
     kind:o.userData.kind,name:o.userData.name,materialType:o.userData.materialType,baseColor:o.userData.baseColor,
     materialId:o.userData.materialId||null,materialCode:o.userData.materialCode||'',materialGrain:!!o.userData.materialGrain,materialGrainRotation:normalizePieceGrainRotation(o.userData.materialGrainRotation),materialCoreColor:o.userData.materialCoreColor||null,
     edgeBands:productionClone(o.userData.edgeBands||{}),partId:o.userData.partId||null,labelMeta:productionClone(o.userData.labelMeta||{schemaVersion:1,enabled:true}),
-    spaceRootId:o.userData.spaceRootId||null,
+    spaceRootId:o.userData.spaceRootId||null,importedMesh:o.userData.importedMesh?productionClone(o.userData.importedMesh):null,
     machining:JSON.parse(JSON.stringify(o.userData.machining||[])),forms:JSON.parse(JSON.stringify(o.userData.forms||[])),customProfile:o.userData.customProfile?JSON.parse(JSON.stringify(o.userData.customProfile)):null,curvedRole:o.userData.curvedRole||null,curvedPart:o.userData.curvedPart||o.userData.customProfile?.part||null,curvedConfig:o.userData.curvedConfig?JSON.parse(JSON.stringify(o.userData.curvedConfig)):null,drawerSetId:o.userData.drawerSetId||null,drawerRole:o.userData.drawerRole||null,drawerIndex:o.userData.drawerIndex??null,drawerConfig:o.userData.drawerConfig?JSON.parse(JSON.stringify(o.userData.drawerConfig)):null,doorConfig:o.userData.doorConfig?JSON.parse(JSON.stringify(o.userData.doorConfig)):null,doorSystem:o.userData.doorSystem?JSON.parse(JSON.stringify(o.userData.doorSystem)):null,doorHandleVisual:!!o.userData.doorHandleVisual,doorHandleOwnerPartId:o.userData.doorHandleOwnerPartId||null,hiddenByUser:!!o.userData.hiddenByUser,excludeFromCutList:!!o.userData.excludeFromCutList,spaceCutting:!!o.userData.spaceCutting,spaceCutParentBounds:o.userData.spaceCutParentBounds?JSON.parse(JSON.stringify(o.userData.spaceCutParentBounds)):null,
     divisionNominalThicknessM:Number(o.userData.divisionNominalThicknessM)||null,
     manualGeometryDelta:productionClone(o.userData.manualGeometryDelta||null),pieceSavedConfig:productionClone(o.userData.pieceSavedConfig||null),cutPlanSheetHint:Number(o.userData.cutPlanSheetHint)||null,
@@ -89,7 +90,7 @@ function applyState(state){
     else if(item.kind==='curved-panel'&&item.customProfile?.cfg) createCurvedRib({cfg:item.customProfile.cfg,yBase:item.yBase,x:item.x,z:item.z,name:item.name,spaceRootId:item.spaceRootId,part:item.customProfile.part||item.curvedPart||'full'},false);
     else if(item.curvedRole==='cover'&&item.curvedConfig) createCurvedCover({cfg:item.curvedConfig,yBase:item.yBase,x:item.x,z:item.z,name:item.name||'Capa externa',spaceRootId:item.spaceRootId,part:item.curvedPart||item.curvedConfig.coverPart||'full'},false);
     else if(item.curvedRole==='post'&&item.curvedConfig) createCurvedPost({cfg:item.curvedConfig,yBase:item.yBase,x:item.x,z:item.z,name:item.name||'Montante curvo',spaceRootId:item.spaceRootId,rotationY:item.rotationY||0},false);
-    else createBox({...item,rotationX:item.rotationX||0,rotationY:item.rotationY||0,rotationZ:item.rotationZ||0},false);
+    else {const part=createBox({...item,rotationX:item.rotationX||0,rotationY:item.rotationY||0,rotationZ:item.rotationZ||0},false);if(item.importedMesh)applyImportedMeshGeometry(THREE,part,item.importedMesh);}
   }
   for(const g of guideState){
     if(!Array.isArray(g.start) || !Array.isArray(g.end)) continue;
