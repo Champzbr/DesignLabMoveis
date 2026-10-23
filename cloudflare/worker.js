@@ -30,10 +30,31 @@ export default {
       try {
         const db = await env.DB.prepare("SELECT 1 AS ok").first();
         const r2 = await env.PROJECTS.list({ limit: 1 });
-        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r24", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
+        return json({ ok:true, service:"designlabmoveis-api", version:"1.312.00-r38", db:db?.ok===1, r2:true, r2_objects:r2.objects.length });
       } catch (error) {
         return json({ ok:false, error:error.message }, 500);
       }
+    }
+
+    // r38: consulta PÚBLICA apenas de uma visão filtrada, sem login, ZAW, DXF ou dados de clientes.
+    // Um token aleatório de 128 bits é usado como chave de capacidade; não usar número de pedido.
+    if (/^\/public\/pedidos\/[a-f0-9]{32}$/.test(url.pathname) && request.method === 'GET') {
+      const token=url.pathname.split('/')[3];
+      await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_public_links (token TEXT PRIMARY KEY, order_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)`).run();
+      const row=await env.DB.prepare(`SELECT po.id,po.r2_key,po.revision,pl.created_at FROM production_public_links pl JOIN production_orders po ON po.id=pl.order_id WHERE pl.token=?1`).bind(token).first();
+      if(!row)return json({ok:false,message:'Projeto não publicado ou link desativado.'},404);
+      const object=await env.PROJECTS.get(row.r2_key);
+      if(!object)return json({ok:false,message:'Projeto indisponível.'},404);
+      const pkg=JSON.parse(await object.text());
+      const pieces=(Array.isArray(pkg.labels?.labels)?pkg.labels.labels:[]).slice(0,2000).map(p=>({
+        code:String(p.code||'').slice(0,60),name:String(p.name||'Peça').slice(0,100),
+        length:Number(p.length)||0,width:Number(p.width)||0,thickness:Number(p.thickness)||0,
+        sheet:Number(p.sheet)||0,material:String(p.material||'').slice(0,100),
+        edgeBands:p.edgeBands&&typeof p.edgeBands==='object'?Object.fromEntries(['uMin','uMax','vMin','vMax'].map(k=>[k,p.edgeBands[k]?{name:String(p.edgeBands[k].name||p.edgeBands[k].code||'Fita').slice(0,80)}:null])):{}
+      }));
+      return new Response(JSON.stringify({ok:true,project:{orderNumber:String(pkg.orderNumber||'').slice(0,60),name:String(pkg.work||'Projeto').slice(0,90),revision:row.revision,pieces}}),{
+        status:200,headers:{...cors,'Content-Type':'application/json; charset=UTF-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}
+      });
     }
 
     const authResult = await authenticateAndSync(request, env, siteUrl);
@@ -60,6 +81,16 @@ export default {
       return json({ok:false,error:'read_only',message:'Supervisor tem acesso somente para visualização.'},403);
     if (supervisorRole && !['/me','/projects','/supervisor/projects'].includes(url.pathname) && !/^\/projects\/[A-Za-z0-9_-]+$/.test(url.pathname))
       return json({ok:false,error:'restricted_supervisor',message:'Supervisor só pode consultar projetos.'},403);
+
+    // r38: revogar o link público sem apagar a ordem.
+    if (/^\/production\/orders\/[A-Za-z0-9_-]{1,100}\/public$/.test(url.pathname) && request.method==='DELETE') {
+      if(ctx.dbUser.role!=='admin')return json({ok:false,message:'Somente administrador pode revogar QR.'},403);
+      const id=url.pathname.split('/')[3];
+      const item=await env.DB.prepare('SELECT id FROM production_orders WHERE id=?1 AND owner_id=?2').bind(id,ctx.dbUser.identity_user_id).first();
+      if(!item)return json({ok:false,message:'Pedido não encontrado.'},404);
+      await env.DB.prepare('DELETE FROM production_public_links WHERE order_id=?1').bind(id).run();
+      return json({ok:true,revoked:true});
+    }
 
     // r10 · Ordens publicadas na produção. D1 guarda o índice; R2, o pacote imutável.
     if (url.pathname === "/production/orders" || /^\/production\/orders\/[A-Za-z0-9_-]{1,100}(?:\/sheets\/[0-9]{1,5})?$/.test(url.pathname)) {
@@ -90,7 +121,10 @@ export default {
         const cncFiles=Array.isArray(body?.cncFiles)?body.cncFiles:[];
         if(cncFiles.length>100||cncFiles.some(g=>!Number.isInteger(Number(g.sheet))||Number(g.sheet)<1||!Array.isArray(g.files)||g.files.length>80||g.files.some(f=>typeof f.name!=='string'||!/^[-A-Za-z0-9_./]+\.dxf$/i.test(f.name)||typeof f.data!=='string'||f.data.length>400000)))
           return json({ok:false,message:'Arquivos DXF para Aspire inválidos ou acima do limite.'},400);
-        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),labels,html:String(body.html||''),zawFiles,sheetPlans,cncFiles});
+        // O cliente gera o token com crypto.getRandomValues antes de imprimir etiquetas.
+        const publicToken=String(body?.publicToken||'').toLowerCase();
+        if(!/^[a-f0-9]{32}$/.test(publicToken))return json({ok:false,message:'Token público do pedido inválido.'},400);
+        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),publicToken,labels,html:String(body.html||''),zawFiles,sheetPlans,cncFiles});
         if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
         const id=crypto.randomUUID().replaceAll('-','');
         const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
@@ -98,7 +132,11 @@ export default {
         const now=new Date().toISOString();
         try{await env.DB.prepare(`INSERT INTO production_orders(id,owner_id,name,machine,status,revision,r2_key,part_count,created_at) VALUES(?,?,?,?,?,?,?,?,?)`).bind(id,ctx.dbUser.identity_user_id,name,machine,'pending',1,key,labels.labels.length,now).run();}
         catch(e){await env.PROJECTS.delete(key);throw e;}
-        return json({ok:true,id,created_at:now},201);
+        try{
+          await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_public_links (token TEXT PRIMARY KEY, order_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)`).run();
+          await env.DB.prepare(`INSERT INTO production_public_links(token,order_id,created_at) VALUES(?1,?2,?3)`).bind(publicToken,id,now).run();
+        }catch(e){await env.DB.prepare('DELETE FROM production_orders WHERE id=?1').bind(id).run();await env.PROJECTS.delete(key);throw e;}
+        return json({ok:true,id,publicUrl:siteUrl+'/pedido.html?t='+publicToken,created_at:now},201);
       }
       if (!orderId && request.method==='GET') {
         // r10: somente o proprietário ou admin. Compartilhamento por equipe exige
@@ -107,6 +145,31 @@ export default {
           ? await env.DB.prepare(`SELECT po.id,po.name,po.machine,po.status,po.revision,po.part_count,po.created_at FROM production_orders po JOIN users owner ON owner.identity_user_id=po.owner_id WHERE owner.role='admin' AND (?1='ambas' OR po.machine=?1 OR po.machine='ambas') ORDER BY po.created_at DESC LIMIT 200`).bind(accessRole).all()
           : await env.DB.prepare(`SELECT id,name,machine,status,revision,part_count,created_at FROM production_orders WHERE owner_id=? ORDER BY created_at DESC LIMIT 200`).bind(ctx.dbUser.identity_user_id).all();
         return json({ok:true,orders:rows.results||[]});
+      }
+      // r26: somente o administrador remove pedidos oficiais e seus dados de produção.
+      if (orderId && !sheetId && request.method === 'DELETE') {
+        if (ctx.dbUser.role !== 'admin')
+          return json({ok:false,error:'admin_required',message:'Somente o administrador pode excluir pedidos.'},403);
+        const existing = await env.DB.prepare(`SELECT id,name,r2_key FROM production_orders WHERE id=?1 AND owner_id=?2`)
+          .bind(orderId,ctx.dbUser.identity_user_id).first();
+        if (!existing) return json({ok:false,error:'not_found',message:'Pedido não encontrado na sua conta.'},404);
+        // Remova primeiro o índice e o progresso; um R2 órfão nunca fica acessível pela API.
+        await env.DB.prepare(`CREATE TABLE IF NOT EXISTS production_sheet_status (
+          order_id TEXT NOT NULL, sheet_no INTEGER NOT NULL, status TEXT NOT NULL,
+          updated_by TEXT NOT NULL, updated_at TEXT NOT NULL,
+          PRIMARY KEY(order_id,sheet_no)
+        )`).run();
+        await env.DB.batch([
+          env.DB.prepare(`DELETE FROM production_sheet_status WHERE order_id=?1`).bind(orderId),
+          env.DB.prepare(`DELETE FROM production_orders WHERE id=?1 AND owner_id=?2`).bind(orderId,ctx.dbUser.identity_user_id),
+          env.DB.prepare(`DELETE FROM production_public_links WHERE order_id=?1`).bind(orderId)
+        ]);
+        let storageCleaned=true;
+        try { await env.PROJECTS.delete(existing.r2_key); }
+        catch (err) { storageCleaned=false; console.error('Falha ao limpar pacote de pedido excluído:',orderId,err); }
+        try { await audit(env,ctx.dbUser.identity_user_id,'delete_production_order',null,{orderId,name:existing.name,storageCleaned}); }
+        catch(err) { console.error('Falha ao registrar auditoria de exclusão:',err); }
+        return json({ok:true,deleted:true,id:orderId,storageCleaned,message:storageCleaned?'Pedido excluído.':'Pedido removido da lista; limpeza do armazenamento pendente.'});
       }
       if (orderId && sheetId && request.method==='PATCH') {
         // r21: progresso por chapa armazenado no D1, sem alterar o pacote R2.
