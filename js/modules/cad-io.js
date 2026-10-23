@@ -306,7 +306,7 @@ function designLabFurnitureRecordFromImportedFile(text,fileName='modelo.dxf'){
 }
 async function importLibraryFile(file){
   const parsed=await designLabFurnitureRecordFromFile(file);
-  const name=String(file.name||'Modelo').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.(?:dxf|stl|dae)$/i,'')||'Modelo';
+  const name=String(file.name||'Modelo').replace(/\.dlbridge\.json$/i,'').replace(/(?:\.mini-cad)?\.json$/i,'').replace(/\.(?:dxf|stl|dae)$/i,'')||'Modelo';
   if(ctx.libraryState.libraryScope==='global'){
     if(!adminAllowed())throw new Error('Somente o administrador pode importar modelos globais');
     const folder=globalLibraryFolderById(ctx.libraryState.activeLibraryFolderId);if(!folder)throw new Error('Abra uma pasta global para importar');
@@ -317,7 +317,7 @@ async function importLibraryFile(file){
     return;
   }
   importLibraryTemplate(parsed.record,name,ctx.libraryState.activeLibraryFolderId);
-  if(parsed.sketchup)toast(`SketchUp: ${parsed.recognized} componente(s) importado(s) em 3D${parsed.skipped?' · '+parsed.skipped+' malha(s) ignorada(s)':''}. Geometrias livres não entram no corte automático.`);
+  if(parsed.sketchup)toast(`SketchUp: ${parsed.recognized} componente(s) importado(s) em 3D${parsed.skipped?' · '+parsed.skipped+' malha(s) ignorada(s)':''}. Geometrias livres não entram no corte automático.${parsed.bridge?' Fitas e materiais importados para conferência.':''}`);
   else if(parsed.fallback)toast(parsed.record?.dxfFallbackMode==='2d'?'DXF 2D importado como painéis planos · a montagem 3D original não existe no arquivo':'DXF importado só pela geometria · se este arquivo saiu do DesignLab, exporte novamente na 1.200.18 para preservar curvas, usinagens e configurações');
   else if(parsed.stl)toast('STL DesignLab importado preservando curvas, peças e configurações');
   else if(!parsed.legacyJson)toast('DXF DesignLab importado com peças, curvas e configurações preservadas');
@@ -462,8 +462,62 @@ async function designLabRecordFromSketchupDae(file){
   const space={id:'sketchup-space',name:file.name.replace(/\.dae$/i,''),x:w/2,yBase:0,z:d/2,width:w,depth:d,height:h,cells:[],fixedBands:{x:[],y:[],z:[]}};
   return {record:{type:'mini-cad-furniture',version:66,unit:'meter',name:space.name,objects,spaces:[space],production:{}},sketchup:true,skipped,recognized:parts.length};
 }
+// DesignLab Bridge v1: pacote JSON próprio da extensão SketchUp.
+// Materiais e indícios de fitas são preservados para conferência; não inferir
+// automaticamente qual lado recebe fita quando não há metadados normalizados.
+async function designLabRecordFromBridge(file){
+  if(file.size>32*1024*1024)throw new Error('Pacote maior que 32 MB. Exporte em etapas.');
+  const data=JSON.parse(await file.text());
+  if(data?.format!=='designlab-bridge'||data.schemaVersion!==1||data.units!=='mm'||!Array.isArray(data.components))throw new Error('Pacote DesignLab Bridge inválido ou incompatível.');
+  if(!data.components.length||data.components.length>5000)throw new Error('Quantidade de componentes inválida.');
+  const parts=[];
+  for(const [index,component] of data.components.entries()){
+    if(!Array.isArray(component.faces))continue;
+    const points=[];const faceMaterials=[];
+    for(const face of component.faces){
+      if(!Array.isArray(face.triangles)||face.triangles.length%9!==0)throw new Error('Malha triangular inválida no componente '+(index+1));
+      for(let j=0;j<face.triangles.length;j+=9){
+        // SketchUp Z-up → Three.js Y-up. Inverter ordem para manter a orientação das faces.
+        for(const shift of [0,6,3]){
+          const x=Number(face.triangles[j+shift]),y=Number(face.triangles[j+shift+1]),z=Number(face.triangles[j+shift+2]);
+          if(![x,y,z].every(Number.isFinite)||Math.max(Math.abs(x),Math.abs(y),Math.abs(z))>1e7)throw new Error('Coordenadas inválidas no pacote.');
+          points.push([x/1000,z/1000,y/1000]);
+        }
+      }
+      if(face.frontMaterial||face.backMaterial)faceMaterials.push({front:face.frontMaterial||null,back:face.backMaterial||null,attributes:face.attributes||{}});
+    }
+    if(points.length<3)continue;
+    if(points.length>360000)throw new Error('Componente grande demais: simplifique a malha.');
+    const low=[Infinity,Infinity,Infinity],high=[-Infinity,-Infinity,-Infinity];
+    for(const pt of points)for(let k=0;k<3;k++){low[k]=Math.min(low[k],pt[k]);high[k]=Math.max(high[k],pt[k]);}
+    const size=high.map((v,k)=>v-low[k]);
+    if(size.some(x=>!Number.isFinite(x)||x<0.00005))continue;
+    const center=high.map((v,k)=>(v+low[k])/2);
+    const positions=points.flatMap(pt=>pt.map((v,k)=>Number(((v-center[k])/size[k]).toFixed(6))));
+    parts.push({name:String(component.name||component.definition||`Peça ${index+1}`).slice(0,120),low,size,positions,
+      id:String(component.id||index),material:component.material||null,faceMaterials,
+      attributes:component.attributes||{}});
+  }
+  if(!parts.length)throw new Error('O pacote não contém componentes sólidos reconhecíveis.');
+  const low=[0,1,2].map(k=>Math.min(...parts.map(p=>p.low[k])));
+  const hi=[0,1,2].map(k=>Math.max(...parts.map(p=>p.low[k]+p.size[k])));
+  const dims=hi.map((v,k)=>Math.max(.01,v-low[k]));
+  const objects=parts.map(p=>({kind:'imported-mesh',name:p.name,width:p.size[0],height:p.size[1],depth:p.size[2],
+    x:p.low[0]-low[0]+p.size[0]/2,yBase:p.low[1]-low[1],z:p.low[2]-low[2]+p.size[2]/2,
+    materialType:p.material?.name||'SketchUp / OpenCutList · conferir',excludeFromCutList:true,
+    edgeBands:{},machining:[],forms:[],
+    importedMesh:{source:'DesignLab Bridge / SketchUp',positions:p.positions,bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandStatus:'conferir'}},
+    bridgeMetadata:{componentId:p.id,material:p.material,faceMaterials:p.faceMaterials,attributes:p.attributes,edgeBandStatus:'conferir',
+      note:'Materiais de faces exportados para conferência; orientação de fitas não validada.'}}));
+  const name=String(data.projectName||file.name.replace(/\.dlbridge\.json$/i,'')).slice(0,160);
+  const space={id:'bridge-space',name,x:dims[0]/2,yBase:0,z:dims[2]/2,width:dims[0],depth:dims[2],height:dims[1],cells:[],fixedBands:{x:[],y:[],z:[]}};
+  return {record:{type:'mini-cad-furniture',version:66,unit:'meter',name,objects,spaces:[space],production:{},
+    bridgeMetadata:{source:'SketchUp / OpenCutList',materials:Array.isArray(data.materials)?data.materials:[],verifiedEdges:false}},
+    sketchup:true,recognized:parts.length,skipped:data.components.length-parts.length,bridge:true};
+}
 async function designLabFurnitureRecordFromFile(file){
   const lower=String(file?.name||'').toLowerCase();
+  if(lower.endsWith('.dlbridge.json'))return designLabRecordFromBridge(file);
   if(lower.endsWith('.dae'))return designLabRecordFromSketchupDae(file);
   if(lower.endsWith('.skp'))throw new Error('Para importar do SketchUp, exporte como COLLADA (.dae). O formato .skp direto ainda não é suportado.');
   if(lower.endsWith('.stl')){

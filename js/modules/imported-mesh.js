@@ -10,7 +10,7 @@ export function applyImportedMeshGeometry(THREE,mesh,data){
   mesh.geometry=geo;
   // A geometria importada já representa o contorno verdadeiro; esconder arestas da caixa.
   if(mesh.userData.visualEdges)mesh.userData.visualEdges.visible=false;
-  mesh.userData.importedMesh={positions:positions.slice(),source:data.source||'SketchUp DAE'};
+  mesh.userData.importedMesh={positions:positions.slice(),source:data.source||'SketchUp DAE',...(data.bridgeMetadata?{bridgeMetadata:data.bridgeMetadata}:{})};
   mesh.userData.excludeFromCutList=true;
   mesh.userData.forms=[];
   mesh.material=new THREE.MeshStandardMaterial({color:0x91cbb6,roughness:.8,metalness:0,side:THREE.DoubleSide});
