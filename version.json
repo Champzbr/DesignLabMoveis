@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r35",
+  "version": "1.312.00-r36",
   "date": "2026-10-23",
-  "message": "SketchUp Bridge: envio seguro de componentes retangulares à seccionadora em ZAW, preservando CNC/DXF para geometrias especiais."
+  "message": "Medidas importadas arredondadas e diagnóstico de materiais em bordas SketchUp; fitas pendentes de validação."
 }
