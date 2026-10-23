@@ -1,5 +1,1 @@
-{
-  "version": "1.312.00-r28",
-  "date": "2026-10-22",
-  "message": "Corrige retorno autenticado do PlanosLab para o DesignLab com validação server-side do token."
-}
+{"version":"1.312.00-r29","date":"2026-10-23","message":"Importação de componentes DAE com geometria triangular irregular para visualização 3D; exclusão segura do corte automático."}
