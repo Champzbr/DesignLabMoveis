@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r37",
+  "version": "1.312.00-r38",
   "date": "2026-10-23",
-  "message": "Integração de peças retangulares SketchUp à configuração e ao plano comum; fitas por face OpenCutList."
+  "message": "QR público por pedido nas etiquetas, com visualização sem login e revogação via API."
 }
