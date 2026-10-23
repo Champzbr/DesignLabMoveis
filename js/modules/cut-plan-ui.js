@@ -2121,8 +2121,8 @@ async function sendImportedSketchupSaw(){
   const btn=$('sendSketchupSawFromPlan');if(btn)btn.disabled=true;
   try{
     const parts=valid.map((p,i)=>({index:i+1,name:p.name,material:material.trim(),materialId:null,materialCode:'',materialRecord:{},materialGrain:false,materialGrainRotation:0,
-      productionKind:'sheet',partId:`BRIDGE_${i+1}`,edgeBands:{},edgeBandSignature:'',edgeBandSummary:'',thickness:p.thickness,
-      faceW:p.faceW,faceH:p.faceH,finishedFaceW:p.faceW,finishedFaceH:p.faceH,doorProductionOversizeMm:0,
+      productionKind:'sheet',partId:`BRIDGE_${i+1}`,edgeBands:{},edgeBandSignature:'',edgeBandSummary:'',thickness:Math.round(p.thickness*1000)/1000,
+      faceW:Math.round(p.faceW*1000)/1000,faceH:Math.round(p.faceH*1000)/1000,finishedFaceW:p.faceW,finishedFaceH:p.faceH,doorProductionOversizeMm:0,
       thicknessAxis:p.thicknessAxis,uAxis:p.uAxis,vAxis:p.vAxis,dims:p.dims,object:p.mesh,machining:[],
       customOutline:null,customCutouts:[],customSlots:null,spaceName:'SketchUp',spaceRootId:''}));
     const groups=groupPartArrayForAspire(parts,cfg);
@@ -2365,9 +2365,17 @@ function renderImportedCncParts(){
     const details=document.createElement('div');
     const name=document.createElement('div');name.className='partRowName';name.textContent=`CNC ${index+1} · ${user.name||'Componente SketchUp'}`;
     const meta=document.createElement('div');meta.className='partRowMeta';
-    const sizes=[user.width,user.depth,user.height].map(n=>Math.round(Number(n)*100000)/100);
+    const sizes=[user.width,user.depth,user.height].map(n=>nice(Math.round(Number(n)*1000*100)/100));
     meta.textContent=`${sizes.join(' × ')} mm · peça especial · geometria original preservada`;
     details.append(name,meta);
+    const hints=user.bridgeMetadata?.edgeBandCandidates||user.importedMesh?.bridgeMetadata?.edgeBandCandidates||{};
+    const hintNames=Object.entries(hints).filter(([,names])=>Array.isArray(names)&&names.length)
+      .map(([side,names])=>`${side}: ${names.join(' / ')}`);
+    const bandInfo=document.createElement('small');
+    bandInfo.style.cssText='display:block;margin-top:4px;color:#f4c77c';
+    bandInfo.textContent=hintNames.length?`Materiais nas faces de borda (CONFERIR): ${hintNames.join(' · ')}`:
+      'Fitas OpenCutList: não identificadas com segurança — conferir antes de produzir';
+    details.append(bandInfo);
     const sawBlank=verifiedSketchupSawBlank(mesh);
     const eligibility=document.createElement('small');eligibility.style.cssText='display:block;margin-top:4px;color:'+(sawBlank?'#66d6a6':'#f0bb75');
     eligibility.textContent=sawBlank?'✓ Retangular verificada · disponível para seccionadora':'Somente CNC · contorno não retangular ou não verificável';
