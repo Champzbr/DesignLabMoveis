@@ -2062,6 +2062,87 @@ function productionLabelRows(groups){
   }
   return {rows,approximate};
 }
+// Bridge / Seccionadora: somente prismas retangulares geometricamente verificados.
+// Não aceitar apenas bounding box: curvas, rasgos e recortes NÃO podem virar um ZAW retangular.
+function verifiedSketchupSawBlank(mesh){
+  const u=mesh?.userData||{}, a=u.importedMesh?.positions;
+  if(!Array.isArray(a)||a.length<36||a.length%9!==0)return null;
+  const dims=[u.width,u.height,u.depth].map(v=>Number(v)*1000);
+  if(dims.some(v=>!Number.isFinite(v)||v<3||v>10000))return null;
+  const thicknessAxis=dims.indexOf(Math.min(...dims));
+  const t=dims[thicknessAxis];
+  if(t>60||dims.filter((v,i)=>i!==thicknessAxis&&v<t*2).length)return null;
+  const faceAreas=new Array(6).fill(0);
+  const tolerance=0.002;
+  for(let i=0;i<a.length;i+=9){
+    const pts=[[a[i],a[i+1],a[i+2]],[a[i+3],a[i+4],a[i+5]],[a[i+6],a[i+7],a[i+8]]];
+    if(pts.some(v=>v.some(q=>!Number.isFinite(q)||Math.abs(q)>.501)))return null;
+    let flat=-1;
+    for(let axis=0;axis<3;axis++)for(let side=0;side<2;side++){
+      const value=side?0.5:-0.5;
+      if(pts.every(pt=>Math.abs(pt[axis]-value)<tolerance)){flat=axis*2+side;break;}
+      if(flat>=0)break;
+    }
+    if(flat<0)return null;
+    const axes=[0,1,2].filter(x=>x!==Math.floor(flat/2));
+    const x=axes[0],y=axes[1];
+    const area=Math.abs((pts[1][x]-pts[0][x])*(pts[2][y]-pts[0][y])-(pts[2][x]-pts[0][x])*(pts[1][y]-pts[0][y]))/2;
+    faceAreas[flat]+=area;
+  }
+  // Todas as 6 faces devem cobrir integralmente a caixa, sem furos nem saliências.
+  if(faceAreas.some(area=>Math.abs(area-1)>.025))return null;
+  const axes=[0,1,2].filter(i=>i!==thicknessAxis);
+  const w=dims[axes[0]],h=dims[axes[1]];
+  return {name:String(u.name||'Peça SketchUp'),thickness:t,faceW:w,faceH:h,
+    thicknessAxis:['x','y','z'][thicknessAxis],uAxis:['x','y','z'][axes[0]],vAxis:['x','y','z'][axes[1]],
+    dims:{x:dims[0],y:dims[1],z:dims[2]},mesh};
+}
+function sketchupSawCandidates(){
+  const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length);
+  return {all:meshes,valid:meshes.map(verifiedSketchupSawBlank).filter(Boolean)};
+}
+async function sendImportedSketchupSaw(){
+  const {all,valid}=sketchupSawCandidates();
+  if(!all.length){toast('Importe primeiro o móvel pelo DesignLab Bridge.');return;}
+  if(!valid.length){toast('Nenhuma peça SketchUp é um prisma retangular fechado. Use CNC/DXF para curvas e recortes.');return;}
+  const skipped=all.length-valid.length;
+  if(skipped&&!confirm(`${skipped} componente(s) curvo(s) ou não verificável(is) ficarão FORA do ZAW. Enviar somente ${valid.length} peça(s) retangular(es)?`))return;
+  const orderNumber=prompt('Número do pedido para seccionadora:');if(orderNumber===null)return;
+  if(!orderNumber.trim()){toast('Informe o número do pedido.');return;}
+  const customer=prompt('Nome do cliente:');if(customer===null)return;
+  if(!customer.trim()){toast('Informe o cliente.');return;}
+  const material=prompt('Material destas chapas (confirme o nome e a espessura antes da produção):','MDF');
+  if(material===null)return;
+  if(!material.trim()){toast('Informe o material das chapas.');return;}
+  const cfg={...cutPlanCfgFromUi(),cutMode:'panel'};
+  if(!confirm(`Preparar plano da seccionadora para ${valid.length} peça(s) retangular(es) em ${material.trim()}?\n\nATENÇÃO: fitas OpenCutList ainda precisam ser conferidas no DesignLab. Confira medidas, material, sentido do veio e cortes no Mingli antes de executar.`))return;
+  const api=window.designLabCloud?.apiFetch;
+  if(!api){toast('Faça login no DesignLab antes de enviar para produção.');return;}
+  const btn=$('sendSketchupSawFromPlan');if(btn)btn.disabled=true;
+  try{
+    const parts=valid.map((p,i)=>({index:i+1,name:p.name,material:material.trim(),materialId:null,materialCode:'',materialRecord:{},materialGrain:false,materialGrainRotation:0,
+      productionKind:'sheet',partId:`BRIDGE_${i+1}`,edgeBands:{},edgeBandSignature:'',edgeBandSummary:'',thickness:p.thickness,
+      faceW:p.faceW,faceH:p.faceH,finishedFaceW:p.faceW,finishedFaceH:p.faceH,doorProductionOversizeMm:0,
+      thicknessAxis:p.thicknessAxis,uAxis:p.uAxis,vAxis:p.vAxis,dims:p.dims,object:p.mesh,machining:[],
+      customOutline:null,customCutouts:[],customSlots:null,spaceName:'SketchUp',spaceRootId:''}));
+    const groups=groupPartArrayForAspire(parts,cfg);
+    if(!groups.length)throw new Error('O otimizador não produziu chapas válidas.');
+    const rawZaw=buildMingliZawFiles(groups,cfg).filter(f=>/\.zaw$/i.test(f.name));
+    if(rawZaw.length!==groups.length)throw new Error('Quantidade de arquivos ZAW diferente das chapas.');
+    const zawFiles=rawZaw.map((f,i)=>({name:f.name,data:f.data,sheet:i+1,sheetNo:groups[i].sheetNo||i+1,group:groups[i].key||''}));
+    const work=currentProjectRecord()?.name||'Projeto SketchUp';
+    const rows=productionLabelRows(groups).rows;
+    const labels={schema:'designlab-labels-v1',work,item:'',orderNumber:orderNumber.trim(),customer:customer.trim(),sequenceVerified:false,approximate:true,
+      printConfig:{width:60,height:40,gap:2,padding:2,feedMode:'driver'},labels:rows.map((r,i)=>({...r,sequence:i+1,total:rows.length}))};
+    const esc=v=>escapeHtml(String(v??''));
+    const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>@page{size:60mm 40mm;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial}.labelPage{width:60mm;height:39.8mm;padding:2mm;overflow:hidden;break-inside:avoid}.labelPage+.labelPage{break-before:page}</style></head><body>${labels.labels.map(r=>`<section class="labelPage"><b>${esc(r.name)}</b><p>Pedido ${esc(labels.orderNumber)} · ${esc(labels.customer)}</p><p>${nice(r.length)} × ${nice(r.width)} × ${nice(r.thickness)} mm</p><p>CHAPA ${r.sheet} · ${esc(r.code)}</p><p>FITAS: CONFERIR NO PROJETO</p></section>`).join('')}</body></html>`;
+    const sheetPlans=groups.map((g,i)=>({sheet:i+1,sheetNo:g.sheetNo||i+1,group:g.key||'',width:g.cfg.width,height:g.cfg.height,svg:cutPlanPrintSvg(g)}));
+    const result=await api('/production/orders',{method:'POST',body:{name:`${labels.orderNumber} · ${labels.customer} · ${work}`,
+      machine:'seccionadora',orderNumber:labels.orderNumber,customer:labels.customer,work,labels,html,zawFiles,sheetPlans,cncFiles:[]},timeoutMs:30000});
+    toast(`Pedido ${labels.orderNumber} enviado à seccionadora com ${zawFiles.length} ZAW. Ordem ${String(result?.id||'').slice(0,8)}.`);
+  }catch(error){toast('Falha no envio à seccionadora: '+(error?.message||'Erro de comunicação'));}
+  finally{if(btn)btn.disabled=false;}
+}
 async function sendImportedSketchupCnc(){
   const meshes=runtimeModel.objects.filter(o=>o?.userData?.importedMesh?.positions?.length);
   if(!meshes.length){toast('Não há componentes SketchUp importados neste projeto.');return;}
@@ -2286,7 +2367,11 @@ function renderImportedCncParts(){
     const meta=document.createElement('div');meta.className='partRowMeta';
     const sizes=[user.width,user.depth,user.height].map(n=>Math.round(Number(n)*100000)/100);
     meta.textContent=`${sizes.join(' × ')} mm · peça especial · geometria original preservada`;
-    details.append(name,meta);row.append(details);
+    details.append(name,meta);
+    const sawBlank=verifiedSketchupSawBlank(mesh);
+    const eligibility=document.createElement('small');eligibility.style.cssText='display:block;margin-top:4px;color:'+(sawBlank?'#66d6a6':'#f0bb75');
+    eligibility.textContent=sawBlank?'✓ Retangular verificada · disponível para seccionadora':'Somente CNC · contorno não retangular ou não verificável';
+    details.append(eligibility);row.append(details);
     const actions=document.createElement('div');actions.className='cutPlanRowActions';
     const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='Baixar contorno DXF';
     btn.onclick=()=>{try{const c=sketchupTopContours(mesh);downloadText(`SKETCHUP_${index+1}_${safeFileName(user.name||'peca')}.dxf`,sketchupContoursDxf(c),'application/dxf');}
@@ -2304,7 +2389,7 @@ function updateCncOnlyPartsPresentation(){
   const heading=root.querySelector('.cutPlanTitleRow h3');
   if(heading)heading.textContent=onlyCnc?'Peças especiais · Produção CNC':'Peças gerais · Planos de corte';
   const info=$('partsListInfo');
-  if(info&&onlyCnc)info.textContent=`${specials} componente(s) importado(s) do SketchUp. Baixe o contorno DXF ou envie o pedido ao PlanosLab CNC.`;
+  if(info&&onlyCnc)info.textContent=`${specials} componente(s) importado(s) do SketchUp. CNC recebe DXF de contornos; seccionadora recebe ZAW apenas de prismas retangulares fechados e verificados.`;
   const general=$('partsGeneralSummary');
   if(general&&onlyCnc){
     general.replaceChildren();
@@ -2805,6 +2890,7 @@ $('sheetGrain').addEventListener('change',renderPartsList);
 $('sheetGrainDirection').addEventListener('change',renderPartsList);
 if($('sendSketchupCncBtn'))$('sendSketchupCncBtn').onclick=sendImportedSketchupCnc;
 if($('sendSketchupCncFromPlan'))$('sendSketchupCncFromPlan').onclick=sendImportedSketchupCnc;
+if($('sendSketchupSawFromPlan'))$('sendSketchupSawFromPlan').onclick=sendImportedSketchupSaw;
 $('sheetCutMode').addEventListener('change',()=>{updateSheetCutModeUi();renderPartsList();});
 $('sheetOptimization').addEventListener('change',renderPartsList);
 $('sheetDirection').addEventListener('change',renderPartsList);
