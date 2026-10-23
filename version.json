@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r36",
+  "version": "1.312.00-r37",
   "date": "2026-10-23",
-  "message": "Medidas importadas arredondadas e diagnóstico de materiais em bordas SketchUp; fitas pendentes de validação."
+  "message": "Integração de peças retangulares SketchUp à configuração e ao plano comum; fitas por face OpenCutList."
 }
