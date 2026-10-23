@@ -1,3 +1,3 @@
 // DesignLabMoveis 1.311.00 · bootstrap mínimo.
 // Toda a lógica funcional vive nos módulos por domínio.
-import './editor-runtime.js?v=1.312.00-r22';
+import './editor-runtime.js?v=1.312.00-r39';
