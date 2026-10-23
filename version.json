@@ -1,1 +1,5 @@
-{"version":"1.312.00-r32","date":"2026-10-23","message":"DXF CNC R12 com contornos fechados e camadas de corte externo e interno para Aspire."}
+{
+  "version": "1.312.00-r33",
+  "date": "2026-10-23",
+  "message": "Tela de peças especiais CNC sem seções vazias do otimizador retangular; DXF r32 preservado."
+}
