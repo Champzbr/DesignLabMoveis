@@ -1,1 +1,1 @@
-{"version":"1.312.00-r29","date":"2026-10-23","message":"Importação de componentes DAE com geometria triangular irregular para visualização 3D; exclusão segura do corte automático."}
+{"version":"1.312.00-r30","date":"2026-10-23","message":"SketchUp: enviar contornos reais DXF ao PlanosLab CNC, sem toolpaths."}
