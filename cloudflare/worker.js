@@ -52,7 +52,7 @@ export default {
         sheet:Number(p.sheet)||0,material:String(p.material||'').slice(0,100),
         edgeBands:p.edgeBands&&typeof p.edgeBands==='object'?Object.fromEntries(['uMin','uMax','vMin','vMax'].map(k=>[k,p.edgeBands[k]?{name:String(p.edgeBands[k].name||p.edgeBands[k].code||'Fita').slice(0,80)}:null])):{}
       }));
-      return new Response(JSON.stringify({ok:true,project:{orderNumber:String(pkg.orderNumber||'').slice(0,60),name:String(pkg.work||'Projeto').slice(0,90),revision:row.revision,pieces}}),{
+      return new Response(JSON.stringify({ok:true,project:{orderNumber:String(pkg.orderNumber||'').slice(0,60),name:String(pkg.work||'Projeto').slice(0,90),revision:row.revision,pieces,assembly:pkg.assembly||null}}),{
         status:200,headers:{...cors,'Content-Type':'application/json; charset=UTF-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}
       });
     }
@@ -124,8 +124,19 @@ export default {
         // O cliente gera o token com crypto.getRandomValues antes de imprimir etiquetas.
         const publicToken=String(body?.publicToken||'').toLowerCase();
         if(!/^[a-f0-9]{32}$/.test(publicToken))return json({ok:false,message:'Token público do pedido inválido.'},400);
-        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),publicToken,labels,html:String(body.html||''),zawFiles,sheetPlans,cncFiles});
-        if(payload.length>2000000)return json({ok:false,message:'Ordem maior que o limite de 2 MB.'},413);
+        const assembly=body?.assembly;
+        if(!assembly||assembly.schema!=='designlab-public-assembly-v1'||!Array.isArray(assembly.objects)||!assembly.objects.length||assembly.objects.length>500)
+          return json({ok:false,message:'Montagem 3D inválida ou vazia.'},400);
+        let meshValues=0;
+        for(const p of assembly.objects){
+          if(!p||!Array.isArray(p.size)||!Array.isArray(p.position)||!Array.isArray(p.rotation)||
+            [...p.size,...p.position,...p.rotation].some(n=>typeof n!=='number'||!Number.isFinite(n)||Math.abs(n)>100)||
+            p.size.some(n=>n<=0)||typeof p.name!=='string'||p.name.length>100) return json({ok:false,message:'Componente 3D inválido.'},400);
+          if(p.mesh!==undefined){if(!Array.isArray(p.mesh)||p.mesh.length%9!==0||p.mesh.some(n=>typeof n!=='number'||!Number.isFinite(n)||Math.abs(n)>2))return json({ok:false,message:'Malha 3D inválida.'},400);meshValues+=p.mesh.length;}
+        }
+        if(meshValues>150000)return json({ok:false,message:'Malha 3D grande demais.'},413);
+        const payload=JSON.stringify({name,machine,orderNumber:String(body.orderNumber||'').slice(0,60),customer:String(body.customer||'').slice(0,90),work:String(body.work||'').slice(0,90),publicToken,labels,html:String(body.html||''),zawFiles,sheetPlans,cncFiles,assembly});
+        if(payload.length>4500000)return json({ok:false,message:'Ordem maior que o limite de 4,5 MB.'},413);
         const id=crypto.randomUUID().replaceAll('-','');
         const key='production/'+ctx.dbUser.identity_user_id+'/'+id+'.json';
         await env.PROJECTS.put(key,payload,{httpMetadata:{contentType:'application/json'}});
