@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r52",
+  "version": "1.312.00-r53",
   "date": "2026-10-24",
-  "message": "Furos cegos Ø5 × 8 mm com fundo fechado por camadas geométricas; mantém furo passante e rasgo"
+  "message": "Rasgos e furos (cegos/passantes) na mesma chapa, usando camadas e contornos seguros"
 }

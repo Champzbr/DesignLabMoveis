@@ -1,4 +1,4 @@
-# DesignLabMoveis 1.312.00-r52 — Furos cegos
+# DesignLabMoveis 1.312.00-r53 — Furos cegos
 
 - Furos cegos em faces principais de chapas retangulares: cavidade circular na geometria com fundo fechado na profundidade cadastrada.
 - A construção por camadas usa ExtrudeGeometry, sem a subtração CSG que danificou a geometria na r47.

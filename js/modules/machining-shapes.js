@@ -626,7 +626,7 @@ export function createMachiningShapesModule(ctx){
     }
     if(cuts.length>16)return false;
     const signature=JSON.stringify({dims,cuts});
-    if(u._dlSolidGrooveSignature===signature)return true;
+    if(u._dlSolidGrooveSignature===signature&&!u._dlCombinedMachiningSignature)return true;
     const planes={};
     for(const a of axes){planes[a]=[0,dims[a],...cuts.flatMap(c=>c[a])].sort((x,y)=>x-y).filter((v,i,arr)=>i===0||v-arr[i-1]>.00001);}
     const [xs,ys,zs]=axes.map(a=>planes[a]);
@@ -664,6 +664,7 @@ export function createMachiningShapesModule(ctx){
     const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geom,28),edgeMat);
     edges.userData.isVisualEdge=true;owner.add(edges);u.visualEdges=edges;
     u._dlSolidGrooveSignature=signature;
+    delete u._dlCombinedMachiningSignature;
     return true;
   }
   // r52: furos passantes e cegos nas faces principais de chapas retangulares.
@@ -692,7 +693,7 @@ export function createMachiningShapesModule(ctx){
     }
     if(!holes.length)return false;
     const signature=JSON.stringify({dims:ti.dims,holes});
-    if(u._dlThroughHolesSignature===signature&&owner.geometry?.attributes?.position?.count)return true;
+    if(u._dlThroughHolesSignature===signature&&!u._dlCombinedMachiningSignature&&owner.geometry?.attributes?.position?.count)return true;
     const outer=[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]];
     const circle=({cx,cy,radius})=>{
       const pts=[],n=48;
@@ -764,8 +765,182 @@ export function createMachiningShapesModule(ctx){
     }
     owner.add(edges);u.visualEdges=edges;
     u._dlThroughHolesSignature=signature;
+    delete u._dlCombinedMachiningSignature;
     return true;
   }
+  // r53: malha única de múltiplos rasgos e furos na mesma chapa.
+  // Construção por fatias de profundidade e contornos ortogonais (sem CSG).
+  // Se houver geometria degenerada/colisões não resolvíveis, retorna false
+  // e permite o caminho anterior + marcadores, nunca uma malha quebrada.
+  function solidCombinedMachiningForPiece(owner){
+    const u=owner?.userData||{},ti=pieceThicknessInfo(owner);
+    if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||
+      (u.forms||[]).length||u.formProfile||u.importedMesh)return false;
+    const ops=u.machining||[];
+    if(!ops.some(op=>op.type==='hole')||!ops.some(op=>op.type==='groove'))return false;
+    const dims=ti.dims,axis=ti.thicknessAxis,U=ti.uAxis,V=ti.vAxis,T=ti.thickness;
+    const grooves=[],holes=[];
+    for(const op of ops){
+      if(op.type==='groove'){
+        const da=entryAxisName(op.entryAxis),la=op.lengthAxis;
+        if(da!==axis||![U,V].includes(la))return false;
+        const wa=la===U?V:U,loc=resolvedMachiningCoords(owner,op);
+        const depth=operationDepthMm(owner,op),length=Number(op.length),width=Number(op.width);
+        if(![depth,length,width].every(n=>Number.isFinite(n)&&n>0))return false;
+        const side=entryAxisSign(op.entryAxis);
+        const rect={u0:Number(loc[U]),v0:Number(loc[V])};
+        rect.u1=rect.u0+(la===U?length:width);
+        rect.v1=rect.v0+(la===V?length:width);
+        rect.u0=Math.max(0,rect.u0);rect.v0=Math.max(0,rect.v0);
+        rect.u1=Math.min(ti.faceW,rect.u1);rect.v1=Math.min(ti.faceH,rect.v1);
+        if(rect.u1-rect.u0<.001||rect.v1-rect.v0<.001)return false;
+        grooves.push({...rect,a:side>0?0:Math.max(0,T-depth),b:side>0?Math.min(T,depth):T});
+      }else if(op.type==='hole'){
+        if(entryAxisName(op.entryAxis)!==axis)return false;
+        const r=Number(op.diameter)/2,depth=op.through?T:operationDepthMm(owner,op),side=entryAxisSign(op.entryAxis);
+        if(![r,depth].every(Number.isFinite)||r<.1||depth<=0||depth>T+.001)return false;
+        for(const pt of holeSeriesInstances(owner,op)){
+          const cx=Number(pt[U]),cy=Number(pt[V]);
+          if(!Number.isFinite(cx)||!Number.isFinite(cy)||cx-r<.1||cy-r<.1||cx+r>ti.faceW-.1||cy+r>ti.faceH-.1)return false;
+          holes.push({cx,cy,r,a:side>0?0:Math.max(0,T-depth),b:side>0?Math.min(T,depth):T});
+        }
+      }else return false;
+    }
+    if(!grooves.length||!holes.length)return false;
+    // Limite é por complexidade da malha, não quantidade fixa de operações.
+    const unique=(arr)=>arr.sort((a,b)=>a-b).filter((v,i,a)=>i===0||v-a[i-1]>.00001);
+    const levels=unique([0,T,...grooves.flatMap(g=>[g.a,g.b]),...holes.flatMap(h=>[h.a,h.b])]);
+    if(levels.length>72)return false;
+    const signature=JSON.stringify({dims,grooves,holes});
+    if(u._dlCombinedMachiningSignature===signature&&owner.geometry?.attributes?.position?.count)return true;
+    const inside=(poly,x,y)=>{
+      let c=false;
+      for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+        const a=poly[i],b=poly[j];
+        if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))c=!c;
+      }
+      return c;
+    };
+    const circle=h=>Array.from({length:64},(_,i)=>{
+      const a=-i*2*Math.PI/64;
+      return [h.cx+h.r*Math.cos(a),h.cy+h.r*Math.sin(a)];
+    });
+    const segmentLoops=(rects)=>{
+      const xs=unique([0,ti.faceW,...rects.flatMap(r=>[r.u0,r.u1])]);
+      const ys=unique([0,ti.faceH,...rects.flatMap(r=>[r.v0,r.v1])]);
+      if((xs.length-1)*(ys.length-1)>7500)return null;
+      const nx=xs.length-1,ny=ys.length-1;
+      const grid=Array.from({length:nx},(_,i)=>Array.from({length:ny},(_,j)=>{
+        const x=(xs[i]+xs[i+1])/2,y=(ys[j]+ys[j+1])/2;
+        return !rects.some(r=>x>r.u0&&x<r.u1&&y>r.v0&&y<r.v1);
+      }));
+      const edges=[],add=(a,b)=>edges.push({a,b}),has=(i,j)=>i>=0&&j>=0&&i<nx&&j<ny&&grid[i][j];
+      for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){
+        if(!grid[i][j])continue;
+        const x0=xs[i],x1=xs[i+1],y0=ys[j],y1=ys[j+1];
+        if(!has(i,j-1))add([x0,y0],[x1,y0]);
+        if(!has(i+1,j))add([x1,y0],[x1,y1]);
+        if(!has(i,j+1))add([x1,y1],[x0,y1]);
+        if(!has(i-1,j))add([x0,y1],[x0,y0]);
+      }
+      const key=p=>`${p[0].toFixed(6)},${p[1].toFixed(6)}`;
+      const next=new Map();
+      for(let i=0;i<edges.length;i++){
+        const k=key(edges[i].a);if(next.has(k))return null;
+        next.set(k,i);
+      }
+      const used=new Set(),loops=[];
+      for(let i=0;i<edges.length;i++){
+        if(used.has(i))continue;
+        const out=[],first=key(edges[i].a);let j=i;
+        while(!used.has(j)){
+          used.add(j);out.push(edges[j].a);
+          const end=key(edges[j].b);
+          if(end===first)break;
+          j=next.get(end);
+          if(j===undefined)return null;
+        }
+        if(out.length<3)return null;
+        const cleaned=out.filter((p,k,a)=>{
+          const b=a[(k+a.length-1)%a.length],c=a[(k+1)%a.length];
+          return Math.abs((p[0]-b[0])*(c[1]-p[1])-(p[1]-b[1])*(c[0]-p[0]))>1e-7;
+        });
+        if(cleaned.length<3)return null;
+        const area=cleaned.reduce((s,p,k,a)=>{const q=a[(k+1)%a.length];return s+p[0]*q[1]-q[0]*p[1];},0)/2;
+        if(Math.abs(area)>1e-6)loops.push({points:cleaned,area});
+      }
+      return loops;
+    };
+    const solids=[];
+    const abort=()=>{for(const g of solids)g.dispose();return false;};
+    for(let i=0;i<levels.length-1;i++){
+      const lo=levels[i],hi=levels[i+1],mid=(lo+hi)/2;
+      if(hi-lo<.00001)continue;
+      const gr=grooves.filter(g=>mid>=g.a&&mid<g.b);
+      const hs=holes.filter(h=>mid>=h.a&&mid<h.b);
+      // Círculos que cruzam um rasgo (ou outros círculos) precisam de união
+      // booleana 2D; não inventamos uma malha inválida nesse caso.
+      for(let a=0;a<hs.length;a++){
+        const h=hs[a];
+        for(const r of gr){const x=Math.max(r.u0,Math.min(h.cx,r.u1)),y=Math.max(r.v0,Math.min(h.cy,r.v1));
+          if(Math.hypot(x-h.cx,y-h.cy)<h.r+.001)return abort();}
+        for(let b=0;b<a;b++)if(Math.hypot(h.cx-hs[b].cx,h.cy-hs[b].cy)<h.r+hs[b].r+.001)return abort();
+      }
+      const loops=segmentLoops(gr);if(!loops)return abort();
+      const outers=loops.filter(l=>l.area>0).map(l=>({outer:l.points,holes:[]}));
+      for(const l of loops.filter(l=>l.area<0)){
+        const target=outers.find(o=>inside(o.outer,l.points[0][0]+.0001,l.points[0][1]+.0001));
+        if(!target)return abort();target.holes.push(l.points);
+      }
+      for(const h of hs){const target=outers.find(o=>inside(o.outer,h.cx,h.cy)&&!o.holes.some(loop=>inside(loop,h.cx,h.cy)));
+        if(!target)return abort();target.holes.push(circle(h));}
+      for(const shape of outers){
+        const g=formV48SolidGeometry(shape.outer,shape.holes,{...ti,thickness:hi-lo});
+        if(!g)return abort();
+        const offset=(mid-T/2)*MM_TO_M;
+        if(axis==='x')g.translate(offset,0,0);
+        else if(axis==='y')g.translate(0,offset,0);
+        else g.translate(0,0,offset);
+        solids.push(g);
+        if(solids.length>350)return abort();
+      }
+    }
+    if(!solids.length)return false;
+    const positionLength=solids.reduce((n,g)=>n+g.attributes.position.array.length,0);
+    if(positionLength>7000000)return abort();
+    const pos=new Float32Array(positionLength),norm=new Float32Array(positionLength),uv=new Float32Array(positionLength/3*2);
+    const combined=new THREE.BufferGeometry();let pOffset=0,uvOffset=0,vertexOffset=0;
+    for(const g of solids){
+      const p=g.attributes.position.array,n=g.attributes.normal.array,t=g.attributes.uv.array;
+      pos.set(p,pOffset);norm.set(n,pOffset);uv.set(t,uvOffset);
+      for(const group of g.groups)combined.addGroup(vertexOffset+group.start,group.count,group.materialIndex);
+      vertexOffset+=p.length/3;pOffset+=p.length;uvOffset+=t.length;g.dispose();
+    }
+    combined.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    combined.setAttribute('normal',new THREE.BufferAttribute(norm,3));
+    combined.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+    combined.computeBoundingBox();combined.computeBoundingSphere();
+    const bounds=combined.boundingBox;
+    if(['x','y','z'].some(a=>!Number.isFinite(bounds.min[a])||
+      Math.abs(bounds.max[a]-bounds.min[a]-dims[a]*MM_TO_M)>.00005)){
+      combined.dispose();return false;
+    }
+    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=combined;owner.scale.set(1,1,1);
+    if(Array.isArray(u.faceMaterials)&&u.faceMaterials.length)owner.material=u.faceMaterials;
+    formV47RestoreOpaqueMaterials(owner);
+    if(owner===ctx.selected&&!ctx.visualMode)setAllFaces(owner,COLORS.selected);
+    else restoreBaseColor(owner);
+    const edges=formV47VisualEdges(owner,[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]],[],ti);
+    const mat=new THREE.LineBasicMaterial({color:0x17130e,transparent:true,opacity:.86,depthTest:true,depthWrite:false});
+    for(const hole of holes){const side=hole.a===0?-T/2:T/2;
+      const points=circle(hole).map(([x,y])=>formLocalPoint(ti,x,y,side));
+      points.push(points[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),mat);
+      line.userData.isVisualEdge=true;edges.add(line);
+    }
+    owner.add(edges);u.visualEdges=edges;u._dlCombinedMachiningSignature=signature;
+    return true;
+  }
+
   function clearMachiningVisuals(){
     while(runtimeModel.machiningVisualGroup.children.length){
       const v=runtimeModel.machiningVisualGroup.children[0]; runtimeModel.machiningVisualGroup.remove(v);
@@ -778,14 +953,18 @@ export function createMachiningShapesModule(ctx){
     for(const owner of runtimeModel.objects){
       if(owner.userData?.kind==='cylinder')continue;
       sanitizeMachiningForPiece(owner);
-      const realGrooves=solidGrooveMeshForPiece(owner);
-      // Restaura a geometria original se todos os furos passantes forem excluídos.
-      const realHoles=!realGrooves&&solidThroughHolesForPiece(owner);
-      if(!realGrooves&&!realHoles&&owner.userData?._dlThroughHolesSignature){
+      const realCombined=solidCombinedMachiningForPiece(owner);
+      const realGrooves=!realCombined&&solidGrooveMeshForPiece(owner);
+      // Reconstroi a base quando alguma operacao anterior e excluida.
+      const realHoles=!realCombined&&!realGrooves&&solidThroughHolesForPiece(owner);
+      if(!realCombined&&!realGrooves&&!realHoles&&
+        (owner.userData?._dlThroughHolesSignature||owner.userData?._dlCombinedMachiningSignature)){
         delete owner.userData._dlThroughHolesSignature;
+        delete owner.userData._dlCombinedMachiningSignature;
         rebuildFormGeometry(owner);
       }
       for(const op of (owner.userData?.machining||[])){
+        if(realCombined&&(op.type==='groove'||op.type==='hole'))continue;
         if(realGrooves&&op.type==='groove')continue;
         if(realHoles&&op.type==='hole'&&entryAxisName(op.entryAxis)===pieceThicknessInfo(owner)?.thicknessAxis)continue;
         const points=op.type==='hole'?holeSeriesInstances(owner,op):[null];
