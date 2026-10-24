@@ -40,6 +40,30 @@ export function createCutPlanUiModule(ctx){
       const item={id:String(u.partId||u.bridgeMetadata?.componentId||objects.length).slice(0,80),name:String(u.name||'Peça').slice(0,100),
         size:dims.map(x=>+x.toFixed(6)),position:pos.map(x=>+x.toFixed(6)),rotation:rot.map(x=>+x.toFixed(7)),
         color:(typeof u.baseColor==='number'?'#'+u.baseColor.toString(16).padStart(6,'0'):'#91cbb6')};
+      // Representação pública de marcações de usinagem em coordenadas locais normalizadas.
+      // Operações do editor são em mm; o cubo do viewer mede 1x1x1 antes do scale.
+      if(Array.isArray(u.machining)&&u.machining.length){
+        const markers=[];
+        const localMm=dims.map(n=>n*1000);
+        for(const op of u.machining.slice(0,120)){
+          if(!op||!['hole','groove'].includes(op.type))continue;
+          const axis=String(op.entryAxis||'').slice(-1).toLowerCase();
+          if(!['x','y','z'].includes(axis))continue;
+          const dir=String(op.entryAxis||'').startsWith('-')?-1:1;
+          const coords={};
+          for(let k=0;k<3;k++){
+            const a=['x','y','z'][k];let raw=Number(op.coordRef?.[a]??op[a]??0);
+            if(!Number.isFinite(raw))raw=0;
+            // Coordenada negativa significa distância a partir da borda oposta.
+            if(raw<0)raw=localMm[k]+raw;
+            coords[a]=a===axis?(dir>0?-.501:.501):Math.max(-.5,Math.min(.5,raw/localMm[k]-.5));
+          }
+          const diameter=Number(op.diameter||op.dia||op.width||6);
+          const radius=Math.max(.001,Math.min(.08,diameter/2000/Math.max(.001,Math.min(...dims))));
+          markers.push({type:op.type,position:[coords.x,coords.y,coords.z],radius:+radius.toFixed(5),axis});
+        }
+        if(markers.length)item.machining=markers;
+      }
       const geometry=u.importedMesh?.positions;
       if(Array.isArray(geometry)&&geometry.length>=9&&geometry.length%9===0){
         // A malha é local e normalizada: preserva curvas e recortes importados.
@@ -53,6 +77,26 @@ export function createCutPlanUiModule(ctx){
     return {schema:'designlab-public-assembly-v1',unit:'m',objects};
   }
 
+  // r42: vincula a cena aberta a pedido histórico sem recriar o pedido e sem alterar QR.
+  async function updateHistoricalOrder3D(){
+    const id=prompt('Cole o ID do pedido existente (copie no PlanosLab):');
+    if(!id)return;
+    if(!/^[A-Za-z0-9_-]{1,100}$/.test(id.trim())){alert('ID inválido.');return;}
+    try{
+      const api=window.designLabCloud?.apiFetch;
+      if(typeof api!=='function')throw Error('Faça login no DesignLab antes de atualizar.');
+      const assembly=publicAssemblySnapshot();
+      if(!confirm('Atualizar a montagem 3D deste pedido com '+assembly.objects.length+' peça(s) da cena atual? Confira se é o projeto correto.'))return;
+      const result=await api('/production/orders/'+id.trim()+'/public',{method:'PATCH',body:{assembly},timeoutMs:30000});
+      alert('Montagem atualizada! '+assembly.objects.length+' peças. Link público: '+result.publicUrl);
+    }catch(err){alert('Não foi possível atualizar: '+(err?.message||err));}
+  }
+  if(typeof document!=='undefined'){
+    const install=()=>{if(document.getElementById('dlUpdateHistorical3D'))return;
+      const button=document.createElement('button');button.id='dlUpdateHistorical3D';button.type='button';button.textContent='↻ Atualizar 3D de pedido antigo';button.title='Publica a montagem atual num pedido existente sem alterar o QR';
+      button.style.cssText='position:fixed;right:16px;bottom:16px;z-index:900;background:#bb772b;color:white;border:1px solid #d3a76a;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #0003';button.onclick=updateHistoricalOrder3D;document.body.append(button);};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  }
   const currentProjectRecord=()=>currentProjects()?.state?.currentProjectRecord||null;
   // r17 · Aspire: somente layers efetivamente usadas são exportadas.
   // Corte externo/interno/encaixes e corte de seccionadora carregam E=espessura e P=profundidade.
