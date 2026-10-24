@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r53",
+  "version": "1.312.00-r54",
   "date": "2026-10-24",
-  "message": "Rasgos e furos (cegos/passantes) na mesma chapa, usando camadas e contornos seguros"
+  "message": "Contorno preto dos rasgos restaurado em peças com furos e rasgos combinados"
 }

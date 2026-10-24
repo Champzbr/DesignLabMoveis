@@ -937,6 +937,19 @@ export function createMachiningShapesModule(ctx){
       points.push(points[0].clone());const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),mat);
       line.userData.isVisualEdge=true;edges.add(line);
     }
+    // r54: contorno escuro na entrada de cada rasgo na malha combinada.
+    // Adicionado apenas como aresta visual, sem modificar o corte real.
+    for(const groove of grooves){
+      const rimT=groove.a<=.00001?-T/2:T/2;
+      const rimPoints=[
+        [groove.u0,groove.v0],[groove.u1,groove.v0],
+        [groove.u1,groove.v1],[groove.u0,groove.v1],
+        [groove.u0,groove.v0]
+      ].map(([x,y])=>formLocalPoint(ti,x,y,rimT));
+      const rim=new THREE.Line(new THREE.BufferGeometry().setFromPoints(rimPoints),mat);
+      rim.userData.isVisualEdge=true;
+      edges.add(rim);
+    }
     owner.add(edges);u.visualEdges=edges;u._dlCombinedMachiningSignature=signature;
     return true;
   }
