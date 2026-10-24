@@ -59,8 +59,11 @@ export function createCutPlanUiModule(ctx){
             coords[a]=a===axis?(dir>0?-.501:.501):Math.max(-.5,Math.min(.5,raw/localMm[k]-.5));
           }
           const diameter=Number(op.diameter||op.dia||op.width||6);
-          const radius=Math.max(.001,Math.min(.08,diameter/2000/Math.max(.001,Math.min(...dims))));
-          markers.push({type:op.type,position:[coords.x,coords.y,coords.z],radius:+radius.toFixed(5),axis});
+          // Tamanho verdadeiro: diâmetro da operação em mm -> raio em metros.
+          // Não utilizar escala normalizada pela espessura: distorcia furos em chapas finas.
+          if(!Number.isFinite(diameter)||diameter<=0||diameter>150)continue;
+          const radiusMeters=diameter/2000;
+          markers.push({type:op.type,position:[coords.x,coords.y,coords.z],radiusMeters:+radiusMeters.toFixed(6),axis});
         }
         if(markers.length)item.machining=markers;
       }
