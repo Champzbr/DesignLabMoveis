@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r47",
+  "version": "1.312.00-r48",
   "date": "2026-10-24",
-  "message": "Furos, furos passantes e copos de dobradiça em geometria 3D real; rasgos preservados"
+  "message": "Hotfix: desfaz geometria CSG defeituosa da r47; mantém rasgos da r46"
 }
