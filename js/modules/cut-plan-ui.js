@@ -19,11 +19,17 @@ export function createCutPlanUiModule(ctx){
     const objects=[];
     let totalPositions=0;
     for(const mesh of runtimeModel.objects){
-      if(!mesh?.isMesh||mesh.userData?.spaceCutting||mesh.userData?.hiddenByUser)continue;
+      if(!mesh?.isMesh||mesh.userData?.spaceCutting||mesh.userData?.hiddenByUser||mesh.visible===false)continue;
+      mesh.updateWorldMatrix(true,false);
       const u=mesh.userData||{};
-      const dims=[mesh.scale.x,mesh.scale.y,mesh.scale.z].map(Number);
-      const pos=[mesh.position.x,mesh.position.y,mesh.position.z].map(Number);
-      const rot=[mesh.rotation.x,mesh.rotation.y,mesh.rotation.z].map(Number);
+      // Componentes podem estar aninhados: obter coordenadas MUNDIAIS, não locais.
+      const worldPosition=mesh.getWorldPosition(mesh.position.clone());
+      const worldScale=mesh.getWorldScale(mesh.scale.clone());
+      const worldQuaternion=mesh.getWorldQuaternion(mesh.quaternion.clone());
+      const worldRotation=mesh.rotation.clone().setFromQuaternion(worldQuaternion,'XYZ');
+      const dims=[worldScale.x,worldScale.y,worldScale.z].map(Number);
+      const pos=[worldPosition.x,worldPosition.y,worldPosition.z].map(Number);
+      const rot=[worldRotation.x,worldRotation.y,worldRotation.z].map(Number);
       if([...dims,...pos,...rot].some(x=>!Number.isFinite(x))||dims.some(x=>x<=0||x>30))continue;
       const item={id:String(u.partId||u.bridgeMetadata?.componentId||objects.length).slice(0,80),name:String(u.name||'Peça').slice(0,100),
         size:dims.map(x=>+x.toFixed(6)),position:pos.map(x=>+x.toFixed(6)),rotation:rot.map(x=>+x.toFixed(7)),
