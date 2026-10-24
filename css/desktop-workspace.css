@@ -1,0 +1,29 @@
+
+/* r44 · Layout profissional apenas desktop, isolado do motor CAD */
+#dlDesktopSwitch,#dlWorkspace{display:none!important}
+@media(min-width:1024px) and (hover:hover) and (pointer:fine){
+ #dlDesktopSwitch{display:block!important;position:fixed;top:72px;left:12px;z-index:48;border:1px solid #83a6a8;background:#173a47;color:white;padding:9px 13px;border-radius:10px;font:700 12px system-ui;cursor:pointer;box-shadow:0 5px 20px #0004}
+ body.dl-pro-layout #dlWorkspace{display:block!important}
+ body.dl-pro-layout #dlDesktopSwitch{top:56px;left:auto;right:12px;background:#eaa84d;color:#202c31;border-color:#c68e3c}
+ body.dl-pro-layout #topbar{top:54px}
+ #dlWorkspace{position:fixed;inset:0;pointer-events:none;z-index:42;font:13px system-ui;color:#e9f2f5}
+ #dlWorkspace *{box-sizing:border-box}
+ #dlWorkBar{position:absolute;left:0;right:0;top:0;height:50px;display:flex;align-items:center;gap:8px;padding:0 140px 0 16px;background:#202d36;border-bottom:1px solid #4e6570;pointer-events:auto;box-shadow:0 5px 18px #0004}
+ #dlWorkBar strong{color:#ffc066;white-space:nowrap;margin-right:10px}
+ #dlWorkBar button,#dlWorkPanel button{font:inherit;cursor:pointer;border:1px solid #49636d;border-radius:7px;background:#30434d;color:#f3fafc;padding:8px 11px}
+ #dlWorkBar button:hover,#dlWorkPanel button:hover{border-color:#f4b250;background:#435766}
+ #dlWorkBar button[aria-selected=true]{background:#a76520;border-color:#eda943;color:white}
+ #dlWorkPanel{position:absolute;left:18px;top:105px;width:290px;min-width:240px;max-width:510px;min-height:190px;max-height:calc(100vh - 130px);display:flex;flex-direction:column;border-radius:14px;background:#202c34;border:1px solid #55717a;box-shadow:0 18px 48px #0008;pointer-events:auto;overflow:hidden;resize:both}
+ #dlWorkPanel[data-dock=left]{left:10px!important;top:102px!important;height:calc(100vh - 114px);max-height:none;resize:horizontal;border-radius:9px}
+ #dlWorkPanel[data-dock=right]{left:auto!important;right:10px!important;top:102px!important;height:calc(100vh - 114px);max-height:none;resize:horizontal;border-radius:9px}
+ #dlWorkPanelHead{display:flex;gap:5px;align-items:center;background:#344750;padding:8px;cursor:grab;user-select:none;touch-action:none}
+ #dlWorkPanelHead:active{cursor:grabbing}
+ #dlWorkPanelTitle{flex:1;font-weight:800;white-space:nowrap}
+ #dlWorkPanelHead button{padding:4px 7px;font-size:11px}
+ #dlWorkPanelBody{overflow:auto;padding:12px;flex:1;min-height:0;touch-action:auto}
+ #dlWorkPanelBody p{margin:0 0 10px;color:#aec4cc;line-height:1.5;font-size:12px}
+ .dl-work-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .dl-work-actions button{text-align:left;min-height:44px}
+ .dl-work-actions button:disabled{opacity:.4;cursor:not-allowed}
+ #dlWorkStatus{position:absolute;bottom:11px;left:50%;transform:translateX(-50%);background:#263740ed;padding:5px 15px;border-radius:20px;pointer-events:none;font-size:11px;color:#dbe8ed}
+}
