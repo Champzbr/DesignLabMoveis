@@ -666,9 +666,9 @@ export function createMachiningShapesModule(ctx){
     u._dlSolidGrooveSignature=signature;
     return true;
   }
-  // r49: furos passantes circulares em chapas retangulares, usando o
-  // ExtrudeGeometry já utilizado em Formas, sem CSG e sem triangulação manual.
-  // Furos cegos, laterais complexas, formas e peças com rasgo mantêm o overlay.
+  // r52: furos passantes e cegos nas faces principais de chapas retangulares.
+  // Cada intervalo de profundidade e um solido fechado do proprio ExtrudeGeometry.
+  // Isso evita a triangulacao CSG que corrompia as pecas na r47.
   function solidThroughHolesForPiece(owner){
     const u=owner.userData||{},ti=pieceThicknessInfo(owner);
     if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||
@@ -676,44 +676,92 @@ export function createMachiningShapesModule(ctx){
       (u.machining||[]).some(op=>op.type==='groove'))return false;
     const holes=[];
     for(const op of (u.machining||[])){
-      if(op.type!=='hole'||!op.through||entryAxisName(op.entryAxis)!==ti.thicknessAxis)continue;
-      const radius=Number(op.diameter)/2;
-      if(!Number.isFinite(radius)||radius<.5)continue;
+      if(op.type!=='hole'||entryAxisName(op.entryAxis)!==ti.thicknessAxis)continue;
+      const radius=Number(op.diameter)/2,depth=op.through?ti.thickness:operationDepthMm(owner,op);
+      if(![radius,depth].every(Number.isFinite)||radius<.5||depth<=0||depth>ti.thickness+.001)continue;
+      const side=entryAxisSign(op.entryAxis);
       for(const point of holeSeriesInstances(owner,op)){
         const cx=Number(point[ti.uAxis]),cy=Number(point[ti.vAxis]);
         if(!Number.isFinite(cx)||!Number.isFinite(cy)||cx-radius<.5||cy-radius<.5||
-           cx+radius>ti.faceW-.5||cy+radius>ti.faceH-.5)continue;
-        if(holes.some(h=>Math.hypot(cx-h.cx,cy-h.cy)<=radius+h.radius+.5))continue;
-        holes.push({cx,cy,radius});
-        if(holes.length>24) return false;
+          cx+radius>ti.faceW-.5||cy+radius>ti.faceH-.5)continue;
+        // Recusar furos que se intersectam, em vez de criar triangulos defeituosos.
+        if(holes.some(h=>Math.hypot(cx-h.cx,cy-h.cy)<=radius+h.radius+.5))return false;
+        holes.push({cx,cy,radius,depth:Math.min(depth,ti.thickness),side});
+        if(holes.length>24)return false;
       }
     }
     if(!holes.length)return false;
     const signature=JSON.stringify({dims:ti.dims,holes});
-    if(u._dlThroughHolesSignature===signature && owner.geometry?.attributes?.position?.count)return true;
+    if(u._dlThroughHolesSignature===signature&&owner.geometry?.attributes?.position?.count)return true;
     const outer=[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]];
-    const polygons=holes.map(({cx,cy,radius})=>{
-      const points=[];const n=48;
-      for(let i=n-1;i>=0;i--){const angle=2*Math.PI*i/n;
-        points.push([cx+radius*Math.cos(angle),cy+radius*Math.sin(angle)]);
+    const circle=({cx,cy,radius})=>{
+      const pts=[],n=48;
+      for(let i=n-1;i>=0;i--){const ang=2*Math.PI*i/n;
+        pts.push([cx+radius*Math.cos(ang),cy+radius*Math.sin(ang)]);
       }
-      return points;
-    });
-    const geom=formV48SolidGeometry(outer,polygons,ti);
-    if(!geom)return false;
-    // Validação: o sólido deve manter todas as dimensões originais.
-    const bounds=geom.boundingBox;
-    const spans={x:bounds.max.x-bounds.min.x,y:bounds.max.y-bounds.min.y,z:bounds.max.z-bounds.min.z};
-    if(['x','y','z'].some(axis=>!Number.isFinite(spans[axis])||Math.abs(spans[axis]-ti.dims[axis]*MM_TO_M)>0.00005)){
-      geom.dispose();return false;
+      return pts;
+    };
+    // Profundidades contadas a partir da face de entrada, mm dentro da chapa.
+    // Face positiva entra pelo plano -t/2; negativa entra pelo plano +t/2.
+    const levels=[0,ti.thickness];
+    for(const hole of holes){
+      const end=hole.side>0?hole.depth:ti.thickness-hole.depth;
+      if(end>.001&&end<ti.thickness-.001)levels.push(end);
     }
-    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=geom;
+    levels.sort((x,y)=>x-y);
+    const planes=levels.filter((n,i)=>i===0||n-levels[i-1]>.00001);
+    if(planes.length>26)return false;
+    const solids=[];
+    for(let i=0;i<planes.length-1;i++){
+      const lo=planes[i],hi=planes[i+1],span=hi-lo,mid=(lo+hi)/2;
+      if(span<.00001)continue;
+      const active=holes.filter(h=>h.side>0?mid<h.depth-.00001:mid>ti.thickness-h.depth+.00001);
+      const geom=formV48SolidGeometry(outer,active.map(circle),{...ti,thickness:span});
+      if(!geom){for(const g of solids)g.dispose();return false;}
+      const offset=(mid-ti.thickness/2)*MM_TO_M;
+      if(ti.thicknessAxis==='x')geom.translate(offset,0,0);
+      else if(ti.thicknessAxis==='y')geom.translate(0,offset,0);
+      else geom.translate(0,0,offset);
+      solids.push(geom);
+    }
+    if(!solids.length)return false;
+    // Mescla camadas em um so BufferGeometry, sem dependencias externas.
+    // Faces internas coincidentes ficam escondidas dentro do solido; os fundos
+    // dos furos cegos sao fechados pela camada que permanece intacta.
+    const length=solids.reduce((v,g)=>v+g.attributes.position.array.length,0);
+    const pos=new Float32Array(length),norm=new Float32Array(length),uv=new Float32Array(length/3*2);
+    const combined=new THREE.BufferGeometry();let po=0,uo=0,vertexOffset=0;
+    for(const g of solids){
+      const p=g.attributes.position.array,n=g.attributes.normal.array,t=g.attributes.uv.array;
+      pos.set(p,po);norm.set(n,po);uv.set(t,uo);
+      for(const group of g.groups)combined.addGroup(vertexOffset+group.start,group.count,group.materialIndex);
+      vertexOffset+=p.length/3;po+=p.length;uo+=t.length;g.dispose();
+    }
+    combined.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    combined.setAttribute('normal',new THREE.BufferAttribute(norm,3));
+    combined.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+    combined.computeBoundingBox();combined.computeBoundingSphere();
+    const bounds=combined.boundingBox;
+    if(['x','y','z'].some(axis=>!Number.isFinite(bounds.min[axis])||
+      Math.abs(bounds.max[axis]-bounds.min[axis]-ti.dims[axis]*MM_TO_M)>.00005)){
+      combined.dispose();return false;
+    }
+    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=combined;
     owner.scale.set(1,1,1);
     if(Array.isArray(u.faceMaterials)&&u.faceMaterials.length)owner.material=u.faceMaterials;
     formV47RestoreOpaqueMaterials(owner);
     if(owner===ctx.selected&&!ctx.visualMode)setAllFaces(owner,COLORS.selected);
     else restoreBaseColor(owner);
-    const edges=formV47VisualEdges(owner,outer,polygons,ti);
+    const edges=formV47VisualEdges(owner,outer,[],ti);
+    // Mostra circunferencia apenas na face que foi realmente perfurada.
+    const circleMat=new THREE.LineBasicMaterial({color:0x17130e,transparent:true,opacity:.86,depthTest:true,depthWrite:false});
+    for(const hole of holes){
+      const z=hole.side>0?-ti.thickness/2:ti.thickness/2;
+      const points=circle(hole).map(([x,y])=>formLocalPoint(ti,x,y,z));
+      points.push(points[0].clone());
+      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),circleMat);
+      line.userData.isVisualEdge=true;edges.add(line);
+    }
     owner.add(edges);u.visualEdges=edges;
     u._dlThroughHolesSignature=signature;
     return true;
@@ -739,7 +787,7 @@ export function createMachiningShapesModule(ctx){
       }
       for(const op of (owner.userData?.machining||[])){
         if(realGrooves&&op.type==='groove')continue;
-        if(realHoles&&op.type==='hole'&&op.through&&entryAxisName(op.entryAxis)===pieceThicknessInfo(owner)?.thicknessAxis)continue;
+        if(realHoles&&op.type==='hole'&&entryAxisName(op.entryAxis)===pieceThicknessInfo(owner)?.thicknessAxis)continue;
         const points=op.type==='hole'?holeSeriesInstances(owner,op):[null];
         for(const point of points){
           let v;
