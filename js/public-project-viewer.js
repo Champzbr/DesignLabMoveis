@@ -18,6 +18,10 @@ export async function initViewer(assembly){
   const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color,roughness:.82,metalness:0,side:THREE.DoubleSide}));
   mesh.position.set(...part.position);mesh.scale.set(...part.size);mesh.rotation.order='XYZ';mesh.rotation.set(...part.rotation);
   mesh.userData.isDoor=isDoor;mesh.userData.isFront=isFront;mesh.userData.partName=String(part.name||'Peça');mesh.userData.color=color;mesh.userData.partId=String(part.id||'');
+  // Contornos reais da geometria: somente ângulos entre faces; sem diagonais da triangulação.
+  const edgeGeometry=new THREE.EdgesGeometry(geometry,28);
+  const edges=new THREE.LineSegments(edgeGeometry,new THREE.LineBasicMaterial({color:0x24201a,transparent:true,opacity:.85,depthTest:true}));
+  edges.renderOrder=1;mesh.add(edges);
   group.add(mesh);parts.push(mesh);mesh.updateMatrixWorld(true);bounds.expandByObject(mesh);
  }
  if(!parts.length)throw Error('O pedido não possui componentes 3D válidos.');
@@ -47,13 +51,29 @@ export async function initViewer(assembly){
  if(assembledButton)assembledButton.addEventListener('click',()=>{if(explodeInput)explodeInput.value='0';explode(0);});
  const doors=document.getElementById('hideDoors'),fronts=document.getElementById('hideFronts'),machining=document.getElementById('showMachining');
  const machiningObjects=[];
- // Somente desenha operações realmente fornecidas na montagem (nunca inventa furações).
- parts.forEach((mesh,i)=>{const operations=assembly.objects.find(p=>String(p?.id||'')===mesh.userData.partId)?.machining;if(!Array.isArray(operations))return;
+ // Cada peça é uma malha unitária escalada em X/Y/Z. Marcadores no espaço local
+ // recebem escala INVERSA para manter a mesma medida real em todos os eixos.
+ // Os dados r43 usam raio em metros. Para pedidos anteriores, o campo `radius`
+ // tinha unidades normalizadas ambíguas: mostrar marcador discreto de referência,
+ // sem fingir que o diâmetro antigo está correto.
+ parts.forEach((mesh,i)=>{
+  const operations=assembly.objects[i]?.machining;
+  if(!Array.isArray(operations))return;
   for(const op of operations.slice(0,200)){
    if(!op||!Array.isArray(op.position)||op.position.length!==3||op.position.some(x=>!Number.isFinite(x)||Math.abs(x)>2))continue;
-   const radius=Number(op.radius)||0.005;if(!(radius>0&&radius<.2))continue;
-   const marker=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),new THREE.MeshBasicMaterial({color:0x1776ee,depthTest:false}));
-   marker.position.set(...op.position);mesh.add(marker);machiningObjects.push(marker);
+   if(!['x','y','z'].includes(op.axis))continue;
+   if(op.type!=='hole')continue; // Rasgos exigem comprimento/orientação reais para renderização segura.
+   const r=Number(op.radiusMeters);
+   const realRadius=Number.isFinite(r)&&r>0&&r<=.075?r:.003;
+   const marker=new THREE.Mesh(new THREE.CircleGeometry(realRadius,32),new THREE.MeshBasicMaterial({color:0x167de6,side:THREE.DoubleSide,transparent:true,opacity:.72,depthTest:true,depthWrite:false}));
+   // CircleGeometry nasce no plano XY (normal Z).
+   if(op.axis==='x')marker.rotation.y=Math.PI/2;
+   else if(op.axis==='y')marker.rotation.x=-Math.PI/2;
+   // Compensa a escala não uniforme do componente. Geometria em METROS.
+   marker.scale.set(1/mesh.scale.x,1/mesh.scale.y,1/mesh.scale.z);
+   marker.position.set(...op.position);
+   marker.renderOrder=2;
+   mesh.add(marker);machiningObjects.push(marker);
   }
  });
  const updateVisibility=()=>{parts.forEach(mesh=>{mesh.visible=!(doors?.checked&&mesh.userData.isDoor)&&!(fronts?.checked&&mesh.userData.isFront);});machiningObjects.forEach(m=>{m.visible=!!machining?.checked;});render();};
