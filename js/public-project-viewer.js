@@ -17,12 +17,35 @@ export async function initViewer(assembly){
   const color=/^#[a-fA-F0-9]{6}$/.test(part.color||'')?part.color:'#91cbb6';
   const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color,roughness:.82,metalness:0,side:THREE.DoubleSide}));
   mesh.position.set(...part.position);mesh.scale.set(...part.size);mesh.rotation.order='XYZ';mesh.rotation.set(...part.rotation);
-  mesh.userData.partName=String(part.name||'Peça');mesh.userData.color=color;
+  mesh.userData.partName=String(part.name||'Peça');mesh.userData.color=color;mesh.userData.partId=String(part.id||'');
   group.add(mesh);parts.push(mesh);mesh.updateMatrixWorld(true);bounds.expandByObject(mesh);
  }
  if(!parts.length)throw Error('O pedido não possui componentes 3D válidos.');
  const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3()),radius=Math.max(size.length(),.4);
  const camera=new THREE.PerspectiveCamera(42,1,.001,Math.max(100,radius*50));let yaw=.7,pitch=.45,distance=radius*1.65;
+ // Explosão progressiva: cada peça parte de sua posição original e segue um vetor
+ // radial em relação ao centro da montagem; sem modificar os dados do pedido.
+ const explodeInput=document.getElementById('explodeAmount');
+ const explodeOutput=document.getElementById('explodeValue');
+ const original=parts.map(mesh=>mesh.position.clone());
+ const offsets=parts.map((mesh,i)=>{
+   const partCenter=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+   const vector=partCenter.sub(center);
+   if(vector.lengthSq()<0.000001){const angle=2*Math.PI*i/Math.max(parts.length,1);vector.set(Math.cos(angle),.35,Math.sin(angle));}
+   return vector.normalize();
+ });
+ function explode(value){
+  const amount=Math.max(0,Math.min(100,Number(value)||0));
+  // Deslocamento máximo proporcional à dimensão total do móvel.
+  const travel=Math.max(size.x,size.y,size.z,0.1)*0.9*amount/100;
+  parts.forEach((mesh,i)=>mesh.position.copy(original[i]).addScaledVector(offsets[i],travel));
+  if(explodeOutput)explodeOutput.textContent=Math.round(amount)+'%';
+  render();
+ }
+ if(explodeInput)explodeInput.addEventListener('input',()=>explode(explodeInput.value));
+ const assembledButton=document.getElementById('assembleView');
+ if(assembledButton)assembledButton.addEventListener('click',()=>{if(explodeInput)explodeInput.value='0';explode(0);});
+ const countLabel=document.getElementById('viewerCount');if(countLabel)countLabel.textContent=parts.length+' peça(s) 3D';
  const render=()=>{const w=Math.max(host.clientWidth,200),h=Math.max(host.clientHeight,200);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();camera.position.set(center.x+distance*Math.cos(pitch)*Math.sin(yaw),center.y+distance*Math.sin(pitch),center.z+distance*Math.cos(pitch)*Math.cos(yaw));camera.lookAt(center);renderer.render(scene,camera);};
  const reset=()=>{yaw=.7;pitch=.45;distance=radius*1.65;render();};document.getElementById('resetView').onclick=reset;
  const active=new Map();let lastPinch=0,moved=false,downX=0,downY=0;
