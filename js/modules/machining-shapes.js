@@ -1,3 +1,4 @@
+import { buildMachinedSolid } from './solid-machining-csg.js';
 // DesignLabMoveis 1.311.00 · módulo machining-shapes.
 export function createMachiningShapesModule(ctx){
 // 1.312.00-r44 · corrige referência de cor de seleção após migração state→ctx.
@@ -666,6 +667,58 @@ export function createMachiningShapesModule(ctx){
     u._dlSolidGrooveSignature=signature;
     return true;
   }
+  // r47: furos passantes, cegos e copos de dobradiça como cortes sólidos de visualização.
+  // Rasgos existentes continuam no mecanismo da r46 quando não há furos.
+  const machiningGeometryCache = new WeakMap();
+  function buildRealHoleGeometry(owner){
+    const u=owner?.userData||{},ti=pieceThicknessInfo(owner);
+    if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||(u.forms||[]).length||u.importedMesh||u.formProfile)return false;
+    const holes=(u.machining||[]).filter(op=>op.type==='hole');
+    if(!holes.length){
+      if(u._dlRealHoleSignature){delete u._dlRealHoleSignature;machiningGeometryCache.delete(owner);rebuildFormGeometry(owner);}
+      return false;
+    }
+    const dims=ti.dims,axes=['x','y','z'],operations=[];
+    for(const op of u.machining||[]){
+      const axis=entryAxisName(op.entryAxis),sign=entryAxisSign(op.entryAxis);
+      if(!axes.includes(axis))return false;
+      const depth=Math.min(dims[axis],operationDepthMm(owner,op));
+      if(!(depth>.01))return false;
+      const fromFace=sign>0?0:dims[axis];
+      const centerDepth=fromFace+sign*depth/2;
+      if(op.type==='hole'){
+        const diameter=Number(op.diameter);
+        if(!(diameter>0)||diameter>Math.max(...Object.values(dims)))return false;
+        for(const pt of holeSeriesInstances(owner,op)){
+          const center={x:pt.x,y:pt.y,z:pt.z};center[axis]=centerDepth;
+          for(const other of axes.filter(a=>a!==axis))if(center[other]-diameter/2<-.01||center[other]+diameter/2>dims[other]+.01)return false;
+          operations.push({type:'hole',axis,depth,diameter,center});
+        }
+      }else if(op.type==='groove'){
+        const la=op.lengthAxis,wa=axes.find(a=>a!==axis&&a!==la);
+        if(!axes.includes(la)||!wa||la===axis)return false;
+        const length=Number(op.length),width=Number(op.width),pos=resolvedMachiningCoords(owner,op);
+        if(!(length>0&&width>0))return false;
+        const size={x:0,y:0,z:0};size[axis]=depth;size[la]=length;size[wa]=width;
+        const center={x:0,y:0,z:0};
+        for(const a of axes)center[a]=a===axis?centerDepth:pos[a]+size[a]/2;
+        operations.push({type:'groove',center,size});
+      }
+      if(operations.length>24)return false;
+    }
+    if(!operations.length)return false;
+    const signature=JSON.stringify({dims,operations});
+    if(u._dlRealHoleSignature===signature)return true;
+    let geometry;
+    try{geometry=buildMachinedSolid(THREE,dims,operations);}catch(error){console.warn('[DesignLab] Usinagem sólida indisponível para esta peça:',error);return false;}
+    if(!geometry.getAttribute('position')?.count){geometry.dispose();return false;}
+    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=geometry;owner.scale.set(1,1,1);
+    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,28),makeCadEdgeMaterial({color:0x16191a,transparent:true,opacity:.83,depthTest:true,depthWrite:false,linewidth:1.1}));
+    edges.userData.isVisualEdge=true;owner.add(edges);u.visualEdges=edges;
+    u._dlRealHoleSignature=signature;delete u._dlSolidGrooveSignature;
+    machiningGeometryCache.set(owner,signature);
+    return true;
+  }
   function clearMachiningVisuals(){
     while(runtimeModel.machiningVisualGroup.children.length){
       const v=runtimeModel.machiningVisualGroup.children[0]; runtimeModel.machiningVisualGroup.remove(v);
@@ -678,9 +731,10 @@ export function createMachiningShapesModule(ctx){
     for(const owner of runtimeModel.objects){
       if(owner.userData?.kind==='cylinder')continue;
       sanitizeMachiningForPiece(owner);
-      const realGrooves=solidGrooveMeshForPiece(owner);
+      const realHoles=buildRealHoleGeometry(owner);
+      const realGrooves=realHoles||solidGrooveMeshForPiece(owner);
       for(const op of (owner.userData?.machining||[])){
-        if(realGrooves&&op.type==='groove')continue;
+        if(realHoles || (realGrooves&&op.type==='groove'))continue;
         const points=op.type==='hole'?holeSeriesInstances(owner,op):[null];
         for(const point of points){
           let v;
