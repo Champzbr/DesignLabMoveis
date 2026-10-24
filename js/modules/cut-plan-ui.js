@@ -94,12 +94,6 @@ export function createCutPlanUiModule(ctx){
       alert('Montagem atualizada! '+assembly.objects.length+' peças. Link público: '+result.publicUrl);
     }catch(err){alert('Não foi possível atualizar: '+(err?.message||err));}
   }
-  if(typeof document!=='undefined'){
-    const install=()=>{if(document.getElementById('dlUpdateHistorical3D'))return;
-      const button=document.createElement('button');button.id='dlUpdateHistorical3D';button.type='button';button.textContent='↻ Atualizar 3D de pedido antigo';button.title='Publica a montagem atual num pedido existente sem alterar o QR';
-      button.style.cssText='position:fixed;right:16px;bottom:16px;z-index:900;background:#bb772b;color:white;border:1px solid #d3a76a;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #0003';button.onclick=updateHistoricalOrder3D;document.body.append(button);};
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-  }
   const currentProjectRecord=()=>currentProjects()?.state?.currentProjectRecord||null;
   // r17 · Aspire: somente layers efetivamente usadas são exportadas.
   // Corte externo/interno/encaixes e corte de seccionadora carregam E=espessura e P=profundidade.

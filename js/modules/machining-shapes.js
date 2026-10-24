@@ -1,6 +1,6 @@
 // DesignLabMoveis 1.311.00 · módulo machining-shapes.
 export function createMachiningShapesModule(ctx){
-// 1.312.00-r39 · corrige referência de cor de seleção após migração state→ctx.
+// 1.312.00-r44 · corrige referência de cor de seleção após migração state→ctx.
 // COLORS.ctx.selected era inválido e quebrava ao aplicar/reconstruir uma Forma.
   const { $, COLORS, MM_TO_M, M_TO_MM, THREE, adminAllowed, cloudApiFetch, commitHistory, controls, m, makeBoxVisualEdges, makeCadEdgeMaterial, nice, perspectiveCamera, referenceMeshes, restoreBaseColor, returnTo3D, roundMmNumber, scene, selectObject, setAllFaces, setDesignLabVisualizationOnly, setDimensions, setTool, setVisualMode, toast, uid, updateInspector, xray3DActive }=ctx;
   const runtimeModel=ctx.runtimeModel;
@@ -599,6 +599,73 @@ export function createMachiningShapesModule(ctx){
       }
     }
   }
+  // r46: malha sólida de chapa retangular menos canais prismáticos ortogonais.
+  // A malha é apenas de visualização CAD; coordenadas de produção não são alteradas.
+  function solidGrooveMeshForPiece(owner){
+    const u=owner.userData||{},ti=pieceThicknessInfo(owner);
+    if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||(u.forms||[]).length||u.importedMesh||u.formProfile)return false;
+    const ops=(u.machining||[]).filter(op=>op.type==='groove');
+    if(!ops.length){
+      if(u._dlSolidGrooveSignature){delete u._dlSolidGrooveSignature;rebuildFormGeometry(owner);}
+      return false;
+    }
+    const dims=ti.dims,axes=['x','y','z'],cuts=[];
+    for(const op of ops){
+      const da=entryAxisName(op.entryAxis),la=op.lengthAxis,wa=axes.find(a=>a!==da&&a!==la);
+      const depth=operationDepthMm(owner,op),length=Number(op.length),width=Number(op.width);
+      if(!axes.includes(da)||!axes.includes(la)||!wa||da===la||![depth,length,width].every(v=>Number.isFinite(v)&&v>0))return false;
+      if(da!==ti.thicknessAxis||![ti.uAxis,ti.vAxis].includes(la))return false;
+      const pos=resolvedMachiningCoords(owner,op),sign=entryAxisSign(op.entryAxis),cut={};
+      for(const a of axes){
+        const lo=a===da?(sign>0?0:dims[a]-depth):Number(pos[a]);
+        const size=a===da?depth:(a===la?length:width);
+        cut[a]=[Math.max(0,lo),Math.min(dims[a],lo+size)];
+        if(cut[a][1]-cut[a][0]<.001)return false;
+      }
+      cuts.push(cut);
+    }
+    if(cuts.length>16)return false;
+    const signature=JSON.stringify({dims,cuts});
+    if(u._dlSolidGrooveSignature===signature)return true;
+    const planes={};
+    for(const a of axes){planes[a]=[0,dims[a],...cuts.flatMap(c=>c[a])].sort((x,y)=>x-y).filter((v,i,arr)=>i===0||v-arr[i-1]>.00001);}
+    const [xs,ys,zs]=axes.map(a=>planes[a]);
+    if((xs.length-1)*(ys.length-1)*(zs.length-1)>24000)return false;
+    const occupied=(i,j,k)=>{
+      if(i<0||j<0||k<0||i>=xs.length-1||j>=ys.length-1||k>=zs.length-1)return false;
+      const cx=(xs[i]+xs[i+1])/2,cy=(ys[j]+ys[j+1])/2,cz=(zs[k]+zs[k+1])/2;
+      return !cuts.some(c=>cx>c.x[0]&&cx<c.x[1]&&cy>c.y[0]&&cy<c.y[1]&&cz>c.z[0]&&cz<c.z[1]);
+    };
+    const vertices=[],groups=[];
+    function quad(p0,p1,p2,p3,axis,sign){
+      // Corrige winding pela normal desejada, inclusive paredes internas do rasgo.
+      const a=p0,b=p1,c=p2,ab=b.map((v,i)=>v-a[i]),ac=c.map((v,i)=>v-a[i]);
+      const n=[ab[1]*ac[2]-ab[2]*ac[1],ab[2]*ac[0]-ab[0]*ac[2],ab[0]*ac[1]-ab[1]*ac[0]];
+      if(n[axis]*sign<0)[p1,p3]=[p3,p1];
+      for(const pt of [p0,p1,p2,p0,p2,p3]) vertices.push((pt[0]-dims.x/2)*MM_TO_M,(pt[1]-dims.y/2)*MM_TO_M,(pt[2]-dims.z/2)*MM_TO_M);
+      groups.push(axis*2+(sign>0?0:1));
+    }
+    for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++)for(let k=0;k<zs.length-1;k++){
+      if(!occupied(i,j,k))continue;
+      const [x0,x1]=[xs[i],xs[i+1]],[y0,y1]=[ys[j],ys[j+1]],[z0,z1]=[zs[k],zs[k+1]];
+      if(!occupied(i-1,j,k))quad([x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1],0,-1);
+      if(!occupied(i+1,j,k))quad([x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1],0,1);
+      if(!occupied(i,j-1,k))quad([x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1],1,-1);
+      if(!occupied(i,j+1,k))quad([x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1],1,1);
+      if(!occupied(i,j,k-1))quad([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],2,-1);
+      if(!occupied(i,j,k+1))quad([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1],2,1);
+    }
+    if(!vertices.length)return false;
+    const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+    for(let q=0;q<groups.length;q++)geom.addGroup(q*6,6,groups[q]);
+    geom.computeVertexNormals();
+    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=geom;owner.scale.set(1,1,1);
+    const edgeMat=makeCadEdgeMaterial({color:0x16191a,transparent:true,opacity:.83,depthTest:true,depthWrite:false,linewidth:1.1});
+    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geom,28),edgeMat);
+    edges.userData.isVisualEdge=true;owner.add(edges);u.visualEdges=edges;
+    u._dlSolidGrooveSignature=signature;
+    return true;
+  }
   function clearMachiningVisuals(){
     while(runtimeModel.machiningVisualGroup.children.length){
       const v=runtimeModel.machiningVisualGroup.children[0]; runtimeModel.machiningVisualGroup.remove(v);
@@ -611,7 +678,9 @@ export function createMachiningShapesModule(ctx){
     for(const owner of runtimeModel.objects){
       if(owner.userData?.kind==='cylinder')continue;
       sanitizeMachiningForPiece(owner);
+      const realGrooves=solidGrooveMeshForPiece(owner);
       for(const op of (owner.userData?.machining||[])){
+        if(realGrooves&&op.type==='groove')continue;
         const points=op.type==='hole'?holeSeriesInstances(owner,op):[null];
         for(const point of points){
           let v;
