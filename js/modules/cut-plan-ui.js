@@ -19,7 +19,13 @@ export function createCutPlanUiModule(ctx){
     const objects=[];
     let totalPositions=0;
     for(const mesh of runtimeModel.objects){
-      if(!mesh?.isMesh||mesh.userData?.spaceCutting||mesh.userData?.hiddenByUser||mesh.visible===false)continue;
+      // Não usar flags de visibilidade ou spaceCutting como filtro de produção:
+      // chapéus, bases, divisórias e fundos criados dentro dos espaços recebem
+      // spaceCutting=true; peças podem ficar temporariamente ocultas no editor.
+      // Apenas objetos auxiliares/ferragens visuais são excluídos.
+      if(!mesh?.isMesh)continue;
+      const meta=mesh.userData||{};
+      if(meta.excludeFromCutList||meta.kind==='space-cell'||meta.kind==='hardware-visual'||meta.doorHandleVisual)continue;
       mesh.updateWorldMatrix(true,false);
       const u=mesh.userData||{};
       // Componentes podem estar aninhados: obter coordenadas MUNDIAIS, não locais.
