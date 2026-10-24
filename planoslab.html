@@ -111,7 +111,7 @@ async function loadCloudOrders(){const status=$('cloudStatus');status.textConten
   del.onclick=()=>deleteProductionOrder(o);wrap.append(del);jobs.append(wrap);
  }else jobs.append(button);}}catch(e){status.textContent='Não foi possível atualizar os pedidos: '+e.message;}}
 async function openCloudOrder(id){try{const result=await cloudRequest('/production/orders/'+encodeURIComponent(id));activeOrderId=id;const pkg=result.package;const labels=pkg.labels?.labels||[];
-  const publicBox=document.getElementById('publicOrderAccess');if(publicBox)publicBox.remove();
+  for(const el of ['publicOrderAccess','publicLegacyTools'])document.getElementById(el)?.remove();
   if(pkg.publicToken){const bar=document.createElement('div');bar.id='publicOrderAccess';bar.className='row';bar.style.margin='12px 0';const a=document.createElement('a');a.className='link secondary';a.href='./pedido.html?t='+encodeURIComponent(pkg.publicToken);a.target='_blank';a.rel='noopener';a.textContent='↗ Visualização pública / QR';bar.append(a);
     if(isProductionAdmin){
       const revoke=document.createElement('button');revoke.className='secondary';revoke.type='button';revoke.textContent='Desativar QR público';
@@ -119,6 +119,19 @@ async function openCloudOrder(id){try{const result=await cloudRequest('/producti
       bar.append(revoke);
     }
     document.getElementById('productionFiles').before(bar);}
+  if(isProductionAdmin){
+    const tools=document.createElement('div');tools.id='publicLegacyTools';tools.className='row';tools.style.margin='10px 0';
+    const publish=document.createElement('button');publish.type='button';publish.className='secondary';publish.textContent=pkg.publicToken?'↻ Reativar / verificar link QR':'Publicar pedido antigo (QR)';
+    publish.onclick=async()=>{publish.disabled=true;try{
+      const user=window.netlifyIdentity?.currentUser?.(),token=sessionStorage.getItem('designlab_operator_token_active')||(user?await user.jwt():null);
+      const response=await fetch(API+'/production/orders/'+encodeURIComponent(id)+'/public',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});
+      const data=await response.json();if(!response.ok)throw Error(data.message||'Falha na publicação');
+      alert('Link público disponível: '+data.publicUrl+(data.has3D?'':'\nEste pedido antigo ainda não tem modelo 3D. Atualize a montagem pelo editor DesignLab.'));
+      openCloudOrder(id);
+    }catch(err){alert(err.message)}finally{publish.disabled=false;}};
+    const copy=document.createElement('button');copy.type='button';copy.className='secondary';copy.textContent='Copiar ID para atualizar 3D';copy.onclick=()=>{navigator.clipboard?.writeText(id).then(()=>alert('ID copiado. Abra o projeto correspondente no editor DesignLab e clique em Atualizar 3D de pedido antigo.')).catch(()=>prompt('Copie o ID do pedido:',id));};
+    tools.append(publish,copy);document.getElementById('productionFiles').before(tools);
+  }
 order={name:result.order.name,rows:labels};raw=pkg.html||'';$('parts').textContent=labels.length;$('orderTitle').textContent=result.order.name;$('orderInfo').textContent='Pedido '+(pkg.orderNumber||'—')+' · Cliente '+(pkg.customer||'—')+' · '+result.order.machine+' · revisão '+result.order.revision;
 document.getElementById('productionFiles')?.replaceChildren();renderSheets(result);showOrderDetails();$('listPane').innerHTML='<div style="overflow:auto"><table><thead><tr><th>#</th><th>Peça</th><th>Comprimento</th><th>Largura</th><th>Esp.</th><th>Chapa</th><th>Fitas</th></tr></thead><tbody>'+labels.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.length)+'</td><td>'+esc(r.width)+'</td><td>'+esc(r.thickness)+'</td><td>'+esc(r.sheet)+'</td><td>'+esc(Object.values(r.edgeBands||{}).filter(Boolean).map(v=>v.code||v.name||'FITA').join(', '))+'</td></tr>').join('')+'</tbody></table></div>';$('preview').srcdoc=raw;$('print').disabled=!raw;$('clear').disabled=false;$('showList').click();}catch(e){alert('Não foi possível abrir a ordem: '+e.message);}}
 $('refreshCloud').onclick=loadCloudOrders;
