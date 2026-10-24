@@ -1,4 +1,4 @@
-# DesignLabMoveis 1.312.00-r49 — Hotfix de geometria
+# DesignLabMoveis 1.312.00-r50 — Hotfix de geometria
 
 - Revertida a tentativa de CSG para furos da r47, responsável por triângulos e linhas indesejadas.
 - Restaurado o módulo de usinagem estável da r46, mantendo a representação e os rasgos já disponíveis.

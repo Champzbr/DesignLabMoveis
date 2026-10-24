@@ -672,7 +672,7 @@ export function createMachiningShapesModule(ctx){
   function solidThroughHolesForPiece(owner){
     const u=owner.userData||{},ti=pieceThicknessInfo(owner);
     if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||
-      (u.forms||[]).length||u.importedMesh||u.formProfile||
+      (u.forms||[]).length||u.importedMesh||
       (u.machining||[]).some(op=>op.type==='groove'))return false;
     const holes=[];
     for(const op of (u.machining||[])){
@@ -690,7 +690,7 @@ export function createMachiningShapesModule(ctx){
     }
     if(!holes.length)return false;
     const signature=JSON.stringify({dims:ti.dims,holes});
-    if(u._dlThroughHolesSignature===signature)return true;
+    if(u._dlThroughHolesSignature===signature && owner.geometry?.attributes?.position?.count)return true;
     const outer=[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]];
     const polygons=holes.map(({cx,cy,radius})=>{
       const points=[];const n=48;
@@ -701,6 +701,12 @@ export function createMachiningShapesModule(ctx){
     });
     const geom=formV48SolidGeometry(outer,polygons,ti);
     if(!geom)return false;
+    // Validação: o sólido deve manter todas as dimensões originais.
+    const bounds=geom.boundingBox;
+    const spans={x:bounds.max.x-bounds.min.x,y:bounds.max.y-bounds.min.y,z:bounds.max.z-bounds.min.z};
+    if(['x','y','z'].some(axis=>!Number.isFinite(spans[axis])||Math.abs(spans[axis]-ti.dims[axis]*MM_TO_M)>0.00005)){
+      geom.dispose();return false;
+    }
     disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=geom;
     owner.scale.set(1,1,1);
     if(Array.isArray(u.faceMaterials)&&u.faceMaterials.length)owner.material=u.faceMaterials;

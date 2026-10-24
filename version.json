@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r49",
+  "version": "1.312.00-r50",
   "date": "2026-10-24",
-  "message": "Furos passantes circulares reais em chapas retangulares; restante preservado"
+  "message": "Correção da geração de furos passantes em painéis retangulares com formProfile; validação dimensional; preserva rasgos e marcações de furos não suportados"
 }
