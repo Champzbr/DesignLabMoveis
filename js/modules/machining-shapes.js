@@ -666,6 +666,52 @@ export function createMachiningShapesModule(ctx){
     u._dlSolidGrooveSignature=signature;
     return true;
   }
+  // r49: furos passantes circulares em chapas retangulares, usando o
+  // ExtrudeGeometry já utilizado em Formas, sem CSG e sem triangulação manual.
+  // Furos cegos, laterais complexas, formas e peças com rasgo mantêm o overlay.
+  function solidThroughHolesForPiece(owner){
+    const u=owner.userData||{},ti=pieceThicknessInfo(owner);
+    if(!ti||u.kind==='curved-panel'||u.curvedRole||u.kind==='cylinder'||
+      (u.forms||[]).length||u.importedMesh||u.formProfile||
+      (u.machining||[]).some(op=>op.type==='groove'))return false;
+    const holes=[];
+    for(const op of (u.machining||[])){
+      if(op.type!=='hole'||!op.through||entryAxisName(op.entryAxis)!==ti.thicknessAxis)continue;
+      const radius=Number(op.diameter)/2;
+      if(!Number.isFinite(radius)||radius<.5)continue;
+      for(const point of holeSeriesInstances(owner,op)){
+        const cx=Number(point[ti.uAxis]),cy=Number(point[ti.vAxis]);
+        if(!Number.isFinite(cx)||!Number.isFinite(cy)||cx-radius<.5||cy-radius<.5||
+           cx+radius>ti.faceW-.5||cy+radius>ti.faceH-.5)continue;
+        if(holes.some(h=>Math.hypot(cx-h.cx,cy-h.cy)<=radius+h.radius+.5))continue;
+        holes.push({cx,cy,radius});
+        if(holes.length>24) return false;
+      }
+    }
+    if(!holes.length)return false;
+    const signature=JSON.stringify({dims:ti.dims,holes});
+    if(u._dlThroughHolesSignature===signature)return true;
+    const outer=[[0,0],[ti.faceW,0],[ti.faceW,ti.faceH],[0,ti.faceH]];
+    const polygons=holes.map(({cx,cy,radius})=>{
+      const points=[];const n=48;
+      for(let i=n-1;i>=0;i--){const angle=2*Math.PI*i/n;
+        points.push([cx+radius*Math.cos(angle),cy+radius*Math.sin(angle)]);
+      }
+      return points;
+    });
+    const geom=formV48SolidGeometry(outer,polygons,ti);
+    if(!geom)return false;
+    disposeVisualEdgeTree(owner);owner.geometry?.dispose?.();owner.geometry=geom;
+    owner.scale.set(1,1,1);
+    if(Array.isArray(u.faceMaterials)&&u.faceMaterials.length)owner.material=u.faceMaterials;
+    formV47RestoreOpaqueMaterials(owner);
+    if(owner===ctx.selected&&!ctx.visualMode)setAllFaces(owner,COLORS.selected);
+    else restoreBaseColor(owner);
+    const edges=formV47VisualEdges(owner,outer,polygons,ti);
+    owner.add(edges);u.visualEdges=edges;
+    u._dlThroughHolesSignature=signature;
+    return true;
+  }
   function clearMachiningVisuals(){
     while(runtimeModel.machiningVisualGroup.children.length){
       const v=runtimeModel.machiningVisualGroup.children[0]; runtimeModel.machiningVisualGroup.remove(v);
@@ -679,8 +725,15 @@ export function createMachiningShapesModule(ctx){
       if(owner.userData?.kind==='cylinder')continue;
       sanitizeMachiningForPiece(owner);
       const realGrooves=solidGrooveMeshForPiece(owner);
+      // Restaura a geometria original se todos os furos passantes forem excluídos.
+      const realHoles=!realGrooves&&solidThroughHolesForPiece(owner);
+      if(!realGrooves&&!realHoles&&owner.userData?._dlThroughHolesSignature){
+        delete owner.userData._dlThroughHolesSignature;
+        rebuildFormGeometry(owner);
+      }
       for(const op of (owner.userData?.machining||[])){
         if(realGrooves&&op.type==='groove')continue;
+        if(realHoles&&op.type==='hole'&&op.through&&entryAxisName(op.entryAxis)===pieceThicknessInfo(owner)?.thicknessAxis)continue;
         const points=op.type==='hole'?holeSeriesInstances(owner,op):[null];
         for(const point of points){
           let v;

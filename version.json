@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r48",
+  "version": "1.312.00-r49",
   "date": "2026-10-24",
-  "message": "Hotfix: desfaz geometria CSG defeituosa da r47; mantém rasgos da r46"
+  "message": "Furos passantes circulares reais em chapas retangulares; restante preservado"
 }
