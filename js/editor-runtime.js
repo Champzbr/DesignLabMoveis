@@ -1,50 +1,50 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.312.00-r39';
-import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.312.00-r39';
-import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.312.00-r39';
-import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.312.00-r39';
-import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.312.00-r39';
-import { createAdminModule } from './modules/admin.js?v=1.312.00-r39';
-import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.312.00-r39';
-import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.312.00-r39';
-import { createProjectsModule } from './modules/projects.js?v=1.312.00-r39';
-import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.312.00-r39';
-import { createLibraryModule } from './modules/library.js?v=1.312.00-r39';
-import { createCadIoModule } from './modules/cad-io.js?v=1.312.00-r39';
-import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.312.00-r39';
-import { createTapeMovementModule } from './modules/tape-movement.js?v=1.312.00-r39';
-import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.312.00-r39';
-import { createSelection3DModule } from './modules/selection-3d.js?v=1.312.00-r39';
-import { createPieceEditorModule } from './modules/piece-editor.js?v=1.312.00-r39';
-import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.312.00-r39';
-import { createProductionSuiteModule } from './modules/production-suite.js?v=1.312.00-r39';
-import { createToolDockModule } from './modules/tool-dock.js?v=1.312.00-r39';
-import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.312.00-r39';
-import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.312.00-r39';
-import { createEditorHistoryModule } from './modules/editor-history.js?v=1.312.00-r39';
-import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.312.00-r39';
-import { createAppUpdateModule } from './modules/app-update.js?v=1.312.00-r39';
-import { createCloudAccountModule } from './modules/cloud-account.js?v=1.312.00-r39';
-import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.312.00-r39';
-import { createBackNavigationModule } from './modules/back-navigation.js?v=1.312.00-r39';
-import { bindUiEvents } from './modules/ui-events.js?v=1.312.00-r39';
-import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.312.00-r39';
-import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.312.00-r39';
-import { createAppThemeModule } from './modules/app-theme.js?v=1.312.00-r39';
-import { createSpaceHealingModule } from './modules/space-healing.js?v=1.312.00-r39';
-import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.312.00-r39';
-import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.312.00-r39';
-import { createToolController } from './modules/tool-controller.js?v=1.312.00-r39';
-import { createSpaceEditorModule } from './modules/space-editor.js?v=1.312.00-r39';
-import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.312.00-r39';
-import { createCadScene } from './modules/cad-scene.js?v=1.312.00-r39';
-import { createRuntimeModel } from './modules/runtime-model.js?v=1.312.00-r39';
-import { createModuleRegistry } from './modules/module-registry.js?v=1.312.00-r39';
-import { installCadInputNavigation } from './modules/cad-input.js?v=1.312.00-r39';
-import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.312.00-r39';
-import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.312.00-r39';
+import { escapeHtml, roundMmNumber, nice, uid } from './modules/editor.js?v=1.312.00-r44';
+import { createAuthModule, authUserName, authUserInitials } from './modules/auth.js?v=1.312.00-r44';
+import { makeCadEdgeMaterial, makeBoxVisualEdges, updateCadEdgeResolution } from './modules/3d-engine.js?v=1.312.00-r44';
+import { spaceSelectionKey, buildDoorRegionEnvelope, createDoorsDrawersModule } from './modules/doors-drawers.js?v=1.312.00-r44';
+import { createCutPlanUiModule } from './modules/cut-plan-ui.js?v=1.312.00-r44';
+import { createAdminModule } from './modules/admin.js?v=1.312.00-r44';
+import { createMachiningShapesModule } from './modules/machining-shapes.js?v=1.312.00-r44';
+import { createProductionMaterialsModule } from './modules/production-materials.js?v=1.312.00-r44';
+import { createProjectsModule } from './modules/projects.js?v=1.312.00-r44';
+import { createCurvedFurnitureModule } from './modules/curved-furniture.js?v=1.312.00-r44';
+import { createLibraryModule } from './modules/library.js?v=1.312.00-r44';
+import { createCadIoModule } from './modules/cad-io.js?v=1.312.00-r44';
+import { createSpacesCutsModule } from './modules/spaces-cuts.js?v=1.312.00-r44';
+import { createTapeMovementModule } from './modules/tape-movement.js?v=1.312.00-r44';
+import { createCameraNavigationModule } from './modules/camera-navigation.js?v=1.312.00-r44';
+import { createSelection3DModule } from './modules/selection-3d.js?v=1.312.00-r44';
+import { createPieceEditorModule } from './modules/piece-editor.js?v=1.312.00-r44';
+import { createTechnicalLayoutModule } from './modules/technical-layout.js?v=1.312.00-r44';
+import { createProductionSuiteModule } from './modules/production-suite.js?v=1.312.00-r44';
+import { createToolDockModule } from './modules/tool-dock.js?v=1.312.00-r44';
+import { createGeometryCoreModule } from './modules/geometry-core.js?v=1.312.00-r44';
+import { createPieceInspectorModule } from './modules/piece-inspector.js?v=1.312.00-r44';
+import { createEditorHistoryModule } from './modules/editor-history.js?v=1.312.00-r44';
+import { createPieceGeometryModule } from './modules/piece-geometry.js?v=1.312.00-r44';
+import { createAppUpdateModule } from './modules/app-update.js?v=1.312.00-r44';
+import { createCloudAccountModule } from './modules/cloud-account.js?v=1.312.00-r44';
+import { createUiOverlaysModule } from './modules/ui-overlays.js?v=1.312.00-r44';
+import { createBackNavigationModule } from './modules/back-navigation.js?v=1.312.00-r44';
+import { bindUiEvents } from './modules/ui-events.js?v=1.312.00-r44';
+import { startRuntimeBootstrap } from './modules/runtime-bootstrap.js?v=1.312.00-r44';
+import { M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,SNAP_THRESHOLD,REAIM_THRESHOLD_PX,CORNER_PICK_PX,CORNER_SNAP_PX,STORAGE_KEY,LEGACY_STORAGE_KEY_V22,LEGACY_STORAGE_KEY_V18,LEGACY_STORAGE_KEY_V15,LEGACY_STORAGE_KEY,LEGACY_STORAGE_KEY_V13,LEGACY_STORAGE_KEY_V12,LEGACY_STORAGE_KEY_V11,LEGACY_STORAGE_KEY_V10,LEGACY_STORAGE_KEY_V9,GUIDE_EXTENT,TAPE_AIM_SNAP_PX,TAPE_POINT_TOUCH_OFFSET_PX,TAPE_POINT_CORNER_SNAP_TOUCH_PX,TAPE_POINT_EDGE_SNAP_TOUCH_PX,TAPE_POINT_LINE_SNAP_TOUCH_PX,TAPE_POINT_CORNER_SNAP_MOUSE_PX,TAPE_POINT_EDGE_SNAP_MOUSE_PX,TAPE_POINT_LINE_SNAP_MOUSE_PX,TAPE_AXIS_ANGLE,EDGE_PICK_PX,EDGE_SNAP_PX,GUIDE_SNAP_PX,GUIDE_OBJECT_SNAP_WORLD,CAD_ZOOM_DEFAULT_SPEED,CAD_ZOOM_TOUCH_SPEED,CAD_ZOOM_CLOSE_SPEED,CAD_ZOOM_SLOW_ZONE,CAD_ZOOM_SURFACE_GAP,CAD_ZOOM_NEAR_DEFAULT,CAD_ZOOM_NEAR_MIN,AXIS_INFERENCE_ANGLE,AXIS_INFERENCE_MIN_PX,COLORS } from './modules/runtime-config.js?v=1.312.00-r44';
+import { createAppThemeModule } from './modules/app-theme.js?v=1.312.00-r44';
+import { createSpaceHealingModule } from './modules/space-healing.js?v=1.312.00-r44';
+import { createInteractionHelpers } from './modules/interaction-helpers.js?v=1.312.00-r44';
+import { createProductionExportHelpers } from './modules/production-export-helpers.js?v=1.312.00-r44';
+import { createToolController } from './modules/tool-controller.js?v=1.312.00-r44';
+import { createSpaceEditorModule } from './modules/space-editor.js?v=1.312.00-r44';
+import { createRuntimeHelpers } from './modules/runtime-helpers.js?v=1.312.00-r44';
+import { createCadScene } from './modules/cad-scene.js?v=1.312.00-r44';
+import { createRuntimeModel } from './modules/runtime-model.js?v=1.312.00-r44';
+import { createModuleRegistry } from './modules/module-registry.js?v=1.312.00-r44';
+import { installCadInputNavigation } from './modules/cad-input.js?v=1.312.00-r44';
+import { CAD_APPEARANCE_KEYS, loadCadAppearancePreferences, cadBackgroundHex, cadFloorHex, createCadAppearanceModule } from './modules/cad-appearance.js?v=1.312.00-r44';
+import { bindCurvedFurnitureUi } from './modules/curved-ui.js?v=1.312.00-r44';
 
 // 1.311.00 · constantes compartilhadas em js/modules/runtime-config.js.
 
@@ -52,7 +52,7 @@ const $ = id => document.getElementById(id);
 const runtimeHelpers=createRuntimeHelpers({THREE,roundMmNumber,M_TO_MM,MM_TO_M,MIN_SIZE,MAX_SIZE,$});
 const {mm,m,clampSize,toast}=runtimeHelpers;
 const moduleRegistry=createModuleRegistry();
-window.__DESIGNLAB_APP_BOOTED='1.312.00-r39';
+window.__DESIGNLAB_APP_BOOTED='1.312.00-r44';
 let auth=null;
 let projects=null;
 let projectIsoMs,cloudSaveProjectRecord,syncCloudProjects,claimLegacyProject,claimAllLegacyProjects,projectNow,projectStateHasContent,updateProjectHomeWelcome,scrollProjectHomeTo,openHomeModeling,openHomeMaterials,projectCurrentOwnerId,projectBelongsToCurrentOwner,projectEmergencyKey,prepareProjectAccountSwitch,applyProjectAccountScope,projectDbGet,projectDbPut,captureProjectCamera,restoreProjectCamera,captureProjectThumbnail,updateProjectChrome,markCurrentProjectDirty,projectAutosaveNow,applyProjectPresentationScene,resetProjectHistory,enterProjectEditor,renderProjectHome,showProjectHome,openProjectMetaDialog,closeProjectMetaDialog,readProjectMeta,createNewProject,saveCurrentProject,saveAsCurrentProject,renameCurrentProject,duplicateProjectById,deleteProjectById,exportProjectRecordFile,exportCurrentProjectFile,importProjectFile,requestOpenProject,recoverPendingProject,discardPendingRecovery,closeProjectCardMenu,initProjectHub;
@@ -102,7 +102,7 @@ let spaceMultiSelectionEntries,spaceMultiSelectionInfo,ensureSpaceMultiSelectBar
 
 // 1.311.00 · atualização/PWA extraídos para js/modules/app-update.js.
 let appUpdate=null;
-let DESIGNLAB_APP_VERSION='1.312.00-r39',DESIGNLAB_JS_BUILD='1.312.00-r39';
+let DESIGNLAB_APP_VERSION='1.312.00-r44',DESIGNLAB_JS_BUILD='1.312.00-r44';
 let designLabRuntimeBuild=()=>'',setDesignLabVisualizationOnly=()=>{},designLabVisualizationOnlyActive=()=>false,checkDesignLabUpdate=async()=>null,applyDesignLabUpdate=async()=>{},forceDesignLabServerRefresh=async()=>{},initDesignLabInstallExperience=()=>{},initDesignLabServiceWorker=async()=>null,showBannedAccount=()=>{},updateCacheStatusUI=()=>{},closeUpdateDialog=()=>{};
 
 let isLocalAuthDevelopment,offlineLicensePublicKey,offlineLicenseStoredToken,offlineLicenseLastSeenKey,clearOfflinePremiumLicense,verifyOfflinePremiumToken,loadOfflinePremiumLicense,storeOfflinePremiumLicense,offlineLicenseRecheckDue,scheduleOfflineLicenseExpiry,handleOfflineLicenseDeadline,showOfflineLicenseExpired,activateOfflinePremiumAccess,tryOfflinePremiumStartup,setAuthStatus,ensurePremiumAccessPanel,hidePremiumAccessPanel,premiumRenderQr,premiumMoney,premiumPurchaseSetStatus,closePremiumPurchase,renderPremiumPurchase,openPremiumPurchase,copyPremiumPix,markPremiumPaymentPaid,verifyPremiumPayment,stopPremiumAccessWatch,premiumWorkspaceAllowed,premiumUntilText,showPremiumAccessRequired,schedulePremiumAccessWatch,verifyPremiumWorkspaceAccess,updateIdentityChrome,lockOnlineApp,unlockOnlineApp,localAuthContinue,waitForNetlifyIdentity,bindIdentityEvents,initOnlineIdentity,authFriendlyError,showAuthInlineForm,authSetBusy,getReadyGoTrue,authSubmitLogin,authSubmitSignup,authSubmitForgot,openIdentityMode,logoutOnlineIdentity;
@@ -491,7 +491,7 @@ spacesCuts=createSpacesCutsModule({runtimeModel,moduleRegistry,
   // “Ocultar portas/frentes” lançava TypeError em módulo ES (strict mode).
   get quickFrontFacesHidden(){return quickFrontFacesHidden;},set quickFrontFacesHidden(v){quickFrontFacesHidden=!!v;},get cadHardwareVisible(){return cadHardwareVisible;},
   get doorRegionSelectionMode(){return doorRegionSelectionMode;},set doorRegionSelectionMode(v){doorRegionSelectionMode=!!v;},get lastEdit(){return lastEdit;},set lastEdit(v){lastEdit=v;},
-  get visualMode(){return visualMode;},get current2DView(){return current2DView;},set current2DView(v){current2DView=v;},get viewMode2D(){return viewMode2D;},get camera(){return camera;},
+  get visualMode(){return visualMode;},get current2DView(){return current2DView;},set current2DView(v){current2DView=v;},get viewMode2D(){return viewMode2D;},set viewMode2D(v){viewMode2D=!!v;},get camera(){return camera;},
   get selected(){return selected;},set selected(v){selected=v;}
 });
 ({getSpaceRoot,getSpaceCell,cellSize,cellCenter,disposeSpaceMeshes,updateSpaceSelectionVisuals,renderSpaces,referenceMeshes,applyQuickFrontVisibility,isManuallyHideablePiece,manuallyHiddenPieces,syncManualPieceVisibilityButtons,applyManualVisibilityToObject,hideSelectedPieceQuick,showAllManuallyHiddenPieces,hasIndividuallyHiddenSpaces,syncQuickSpaceVisibilityButton,applyQuickSpaceVisibility,showAllSpacesGeneral,quickToggleAllSpaces,hideQuickSelectedSpace,openQuickSelectedConfiguration,updateSpaceVisibilityToggleButton,largestVisibleCell,spaceCellLabel,nearestVisibleCell,toggleActiveSpaceVisibility,showAllHiddenSpaces,setSpaceActionCellMode,selectSpaceRootOnly,distanceSqPointToCell,bestVisibleCellForObject,rootForObject,openSpaceFromObject,activeSpaceRoot,clearSpaceSelection,selectSpaceCellByIds,createSpace,createSpaceFromState,viewSpace,perspectiveFrontToSpace,frontViewToSpace,setFrontWorldView,divideSelectedSpaceEvenly,applySelectedSpaceCut,cutSelectedSpace,rootBounds,mapPersistentFixedBands,updateAutoMachiningAfterPieceResize,isVerticalDivisionPiece,verticalDivisionNominalThicknessM,registerVerticalDivisionFixedBand,repairVerticalDivisionThickness,resizeSpaceRoot,objectInsideSpaceRoot,disposeObject,deleteSelectedSpaceRoot,cellContainsObjectCompletely,manualCutSibling,removeFixedBandForDeletedCell,removeManualCutNodeFromChain,expandManualCutParentBoundsAtDeletedBoundary,selectedSpaceCellDeleteContext,selectedSpaceCellDeletePreview,openDeleteSelectedSpaceCellDialog,deleteSelectedSpaceCell}=spacesCuts);

@@ -1,5 +1,5 @@
 {
-  "version": "1.312.00-r50",
+  "version": "1.312.00-r51",
   "date": "2026-10-24",
-  "message": "Correção da geração de furos passantes em painéis retangulares com formProfile; validação dimensional; preserva rasgos e marcações de furos não suportados"
+  "message": "Corrige getter-only viewMode2D na troca de vistas; preserva furo passante r50"
 }
